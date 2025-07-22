@@ -1,23 +1,69 @@
 from flask import Blueprint, request, render_template, abort, redirect, url_for
 from flask_login import login_required, current_user
-from sqlalchemy import desc
+from sqlalchemy import  select, and_, func
+from superviseme.utils.miscellanea import check_privileges
 from superviseme.models import *
 from superviseme import db
+from datetime import datetime
 import time
 
 supervisor = Blueprint("supervisor", __name__)
 
 
-@supervisor.route("/supervisor")
+@supervisor.route("/supervisor/dashboard")
 @login_required
-def supervisor_data():
+def dashboard():
     """
-    This route is for supervisor data. It retrieves all supervisors from the database
+    This route is for admin data. It retrieves all users from the database
     and renders them in a template.
     """
-    supervisors = User_mgmt.query.filter_by(id=current_user.id).first()
-    return render_template("supervisor.html", supervisor=supervisors)
+    check_privileges(current_user.username, role="supervisor")
 
+    user_counts = {
+        "students": db.session.execute(
+                    select(func.count())
+                    .select_from(User_mgmt)
+                    .join(Thesis, Thesis.author_id == User_mgmt.id)
+                    .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)
+                    .where(Thesis_Supervisor.supervisor_id == current_user.id)
+                ).scalar_one()
+    }
+
+    # count all theses by their status
+    thesis_counts = {
+        "total": Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).count(),
+    }
+
+
+    # for each supervisor get list of theses assigned to them along with the name of the student
+
+    theses = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
+    theses_by_supervisor = [
+                    {
+                        "thesis": Thesis.query.filter(Thesis.id == thesis.id, Thesis.author_id.isnot(None)).first(),
+                        "student": db.session.execute(
+                                    select(User_mgmt)
+                                    .join(Thesis, Thesis.author_id == User_mgmt.id)
+                                    .where(
+                                        and_(Thesis.id == thesis.id, Thesis.author_id.isnot(None))
+                                    )
+                                ).scalars().first()
+                    } for thesis in theses
+
+                ]
+    # filter out theses that have no student assigned
+    theses_by_supervisor =  [t for t in theses_by_supervisor if t["student"] is not None ]
+
+    available_theses_by_supervisor = db.session.execute(
+            select(Thesis)
+            .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)
+            .where(Thesis_Supervisor.supervisor_id == current_user.id, Thesis.author_id.is_(None))
+
+        ).scalars().all()
+
+    return render_template("/supervisor/supervisor_dashboard.html", current_user=current_user,
+                           user_counts=user_counts, thesis_counts=thesis_counts,
+                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses_by_supervisor, dt=datetime.fromtimestamp, str=str)
 
 @supervisor.route("/supervisee")
 @login_required
@@ -504,6 +550,7 @@ def set_advancement_status():
     db.session.commit()
 
     return theses_data()
+
 
 @supervisor.route("/delete_advancement_status", methods=["POST"])
 @login_required
