@@ -1,0 +1,162 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'admin/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+                    </div>
+
+
+                    <!-- Content Row -->
+
+                    <div class="row">
+                        <div class="col-xl-2 col-lg-16">
+                        </div>
+
+                        <div class="col-xl-8 col-lg-16">
+                            <div class="card mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Create User</h6>
+                                 </div>
+                                <div class="card-body">
+                                    <form class="user" action="/admin/create_user" method="POST">
+                                        <div class="form-group row">
+                                            <div class="col-sm-4 mb-3 mb-sm-0">
+                                                <input type="text" class="form-control form-control-user" id="name" name="name"
+                                                    placeholder="First Name">
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <input type="text" class="form-control form-control-user" id="surname" name="surname"
+                                                    placeholder="Last Name">
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <input type="text" class="form-control form-control-user" id="nationality" name="nationality"
+                                                    placeholder="Nationality">
+                                            </div>
+
+
+                                        </div>
+                                         <div class="form-group row">
+                                            <div class="col-sm-6 ">
+                                            <input type="email" class="form-control form-control-user" id="email" name="email"
+                                                placeholder="Email Address">
+                                            </div>
+                                            <div class="col-sm-6 ">
+                                                <input type="text" class="form-control form-control-user"
+                                                    id="username" placeholder="Username" name="username">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <div class="col-sm-4 mb-3 mb-sm-0">
+                                                Role
+                                                <select name="role" class="form-control form-select form-select-user">
+                                                    <option value="admin">Admin</option>
+                                                    <option value="supervisor">Supervisor</option>
+                                                    <option value="student">Student</option>
+                                                </select>
+
+                                            </div>
+                                            <div class="col-sm-4 mb-3 mb-sm-0">
+                                                Gender
+                                                <select name="gender" class="form-control form-select form-select-user">
+                                                    <option value=""> </option>
+                                                    <option value="male">male</option>
+                                                    <option value="female">female</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-4">
+                                                Degree Enrolled
+                                                <select name="cdl" class="form-control form-select form-select-user">
+                                                    <option value=""></option>
+                                                    <option value="computer science">Computer Science</option>
+                                                    <option value="data science">Data Science</option>
+                                                    <option value="digital humanities">Digital Humanities</option>
+                                                    <option value="physics">Physics</option>
+                                                </select>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="form-group row">
+                                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                                <input type="password" class="form-control form-control-user"
+                                                    id="password" placeholder="Password" name="password">
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <input type="password" class="form-control form-control-user"
+                                                    id="password2" placeholder="Repeat Password" name="password2">
+                                            </div>
+                                        </div>
+                                <button class="btn btn-primary btn-user btn-block">
+                                    Register Account
+                                </button>
+                            </form>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Content Row -->
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" href="login.html">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
