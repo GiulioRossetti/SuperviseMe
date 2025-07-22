@@ -1,9 +1,13 @@
+from collections import defaultdict
+
 from flask import Blueprint, render_template, redirect, url_for, request, flash
-from flask_login import login_user, login_required, logout_user, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import login_required, current_user
+from sqlalchemy import select, and_
+from werkzeug.security import generate_password_hash
 from superviseme.models import *
 from superviseme.utils.miscellanea import check_privileges
 from superviseme import db
+from datetime import datetime
 import time
 
 admin = Blueprint("admin", __name__)
@@ -36,13 +40,35 @@ def dashboard():
     theses_by_supervisor = {}
     for supervisor in supervisors:
         theses = Thesis_Supervisor.query.filter_by(supervisor_id=supervisor.id).all()
-        theses_by_supervisor[supervisor.username] = [
-            {"thesis": Thesis.query.filter_by(id=thesis.id), "student": User_mgmt.query.get(thesis.student_id).surname} for thesis in theses
-        ]
+        theses_by_supervisor[supervisor] = [
+                    {
+                        "thesis": Thesis.query.filter(Thesis.id == thesis.id, Thesis.author_id.isnot(None)).first(),
+                        "student": db.session.execute(
+                                    select(User_mgmt)
+                                    .join(Thesis, Thesis.author_id == User_mgmt.id)
+                                    .where(
+                                        and_(Thesis.id == thesis.id, Thesis.author_id.isnot(None))
+                                    )
+                                ).scalars().first()
+                    } for thesis in theses
+                ]
+    # filter out theses that have no student assigned
+    theses_by_supervisor = {
+        supervisor: [t for t in theses if t["student"] is not None]
+        for supervisor, theses in theses_by_supervisor.items()
+    }
+
+    # for each supervisor get the list of available theses not assigned to students
+    available_theses_by_supervisor = defaultdict(list)
+    available_theses = Thesis.query.filter(Thesis.author_id.is_(None)).all()
+    for supervisor in supervisors:
+        available_theses_by_supervisor[supervisor].extend(
+            [{"thesis": thesis} for thesis in available_theses]
+        )
 
     return render_template("/admin/admin_dashboard.html", current_user=current_user,
                            user_counts=user_counts, thesis_counts=thesis_counts,
-                           theses_by_supervisor=theses_by_supervisor)
+                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses_by_supervisor, dt=datetime.fromtimestamp, str=str)
 
 
 @admin.route("/admin/new_user")
@@ -120,4 +146,68 @@ def delete_user(uid):
 
     return redirect(request.referrer)
 
+
+@admin.route("/admin/new_thesis")
+@login_required
+def new_thesis():
+    """
+    This route renders the form for creating a new thesis. It checks if the current user has admin privileges.
+    """
+    check_privileges(current_user.username, role="admin")
+    students = User_mgmt.query.filter_by(user_type="student").all()
+    supervisors = User_mgmt.query.filter_by(user_type="supervisor").all()
+    return render_template("/admin/create_thesis.html", current_user=current_user,
+                           students=students, supervisors=supervisors)
+
+
+@admin.route("/admin/create_thesis", methods=["POST"])
+@login_required
+def create_thesis():
+    """
+    This route handles creating a new thesis. It retrieves the necessary data from the form,
+    creates a new Thesis object, and saves it to the database.
+    """
+    check_privileges(current_user.username, role="admin")
+    title = request.form.get("title")
+    description = request.form.get("description")
+    student_id = request.form.get("student_id")
+    supervisor_id = request.form.get("supervisor_id")
+    level = request.form.get("level")
+    status = "thesis accepted"
+
+    if not title or not description:
+        flash("All fields are required")
+        return redirect(request.referrer)
+
+    new_thesis = Thesis(
+        title=title,
+        description=description,
+        author_id=int(student_id) if student_id != "" else None,
+        frozen=False,
+        level=level,
+        created_at=int(time.time()),
+    )
+    db.session.add(new_thesis)
+    db.session.commit()
+
+    thesis_supervisor = Thesis_Supervisor(
+        thesis_id=new_thesis.id,
+        supervisor_id=supervisor_id,
+        assigned_at=int(time.time()),
+    )
+
+    db.session.add(thesis_supervisor)
+    db.session.commit()
+
+    # Update the thesis status
+    new_status = Thesis_Status(
+        thesis_id=new_thesis.id,
+        status=status,
+        updated_at=int(time.time()),
+    )
+    db.session.add(new_status)
+    db.session.commit()
+
+    flash("Thesis created successfully")
+    return redirect(url_for("admin.dashboard"))
 

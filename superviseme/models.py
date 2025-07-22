@@ -25,8 +25,9 @@ class Thesis(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
-    author_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
     frozen = db.Column(db.Boolean, default=False)
+    level = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.Integer, nullable=False)
 
 
