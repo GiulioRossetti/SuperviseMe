@@ -2,7 +2,8 @@ from collections import defaultdict
 
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, or_
+from sqlalchemy.orm import aliased
 from werkzeug.security import generate_password_hash
 from superviseme.models import *
 from superviseme.utils.miscellanea import check_privileges
@@ -71,14 +72,14 @@ def dashboard():
                            theses_by_supervisor=theses_by_supervisor, available_theses=available_theses_by_supervisor, dt=datetime.fromtimestamp, str=str)
 
 
-@admin.route("/admin/new_user")
+@admin.route("/admin/users")
 @login_required
-def new_user():
+def users():
     """
     This route renders the form for creating a new user. It checks if the current user has admin privileges.
     """
     check_privileges(current_user.username, role="admin")
-    return render_template("/admin/create_user.html", current_user=current_user)
+    return render_template("/admin/users.html", current_user=current_user)
 
 
 @admin.route("/admin/create_user", methods=["POST"])
@@ -147,17 +148,129 @@ def delete_user(uid):
     return redirect(request.referrer)
 
 
-@admin.route("/admin/new_thesis")
+@admin.route("/admin/users_data")
 @login_required
-def new_thesis():
+def users_data():
+    query = User_mgmt.query
+
+    # search filter
+    search = request.args.get("search")
+    if search:
+        query = query.filter(
+            db.or_(
+                User_mgmt.name.like(f"%{search}%"),
+            )
+        )
+    total = query.count()
+
+    # sorting
+    sort = request.args.get("sort")
+    if sort:
+        order = []
+        for s in sort.split(","):
+            direction = s[0]
+            name = s[1:]
+            if name not in ["name", "surname", "gender", "user_type"]:
+                name = "name"
+            col = getattr(User_mgmt, name)
+            if direction == "-":
+                col = col.desc()
+            order.append(col)
+        if order:
+            query = query.order_by(*order)
+
+    # pagination
+    start = request.args.get("start", type=int, default=-1)
+    length = request.args.get("length", type=int, default=-1)
+    if start != -1 and length != -1:
+        query = query.offset(start).limit(length)
+
+    # response
+    res = query.all()
+
+    return {
+        "data": [{"id": pop.id, "name": pop.name, "surname": pop.surname, "gender": pop.gender, "user_type": pop.user_type} for pop in res],
+        "total": total,
+    }
+
+
+@admin.route("/admin/theses")
+@login_required
+def theses():
     """
     This route renders the form for creating a new thesis. It checks if the current user has admin privileges.
     """
     check_privileges(current_user.username, role="admin")
     students = User_mgmt.query.filter_by(user_type="student").all()
     supervisors = User_mgmt.query.filter_by(user_type="supervisor").all()
-    return render_template("/admin/create_thesis.html", current_user=current_user,
+    return render_template("/admin/theses.html", current_user=current_user,
                            students=students, supervisors=supervisors)
+
+
+@admin.route("/admin/theses_data")
+@login_required
+def theses_data():
+    Author = aliased(User_mgmt)
+
+    stmt = (
+        select(Thesis, Author)
+        .outerjoin(Author, Thesis.author_id == Author.id)
+    )
+
+    # search filter
+    search = request.args.get("search")
+    if search:
+        stmt = stmt.where(
+            or_(
+                Author.name.ilike(f"%{search}%"),
+                Thesis.level.ilike(f"%{search}%"),
+                Thesis.title.ilike(f"%{search}%"),
+            )
+        )
+
+    # sorting
+    sort = request.args.get("sort")
+    if sort:
+        order = []
+        for s in sort.split(","):
+            direction = s[0]
+            name = s[1:]
+            if name not in ["title", "level", "author_cd"]:
+                continue
+            col = getattr(Author, name, None)
+            if col is not None:
+                col = col.desc() if direction == "-" else col.asc()
+                order.append(col)
+        if order:
+            stmt = stmt.order_by(*order)
+
+    # total count (separate execution if paginated)
+    total = db.session.execute(stmt).all()
+    total_count = len(total)
+
+    # pagination
+    start = request.args.get("start", type=int, default=-1)
+    length = request.args.get("length", type=int, default=-1)
+    if start != -1 and length != -1:
+        stmt = stmt.offset(start).limit(length)
+
+    results = db.session.execute(stmt).all()
+
+    return {
+        "total": total_count,
+        "data": [
+            {
+                "thesis_id": thesis.id,
+                "title": thesis.title,
+                "level": thesis.level,
+                "author_cd": author.cdl if author else None,
+                "assigned": "True" if author else "False",
+            }
+            for thesis, author in results
+        ],
+    }
+
+
 
 
 @admin.route("/admin/create_thesis", methods=["POST"])
