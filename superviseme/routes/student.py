@@ -1,6 +1,7 @@
 from flask import Blueprint, request, render_template, redirect, url_for
 from flask_login import login_required, current_user
 from superviseme.utils.miscellanea import check_privileges
+from superviseme.utils.activity_tracker import update_user_activity
 from superviseme.models import *
 from superviseme import db
 from datetime import datetime
@@ -17,6 +18,9 @@ def dashboard():
     updates, and progress.
     """
     check_privileges(current_user.username, role="student")
+    
+    # Update user activity
+    update_user_activity("student_dashboard")
     
     # Get the student's thesis
     thesis = Thesis.query.filter_by(author_id=current_user.id).first()
@@ -117,6 +121,9 @@ def post_update():
     creates a new Update object, and saves it to the database.
     """
     check_privileges(current_user.username, role="student")
+    
+    # Update user activity
+    update_user_activity("posting_thesis_update")
     
     thesis_id = request.form.get("thesis_id")
     content = request.form.get("content")
@@ -253,6 +260,9 @@ def modify_update():
     updates the update in the database, and commits the changes.
     """
     check_privileges(current_user.username, role="student")
+    
+    # Update user activity
+    update_user_activity("modifying_thesis_update")
     
     update_id = request.form.get("update_id")
     new_content = request.form.get("new_content")

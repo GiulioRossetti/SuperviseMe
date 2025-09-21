@@ -6,7 +6,10 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from werkzeug.security import generate_password_hash
 import time
+import logging
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -233,5 +236,9 @@ def create_app(db_type="sqlite"):
 
     from superviseme.routes.profile import profile as profile_blueprint
     app.register_blueprint(profile_blueprint)
+
+    # Initialize the task scheduler for background jobs
+    from superviseme.utils.task_scheduler import init_scheduler
+    init_scheduler(app)
 
     return app

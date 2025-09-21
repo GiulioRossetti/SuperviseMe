@@ -1,0 +1,263 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'admin/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Email Notification Management</h1>
+                    </div>
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Scheduler Status -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Weekly Email Scheduler Status</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6><strong>Status:</strong> 
+                                                <span class="badge badge-{{ 'success' if scheduler_status.status == 'running' else 'danger' }}">
+                                                    {{ scheduler_status.status.title() }}
+                                                </span>
+                                            </h6>
+                                            
+                                            {% if scheduler_status.jobs %}
+                                                <h6 class="mt-3"><strong>Scheduled Jobs:</strong></h6>
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Job Name</th>
+                                                                <th>Next Run</th>
+                                                                <th>Schedule</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for job in scheduler_status.jobs %}
+                                                            <tr>
+                                                                <td>{{ job.name }}</td>
+                                                                <td>{{ job.next_run_time or 'Not scheduled' }}</td>
+                                                                <td><small>{{ job.trigger }}</small></td>
+                                                            </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6 text-right">
+                                            <button class="btn btn-primary" onclick="triggerWeeklyReports()">
+                                                <i class="fas fa-paper-plane"></i> Trigger Weekly Reports Now
+                                            </button>
+                                            <button class="btn btn-info ml-2" onclick="refreshStatus()">
+                                                <i class="fas fa-sync-alt"></i> Refresh Status
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test Email Previews -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Test Email Preview</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6><strong>Select Supervisor to Preview Email:</strong></h6>
+                                            <div class="form-group">
+                                                <select class="form-control" id="supervisorSelect" onchange="previewEmail()">
+                                                    <option value="">-- Select Supervisor --</option>
+                                                    {% for supervisor in supervisors %}
+                                                        <option value="{{ supervisor.id }}">
+                                                            {{ supervisor.name }} {{ supervisor.surname }} ({{ supervisor.email }})
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Email Preview Area -->
+                                    <div id="emailPreview" class="mt-4" style="display: none;">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Email Preview</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <strong>To:</strong> <span id="previewRecipient"></span>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <strong>Subject:</strong> <span id="previewSubject"></span>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <strong>Body:</strong>
+                                                    <pre id="previewBody" class="bg-light p-3" style="white-space: pre-wrap; font-family: inherit; max-height: 400px; overflow-y: auto;"></pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Information -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-info">How Weekly Email Reports Work</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul>
+                                        <li><strong>Automatic Schedule:</strong> Weekly reports are sent every Monday morning at 9:00 AM</li>
+                                        <li><strong>Content:</strong> Each supervisor receives a summary of their students' weekly activity</li>
+                                        <li><strong>Inactive Students:</strong> Students inactive for more than 2 weeks are highlighted</li>
+                                        <li><strong>Activity Tracking:</strong> Students' activity is tracked when they log in, post updates, or interact with the system</li>
+                                        <li><strong>Last Activity Location:</strong> The system tracks where students were last active (e.g., "student_dashboard", "posting_thesis_update")</li>
+                                    </ul>
+                                    
+                                    <div class="alert alert-info mt-3">
+                                        <strong>Note:</strong> Only supervisors with assigned students will receive weekly reports. 
+                                        Supervisors with no students are automatically excluded from the weekly email batch.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- JavaScript -->
+    <script>
+        function triggerWeeklyReports() {
+            if (confirm('Are you sure you want to trigger weekly reports now? This will send emails to all supervisors.')) {
+                // Show loading state
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                btn.disabled = true;
+                
+                // Trigger the reports
+                fetch('{{ url_for("admin.trigger_notifications") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(() => {
+                    // Reload the page to see flash messages
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error triggering weekly reports. Check console for details.');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+            }
+        }
+
+        function refreshStatus() {
+            window.location.reload();
+        }
+
+        function previewEmail() {
+            const supervisorId = document.getElementById('supervisorSelect').value;
+            const previewDiv = document.getElementById('emailPreview');
+            
+            if (!supervisorId) {
+                previewDiv.style.display = 'none';
+                return;
+            }
+            
+            // Show loading
+            previewDiv.style.display = 'block';
+            document.getElementById('previewRecipient').textContent = 'Loading...';
+            document.getElementById('previewSubject').textContent = 'Loading...';
+            document.getElementById('previewBody').textContent = 'Loading email preview...';
+            
+            fetch(`{{ url_for("admin.preview_notification", supervisor_id=0) }}`.replace('0', supervisorId))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    document.getElementById('previewRecipient').textContent = data.recipient;
+                    document.getElementById('previewSubject').textContent = data.subject;
+                    document.getElementById('previewBody').textContent = data.body;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('previewRecipient').textContent = 'Error loading preview';
+                    document.getElementById('previewSubject').textContent = 'Error';
+                    document.getElementById('previewBody').textContent = 'Error: ' + error.message;
+                });
+        }
+    </script>
+
+</body>
+</html>

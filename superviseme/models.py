@@ -16,6 +16,8 @@ class User_mgmt(UserMixin, db.Model):
     joined_on = db.Column(db.Integer, nullable=False)
     gender = db.Column(db.String(10), default=None)
     nationality = db.Column(db.String(15), default=None)
+    last_activity = db.Column(db.Integer, nullable=True)  # Track last activity timestamp
+    last_activity_location = db.Column(db.String(100), nullable=True)  # Track where they were last active
 
     thesis = db.relationship("Thesis", backref="author", lazy=True)
 
