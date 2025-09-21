@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -11,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${PG_PASSWORD:-superviseme_password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./data_schema:/docker-entrypoint-initdb.d:ro
+      - ./data_schema/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql:ro
     networks:
       - superviseme_network
     healthcheck:

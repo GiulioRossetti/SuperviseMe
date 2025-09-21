@@ -1,8 +1,5 @@
-version: '3.8'
-
-# Development override - use this with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
-
 services:
+
   superviseme_app:
     build: 
       context: .

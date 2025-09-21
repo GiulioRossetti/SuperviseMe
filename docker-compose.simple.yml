@@ -1,0 +1,7 @@
+services:
+
+# Development override - use this with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+  superviseme_app:
+    ports:
+      - "8080:8080"  # Expose app port for direct access

@@ -8,6 +8,18 @@ import time
 auth = Blueprint("auth", __name__)
 
 
+@auth.route("/")
+def index():
+    """Root route that redirects to login"""
+    return redirect(url_for("auth.login"))
+
+
+@auth.route("/health")
+def health():
+    """Health check endpoint for monitoring"""
+    return {"status": "healthy", "service": "SuperviseMe"}, 200
+
+
 @auth.route("/login")
 def login():
     return render_template("/login.html")

@@ -15,9 +15,6 @@ RUN apt-get update && apt-get install -y \
 # Create app directory
 WORKDIR /app
 
-# Create non-root user
-RUN adduser --disabled-password --gecos '' appuser
-
 # Copy requirements first for better caching
 COPY requirements.txt .
 
@@ -35,12 +32,6 @@ RUN chmod +x docker-entrypoint.sh
 
 # Create necessary directories
 RUN mkdir -p superviseme/db data_schema
-
-# Set ownership
-RUN chown -R appuser:appuser /app
-
-# Switch to non-root user
-USER appuser
 
 # Expose port
 EXPOSE 8080
