@@ -1,0 +1,363 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'supervisor/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ thesis.title }}</h1>
+                        <div>
+                            {% if thesis.frozen %}
+                                <button class="btn btn-warning" onclick="unfreezeThesis({{ thesis.id }})">
+                                    <i class="fas fa-unlock"></i> Unfreeze
+                                </button>
+                            {% else %}
+                                <button class="btn btn-outline-warning" onclick="freezeThesis({{ thesis.id }})">
+                                    <i class="fas fa-lock"></i> Freeze
+                                </button>
+                            {% endif %}
+                            <a href="{{ url_for('supervisor.theses_data') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Theses
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Thesis Info Row -->
+                    <div class="row">
+                        <div class="col-xl-8 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Thesis Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-gray-700">{{ thesis.description }}</p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Level:</strong> {{ thesis.level|title if thesis.level else 'Not specified' }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Created:</strong> {{ dt(thesis.created_at).strftime('%B %d, %Y') if thesis.created_at else 'Unknown' }}
+                                        </div>
+                                    </div>
+                                    {% if author %}
+                                    <div class="mt-3">
+                                        <strong>Student:</strong> {{ author.name }} {{ author.surname }}
+                                        <br><small class="text-muted">{{ author.email }}</small>
+                                    </div>
+                                    {% else %}
+                                    <div class="mt-3">
+                                        <span class="badge badge-warning">No student assigned</span>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if thesis_tags %}
+                                    <div class="mt-3">
+                                        <strong>Tags:</strong>
+                                        {% for tag in thesis_tags %}
+                                            <span class="badge badge-secondary mr-1">{{ tag.tag }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="col-xl-4 col-lg-5">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Statistics</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center mb-3">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Total Updates</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ updates|length }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-edit fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+
+                                    <div class="row no-gutters align-items-center mb-3">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Student Updates</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {{ updates|selectattr('update_type', 'equalto', 'student_update')|list|length }}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-user fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Resources</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resources|length }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-folder fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Updates Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Updates & Feedback</h6>
+                                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addFeedbackModal">
+                                        <i class="fas fa-plus"></i> Add Feedback
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    {% if updates %}
+                                        {% for update in updates %}
+                                        <div class="update-item mb-4 p-3 {% if update.update_type == 'student_update' %}bg-light{% else %}bg-white{% endif %} border rounded">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="update-info">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        {% if update.update_type == 'student_update' %}
+                                                            <i class="fas fa-user text-primary mr-2"></i>
+                                                            <strong class="text-primary">{{ author.name if author else 'Student' }}</strong>
+                                                        {% elif update.update_type == 'supervisor_update' %}
+                                                            <i class="fas fa-user-tie text-info mr-2"></i>
+                                                            <strong class="text-info">You (Supervisor)</strong>
+                                                        {% endif %}
+                                                        <small class="text-gray-500 ml-2">
+                                                            {{ dt(update.created_at).strftime('%B %d, %Y at %I:%M %p') if update.created_at else 'Unknown time' }}
+                                                        </small>
+                                                    </div>
+                                                    <div class="update-content">
+                                                        {{ update.content|replace('\n', '<br>')|safe }}
+                                                    </div>
+                                                </div>
+                                                {% if update.update_type == 'supervisor_update' and update.author_id == current_user.id %}
+                                                <div class="update-actions">
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown">
+                                                            <i class="fas fa-ellipsis-v"></i>
+                                                        </button>
+                                                        <div class="dropdown-menu">
+                                                            <a class="dropdown-item" href="#" onclick="editUpdate({{ update.id }}, '{{ update.content|e }}')">
+                                                                <i class="fas fa-edit"></i> Edit
+                                                            </a>
+                                                            <a class="dropdown-item text-danger" href="{{ url_for('supervisor.delete_update', update_id=update.id) }}" 
+                                                               onclick="return confirm('Are you sure you want to delete this update?')">
+                                                                <i class="fas fa-trash"></i> Delete
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-gray-500 text-center">No updates yet.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resources Section -->
+                    {% if resources %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Resources</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Type</th>
+                                                    <th>Link/URL</th>
+                                                    <th>Description</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for resource in resources %}
+                                                <tr>
+                                                    <td><span class="badge badge-secondary">{{ resource.resource_type|title }}</span></td>
+                                                    <td><a href="{{ resource.resource_url }}" target="_blank" class="text-primary">{{ resource.resource_url }}</a></td>
+                                                    <td>{{ resource.description or 'No description' }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Add Feedback Modal -->
+    <div class="modal fade" id="addFeedbackModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Supervisor Feedback</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('supervisor.post_update') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                        <div class="form-group">
+                            <label for="content">Feedback Content:</label>
+                            <textarea class="form-control" name="content" rows="5" required placeholder="Provide feedback to the student..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Update Modal -->
+    <div class="modal fade" id="editUpdateModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Feedback</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('supervisor.modify_update') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="update_id" id="edit_update_id">
+                        <div class="form-group">
+                            <label for="new_content">Feedback Content:</label>
+                            <textarea class="form-control" name="new_content" id="edit_update_content" rows="5" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
+
+    <!-- Add moment.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+    <script>
+        window.moment = moment;
+        
+        function editUpdate(updateId, content) {
+            $('#edit_update_id').val(updateId);
+            $('#edit_update_content').val(content);
+            $('#editUpdateModal').modal('show');
+        }
+
+        function freezeThesis(thesisId) {
+            if (confirm('Are you sure you want to freeze this thesis? The student will not be able to make changes.')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ url_for("supervisor.freeze_thesis") }}';
+                
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'thesis_id';
+                input.value = thesisId;
+                form.appendChild(input);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        function unfreezeThesis(thesisId) {
+            if (confirm('Are you sure you want to unfreeze this thesis?')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ url_for("supervisor.unfreeze_thesis") }}';
+                
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'thesis_id';
+                input.value = thesisId;
+                form.appendChild(input);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+
+</body>
+
+</html>

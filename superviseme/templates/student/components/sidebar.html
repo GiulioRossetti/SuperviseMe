@@ -1,9 +1,9 @@
-<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+<ul class="navbar-nav bg-gradient-success sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('supervisor.dashboard') }}">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('student.dashboard') }}">
                 <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-user-tie"></i>
+                    <i class="fas fa-graduation-cap"></i>
                 </div>
                 <div class="sidebar-brand-text mx-3">SuperviseMe</div>
             </a>
@@ -13,7 +13,7 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item active">
-                <a class="nav-link" href="{{ url_for('supervisor.dashboard') }}">
+                <a class="nav-link" href="{{ url_for('student.dashboard') }}">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span></a>
             </li>
@@ -26,19 +26,27 @@
                 My Work
             </div>
 
-            <!-- Nav Item - Theses -->
+            <!-- Nav Item - Thesis -->
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('supervisor.theses_data') }}">
+                <a class="nav-link" href="{{ url_for('student.thesis_data') }}">
                     <i class="fas fa-fw fa-book"></i>
-                    <span>My Theses</span>
+                    <span>My Thesis</span>
                 </a>
             </li>
 
-            <!-- Nav Item - Students -->
+            <!-- Nav Item - Updates -->
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('supervisor.supervisee_data') }}">
-                    <i class="fas fa-fw fa-user-graduate"></i>
-                    <span>My Students</span>
+                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#updates">
+                    <i class="fas fa-fw fa-edit"></i>
+                    <span>Updates & Progress</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Resources -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#resources">
+                    <i class="fas fa-fw fa-folder"></i>
+                    <span>Resources</span>
                 </a>
             </li>
 
