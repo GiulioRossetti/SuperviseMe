@@ -150,6 +150,9 @@
                                                         {% elif update.update_type == 'supervisor_update' %}
                                                             <i class="fas fa-user-tie text-info mr-2"></i>
                                                             <strong class="text-info">You (Supervisor)</strong>
+                                                        {% elif update.update_type == 'supervisor_comment' %}
+                                                            <i class="fas fa-comment text-warning mr-2"></i>
+                                                            <strong class="text-warning">You (Comment)</strong>
                                                         {% endif %}
                                                         <small class="text-gray-500 ml-2">
                                                             {{ dt(update.created_at).strftime('%B %d, %Y at %I:%M %p') if update.created_at else 'Unknown time' }}
@@ -158,9 +161,19 @@
                                                     <div class="update-content">
                                                         {{ update.content|replace('\n', '<br>')|safe }}
                                                     </div>
+                                                    
+                                                    <!-- Display existing tags -->
+                                                    {% if update.tags %}
+                                                    <div class="mt-2">
+                                                        {% for tag in update.tags %}
+                                                        <span class="badge badge-info mr-1">{{ tag.tag }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                    {% endif %}
                                                 </div>
-                                                {% if update.update_type == 'supervisor_update' and update.author_id == current_user.id %}
+                                                
                                                 <div class="update-actions">
+                                                    {% if update.update_type == 'supervisor_update' and update.author_id == current_user.id %}
                                                     <div class="dropdown">
                                                         <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown">
                                                             <i class="fas fa-ellipsis-v"></i>
@@ -175,9 +188,35 @@
                                                             </a>
                                                         </div>
                                                     </div>
+                                                    {% elif update.update_type == 'student_update' %}
+                                                    <div class="btn-group-vertical">
+                                                        <button class="btn btn-sm btn-outline-primary" onclick="commentOnUpdate({{ update.id }})">
+                                                            <i class="fas fa-comment"></i> Comment
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-secondary" onclick="tagUpdate({{ update.id }})">
+                                                            <i class="fas fa-tag"></i> Tag
+                                                        </button>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Display child comments for student updates -->
+                                            {% if update.update_type == 'student_update' %}
+                                                {% set child_comments = updates|selectattr('parent_id', 'equalto', update.id)|list %}
+                                                {% if child_comments %}
+                                                <div class="mt-3 ml-4 border-left border-warning pl-3">
+                                                    <h6 class="text-warning">Comments:</h6>
+                                                    {% for comment in child_comments %}
+                                                    <div class="bg-light p-2 rounded mb-2">
+                                                        <strong class="text-warning">You:</strong>
+                                                        <small class="text-muted">{{ dt(comment.created_at).strftime('%B %d, %Y at %I:%M %p') }}</small>
+                                                        <div class="mt-1">{{ comment.content|replace('\n', '<br>')|safe }}</div>
+                                                    </div>
+                                                    {% endfor %}
                                                 </div>
                                                 {% endif %}
-                                            </div>
+                                            {% endif %}
                                         </div>
                                         {% endfor %}
                                     {% else %}
@@ -187,6 +226,100 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Objectives Section -->
+                    {% if objectives %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Student Objectives</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% for objective in objectives %}
+                                    <div class="card mb-3 {% if objective.frozen %}border-warning{% endif %}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="font-weight-bold">{{ objective.title }}</h6>
+                                                <div class="d-flex align-items-center">
+                                                    {% if objective.frozen %}
+                                                        <span class="badge badge-warning mr-2">Frozen</span>
+                                                        <form method="POST" action="{{ url_for('supervisor.unfreeze_objective', objective_id=objective.id) }}" class="d-inline">
+                                                            <button type="submit" class="btn btn-sm btn-outline-success" 
+                                                                    onclick="return confirm('Unfreeze this objective?')">
+                                                                <i class="fas fa-unlock"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <form method="POST" action="{{ url_for('supervisor.freeze_objective', objective_id=objective.id) }}" class="d-inline">
+                                                            <button type="submit" class="btn btn-sm btn-outline-warning"
+                                                                    onclick="return confirm('Freeze this objective?')">
+                                                                <i class="fas fa-lock"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <p class="text-gray-700">{{ objective.description }}</p>
+                                            <small class="text-muted">
+                                                Created: {{ dt(objective.created_at).strftime('%B %d, %Y at %I:%M %p') }}
+                                                {% if objective.author %}by {{ objective.author.name }} {{ objective.author.surname }}{% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Hypotheses Section -->
+                    {% if hypotheses %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Student Hypotheses</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% for hypothesis in hypotheses %}
+                                    <div class="card mb-3 {% if hypothesis.frozen %}border-warning{% endif %}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="font-weight-bold">{{ hypothesis.title }}</h6>
+                                                <div class="d-flex align-items-center">
+                                                    {% if hypothesis.frozen %}
+                                                        <span class="badge badge-warning mr-2">Frozen</span>
+                                                        <form method="POST" action="{{ url_for('supervisor.unfreeze_hypothesis', hypothesis_id=hypothesis.id) }}" class="d-inline">
+                                                            <button type="submit" class="btn btn-sm btn-outline-success"
+                                                                    onclick="return confirm('Unfreeze this hypothesis?')">
+                                                                <i class="fas fa-unlock"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <form method="POST" action="{{ url_for('supervisor.freeze_hypothesis', hypothesis_id=hypothesis.id) }}" class="d-inline">
+                                                            <button type="submit" class="btn btn-sm btn-outline-warning"
+                                                                    onclick="return confirm('Freeze this hypothesis?')">
+                                                                <i class="fas fa-lock"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <p class="text-gray-700">{{ hypothesis.description }}</p>
+                                            <small class="text-muted">
+                                                Created: {{ dt(hypothesis.created_at).strftime('%B %d, %Y at %I:%M %p') }}
+                                                {% if hypothesis.author %}by {{ hypothesis.author.name }} {{ hypothesis.author.surname }}{% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
 
                     <!-- Resources Section -->
                     {% if resources %}
@@ -293,6 +426,61 @@
         </div>
     </div>
 
+    <!-- Comment on Update Modal -->
+    <div class="modal fade" id="commentModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Comment</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('supervisor.comment_on_update') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="update_id" id="comment_update_id">
+                        <div class="form-group">
+                            <label for="comment">Your Comment:</label>
+                            <textarea class="form-control" name="comment" rows="4" required placeholder="Add your feedback or comment on this update..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Comment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tag Update Modal -->
+    <div class="modal fade" id="tagModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tag Update</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('supervisor.tag_student_update') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="update_id" id="tag_update_id">
+                        <div class="form-group">
+                            <label for="tag">Tag:</label>
+                            <input type="text" class="form-control" name="tag" required placeholder="Enter a tag (e.g., 'needs-revision', 'excellent', 'clarify')">
+                            <small class="form-text text-muted">Use short, descriptive tags to categorize updates.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Tag</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Scroll to Top Button-->
     <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
@@ -321,6 +509,16 @@
             $('#edit_update_id').val(updateId);
             $('#edit_update_content').val(content);
             $('#editUpdateModal').modal('show');
+        }
+
+        function commentOnUpdate(updateId) {
+            $('#comment_update_id').val(updateId);
+            $('#commentModal').modal('show');
+        }
+
+        function tagUpdate(updateId) {
+            $('#tag_update_id').val(updateId);
+            $('#tagModal').modal('show');
         }
 
         function freezeThesis(thesisId) {
