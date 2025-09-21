@@ -207,9 +207,27 @@ def theses():
                            students=students, supervisors=supervisors)
 
 
-@admin.route("/admin/theses_data")
+@admin.route("/admin/theses_data", methods=["GET", "POST"])
 @login_required
 def theses_data():
+    check_privileges(current_user.username, role="admin")
+    
+    # Handle POST request for inline editing
+    if request.method == "POST":
+        data = request.get_json()
+        thesis_id = data.get("id")
+        
+        thesis = Thesis.query.get_or_404(thesis_id)
+        
+        if "title" in data:
+            thesis.title = data["title"]
+        if "level" in data:
+            thesis.level = data["level"]
+            
+        db.session.commit()
+        return {"status": "success"}, 200
+    
+    # Handle GET request for table data
     Author = aliased(User_mgmt)
 
     stmt = (
@@ -292,35 +310,265 @@ def create_thesis():
         flash("All fields are required")
         return redirect(request.referrer)
 
-    new_thesis = Thesis(
-        title=title,
-        description=description,
-        author_id=int(student_id) if student_id != "" else None,
-        frozen=False,
-        level=level,
-        created_at=int(time.time()),
-    )
-    db.session.add(new_thesis)
+    try:
+        new_thesis = Thesis(
+            title=title,
+            description=description,
+            author_id=int(student_id) if student_id != "" else None,
+            frozen=False,
+            level=level,
+            created_at=int(time.time()),
+        )
+        db.session.add(new_thesis)
+        db.session.commit()
+
+        # Only create supervisor assignment if supervisor_id is provided
+        if supervisor_id and supervisor_id.strip():
+            thesis_supervisor = Thesis_Supervisor(
+                thesis_id=new_thesis.id,
+                supervisor_id=int(supervisor_id),
+                assigned_at=int(time.time()),
+            )
+            db.session.add(thesis_supervisor)
+            db.session.commit()
+
+        # Update the thesis status
+        new_status = Thesis_Status(
+            thesis_id=new_thesis.id,
+            status=status,
+            updated_at=int(time.time()),
+        )
+        db.session.add(new_status)
+        db.session.commit()
+
+        flash("Thesis created successfully")
+        return redirect(url_for("admin.theses"))
+    except Exception as e:
+        flash(f"Error creating thesis: {e}")
+        return redirect(request.referrer)
+
+
+@admin.route("/admin/update_thesis", methods=["POST"])
+@login_required
+def update_thesis():
+    """
+    This route handles updating an existing thesis. It retrieves the necessary data from the form,
+    updates the Thesis object, and saves it to the database.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    thesis_id = request.form.get("thesis_id") or request.json.get("id")
+    title = request.form.get("title") or request.json.get("title")
+    level = request.form.get("level") or request.json.get("level")
+    description = request.form.get("description") or request.json.get("description")
+
+    thesis = Thesis.query.get_or_404(thesis_id)
+    
+    if title:
+        thesis.title = title
+    if level:
+        thesis.level = level  
+    if description:
+        thesis.description = description
+        
     db.session.commit()
+    
+    if request.is_json:
+        return {"status": "success"}, 200
+    
+    flash("Thesis updated successfully")
+    return redirect(url_for("admin.theses"))
 
-    thesis_supervisor = Thesis_Supervisor(
-        thesis_id=new_thesis.id,
-        supervisor_id=supervisor_id,
-        assigned_at=int(time.time()),
-    )
 
-    db.session.add(thesis_supervisor)
+@admin.route("/admin/delete_thesis/<int:thesis_id>", methods=["DELETE"])
+@login_required
+def delete_thesis(thesis_id):
+    """
+    This route handles deleting a thesis by its ID. It retrieves the Thesis object,
+    deletes it from the database, and redirects to the theses data page.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    thesis = Thesis.query.get_or_404(thesis_id)
+    
+    # Delete related records first
+    Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).delete()
+    Thesis_Status.query.filter_by(thesis_id=thesis_id).delete()
+    Thesis_Tag.query.filter_by(thesis_id=thesis_id).delete()
+    Thesis_Update.query.filter_by(thesis_id=thesis_id).delete()
+    Resource.query.filter_by(thesis_id=thesis_id).delete()
+    
+    db.session.delete(thesis)
     db.session.commit()
+    
+    return {"status": "success"}, 200
 
-    # Update the thesis status
-    new_status = Thesis_Status(
-        thesis_id=new_thesis.id,
-        status=status,
-        updated_at=int(time.time()),
-    )
-    db.session.add(new_status)
+
+@admin.route("/admin/thesis/<int:thesis_id>")
+@login_required
+def thesis_detail(thesis_id):
+    """
+    This route displays the details of a specific thesis including all related information
+    like supervisors, tags, updates, and allows for editing.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    thesis = Thesis.query.get_or_404(thesis_id)
+    author = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
+    supervisors_rel = Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).all()
+    supervisors = [User_mgmt.query.get(rel.supervisor_id) for rel in supervisors_rel]
+    status_history = Thesis_Status.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Status.updated_at.desc()).all()
+    tags = Thesis_Tag.query.filter_by(thesis_id=thesis_id).all()
+    updates = Thesis_Update.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Update.created_at.desc()).all()
+    
+    # Get all students and supervisors for reassignment
+    students = User_mgmt.query.filter_by(user_type="student").all()
+    all_supervisors = User_mgmt.query.filter_by(user_type="supervisor").all()
+    
+    return render_template("/admin/thesis_detail.html", 
+                         current_user=current_user,
+                         thesis=thesis,
+                         author=author,
+                         supervisors=supervisors,
+                         status_history=status_history,
+                         tags=tags,
+                         updates=updates,
+                         students=students,
+                         all_supervisors=all_supervisors,
+                         datetime=datetime)
+
+
+@admin.route("/admin/assign_student", methods=["POST"])
+@login_required
+def assign_student():
+    """
+    This route handles assigning or reassigning a student to a thesis.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    thesis_id = request.form.get("thesis_id")
+    student_id = request.form.get("student_id")
+    
+    thesis = Thesis.query.get_or_404(thesis_id)
+    thesis.author_id = int(student_id) if student_id else None
     db.session.commit()
+    
+    flash("Student assignment updated successfully")
+    return redirect(url_for("admin.thesis_detail", thesis_id=thesis_id))
 
-    flash("Thesis created successfully")
-    return redirect(url_for("admin.dashboard"))
+
+@admin.route("/admin/assign_supervisor", methods=["POST"])
+@login_required
+def assign_supervisor():
+    """
+    This route handles assigning a supervisor to a thesis.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    thesis_id = request.form.get("thesis_id")
+    supervisor_id = request.form.get("supervisor_id")
+    
+    # Check if this supervisor is already assigned
+    existing = Thesis_Supervisor.query.filter_by(thesis_id=thesis_id, supervisor_id=supervisor_id).first()
+    if not existing:
+        new_assignment = Thesis_Supervisor(
+            thesis_id=thesis_id,
+            supervisor_id=supervisor_id,
+            assigned_at=int(time.time())
+        )
+        db.session.add(new_assignment)
+        db.session.commit()
+        flash("Supervisor assigned successfully")
+    else:
+        flash("Supervisor is already assigned to this thesis")
+    
+    return redirect(url_for("admin.thesis_detail", thesis_id=thesis_id))
+
+
+@admin.route("/admin/remove_supervisor", methods=["POST"])
+@login_required
+def remove_supervisor():
+    """
+    This route handles removing a supervisor from a thesis.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    thesis_id = request.form.get("thesis_id")
+    supervisor_id = request.form.get("supervisor_id")
+    
+    assignment = Thesis_Supervisor.query.filter_by(thesis_id=thesis_id, supervisor_id=supervisor_id).first()
+    if assignment:
+        db.session.delete(assignment)
+        db.session.commit()
+        flash("Supervisor removed successfully")
+    
+    return redirect(url_for("admin.thesis_detail", thesis_id=thesis_id))
+
+
+@admin.route("/admin/add_thesis_tag", methods=["POST"])
+@login_required
+def add_thesis_tag():
+    """
+    This route handles adding tags to a thesis.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    thesis_id = request.form.get("thesis_id")
+    tag = request.form.get("tag")
+    
+    if tag and thesis_id:
+        # Check if tag already exists
+        existing_tag = Thesis_Tag.query.filter_by(thesis_id=thesis_id, tag=tag).first()
+        if not existing_tag:
+            new_tag = Thesis_Tag(
+                thesis_id=thesis_id,
+                tag=tag
+            )
+            db.session.add(new_tag)
+            db.session.commit()
+            flash("Tag added successfully")
+        else:
+            flash("Tag already exists")
+    
+    return redirect(url_for("admin.thesis_detail", thesis_id=thesis_id))
+
+
+@admin.route("/admin/remove_thesis_tag", methods=["POST"])
+@login_required
+def remove_thesis_tag():
+    """
+    This route handles removing tags from a thesis.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    tag_id = request.form.get("tag_id")
+    thesis_id = request.form.get("thesis_id")
+    
+    tag = Thesis_Tag.query.get_or_404(tag_id)
+    db.session.delete(tag)
+    db.session.commit()
+    
+    flash("Tag removed successfully")
+    return redirect(url_for("admin.thesis_detail", thesis_id=thesis_id))
+
+
+@admin.route("/admin/archive_thesis", methods=["POST"])
+@login_required
+def archive_thesis():
+    """
+    This route handles archiving/unarchiving a thesis using the frozen field.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    thesis_id = request.form.get("thesis_id")
+    action = request.form.get("action")  # "archive" or "unarchive"
+    
+    thesis = Thesis.query.get_or_404(thesis_id)
+    thesis.frozen = (action == "archive")
+    db.session.commit()
+    
+    status_text = "archived" if thesis.frozen else "unarchived"
+    flash(f"Thesis {status_text} successfully")
+    return redirect(url_for("admin.thesis_detail", thesis_id=thesis_id))
+
 

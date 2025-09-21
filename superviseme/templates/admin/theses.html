@@ -149,6 +149,23 @@
             id: ev.target.dataset.elementId,
             [ev.target.dataset.columnId]: ev.target.textContent
           }),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to update');
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.status !== 'success') {
+            ev.target.textContent = savedValue; // Revert on failure
+            alert('Update failed');
+          }
+        })
+        .catch(err => {
+          ev.target.textContent = savedValue; // Revert on error
+          alert('Error updating thesis.');
+          console.error(err);
         });
       }
       savedValue = undefined;
@@ -172,13 +189,20 @@
     const target = event.target;
     if (target.classList.contains('delete-button')) {
       const id = target.getAttribute('data-id');
-      if (confirm('Are you sure you want to delete this population?')) {
+      if (confirm('Are you sure you want to delete this thesis? This action cannot be undone.')) {
         fetch(`/admin/delete_thesis/${id}`, {
           method: 'DELETE',
         })
         .then(response => {
           if (!response.ok) throw new Error('Failed to delete');
-          location.reload(); // Refresh the table
+          return response.json();
+        })
+        .then(data => {
+          if (data.status === 'success') {
+            location.reload(); // Refresh the table
+          } else {
+            throw new Error('Delete failed');
+          }
         })
         .catch(err => {
           alert('Error deleting thesis.');
@@ -256,7 +280,7 @@
 
 
                                 <button class="btn btn-primary btn-user btn-block">
-                                    Register Account
+                                    Create Thesis
                                 </button>
                             </form>
                                 </div>
