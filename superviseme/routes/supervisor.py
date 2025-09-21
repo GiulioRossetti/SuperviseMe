@@ -61,9 +61,26 @@ def dashboard():
 
         ).scalars().all()
 
+    # Get todos for supervised theses
+    supervised_thesis_ids = [ts.thesis_id for ts in theses]
+    todos = []
+    students_info = {}
+    if supervised_thesis_ids:
+        todos = Todo.query.filter(Todo.thesis_id.in_(supervised_thesis_ids)).order_by(
+            Todo.status.asc(),  # pending first
+            Todo.priority.desc(),  # high priority first
+            Todo.created_at.desc()
+        ).all()
+        
+        # Get student information for each thesis
+        for ts in theses_by_supervisor:
+            if ts["student"]:
+                students_info[ts["thesis"].id] = ts["student"]
+
     return render_template("/supervisor/supervisor_dashboard.html", current_user=current_user,
                            user_counts=user_counts, thesis_counts=thesis_counts,
-                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses_by_supervisor, dt=datetime.fromtimestamp, str=str)
+                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses_by_supervisor, 
+                           todos=todos, students_info=students_info, dt=datetime.fromtimestamp, str=str)
 
 @supervisor.route("/supervisee")
 @login_required
@@ -868,3 +885,105 @@ def set_thesis_status():
         return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
     
     return redirect(url_for('supervisor.theses_data'))
+
+
+# Todo routes for supervisors
+@supervisor.route("/add_todo", methods=["POST"])
+@login_required
+def add_todo():
+    """
+    Add a new todo item for a supervised thesis
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    thesis_id = request.form.get("thesis_id")
+    title = request.form.get("title")
+    description = request.form.get("description")
+    priority = request.form.get("priority", "medium")
+    due_date = request.form.get("due_date")
+    assigned_to_id = request.form.get("assigned_to_id")
+    
+    # Verify the thesis is supervised by the current user
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        return redirect(url_for('supervisor.dashboard'))
+    
+    # Convert due_date string to timestamp if provided
+    due_date_timestamp = None
+    if due_date:
+        try:
+            due_date_obj = datetime.strptime(due_date, '%Y-%m-%d')
+            due_date_timestamp = int(due_date_obj.timestamp())
+        except ValueError:
+            pass
+    
+    new_todo = Todo(
+        thesis_id=thesis_id,
+        author_id=current_user.id,
+        title=title,
+        description=description,
+        priority=priority,
+        assigned_to_id=int(assigned_to_id) if assigned_to_id else None,
+        due_date=due_date_timestamp,
+        created_at=int(time.time()),
+        updated_at=int(time.time())
+    )
+    
+    db.session.add(new_todo)
+    db.session.commit()
+    
+    return redirect(url_for('supervisor.dashboard'))
+
+
+@supervisor.route("/toggle_todo/<int:todo_id>")
+@login_required
+def toggle_todo(todo_id):
+    """
+    Toggle todo completion status
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Get the todo item and verify access
+    todo = Todo.query.join(Thesis_Supervisor).filter(
+        Todo.id == todo_id,
+        Thesis_Supervisor.supervisor_id == current_user.id  # Supervisor can access their supervised thesis todos
+    ).first()
+    
+    if todo:
+        if todo.status == "pending":
+            todo.status = "completed"
+            todo.completed_at = int(time.time())
+        else:
+            todo.status = "pending"
+            todo.completed_at = None
+        
+        todo.updated_at = int(time.time())
+        db.session.commit()
+    
+    return redirect(url_for('supervisor.dashboard'))
+
+
+@supervisor.route("/delete_todo/<int:todo_id>")
+@login_required
+def delete_todo(todo_id):
+    """
+    Delete a todo item
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Get the todo item and verify access (only author or supervisor can delete)
+    todo = Todo.query.join(Thesis_Supervisor).filter(
+        Todo.id == todo_id,
+        (Todo.author_id == current_user.id) |  # Author can delete
+        (Thesis_Supervisor.supervisor_id == current_user.id)  # Supervisor can delete
+    ).first()
+    
+    if todo:
+        db.session.delete(todo)
+        db.session.commit()
+    
+    return redirect(url_for('supervisor.dashboard'))
