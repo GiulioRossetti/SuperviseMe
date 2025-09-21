@@ -306,8 +306,6 @@ def create_thesis():
     level = request.form.get("level")
     status = "thesis accepted"
 
-    print(f"DEBUG: Creating thesis - title: {title}, description: {description}, student_id: {student_id}, supervisor_id: {supervisor_id}, level: {level}")
-
     if not title or not description:
         flash("All fields are required")
         return redirect(request.referrer)
@@ -323,7 +321,6 @@ def create_thesis():
         )
         db.session.add(new_thesis)
         db.session.commit()
-        print(f"DEBUG: Thesis created with ID: {new_thesis.id}")
 
         # Only create supervisor assignment if supervisor_id is provided
         if supervisor_id and supervisor_id.strip():
@@ -334,7 +331,6 @@ def create_thesis():
             )
             db.session.add(thesis_supervisor)
             db.session.commit()
-            print(f"DEBUG: Supervisor assigned: {supervisor_id}")
 
         # Update the thesis status
         new_status = Thesis_Status(
@@ -344,12 +340,10 @@ def create_thesis():
         )
         db.session.add(new_status)
         db.session.commit()
-        print(f"DEBUG: Status created: {status}")
 
         flash("Thesis created successfully")
         return redirect(url_for("admin.theses"))
     except Exception as e:
-        print(f"DEBUG: Error creating thesis: {e}")
         flash(f"Error creating thesis: {e}")
         return redirect(request.referrer)
 
