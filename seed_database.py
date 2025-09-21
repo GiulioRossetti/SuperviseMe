@@ -3,6 +3,7 @@
 Database seeding script for SuperviseMe application.
 Creates sample data for testing: admin, supervisors, students, and theses.
 """
+import os
 from superviseme import create_app, db
 from superviseme.models import User_mgmt, Thesis, Thesis_Status, Thesis_Supervisor, Thesis_Tag
 from werkzeug.security import generate_password_hash
@@ -10,7 +11,9 @@ import time
 
 def seed_database():
     """Populate database with sample data."""
-    app = create_app()
+    # Use postgresql for Docker environment, sqlite for local development
+    db_type = "postgresql" if os.getenv("PG_HOST") else "sqlite"
+    app = create_app(db_type=db_type)
     
     with app.app_context():
         print("Starting database seeding...")

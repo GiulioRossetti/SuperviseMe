@@ -1,0 +1,23 @@
+version: '3.8'
+
+# Development override - use this with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  superviseme_app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - FLASK_ENV=development
+      - DEBUG=true
+      - SKIP_DB_SEED=false
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"  # Expose app port for development
+    command: ["python", "wsgi.py"]  # Use development server instead of gunicorn
+
+  nginx:
+    ports:
+      - "8080:80"  # Map to different port to avoid conflict with app
+      - "8443:443"

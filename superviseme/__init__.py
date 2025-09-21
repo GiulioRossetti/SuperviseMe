@@ -3,6 +3,7 @@ import shutil
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_mail import Mail
 from werkzeug.security import generate_password_hash
 import time
 
@@ -14,6 +15,7 @@ client_processes = {}
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
+mail = Mail()
 
 
 def create_postgresql_db(app):
@@ -156,7 +158,16 @@ def create_app(db_type="sqlite"):
             f"{BASE_DIR}{os.sep}db{os.sep}dashboard.db",
         )
 
-    app.config["SECRET_KEY"] = "4323432nldsf"
+    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "4323432nldsf")
+    
+    # Mail configuration
+    app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "localhost")
+    app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT", "587"))
+    app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS", "true").lower() == "true"
+    app.config["MAIL_USE_SSL"] = os.getenv("MAIL_USE_SSL", "false").lower() == "true"
+    app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME", "")
+    app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD", "")
+    app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER", "noreply@superviseme.local")
 
     if db_type == "sqlite":
         app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{BASE_DIR}/db/dashboard.db"
@@ -177,6 +188,7 @@ def create_app(db_type="sqlite"):
 
     db.init_app(app)
     login_manager.init_app(app)
+    mail.init_app(app)
 
     from .models import User_mgmt
 
