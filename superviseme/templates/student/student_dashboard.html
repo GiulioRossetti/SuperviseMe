@@ -1,0 +1,233 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'student/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Student Dashboard</h1>
+                    </div>
+
+                    <!-- Content Row -->
+                    <div class="row">
+
+                        <!-- Updates Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                My Updates</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ thesis_stats['updates_count'] }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-edit fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Supervisor Comments Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Supervisor Feedback</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ thesis_stats['supervisor_comments'] }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resources Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Resources</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ thesis_stats['resources_count'] }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-folder fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thesis Status Card -->
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Thesis Status</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {% if thesis %}
+                                                    Active
+                                                {% else %}
+                                                    Not Assigned
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content Row -->
+                    {% if thesis %}
+                    <div class="row">
+
+                        <!-- Thesis Info Card -->
+                        <div class="col-xl-8 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">My Thesis</h6>
+                                    <div class="dropdown no-arrow">
+                                        <a class="dropdown-toggle" href="{{ url_for('student.thesis_data') }}" role="button">
+                                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <h4 class="h5 text-gray-900">{{ thesis.title }}</h4>
+                                    <p class="text-gray-700">{{ thesis.description }}</p>
+                                    <div class="mt-3">
+                                        <span class="badge badge-primary">{{ thesis.level|title if thesis.level else 'No Level' }}</span>
+                                        <span class="badge badge-info">Created: {{ moment(thesis.created_at).format('MMMM Do, YYYY') if thesis.created_at else 'Unknown' }}</span>
+                                    </div>
+                                    <div class="mt-3">
+                                        <a href="{{ url_for('student.thesis_data') }}" class="btn btn-primary">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Updates -->
+                        <div class="col-xl-4 col-lg-5">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Recent Updates</h6>
+                                    <a href="{{ url_for('student.thesis_data') }}#updates" class="btn btn-sm btn-primary">View All</a>
+                                </div>
+                                <div class="card-body">
+                                    {% if recent_updates %}
+                                        {% for update in recent_updates %}
+                                        <div class="mb-3">
+                                            <div class="small text-gray-500">{{ moment(update.created_at).fromNow() if update.created_at else 'Unknown time' }}</div>
+                                            <div class="font-weight-bold">
+                                                {% if update.update_type == 'student_update' %}
+                                                    <i class="fas fa-user text-primary"></i> You
+                                                {% elif update.update_type == 'supervisor_update' %}
+                                                    <i class="fas fa-user-tie text-info"></i> Supervisor
+                                                {% endif %}
+                                            </div>
+                                            <div class="text-truncate">{{ update.content[:100] }}{% if update.content|length > 100 %}...{% endif %}</div>
+                                        </div>
+                                        {% if not loop.last %}<hr>{% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-gray-500">No recent updates.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    {% else %}
+                    <!-- No Thesis Assigned -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-warning">No Thesis Assigned</h6>
+                                </div>
+                                <div class="card-body text-center">
+                                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                                    <h5>You don't have a thesis assigned yet</h5>
+                                    <p class="text-gray-600">Please contact your supervisor or administrator to get assigned to a thesis project.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
+
+    <!-- Add moment.js for better date formatting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script>
+        // Add moment globally for template use
+        window.moment = moment;
+    </script>
+
+</body>
+
+</html>

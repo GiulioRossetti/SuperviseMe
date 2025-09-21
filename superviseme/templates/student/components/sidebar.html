@@ -1,0 +1,77 @@
+<ul class="navbar-nav bg-gradient-success sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('student.dashboard') }}">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">SuperviseMe</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item active">
+                <a class="nav-link" href="{{ url_for('student.dashboard') }}">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span></a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                My Work
+            </div>
+
+            <!-- Nav Item - Thesis -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('student.thesis_data') }}">
+                    <i class="fas fa-fw fa-book"></i>
+                    <span>My Thesis</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Updates -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#updates">
+                    <i class="fas fa-fw fa-edit"></i>
+                    <span>Updates & Progress</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Resources -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#resources">
+                    <i class="fas fa-fw fa-folder"></i>
+                    <span>Resources</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Account
+            </div>
+
+            <!-- Nav Item - Profile -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('profile.index') }}">
+                    <i class="fas fa-fw fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+
+        </ul>
