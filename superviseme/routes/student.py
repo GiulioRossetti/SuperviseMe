@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from superviseme.utils.miscellanea import check_privileges
 from superviseme.models import *
 from superviseme import db
+from datetime import datetime
 import time
 
 student = Blueprint("student", __name__)
@@ -50,7 +51,8 @@ def dashboard():
     return render_template("student/student_dashboard.html", 
                          thesis=thesis, 
                          thesis_stats=thesis_stats,
-                         recent_updates=recent_updates)
+                         recent_updates=recent_updates,
+                         dt=datetime.fromtimestamp)
 
 
 @student.route("/thesis")
@@ -82,7 +84,7 @@ def thesis_data():
     resources = Resource.query.filter_by(thesis_id=thesis.id).all()
     
     return render_template("student/thesis.html", thesis=thesis, supervisors=supervisors,
-                           tags=tags, updates=updates, resources=resources)
+                           tags=tags, updates=updates, resources=resources, dt=datetime.fromtimestamp)
 
 
 @student.route("/post_update", methods=["POST"])
@@ -123,15 +125,22 @@ def post_comment():
     This route handles posting comments on updates. It retrieves the necessary data from the form,
     creates a new Update object with the comment, and saves it to the database.
     """
+    check_privileges(current_user.username, role="student")
+    
     update_id = request.form.get("update_id")
     content = request.form.get("content")
     thesis_id = request.form.get("thesis_id")
+    
+    # Verify the thesis belongs to the current student
+    thesis = Thesis.query.filter_by(id=thesis_id, author_id=current_user.id).first()
+    if not thesis:
+        return redirect(url_for('student.thesis_data'))
 
     new_comment = Thesis_Update(
-        thesis_id=thesis_id,  # No thesis associated with comments
+        thesis_id=thesis_id,
         author_id=current_user.id,
         content=content,
-        update_type="comment",
+        update_type="student_comment",
         parent_id=update_id,  # Link to the original update
         created_at=int(time.time())
     )
@@ -139,7 +148,7 @@ def post_comment():
     db.session.add(new_comment)
     db.session.commit()
 
-    return thesis_data()
+    return redirect(url_for('student.thesis_data'))
 
 
 @student.route("/delete_update/<int:update_id>")
@@ -172,12 +181,20 @@ def delete_comment(comment_id):
     This route handles deleting a comment. It retrieves the comment by its ID,
     deletes it from the database, and commits the changes.
     """
-    comment = Thesis_Update.query.filter_by(id=comment_id).first()
+    check_privileges(current_user.username, role="student")
+    
+    # Verify the comment belongs to the current student
+    comment = Thesis_Update.query.filter_by(
+        id=comment_id,
+        author_id=current_user.id,
+        update_type="student_comment"
+    ).first()
+    
     if comment:
         db.session.delete(comment)
         db.session.commit()
 
-    return thesis_data()
+    return redirect(url_for('student.thesis_data'))
 
 
 @student.route("/modify_comment", methods=["POST"])
@@ -187,15 +204,23 @@ def modify_comment():
     This route handles modifying a comment. It retrieves the necessary data from the form,
     updates the comment in the database, and commits the changes.
     """
+    check_privileges(current_user.username, role="student")
+    
     comment_id = request.form.get("comment_id")
     new_content = request.form.get("new_content")
 
-    comment = Thesis_Update.query.filter_by(id=comment_id).first()
+    # Verify the comment belongs to the current student
+    comment = Thesis_Update.query.filter_by(
+        id=comment_id,
+        author_id=current_user.id,
+        update_type="student_comment"
+    ).first()
+    
     if comment:
         comment.content = new_content
         db.session.commit()
 
-    return thesis_data()
+    return redirect(url_for('student.thesis_data'))
 
 
 @student.route("/modify_update", methods=["POST"])
@@ -231,18 +256,28 @@ def tag_update():
     This route handles tagging an update. It retrieves the necessary data from the form,
     creates a new Update_Tag object, and saves it to the database.
     """
+    check_privileges(current_user.username, role="student")
+    
     update_id = request.form.get("update_id")
     tag = request.form.get("tag")
 
-    new_tag = Update_Tag(
-        update_id=update_id,
-        tag=tag
-    )
+    # Verify the update belongs to the current student
+    update = Thesis_Update.query.filter_by(
+        id=update_id,
+        author_id=current_user.id,
+        update_type="student_update"
+    ).first()
+    
+    if update:
+        new_tag = Update_Tag(
+            update_id=update_id,
+            tag=tag
+        )
 
-    db.session.add(new_tag)
-    db.session.commit()
+        db.session.add(new_tag)
+        db.session.commit()
 
-    return thesis_data()
+    return redirect(url_for('student.thesis_data'))
 
 
 @student.route("/remove_update_tag", methods=["POST"])
@@ -252,15 +287,25 @@ def remove_update_tag():
     This route handles removing a tag from an update. It retrieves the necessary data from the form,
     finds the Update_Tag object, deletes it from the database, and commits the changes.
     """
+    check_privileges(current_user.username, role="student")
+    
     update_id = request.form.get("update_id")
     tag = request.form.get("tag")
 
-    update_tag = Update_Tag.query.filter_by(update_id=update_id, tag=tag).first()
-    if update_tag:
-        db.session.delete(update_tag)
-        db.session.commit()
+    # Verify the update belongs to the current student before removing tag
+    update = Thesis_Update.query.filter_by(
+        id=update_id,
+        author_id=current_user.id,
+        update_type="student_update"
+    ).first()
+    
+    if update:
+        update_tag = Update_Tag.query.filter_by(update_id=update_id, tag=tag).first()
+        if update_tag:
+            db.session.delete(update_tag)
+            db.session.commit()
 
-    return thesis_data()
+    return redirect(url_for('student.thesis_data'))
 
 
 @student.route("/add_resource", methods=["POST"])
@@ -270,15 +315,22 @@ def add_resource():
     This route handles adding a resource to a thesis. It retrieves the necessary data from the form,
     creates a new Resource object, and saves it to the database.
     """
+    check_privileges(current_user.username, role="student")
+    
     thesis_id = request.form.get("thesis_id")
     resource_type = request.form.get("resource_type")
-    resource_link = request.form.get("resource_link")
+    resource_url = request.form.get("resource_link")  # Form uses resource_link but model uses resource_url
     description = request.form.get("description")
+    
+    # Verify the thesis belongs to the current student
+    thesis = Thesis.query.filter_by(id=thesis_id, author_id=current_user.id).first()
+    if not thesis:
+        return redirect(url_for('student.thesis_data'))
 
     new_resource = Resource(
         thesis_id=thesis_id,
         resource_type=resource_type,
-        resource_link=resource_link,
+        resource_url=resource_url,
         description=description,
         created_at=int(time.time())
     )
@@ -286,7 +338,7 @@ def add_resource():
     db.session.add(new_resource)
     db.session.commit()
 
-    return thesis_data()
+    return redirect(url_for('student.thesis_data'))
 
 
 @student.route("/delete_resource/<int:resource_id>")
@@ -296,9 +348,16 @@ def delete_resource(resource_id):
     This route handles deleting a resource. It retrieves the resource by its ID,
     deletes it from the database, and commits the changes.
     """
-    resource = Resource.query.filter_by(id=resource_id).first()
+    check_privileges(current_user.username, role="student")
+    
+    # Verify the resource belongs to a thesis owned by the current student
+    resource = Resource.query.join(Thesis).filter(
+        Resource.id == resource_id,
+        Thesis.author_id == current_user.id
+    ).first()
+    
     if resource:
         db.session.delete(resource)
         db.session.commit()
 
-    return thesis_data()
+    return redirect(url_for('student.thesis_data'))

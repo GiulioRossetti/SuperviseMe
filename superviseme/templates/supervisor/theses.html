@@ -70,7 +70,7 @@
                                                                 <span class="badge badge-secondary">Not specified</span>
                                                             {% endif %}
                                                         </td>
-                                                        <td>{{ moment(thesis.created_at).format('MMM DD, YYYY') if thesis.created_at else 'Unknown' }}</td>
+                                                        <td>{{ dt(thesis.created_at).strftime('%b %d, %Y') if thesis.created_at else 'Unknown' }}</td>
                                                         <td>
                                                             {% if thesis.frozen %}
                                                                 <span class="badge badge-danger">Frozen</span>

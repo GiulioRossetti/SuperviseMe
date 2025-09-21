@@ -98,7 +98,7 @@ def theses_data():
     # Get theses through the supervisor relationship
     thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
     theses = [ts.thesis for ts in thesis_supervisors]
-    return render_template("supervisor/theses.html", theses=theses)
+    return render_template("supervisor/theses.html", theses=theses, dt=datetime.fromtimestamp)
 
 
 @supervisor.route("/thesis/<thesis_id>")
@@ -130,7 +130,7 @@ def thesis_detail(thesis_id):
 
     return render_template("supervisor/thesis_detail.html", thesis=thesis, updates=updates,
                            supervisors=supervisors, author=author,
-                           thesis_tags=thesis_tags, resources=resources)
+                           thesis_tags=thesis_tags, resources=resources, dt=datetime.fromtimestamp)
 
 
 @supervisor.route("/post_update", methods=["POST"])
@@ -188,11 +188,23 @@ def delete_update(update_id):
     This route handles deleting an update by its ID. It retrieves the update, deletes it from the database,
     and redirects to the thesis detail page.
     """
-    update = Thesis_Update.query.get_or_404(update_id)
-    db.session.delete(update)
-    db.session.commit()
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify the update belongs to a thesis supervised by the current user
+    update = Thesis_Update.query.join(Thesis_Supervisor).filter(
+        Thesis_Update.id == update_id,
+        Thesis_Update.update_type == "supervisor_update",
+        Thesis_Update.author_id == current_user.id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if update:
+        thesis_id = update.thesis_id
+        db.session.delete(update)
+        db.session.commit()
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
 
-    return thesis_detail(update.thesis_id)
+    return redirect(url_for('supervisor.theses_data'))
 
 
 #@supervisor.route("/delete_thesis/<int:thesis_id>")
@@ -216,12 +228,25 @@ def delete_comment():
     This route handles deleting a comment. It retrieves the comment ID from the form,
     deletes the comment from the database, and redirects to the thesis detail page.
     """
+    check_privileges(current_user.username, role="supervisor")
+    
     comment_id = request.form.get("comment_id")
-    comment = Thesis_Update.query.get_or_404(comment_id)
-    db.session.delete(comment)
-    db.session.commit()
+    
+    # Verify the comment belongs to a thesis supervised by the current user
+    comment = Thesis_Update.query.join(Thesis_Supervisor).filter(
+        Thesis_Update.id == comment_id,
+        Thesis_Update.update_type == "supervisor_update",
+        Thesis_Update.author_id == current_user.id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if comment:
+        thesis_id = comment.thesis_id
+        db.session.delete(comment)
+        db.session.commit()
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
 
-    return thesis_detail(comment.thesis_id)
+    return redirect(url_for('supervisor.theses_data'))
 
 
 @supervisor.route("/modify_update", methods=["POST"])
@@ -231,14 +256,25 @@ def modify_update():
     This route handles modifying an update. It retrieves the necessary data from the form,
     updates the content of the update in the database, and redirects to the thesis detail page.
     """
+    check_privileges(current_user.username, role="supervisor")
+    
     update_id = request.form.get("update_id")
     new_content = request.form.get("new_content")
 
-    update = Thesis_Update.query.get_or_404(update_id)
-    update.content = new_content
-    db.session.commit()
+    # Verify the update belongs to a thesis supervised by the current user
+    update = Thesis_Update.query.join(Thesis_Supervisor).filter(
+        Thesis_Update.id == update_id,
+        Thesis_Update.update_type == "supervisor_update",
+        Thesis_Update.author_id == current_user.id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if update:
+        update.content = new_content
+        db.session.commit()
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=update.thesis_id))
 
-    return thesis_detail(update.thesis_id)
+    return redirect(url_for('supervisor.theses_data'))
 
 
 @supervisor.route("/modify_comment", methods=["POST"])
@@ -449,11 +485,20 @@ def delete_thesis(thesis_id):
     This route handles deleting a thesis by its ID. It retrieves the Thesis object,
     deletes it from the database, and redirects to the theses data page.
     """
-    thesis = Thesis.query.get_or_404(thesis_id)
-    db.session.delete(thesis)
-    db.session.commit()
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify the thesis is supervised by the current user
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if thesis_supervisor and thesis_supervisor.thesis:
+        # Delete the thesis (this will cascade to delete related records)
+        db.session.delete(thesis_supervisor.thesis)
+        db.session.commit()
 
-    return theses_data()
+    return redirect(url_for('supervisor.theses_data'))
 
 
 @supervisor.route("/add_thesis_supervisor", methods=["POST"])

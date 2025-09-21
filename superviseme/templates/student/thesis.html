@@ -41,7 +41,7 @@
                                             <strong>Level:</strong> {{ thesis.level|title if thesis.level else 'Not specified' }}
                                         </div>
                                         <div class="col-md-6">
-                                            <strong>Created:</strong> {{ moment(thesis.created_at).format('MMMM Do, YYYY') if thesis.created_at else 'Unknown' }}
+                                            <strong>Created:</strong> {{ dt(thesis.created_at).strftime('%B %d, %Y') if thesis.created_at else 'Unknown' }}
                                         </div>
                                     </div>
                                     {% if supervisors %}
@@ -82,11 +82,11 @@
                                                             <strong class="text-info">Supervisor</strong>
                                                         {% endif %}
                                                         <small class="text-gray-500 ml-2">
-                                                            {{ moment(update.created_at).format('MMMM Do, YYYY [at] h:mm A') if update.created_at else 'Unknown time' }}
+                                                            {{ dt(update.created_at).strftime('%B %d, %Y at %I:%M %p') if update.created_at else 'Unknown time' }}
                                                         </small>
                                                     </div>
                                                     <div class="update-content">
-                                                        {{ update.content|nl2br }}
+                                                        {{ update.content|replace('\n', '<br>')|safe }}
                                                     </div>
                                                 </div>
                                                 {% if update.update_type == 'student_update' and update.author_id == current_user.id %}

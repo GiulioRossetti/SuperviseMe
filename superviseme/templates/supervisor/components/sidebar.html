@@ -1,9 +1,9 @@
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('supervisor.dashboard') }}">
                 <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-laugh-wink"></i>
+                    <i class="fas fa-user-tie"></i>
                 </div>
                 <div class="sidebar-brand-text mx-3">SuperviseMe</div>
             </a>
@@ -13,7 +13,7 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item active">
-                <a class="nav-link" href="/admin/dashboard">
+                <a class="nav-link" href="{{ url_for('supervisor.dashboard') }}">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span></a>
             </li>
@@ -23,25 +23,23 @@
 
             <!-- Heading -->
             <div class="sidebar-heading">
-                Activities
+                My Work
             </div>
 
-            <!-- Nav Item - Utilities Collapse Menu -->
+            <!-- Nav Item - Theses -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
-                    aria-expanded="true" aria-controls="collapseUtilities">
-                    <i class="fas fa-fw fa-wrench"></i>
-                    <span>Theses</span>
+                <a class="nav-link" href="{{ url_for('supervisor.theses_data') }}">
+                    <i class="fas fa-fw fa-book"></i>
+                    <span>My Theses</span>
                 </a>
-                <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities"
-                    data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Category:</h6>
-                        <a class="collapse-item" href="utilities-color.html">Bachelor</a>
-                        <a class="collapse-item" href="utilities-border.html">Master</a>
-                        <a class="collapse-item" href="utilities-other.html">Other</a>
-                    </div>
-                </div>
+            </li>
+
+            <!-- Nav Item - Students -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('supervisor.supervisee_data') }}">
+                    <i class="fas fa-fw fa-user-graduate"></i>
+                    <span>My Students</span>
+                </a>
             </li>
 
             <!-- Divider -->
@@ -49,60 +47,17 @@
 
             <!-- Heading -->
             <div class="sidebar-heading">
-                Settings
+                Account
             </div>
 
-            <!-- Nav Item - Pages Collapse Menu -->
+            <!-- Nav Item - Profile -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePagesUs"
-                    aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Control Panel</span>
+                <a class="nav-link" href="{{ url_for('profile.profile_page') }}">
+                    <i class="fas fa-fw fa-user"></i>
+                    <span>Profile</span>
                 </a>
-                <div id="collapsePagesUs" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Students:</h6>
-                        <a class="collapse-item" href="/supervisor/new_user">Create</a>
-                        <a class="collapse-item" href="/supervisor/edit_user">Update & Delete</a>
-                        <div class="collapse-divider"></div>
-
-                        <h6 class="collapse-header">Theses:</h6>
-                        <a class="collapse-item" href="/supervisor/new_thesis">Create</a>
-                        <a class="collapse-item" href="/supervisor/edit_thesis">Update & Delete</a>
-                        <div class="collapse-divider"></div>
-                    </div>
-                </div>
             </li>
 
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
-                    aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>System</span>
-                </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="/supervisor/theses_settings">General Settings</a>
-                        <a class="collapse-item" href="/supervisor/notify_settings">Annotation & Notification</a>
-                        <a class="collapse-item" href="/supervisor/miscellanea">Miscellanea</a>
-                    </div>
-                </div>
-            </li>
-
-            <!-- Nav Item - Charts
-            <li class="nav-item">
-                <a class="nav-link" href="charts.html">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Charts</span></a>
-            </li>
-            -->
-            <!-- Nav Item - Tables
-            <li class="nav-item">
-                <a class="nav-link" href="tables.html">
-                    <i class="fas fa-fw fa-table"></i>
-                    <span>Tables</span></a>
-            </li>
-            -->
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
 
@@ -110,6 +65,5 @@
             <div class="text-center d-none d-md-inline">
                 <button class="rounded-circle border-0" id="sidebarToggle"></button>
             </div>
-
 
         </ul>
