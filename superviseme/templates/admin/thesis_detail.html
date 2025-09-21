@@ -235,18 +235,97 @@
                                 <div class="card-body">
                                     {% if status_history %}
                                         {% for status in status_history %}
-                                            <div class="border-left-primary shadow h-100 py-2 pl-3 mb-2">
-                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                    {{ status.status }}
+                                            <div class="border-left-primary shadow h-100 py-2 pl-3 mb-2 d-flex justify-content-between align-items-center">
+                                                <div class="flex-grow-1">
+                                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                        {{ status.status }}
+                                                    </div>
+                                                    <div class="text-xs text-gray-500">
+                                                        {{ datetime.fromtimestamp(status.updated_at).strftime('%Y-%m-%d %H:%M') }}
+                                                    </div>
                                                 </div>
-                                                <div class="text-xs text-gray-500">
-                                                    {{ datetime.fromtimestamp(status.updated_at).strftime('%Y-%m-%d %H:%M') }}
+                                                <div class="ml-2">
+                                                    <!-- Edit Status Button -->
+                                                    <button type="button" class="btn btn-sm btn-outline-primary mr-1" data-toggle="modal" data-target="#editStatusModal{{ status.id }}">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <!-- Delete Status Button -->
+                                                    <form style="display: inline-block;" action="/admin/delete_thesis_status" method="POST" onsubmit="return confirm('Are you sure you want to delete this status entry?')">
+                                                        <input type="hidden" name="status_id" value="{{ status.id }}">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                            <!-- Edit Status Modal -->
+                                            <div class="modal fade" id="editStatusModal{{ status.id }}" tabindex="-1" role="dialog" aria-labelledby="editStatusModalLabel{{ status.id }}" aria-hidden="true">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <form action="/admin/update_thesis_status" method="POST">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="editStatusModalLabel{{ status.id }}">Edit Status</h5>
+                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                    <span aria-hidden="true">&times;</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <input type="hidden" name="status_id" value="{{ status.id }}">
+                                                                <div class="form-group">
+                                                                    <label for="status{{ status.id }}">Status</label>
+                                                                    <select class="form-control" id="status{{ status.id }}" name="status" required>
+                                                                        <option value="thesis proposed" {% if status.status == 'thesis proposed' %}selected{% endif %}>Thesis Proposed</option>
+                                                                        <option value="thesis accepted" {% if status.status == 'thesis accepted' %}selected{% endif %}>Thesis Accepted</option>
+                                                                        <option value="in progress" {% if status.status == 'in progress' %}selected{% endif %}>In Progress</option>
+                                                                        <option value="writing phase" {% if status.status == 'writing phase' %}selected{% endif %}>Writing Phase</option>
+                                                                        <option value="review phase" {% if status.status == 'review phase' %}selected{% endif %}>Review Phase</option>
+                                                                        <option value="final review" {% if status.status == 'final review' %}selected{% endif %}>Final Review</option>
+                                                                        <option value="completed" {% if status.status == 'completed' %}selected{% endif %}>Completed</option>
+                                                                        <option value="suspended" {% if status.status == 'suspended' %}selected{% endif %}>Suspended</option>
+                                                                        <option value="cancelled" {% if status.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-primary">Update Status</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
                                                 </div>
                                             </div>
                                         {% endfor %}
                                     {% else %}
                                         <p class="text-muted">No status history available</p>
                                     {% endif %}
+                                    
+                                    <!-- Add New Status -->
+                                    <div class="border-top pt-3 mt-3">
+                                        <form action="/admin/add_thesis_status" method="POST">
+                                            <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                                            <div class="form-group">
+                                                <label for="newStatus">Add New Status</label>
+                                                <div class="input-group">
+                                                    <select class="form-control" id="newStatus" name="status" required>
+                                                        <option value="">Select a status...</option>
+                                                        <option value="thesis proposed">Thesis Proposed</option>
+                                                        <option value="thesis accepted">Thesis Accepted</option>
+                                                        <option value="in progress">In Progress</option>
+                                                        <option value="writing phase">Writing Phase</option>
+                                                        <option value="review phase">Review Phase</option>
+                                                        <option value="final review">Final Review</option>
+                                                        <option value="completed">Completed</option>
+                                                        <option value="suspended">Suspended</option>
+                                                        <option value="cancelled">Cancelled</option>
+                                                    </select>
+                                                    <div class="input-group-append">
+                                                        <button type="submit" class="btn btn-success">Add Status</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
 

@@ -69,7 +69,7 @@ def dashboard():
 
     return render_template("/admin/admin_dashboard.html", current_user=current_user,
                            user_counts=user_counts, thesis_counts=thesis_counts,
-                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses_by_supervisor, dt=datetime.fromtimestamp, str=str)
+                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses_by_supervisor, datetime=datetime, dt=datetime.datetime.fromtimestamp, str=str)
 
 
 @admin.route("/admin/users")
@@ -1087,5 +1087,91 @@ def generate_report():
         return {"status": "success", "report": report}, 200
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
+
+
+@admin.route("/admin/add_thesis_status", methods=["POST"])
+@login_required
+def add_thesis_status():
+    """
+    Add a new status entry to a thesis status history
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    thesis_id = request.form.get("thesis_id")
+    status = request.form.get("status")
+    
+    if not thesis_id or not status:
+        flash("Both thesis ID and status are required")
+        return redirect(request.referrer)
+    
+    try:
+        new_status = Thesis_Status(
+            thesis_id=int(thesis_id),
+            status=status,
+            updated_at=int(time.time())
+        )
+        db.session.add(new_status)
+        db.session.commit()
+        
+        flash(f"Status '{status}' added successfully")
+        return redirect(url_for("admin.thesis_detail", thesis_id=thesis_id))
+    except Exception as e:
+        flash(f"Error adding status: {e}")
+        return redirect(request.referrer)
+
+
+@admin.route("/admin/update_thesis_status", methods=["POST"])
+@login_required
+def update_thesis_status():
+    """
+    Update an existing thesis status entry
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    status_id = request.form.get("status_id")
+    new_status_value = request.form.get("status")
+    
+    if not status_id or not new_status_value:
+        flash("Status ID and new status value are required")
+        return redirect(request.referrer)
+    
+    try:
+        status_entry = Thesis_Status.query.get_or_404(status_id)
+        status_entry.status = new_status_value
+        status_entry.updated_at = int(time.time())
+        db.session.commit()
+        
+        flash(f"Status updated to '{new_status_value}' successfully")
+        return redirect(url_for("admin.thesis_detail", thesis_id=status_entry.thesis_id))
+    except Exception as e:
+        flash(f"Error updating status: {e}")
+        return redirect(request.referrer)
+
+
+@admin.route("/admin/delete_thesis_status", methods=["POST"])
+@login_required  
+def delete_thesis_status():
+    """
+    Delete a thesis status entry
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    status_id = request.form.get("status_id")
+    
+    if not status_id:
+        flash("Status ID is required")
+        return redirect(request.referrer)
+    
+    try:
+        status_entry = Thesis_Status.query.get_or_404(status_id)
+        thesis_id = status_entry.thesis_id
+        db.session.delete(status_entry)
+        db.session.commit()
+        
+        flash("Status deleted successfully")
+        return redirect(url_for("admin.thesis_detail", thesis_id=thesis_id))
+    except Exception as e:
+        flash(f"Error deleting status: {e}")
+        return redirect(request.referrer)
 
 
