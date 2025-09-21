@@ -463,17 +463,95 @@
 
         // Data operations
         function exportData() {
-            const format = prompt('Select export format:', 'CSV');
-            if (format) {
+            if (confirm('This will export all system data. Continue?')) {
                 showLoadingAlert('Exporting data...');
+                
+                // Export as CSV zip file
+                window.location.href = '/admin/api/export_data/csv';
+                
                 setTimeout(() => {
-                    alert('Data exported successfully!\n\nFormat: ' + format + '\nFiles created:\n- users.csv (42 records)\n- theses.csv (28 records)\n- assignments.csv (35 records)');
-                }, 2000);
+                    alert('Data export initiated! Download should begin shortly.');
+                }, 1000);
             }
         }
 
         function importData() {
-            alert('Import Data Wizard\n\n1. Select CSV file to import\n2. Map columns to database fields\n3. Validate data format\n4. Import with conflict resolution\n\nThis feature would open a file selection dialog.');
+            alert('Import Data Wizard\n\nNote: This feature requires file upload implementation.\n\nWorkflow:\n1. Select CSV file to import\n2. Map columns to database fields\n3. Validate data format\n4. Import with conflict resolution');
+        }
+        
+        function generateReport() {
+            showLoadingAlert('Generating system report...');
+            
+            fetch('/admin/api/generate_report', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const report = data.report;
+                    alert(`System Report Generated\n\nGenerated: ${new Date(report.generated_at).toLocaleString()}\nBy: ${report.generated_by}\n\nSummary:\n- Users: ${report.summary.total_users}\n- Theses: ${report.summary.total_theses}\n- Status: ${report.summary.system_status}`);
+                } else {
+                    alert('Error generating report: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Error generating report: ' + error.message);
+            });
+        }
+        
+        function showSystemStats() {
+            showLoadingAlert('Loading system statistics...');
+            
+            fetch('/admin/api/system_stats')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const stats = data.data;
+                    const dbStats = stats.database;
+                    const sysInfo = stats.system;
+                    
+                    alert(`System Statistics\n\n` +
+                          `Database:\n` +
+                          `- Total Users: ${dbStats.total_users}\n` +
+                          `- Students: ${dbStats.students}\n` +
+                          `- Supervisors: ${dbStats.supervisors}\n` +
+                          `- Admins: ${dbStats.admins}\n` +
+                          `- Total Theses: ${dbStats.total_theses}\n` +
+                          `- Assigned: ${dbStats.assigned_theses}\n` +
+                          `- Available: ${dbStats.available_theses}\n\n` +
+                          `System:\n` +
+                          `- Database Size: ${sysInfo.database_size}\n` +
+                          `- Generated: ${new Date(stats.timestamp).toLocaleString()}`);
+                } else {
+                    alert('Error loading statistics: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Error loading statistics: ' + error.message);
+            });
+        }
+        
+        function checkSystemHealth() {
+            showLoadingAlert('Checking system health...');
+            
+            fetch('/admin/api/system_health')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const health = data.health;
+                    alert(`System Health Check\n\n` +
+                          `Status: ${health.status.toUpperCase()}\n` +
+                          `Database Connection: ${health.database_connection}\n` +
+                          `Active Users: ${health.user_count}\n` +
+                          `Total Theses: ${health.thesis_count}`);
+                } else {
+                    alert('System Health: UNHEALTHY\nError: ' + data.health.error);
+                }
+            })
+            .catch(error => {
+                alert('Error checking system health: ' + error.message);
+            });
         }
 
         // System maintenance

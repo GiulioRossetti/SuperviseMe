@@ -219,4 +219,7 @@ def create_app(db_type="sqlite"):
     from superviseme.routes.supervisor import supervisor as supervisor_blueprint
     app.register_blueprint(supervisor_blueprint)
 
+    from superviseme.routes.profile import profile as profile_blueprint
+    app.register_blueprint(profile_blueprint)
+
     return app

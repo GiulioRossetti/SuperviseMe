@@ -1,0 +1,333 @@
+{% if user.user_type == 'admin' %}
+    {% include 'admin/components/header.html' %}
+{% else %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>SuperviseMe - Profile</title>
+        <!-- Custom fonts for this template-->
+        <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
+        <!-- Custom styles for this template-->
+        <link href="{{ url_for('static', filename='assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
+    </head>
+{% endif %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        {% if user.user_type == 'admin' %}
+            <!-- Sidebar -->
+            {% include 'admin/components/sidebar.html' %}
+            <!-- End of Sidebar -->
+        {% endif %}
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column" {% if user.user_type != 'admin' %}style="margin-left: 0;"{% endif %}>
+
+            <!-- Main Content -->
+            <div id="content">
+
+                {% if user.user_type == 'admin' %}
+                    <!-- Topbar -->
+                    {% include 'admin/components/topbar.html' %}
+                    <!-- End of Topbar -->
+                {% else %}
+                    <!-- Simple Topbar for non-admin users -->
+                    <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                        <div class="container-fluid">
+                            <h1 class="h3 mb-0 text-gray-800">SuperviseMe - Profile</h1>
+                            <div class="navbar-nav ml-auto">
+                                <div class="nav-item dropdown no-arrow">
+                                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ user.name }} {{ user.surname }}</span>
+                                        <img class="img-profile rounded-circle"
+                                            src="{{ url_for('static', filename='assets/img/undraw_profile.svg') }}">
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                        aria-labelledby="userDropdown">
+                                        <a class="dropdown-item" href="/profile">
+                                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                            Profile
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                                            <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                            Logout
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                {% endif %}
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">My Profile</h1>
+                        {% if user.user_type == 'admin' %}
+                            <a href="/admin/dashboard" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                        {% elif user.user_type == 'supervisor' %}
+                            <a href="/supervisor/dashboard" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                        {% elif user.user_type == 'student' %}
+                            <a href="/student/dashboard" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Profile Row -->
+                    <div class="row">
+                        
+                        <!-- Profile Information -->
+                        <div class="col-xl-8 col-lg-7">
+                            
+                            <!-- Basic Information -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Basic Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form action="/profile/update" method="POST">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="name">First Name</label>
+                                                    <input type="text" class="form-control" id="name" name="name" value="{{ user.name or '' }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="surname">Last Name</label>
+                                                    <input type="text" class="form-control" id="surname" name="surname" value="{{ user.surname or '' }}" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="email">Email</label>
+                                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email or '' }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="nationality">Nationality</label>
+                                                    <input type="text" class="form-control" id="nationality" name="nationality" value="{{ user.nationality or '' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="gender">Gender</label>
+                                                    <select class="form-control" id="gender" name="gender">
+                                                        <option value="">Not specified</option>
+                                                        <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Male</option>
+                                                        <option value="female" {% if user.gender == 'female' %}selected{% endif %}>Female</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="cdl">Degree Course</label>
+                                                    <input type="text" class="form-control" id="cdl" name="cdl" value="{{ user.cdl or '' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Change Password -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Change Password</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form action="/profile/change_password" method="POST">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label for="current_password">Current Password</label>
+                                                    <input type="password" class="form-control" id="current_password" name="current_password" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="new_password">New Password</label>
+                                                    <input type="password" class="form-control" id="new_password" name="new_password" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="confirm_password">Confirm New Password</label>
+                                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-warning">Change Password</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- User's Theses -->
+                            {% if user.user_type == "student" and authored_theses %}
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">My Theses</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% for thesis in authored_theses %}
+                                            <div class="border-bottom mb-3 pb-3">
+                                                <h6>{{ thesis.title }}</h6>
+                                                <p class="text-muted">{{ thesis.description[:150] }}...</p>
+                                                <small class="text-muted">
+                                                    Level: {{ thesis.level }} | 
+                                                    Created: {{ datetime.fromtimestamp(thesis.created_at).strftime('%Y-%m-%d') }} |
+                                                    Status: {% if thesis.frozen %}Frozen{% else %}Active{% endif %}
+                                                </small>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {% if user.user_type == "supervisor" and supervised_theses %}
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">Supervised Theses</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% for thesis in supervised_theses %}
+                                            <div class="border-bottom mb-3 pb-3">
+                                                <h6>{{ thesis.title }}</h6>
+                                                <p class="text-muted">{{ thesis.description[:150] }}...</p>
+                                                <small class="text-muted">
+                                                    Level: {{ thesis.level }} | 
+                                                    Created: {{ datetime.fromtimestamp(thesis.created_at).strftime('%Y-%m-%d') }} |
+                                                    Status: {% if thesis.frozen %}Frozen{% else %}Active{% endif %}
+                                                </small>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                        </div>
+
+                        <!-- Side Panel -->
+                        <div class="col-xl-4 col-lg-5">
+                            
+                            <!-- Account Info -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Account Information</h6>
+                                </div>
+                                <div class="card-body text-center">
+                                    <div class="border-bottom mb-3 pb-3">
+                                        <h5>{{ user.name }} {{ user.surname }}</h5>
+                                        <p class="text-muted">{{ user.username }}</p>
+                                        <span class="badge badge-primary">{{ user.user_type.title() }}</span>
+                                    </div>
+                                    
+                                    {% if user.user_type == "student" %}
+                                        <div class="border-bottom mb-3 pb-3">
+                                            <h4 class="text-primary">{{ authored_theses|length }}</h4>
+                                            <p class="mb-0">My Theses</p>
+                                        </div>
+                                    {% elif user.user_type == "supervisor" %}
+                                        <div class="border-bottom mb-3 pb-3">
+                                            <h4 class="text-primary">{{ supervised_theses|length }}</h4>
+                                            <p class="mb-0">Supervised Theses</p>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="border-bottom mb-3 pb-3">
+                                        <h4 class="text-success">Active</h4>
+                                        <p class="mb-0">Account Status</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <p class="text-muted">
+                                            Member since<br>
+                                            {{ datetime.fromtimestamp(user.joined_on).strftime('%B %Y') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>SuperviseMe - 2025</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
+
+</body>
+
+</html>
