@@ -18,6 +18,13 @@ lib/
 lib64/
 parts/
 sdist/
+
+# Environment variables
+.env
+
+# Docker volumes
+postgres_data/
+app_data/
 var/
 wheels/
 share/python-wheels/
