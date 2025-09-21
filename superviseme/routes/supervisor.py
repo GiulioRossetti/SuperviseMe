@@ -835,3 +835,36 @@ def tag_student_update():
         return redirect(url_for('supervisor.thesis_detail', thesis_id=update.thesis_id))
     
     return redirect(url_for('supervisor.theses_data'))
+
+
+@supervisor.route("/set_thesis_status", methods=["POST"])
+@login_required
+def set_thesis_status():
+    """
+    This route handles setting the advancement status of a thesis. It creates or updates
+    the thesis status and saves it to the database.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    thesis_id = request.form.get("thesis_id")
+    status = request.form.get("status")
+    
+    # Verify the thesis is supervised by the current user
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if thesis_supervisor:
+        # Create new status entry
+        new_status = Thesis_Status(
+            thesis_id=thesis_id,
+            status=status,
+            updated_at=int(time.time())
+        )
+        db.session.add(new_status)
+        db.session.commit()
+        
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+    
+    return redirect(url_for('supervisor.theses_data'))
