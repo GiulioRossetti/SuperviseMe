@@ -242,7 +242,23 @@ This is an automated weekly report sent every Monday morning.
             'subject': subject,
             'body': email_body,
             'recipient': supervisor.email,
-            'activity_summary': activity_summary
+            'activity_summary': {
+                'total_students': activity_summary['total_students'],
+                'active_students': activity_summary['active_students'],
+                'inactive_students': activity_summary['inactive_students'],
+                'total_updates_this_week': activity_summary['total_updates_this_week'],
+                'students': [
+                    {
+                        'name': f"{s['student'].name} {s['student'].surname}",
+                        'thesis_title': s['thesis'].title,
+                        'recent_updates': s['recent_updates'],
+                        'is_inactive': s['is_inactive'],
+                        'days_since_activity': s['days_since_activity'],
+                        'last_activity_location': s['last_activity_location']
+                    }
+                    for s in activity_summary['students']
+                ]
+            }
         }
         
     except Exception as e:
