@@ -726,9 +726,9 @@ def notify_settings():
                          stats=stats)
 
 
-@admin.route("/admin/miscellanea")
+@admin.route("/admin/misc")
 @login_required
-def miscellanea():
+def misc():
     """
     Miscellanea page for various administrative tools and utilities.
     """
