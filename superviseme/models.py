@@ -91,3 +91,33 @@ class Resource(db.Model):
     created_at = db.Column(db.Integer, nullable=False)
 
     thesis = db.relationship("Thesis", backref="resources", lazy=True)
+
+
+class Thesis_Objective(db.Model):
+    __tablename__ = "thesis_objective"
+    id = db.Column(db.Integer, primary_key=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default="active")  # e.g., "active", "frozen", "archived"
+    frozen = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    thesis = db.relationship("Thesis", backref="objectives", lazy=True)
+    author = db.relationship("User_mgmt", backref="objectives", lazy=True)
+
+
+class Thesis_Hypothesis(db.Model):
+    __tablename__ = "thesis_hypothesis"
+    id = db.Column(db.Integer, primary_key=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default="active")  # e.g., "active", "frozen", "archived"
+    frozen = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    thesis = db.relationship("Thesis", backref="hypotheses", lazy=True)
+    author = db.relationship("User_mgmt", backref="hypotheses", lazy=True)
