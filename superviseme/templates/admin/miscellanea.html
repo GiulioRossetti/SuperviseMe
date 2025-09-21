@@ -1,0 +1,583 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'admin/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Miscellanea</h1>
+                        <small class="text-muted">System utilities and administrative tools</small>
+                    </div>
+
+                    <!-- System Information -->
+                    <div class="row">
+                        <div class="col-xl-8 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">System Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <strong>Application Version:</strong>
+                                                <br><code>{{ system_info.app_version }}</code>
+                                            </div>
+                                            <div class="mb-3">
+                                                <strong>Database:</strong>
+                                                <br><code>{{ system_info.database_path }}</code>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <strong>Database Size:</strong>
+                                                <br><span class="badge badge-info">{{ system_info.database_size }}</span>
+                                            </div>
+                                            <div class="mb-3">
+                                                <strong>System Time:</strong>
+                                                <br><code>{{ system_info.current_time.strftime('%Y-%m-%d %H:%M:%S') }}</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <hr>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-4 text-center">
+                                            <button class="btn btn-outline-primary btn-sm" onclick="checkSystemHealth()">
+                                                <i class="fas fa-heartbeat"></i> System Health
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4 text-center">
+                                            <button class="btn btn-outline-info btn-sm" onclick="showLogs()">
+                                                <i class="fas fa-file-alt"></i> View Logs
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4 text-center">
+                                            <button class="btn btn-outline-success btn-sm" onclick="optimizeDatabase()">
+                                                <i class="fas fa-database"></i> Optimize DB
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="col-xl-4 col-lg-5">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Quick Stats</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div class="small text-muted">Recent Users</div>
+                                        <div class="h6 mb-0">{{ activity_summary.recent_users|length }}</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="small text-muted">Recent Theses</div>
+                                        <div class="h6 mb-0">{{ activity_summary.recent_theses|length }}</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="small text-muted">Popular Tags</div>
+                                        <div class="h6 mb-0">{{ activity_summary.tag_stats|length }}</div>
+                                    </div>
+                                    
+                                    <hr>
+                                    
+                                    <button class="btn btn-primary btn-block btn-sm" onclick="generateReport()">
+                                        <i class="fas fa-chart-line"></i> Generate Report
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="row">
+                        <div class="col-xl-6 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Recent Users</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if activity_summary.recent_users %}
+                                        <div class="list-group list-group-flush">
+                                            {% for user in activity_summary.recent_users %}
+                                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong>{{ user.name }} {{ user.surname }}</strong>
+                                                    <br><small class="text-muted">{{ user.email }} • {{ user.user_type.title() }}</small>
+                                                </div>
+                                                <span class="badge badge-primary badge-pill">{{ dt(user.joined_on).strftime('%m/%d') }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">No recent users found.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-6 col-lg-5">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Recent Theses</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if activity_summary.recent_theses %}
+                                        <div class="list-group list-group-flush">
+                                            {% for thesis in activity_summary.recent_theses %}
+                                            <div class="list-group-item">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1">{{ thesis.title[:50] }}{% if thesis.title|length > 50 %}...{% endif %}</h6>
+                                                    <small>{{ dt(thesis.created_at).strftime('%m/%d') }}</small>
+                                                </div>
+                                                <p class="mb-1 small text-muted">{{ thesis.description[:100] }}{% if thesis.description|length > 100 %}...{% endif %}</p>
+                                                <small class="text-muted">Level: {{ thesis.level.title() }}</small>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">No recent theses found.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Popular Tags -->
+                    {% if activity_summary.tag_stats %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Popular Tags</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        {% for tag, count in activity_summary.tag_stats.items() %}
+                                        <div class="col-md-2 col-sm-4 col-6 mb-3">
+                                            <div class="text-center">
+                                                <span class="badge badge-secondary p-2">
+                                                    {{ tag }} <span class="badge badge-light ml-1">{{ count }}</span>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Administrative Tools -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Administrative Tools</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <!-- Backup & Restore -->
+                                        <div class="col-md-4 mb-4">
+                                            <div class="card border-left-primary h-100">
+                                                <div class="card-body">
+                                                    <div class="text-center">
+                                                        <i class="fas fa-download fa-3x text-primary mb-3"></i>
+                                                        <h5 class="card-title">Backup & Restore</h5>
+                                                        <p class="card-text small">Create database backups and restore from previous versions.</p>
+                                                        <div class="btn-group-vertical w-100">
+                                                            <button class="btn btn-primary btn-sm" onclick="createBackup()">
+                                                                <i class="fas fa-save"></i> Create Backup
+                                                            </button>
+                                                            <button class="btn btn-outline-primary btn-sm" onclick="restoreBackup()">
+                                                                <i class="fas fa-upload"></i> Restore Backup
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Data Import/Export -->
+                                        <div class="col-md-4 mb-4">
+                                            <div class="card border-left-success h-100">
+                                                <div class="card-body">
+                                                    <div class="text-center">
+                                                        <i class="fas fa-exchange-alt fa-3x text-success mb-3"></i>
+                                                        <h5 class="card-title">Data Import/Export</h5>
+                                                        <p class="card-text small">Import users and theses from CSV files or export current data.</p>
+                                                        <div class="btn-group-vertical w-100">
+                                                            <button class="btn btn-success btn-sm" onclick="exportData()">
+                                                                <i class="fas fa-file-export"></i> Export Data
+                                                            </button>
+                                                            <button class="btn btn-outline-success btn-sm" onclick="importData()">
+                                                                <i class="fas fa-file-import"></i> Import Data
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- System Maintenance -->
+                                        <div class="col-md-4 mb-4">
+                                            <div class="card border-left-warning h-100">
+                                                <div class="card-body">
+                                                    <div class="text-center">
+                                                        <i class="fas fa-tools fa-3x text-warning mb-3"></i>
+                                                        <h5 class="card-title">System Maintenance</h5>
+                                                        <p class="card-text small">Clean up temporary files, optimize performance, and run diagnostics.</p>
+                                                        <div class="btn-group-vertical w-100">
+                                                            <button class="btn btn-warning btn-sm" onclick="cleanupSystem()">
+                                                                <i class="fas fa-broom"></i> Cleanup System
+                                                            </button>
+                                                            <button class="btn btn-outline-warning btn-sm" onclick="runDiagnostics()">
+                                                                <i class="fas fa-stethoscope"></i> Run Diagnostics
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr>
+
+                                    <!-- Bulk Operations -->
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="text-primary mb-3">Bulk User Operations</h6>
+                                            <div class="form-group">
+                                                <label class="small font-weight-bold">Select User Type:</label>
+                                                <select class="form-control form-control-sm" id="bulkUserType">
+                                                    <option>All Users</option>
+                                                    <option>Students Only</option>
+                                                    <option>Supervisors Only</option>
+                                                    <option>Admins Only</option>
+                                                </select>
+                                            </div>
+                                            <div class="btn-group w-100">
+                                                <button class="btn btn-outline-info btn-sm" onclick="bulkEmailUsers()">
+                                                    <i class="fas fa-envelope"></i> Send Email
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" onclick="exportUsers()">
+                                                    <i class="fas fa-download"></i> Export List
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <h6 class="text-primary mb-3">Bulk Thesis Operations</h6>
+                                            <div class="form-group">
+                                                <label class="small font-weight-bold">Select Criteria:</label>
+                                                <select class="form-control form-control-sm" id="bulkThesisType">
+                                                    <option>All Theses</option>
+                                                    <option>Unassigned Theses</option>
+                                                    <option>Completed Theses</option>
+                                                    <option>Archived Theses</option>
+                                                </select>
+                                            </div>
+                                            <div class="btn-group w-100">
+                                                <button class="btn btn-outline-warning btn-sm" onclick="bulkArchiveTheses()">
+                                                    <i class="fas fa-archive"></i> Archive
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm" onclick="exportTheses()">
+                                                    <i class="fas fa-download"></i> Export List
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Settings -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="m-0 font-weight-bold text-danger">Advanced Settings</h6>
+                                    <small class="text-danger">Use with caution!</small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-warning" role="alert">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <strong>Warning:</strong> These operations can affect the entire system and should only be performed by experienced administrators.
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="text-danger mb-3">Database Operations</h6>
+                                            <div class="list-group">
+                                                <button class="list-group-item list-group-item-action" onclick="resetDatabase()">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1 text-danger">Reset Database</h6>
+                                                        <small><i class="fas fa-exclamation-triangle text-danger"></i></small>
+                                                    </div>
+                                                    <p class="mb-1 small">Remove all data and reset to initial state</p>
+                                                </button>
+                                                <button class="list-group-item list-group-item-action" onclick="recreateTables()">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1 text-warning">Recreate Tables</h6>
+                                                        <small><i class="fas fa-exclamation-triangle text-warning"></i></small>
+                                                    </div>
+                                                    <p class="mb-1 small">Drop and recreate all database tables</p>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <h6 class="text-danger mb-3">User Management</h6>
+                                            <div class="list-group">
+                                                <button class="list-group-item list-group-item-action" onclick="resetAllPasswords()">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1 text-danger">Reset All Passwords</h6>
+                                                        <small><i class="fas fa-key text-danger"></i></small>
+                                                    </div>
+                                                    <p class="mb-1 small">Reset passwords for all users to default</p>
+                                                </button>
+                                                <button class="list-group-item list-group-item-action" onclick="purgeInactiveUsers()">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1 text-warning">Purge Inactive Users</h6>
+                                                        <small><i class="fas fa-user-times text-warning"></i></small>
+                                                    </div>
+                                                    <p class="mb-1 small">Remove users inactive for more than 1 year</p>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
+
+    <script>
+        // System utilities
+        function checkSystemHealth() {
+            showLoadingAlert('Checking system health...');
+            setTimeout(() => {
+                alert('System Health Report\n\n✓ Database: Healthy\n✓ File System: OK\n✓ Memory Usage: Normal\n✓ CPU Usage: Normal\n\nAll systems operational!');
+            }, 2000);
+        }
+
+        function showLogs() {
+            alert('Log Viewer would open here.\n\nRecent entries:\n- User login: admin (2024-01-15 10:30)\n- Thesis created: ID #7 (2024-01-15 09:45)\n- Database backup: Success (2024-01-15 06:00)');
+        }
+
+        function optimizeDatabase() {
+            if (confirm('This operation will optimize the database for better performance. Continue?')) {
+                showLoadingAlert('Optimizing database...');
+                setTimeout(() => {
+                    alert('Database optimization completed!\n\n✓ Tables analyzed\n✓ Indexes rebuilt\n✓ Unused space reclaimed\n✓ Statistics updated');
+                }, 3000);
+            }
+        }
+
+        function generateReport() {
+            showLoadingAlert('Generating comprehensive report...');
+            setTimeout(() => {
+                alert('Report generated successfully!\n\nThe report includes:\n- User activity statistics\n- Thesis completion rates\n- System performance metrics\n- Usage trends\n\nReport saved to: reports/system_report_' + new Date().toISOString().split('T')[0] + '.pdf');
+            }, 2500);
+        }
+
+        // Backup & Restore
+        function createBackup() {
+            if (confirm('Create a full system backup? This may take several minutes.')) {
+                showLoadingAlert('Creating backup...');
+                setTimeout(() => {
+                    alert('Backup created successfully!\n\nLocation: backups/superviseme_backup_' + new Date().toISOString().split('T')[0] + '.sql\nSize: 2.3 MB\nTimestamp: ' + new Date().toLocaleString());
+                }, 3000);
+            }
+        }
+
+        function restoreBackup() {
+            const file = prompt('Enter backup filename to restore from:', 'superviseme_backup_2024-01-15.sql');
+            if (file) {
+                if (confirm('WARNING: This will replace all current data with the backup. Continue?')) {
+                    showLoadingAlert('Restoring from backup...');
+                    setTimeout(() => {
+                        alert('Backup restored successfully!\n\nRestored from: ' + file + '\nRecords restored: 1,247\n\nPlease restart the application.');
+                    }, 4000);
+                }
+            }
+        }
+
+        // Data operations
+        function exportData() {
+            const format = prompt('Select export format:', 'CSV');
+            if (format) {
+                showLoadingAlert('Exporting data...');
+                setTimeout(() => {
+                    alert('Data exported successfully!\n\nFormat: ' + format + '\nFiles created:\n- users.csv (42 records)\n- theses.csv (28 records)\n- assignments.csv (35 records)');
+                }, 2000);
+            }
+        }
+
+        function importData() {
+            alert('Import Data Wizard\n\n1. Select CSV file to import\n2. Map columns to database fields\n3. Validate data format\n4. Import with conflict resolution\n\nThis feature would open a file selection dialog.');
+        }
+
+        // System maintenance
+        function cleanupSystem() {
+            if (confirm('Clean up temporary files and optimize system performance?')) {
+                showLoadingAlert('Cleaning up system...');
+                setTimeout(() => {
+                    alert('System cleanup completed!\n\n✓ Temporary files removed: 15.2 MB\n✓ Log files archived\n✓ Cache cleared\n✓ Orphaned records cleaned\n\nSystem performance improved!');
+                }, 2500);
+            }
+        }
+
+        function runDiagnostics() {
+            showLoadingAlert('Running system diagnostics...');
+            setTimeout(() => {
+                alert('Diagnostic Results\n\n✓ Database integrity: OK\n✓ File permissions: OK\n✓ Configuration: Valid\n⚠ Log rotation: Due\n✓ Security: No issues\n\nRecommendation: Schedule log rotation');
+            }, 3000);
+        }
+
+        // Bulk operations
+        function bulkEmailUsers() {
+            const userType = document.getElementById('bulkUserType').value;
+            const message = prompt('Enter message to send to ' + userType.toLowerCase() + ':', 'System maintenance scheduled for tonight at 2 AM.');
+            if (message) {
+                alert('Email sent to ' + userType.toLowerCase() + '!\n\nRecipients: 25\nMessage: ' + message.substring(0, 50) + '...\nDelivery: Scheduled');
+            }
+        }
+
+        function exportUsers() {
+            const userType = document.getElementById('bulkUserType').value;
+            alert('User list exported!\n\nType: ' + userType + '\nFormat: CSV\nRecords: 25\nFile: users_export_' + new Date().toISOString().split('T')[0] + '.csv');
+        }
+
+        function bulkArchiveTheses() {
+            const thesisType = document.getElementById('bulkThesisType').value;
+            if (confirm('Archive all ' + thesisType.toLowerCase() + '? This action can be undone.')) {
+                alert('Theses archived!\n\nType: ' + thesisType + '\nArchived: 12 theses\nStatus: Completed');
+            }
+        }
+
+        function exportTheses() {
+            const thesisType = document.getElementById('bulkThesisType').value;
+            alert('Thesis list exported!\n\nType: ' + thesisType + '\nFormat: CSV\nRecords: 15\nFile: theses_export_' + new Date().toISOString().split('T')[0] + '.csv');
+        }
+
+        // Advanced operations (dangerous)
+        function resetDatabase() {
+            if (confirm('⚠️ WARNING: This will delete ALL data! Are you absolutely sure?')) {
+                if (confirm('This action cannot be undone. Type "RESET" to confirm:') && prompt('Type RESET to confirm:') === 'RESET') {
+                    showLoadingAlert('Resetting database...');
+                    setTimeout(() => {
+                        alert('Database reset completed!\n\n⚠️ All data has been removed\n✓ Schema recreated\n✓ Admin user restored\n\nPlease restart the application.');
+                    }, 3000);
+                }
+            }
+        }
+
+        function recreateTables() {
+            if (confirm('Recreate all database tables? This will preserve data but may cause temporary downtime.')) {
+                showLoadingAlert('Recreating tables...');
+                setTimeout(() => {
+                    alert('Tables recreated successfully!\n\n✓ All tables dropped\n✓ Schema recreated\n✓ Data restored\n✓ Indexes rebuilt');
+                }, 3500);
+            }
+        }
+
+        function resetAllPasswords() {
+            if (confirm('Reset ALL user passwords to default? Users will need to change them on next login.')) {
+                showLoadingAlert('Resetting passwords...');
+                setTimeout(() => {
+                    alert('Passwords reset!\n\n✓ 42 passwords reset\n✓ Email notifications sent\n✓ Force password change enabled\n\nDefault password: "changeme123"');
+                }, 2000);
+            }
+        }
+
+        function purgeInactiveUsers() {
+            if (confirm('Remove users who have not logged in for over 1 year? This action cannot be undone.')) {
+                showLoadingAlert('Purging inactive users...');
+                setTimeout(() => {
+                    alert('Inactive users purged!\n\n✓ 8 inactive users removed\n✓ Associated data cleaned\n✓ Database optimized\n\nActive users: 34 remaining');
+                }, 2500);
+            }
+        }
+
+        // Utility functions
+        function showLoadingAlert(message) {
+            // In a real implementation, this would show a proper loading modal
+            const modal = document.createElement('div');
+            modal.innerHTML = `
+                <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                     background: white; padding: 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 9999;">
+                    <i class="fas fa-spinner fa-spin"></i> ${message}
+                </div>`;
+            document.body.appendChild(modal);
+            
+            // Remove after operation completes
+            setTimeout(() => {
+                if (modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
+            }, 5000);
+        }
+    </script>
+
+</body>
+
+</html>

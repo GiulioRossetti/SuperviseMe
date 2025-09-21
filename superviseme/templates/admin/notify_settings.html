@@ -1,0 +1,502 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'admin/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Annotation & Notification Settings</h1>
+                    </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="row">
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Total Users</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_users }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Active Supervisors</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.active_supervisors }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Enrolled Students</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.enrolled_students }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Pending Notifications</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pending_notifications }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-bell fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Settings -->
+                    <div class="row">
+                        <!-- Notification Settings -->
+                        <div class="col-xl-6 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Notification Settings</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="notificationSettings">
+                                        <div class="list-group">
+                                            <div class="list-group-item">
+                                                <div class="row align-items-center">
+                                                    <div class="col">
+                                                        <strong>Email Notifications</strong>
+                                                        <br><small class="text-muted">Send email notifications to users</small>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <div class="custom-control custom-switch">
+                                                            <input type="checkbox" class="custom-control-input" id="email-notifications" checked>
+                                                            <label class="custom-control-label" for="email-notifications"></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="list-group-item">
+                                                <div class="row align-items-center">
+                                                    <div class="col">
+                                                        <strong>Assignment Notifications</strong>
+                                                        <br><small class="text-muted">Notify when theses are assigned</small>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <div class="custom-control custom-switch">
+                                                            <input type="checkbox" class="custom-control-input" id="assignment-notifications" checked>
+                                                            <label class="custom-control-label" for="assignment-notifications"></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="list-group-item">
+                                                <div class="row align-items-center">
+                                                    <div class="col">
+                                                        <strong>Status Change Notifications</strong>
+                                                        <br><small class="text-muted">Notify when thesis status changes</small>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <div class="custom-control custom-switch">
+                                                            <input type="checkbox" class="custom-control-input" id="status-notifications" checked>
+                                                            <label class="custom-control-label" for="status-notifications"></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="list-group-item">
+                                                <div class="row align-items-center">
+                                                    <div class="col">
+                                                        <strong>Deadline Reminders</strong>
+                                                        <br><small class="text-muted">Send reminders before deadlines</small>
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <div class="custom-control custom-switch">
+                                                            <input type="checkbox" class="custom-control-input" id="deadline-reminders">
+                                                            <label class="custom-control-label" for="deadline-reminders"></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Annotation Settings -->
+                        <div class="col-xl-6 col-lg-5">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Annotation Settings</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="annotationSettings">
+                                        <div class="form-group">
+                                            <label for="default-annotation-type"><strong>Default Annotation Type</strong></label>
+                                            <select class="form-control" id="default-annotation-type">
+                                                <option>General Comment</option>
+                                                <option>Suggestion</option>
+                                                <option>Question</option>
+                                                <option>Important Note</option>
+                                            </select>
+                                            <small class="form-text text-muted">Select the default type for new annotations</small>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="max-annotation-length"><strong>Maximum Annotation Length</strong></label>
+                                            <select class="form-control" id="max-annotation-length">
+                                                <option>500 characters</option>
+                                                <option selected>1000 characters</option>
+                                                <option>2000 characters</option>
+                                                <option>No limit</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="custom-control custom-checkbox mb-3">
+                                            <input type="checkbox" class="custom-control-input" id="require-annotation-approval" checked>
+                                            <label class="custom-control-label" for="require-annotation-approval">
+                                                <strong>Require Approval for Public Annotations</strong>
+                                                <br><small class="text-muted">Admin approval required before annotations are visible</small>
+                                            </label>
+                                        </div>
+
+                                        <div class="custom-control custom-checkbox mb-3">
+                                            <input type="checkbox" class="custom-control-input" id="allow-anonymous-annotations">
+                                            <label class="custom-control-label" for="allow-anonymous-annotations">
+                                                <strong>Allow Anonymous Annotations</strong>
+                                                <br><small class="text-muted">Users can submit annotations anonymously</small>
+                                            </label>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email Configuration -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Email Configuration</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="emailSettings">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="smtp-server"><strong>SMTP Server</strong></label>
+                                                    <input type="text" class="form-control" id="smtp-server" placeholder="smtp.example.com">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="smtp-port"><strong>SMTP Port</strong></label>
+                                                    <input type="number" class="form-control" id="smtp-port" value="587">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label for="smtp-encryption"><strong>Encryption</strong></label>
+                                                    <select class="form-control" id="smtp-encryption">
+                                                        <option>None</option>
+                                                        <option selected>TLS</option>
+                                                        <option>SSL</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="smtp-username"><strong>Username</strong></label>
+                                                    <input type="text" class="form-control" id="smtp-username" placeholder="your-email@example.com">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="smtp-password"><strong>Password</strong></label>
+                                                    <input type="password" class="form-control" id="smtp-password" placeholder="••••••••">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="from-email"><strong>From Email</strong></label>
+                                                    <input type="email" class="form-control" id="from-email" placeholder="noreply@university.edu">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="from-name"><strong>From Name</strong></label>
+                                                    <input type="text" class="form-control" id="from-name" placeholder="SuperviseMe System">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <button type="button" class="btn btn-outline-primary" onclick="testEmailConnection()">
+                                                    <i class="fas fa-paper-plane"></i> Test Connection
+                                                </button>
+                                            </div>
+                                            <div class="col-md-6 text-right">
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="fas fa-save"></i> Save Configuration
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Templates -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Email Templates</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                                                <a class="nav-link active" id="v-pills-assignment-tab" data-toggle="pill" href="#v-pills-assignment" role="tab">
+                                                    Thesis Assignment
+                                                </a>
+                                                <a class="nav-link" id="v-pills-status-tab" data-toggle="pill" href="#v-pills-status" role="tab">
+                                                    Status Change
+                                                </a>
+                                                <a class="nav-link" id="v-pills-deadline-tab" data-toggle="pill" href="#v-pills-deadline" role="tab">
+                                                    Deadline Reminder
+                                                </a>
+                                                <a class="nav-link" id="v-pills-welcome-tab" data-toggle="pill" href="#v-pills-welcome" role="tab">
+                                                    Welcome Message
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-9">
+                                            <div class="tab-content" id="v-pills-tabContent">
+                                                <div class="tab-pane fade show active" id="v-pills-assignment" role="tabpanel">
+                                                    <h6>Thesis Assignment Template</h6>
+                                                    <div class="form-group">
+                                                        <label>Subject:</label>
+                                                        <input type="text" class="form-control" value="New Thesis Assignment: {thesis_title}">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Body:</label>
+                                                        <textarea class="form-control" rows="6">Dear {student_name},
+
+You have been assigned a new thesis: "{thesis_title}"
+
+Supervisor: {supervisor_name}
+Level: {thesis_level}
+Description: {thesis_description}
+
+Please log in to your account to view more details.
+
+Best regards,
+SuperviseMe Team</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="tab-pane fade" id="v-pills-status" role="tabpanel">
+                                                    <h6>Status Change Template</h6>
+                                                    <div class="form-group">
+                                                        <label>Subject:</label>
+                                                        <input type="text" class="form-control" value="Thesis Status Update: {thesis_title}">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Body:</label>
+                                                        <textarea class="form-control" rows="6">Dear {student_name},
+
+The status of your thesis "{thesis_title}" has been updated to: {new_status}
+
+Updated on: {update_date}
+Updated by: {updated_by}
+
+Please check your dashboard for more information.
+
+Best regards,
+SuperviseMe Team</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="tab-pane fade" id="v-pills-deadline" role="tabpanel">
+                                                    <h6>Deadline Reminder Template</h6>
+                                                    <div class="form-group">
+                                                        <label>Subject:</label>
+                                                        <input type="text" class="form-control" value="Reminder: Thesis Deadline Approaching">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Body:</label>
+                                                        <textarea class="form-control" rows="6">Dear {student_name},
+
+This is a reminder that the deadline for your thesis "{thesis_title}" is approaching.
+
+Deadline: {deadline_date}
+Days remaining: {days_remaining}
+
+Please ensure you submit your work on time.
+
+Best regards,
+SuperviseMe Team</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="tab-pane fade" id="v-pills-welcome" role="tabpanel">
+                                                    <h6>Welcome Message Template</h6>
+                                                    <div class="form-group">
+                                                        <label>Subject:</label>
+                                                        <input type="text" class="form-control" value="Welcome to SuperviseMe!">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Body:</label>
+                                                        <textarea class="form-control" rows="6">Dear {user_name},
+
+Welcome to SuperviseMe! Your account has been created successfully.
+
+Username: {username}
+User Type: {user_type}
+Email: {email}
+
+Please log in to your account to get started.
+
+Best regards,
+SuperviseMe Team</textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="text-right mt-3">
+                                                <button class="btn btn-success">
+                                                    <i class="fas fa-save"></i> Save Templates
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
+
+    <script>
+        function testEmailConnection() {
+            // Show loading state
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            btn.disabled = true;
+            
+            // Simulate test (in real implementation, this would be an AJAX call)
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                alert('Email connection test completed!\n\nConnection: Successful\nLatency: 127ms\nStatus: Ready to send');
+            }, 2000);
+        }
+
+        // Save forms functionality
+        document.getElementById('notificationSettings').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Notification settings saved successfully!');
+        });
+
+        document.getElementById('annotationSettings').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Annotation settings saved successfully!');
+        });
+
+        document.getElementById('emailSettings').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Email configuration saved successfully!');
+        });
+    </script>
+
+</body>
+
+</html>

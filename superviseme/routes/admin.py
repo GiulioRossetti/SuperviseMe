@@ -572,3 +572,110 @@ def archive_thesis():
     return redirect(url_for("admin.thesis_detail", thesis_id=thesis_id))
 
 
+@admin.route("/admin/theses_settings")
+@login_required
+def theses_settings():
+    """
+    General Settings page for thesis management configuration.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    # Get statistics for the settings overview
+    stats = {
+        "total_theses": Thesis.query.count(),
+        "assigned_theses": Thesis.query.filter(Thesis.author_id.isnot(None)).count(),
+        "available_theses": Thesis.query.filter(Thesis.author_id.is_(None)).count(),
+        "frozen_theses": Thesis.query.filter_by(frozen=True).count(),
+        "thesis_levels": {
+            "bachelor": Thesis.query.filter_by(level="bachelor").count(),
+            "master": Thesis.query.filter_by(level="master").count(),
+            "other": Thesis.query.filter_by(level="other").count()
+        }
+    }
+    
+    return render_template("/admin/theses_settings.html", 
+                         current_user=current_user, 
+                         stats=stats)
+
+
+@admin.route("/admin/notify_settings")
+@login_required  
+def notify_settings():
+    """
+    Annotation & Notification settings page for managing communication and updates.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    # Get notification-related statistics
+    stats = {
+        "total_users": User_mgmt.query.count(),
+        "active_supervisors": User_mgmt.query.filter_by(user_type="supervisor").count(),
+        "enrolled_students": User_mgmt.query.filter_by(user_type="student").count(),
+        "recent_updates": Thesis_Update.query.count() if 'Thesis_Update' in globals() else 0,
+        "pending_notifications": 0  # Placeholder for future implementation
+    }
+    
+    return render_template("/admin/notify_settings.html",
+                         current_user=current_user,
+                         stats=stats)
+
+
+@admin.route("/admin/miscellanea")
+@login_required
+def miscellanea():
+    """
+    Miscellanea page for various administrative tools and utilities.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    # System information and utilities
+    import os
+    import datetime
+    
+    system_info = {
+        "database_path": db.engine.url.database,
+        "current_time": datetime.datetime.now(),
+        "app_version": "1.0.0",  # Could be read from config
+        "database_size": "N/A"  # Could be calculated based on DB type
+    }
+    
+    # Get database file size if SQLite
+    try:
+        if str(db.engine.url).startswith('sqlite'):
+            db_path = str(db.engine.url).replace('sqlite:///', '')
+            if os.path.exists(db_path):
+                size_bytes = os.path.getsize(db_path)
+                # Convert to human readable format
+                for unit in ['B', 'KB', 'MB', 'GB']:
+                    if size_bytes < 1024:
+                        system_info["database_size"] = f"{size_bytes:.1f} {unit}"
+                        break
+                    size_bytes /= 1024
+    except Exception:
+        pass
+    
+    # Recent activity summary
+    activity_summary = {
+        "recent_users": User_mgmt.query.order_by(User_mgmt.joined_on.desc()).limit(5).all(),
+        "recent_theses": Thesis.query.order_by(Thesis.created_at.desc()).limit(5).all(),
+        "tag_stats": {}
+    }
+    
+    # Get popular tags
+    try:
+        tag_counts = db.session.query(Thesis_Tag.tag, db.func.count(Thesis_Tag.tag))\
+            .group_by(Thesis_Tag.tag)\
+            .order_by(db.func.count(Thesis_Tag.tag).desc())\
+            .limit(10).all()
+        activity_summary["tag_stats"] = {tag: count for tag, count in tag_counts}
+    except Exception:
+        pass
+    
+    return render_template("/admin/miscellanea.html",
+                         current_user=current_user,
+                         system_info=system_info,
+                         activity_summary=activity_summary,
+                         datetime=datetime.datetime,
+                         dt=datetime.datetime.fromtimestamp)
+
+
