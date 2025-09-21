@@ -40,6 +40,19 @@ def dashboard():
         recent_updates = Thesis_Update.query.filter_by(
             thesis_id=thesis.id
         ).order_by(Thesis_Update.created_at.desc()).limit(5).all()
+        
+        # Get todos for the thesis
+        todos = Todo.query.filter_by(thesis_id=thesis.id).order_by(
+            Todo.status.asc(),  # pending first
+            Todo.priority.desc(),  # high priority first
+            Todo.created_at.desc()
+        ).all()
+        
+        # Get supervisor info for todo assignment
+        supervisor_info = None
+        thesis_supervisor = Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).first()
+        if thesis_supervisor:
+            supervisor_info = thesis_supervisor.supervisor
     else:
         thesis_stats = {
             'updates_count': 0,
@@ -47,11 +60,15 @@ def dashboard():
             'resources_count': 0,
         }
         recent_updates = []
+        todos = []
+        supervisor_info = None
         
     return render_template("student/student_dashboard.html", 
                          thesis=thesis, 
                          thesis_stats=thesis_stats,
                          recent_updates=recent_updates,
+                         todos=todos,
+                         supervisor_info=supervisor_info,
                          dt=datetime.fromtimestamp)
 
 
@@ -474,3 +491,101 @@ def delete_hypothesis(hypothesis_id):
         db.session.commit()
 
     return redirect(url_for('student.thesis_data'))
+
+
+# Todo routes for students
+@student.route("/add_todo", methods=["POST"])
+@login_required
+def add_todo():
+    """
+    Add a new todo item to the student's thesis
+    """
+    check_privileges(current_user.username, role="student")
+    
+    thesis_id = request.form.get("thesis_id")
+    title = request.form.get("title")
+    description = request.form.get("description")
+    priority = request.form.get("priority", "medium")
+    due_date = request.form.get("due_date")
+    assigned_to_id = request.form.get("assigned_to_id")
+    
+    # Verify the thesis belongs to the current student
+    thesis = Thesis.query.filter_by(id=thesis_id, author_id=current_user.id).first()
+    if not thesis:
+        return redirect(url_for('student.dashboard'))
+    
+    # Convert due_date string to timestamp if provided
+    due_date_timestamp = None
+    if due_date:
+        try:
+            due_date_obj = datetime.strptime(due_date, '%Y-%m-%d')
+            due_date_timestamp = int(due_date_obj.timestamp())
+        except ValueError:
+            pass
+    
+    new_todo = Todo(
+        thesis_id=thesis_id,
+        author_id=current_user.id,
+        title=title,
+        description=description,
+        priority=priority,
+        assigned_to_id=int(assigned_to_id) if assigned_to_id else None,
+        due_date=due_date_timestamp,
+        created_at=int(time.time()),
+        updated_at=int(time.time())
+    )
+    
+    db.session.add(new_todo)
+    db.session.commit()
+    
+    return redirect(url_for('student.dashboard'))
+
+
+@student.route("/toggle_todo/<int:todo_id>")
+@login_required
+def toggle_todo(todo_id):
+    """
+    Toggle todo completion status
+    """
+    check_privileges(current_user.username, role="student")
+    
+    # Get the todo item and verify access
+    todo = Todo.query.join(Thesis).filter(
+        Todo.id == todo_id,
+        (Thesis.author_id == current_user.id)  # Student can access their thesis todos
+    ).first()
+    
+    if todo:
+        if todo.status == "pending":
+            todo.status = "completed"
+            todo.completed_at = int(time.time())
+        else:
+            todo.status = "pending"
+            todo.completed_at = None
+        
+        todo.updated_at = int(time.time())
+        db.session.commit()
+    
+    return redirect(url_for('student.dashboard'))
+
+
+@student.route("/delete_todo/<int:todo_id>")
+@login_required
+def delete_todo(todo_id):
+    """
+    Delete a todo item
+    """
+    check_privileges(current_user.username, role="student")
+    
+    # Get the todo item and verify access (only author can delete)
+    todo = Todo.query.join(Thesis).filter(
+        Todo.id == todo_id,
+        Todo.author_id == current_user.id,  # Only author can delete
+        Thesis.author_id == current_user.id  # Student's thesis
+    ).first()
+    
+    if todo:
+        db.session.delete(todo)
+        db.session.commit()
+    
+    return redirect(url_for('student.dashboard'))

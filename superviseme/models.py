@@ -121,3 +121,23 @@ class Thesis_Hypothesis(db.Model):
 
     thesis = db.relationship("Thesis", backref="hypotheses", lazy=True)
     author = db.relationship("User_mgmt", backref="hypotheses", lazy=True)
+
+
+class Todo(db.Model):
+    __tablename__ = "todo"
+    id = db.Column(db.Integer, primary_key=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), nullable=False, default="pending")  # "pending", "completed", "cancelled"
+    priority = db.Column(db.String(10), nullable=False, default="medium")  # "low", "medium", "high"
+    assigned_to_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)  # Can be assigned to student or supervisor
+    due_date = db.Column(db.Integer, nullable=True)  # Unix timestamp
+    completed_at = db.Column(db.Integer, nullable=True)  # Unix timestamp when marked complete
+    created_at = db.Column(db.Integer, nullable=False)
+    updated_at = db.Column(db.Integer, nullable=False)
+
+    thesis = db.relationship("Thesis", backref="todos", lazy=True)
+    author = db.relationship("User_mgmt", foreign_keys=[author_id], backref="created_todos", lazy=True)
+    assigned_to = db.relationship("User_mgmt", foreign_keys=[assigned_to_id], backref="assigned_todos", lazy=True)
