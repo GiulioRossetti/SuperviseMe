@@ -127,10 +127,15 @@ def thesis_detail(thesis_id):
     author = thesis.author
     thesis_tags = Thesis_Tag.query.filter_by(thesis_id=thesis_id).all()
     resources = Resource.query.filter_by(thesis_id=thesis_id).all()
+    
+    # Get objectives and hypotheses
+    objectives = Thesis_Objective.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Objective.created_at.desc()).all()
+    hypotheses = Thesis_Hypothesis.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Hypothesis.created_at.desc()).all()
 
     return render_template("supervisor/thesis_detail.html", thesis=thesis, updates=updates,
-                           supervisors=supervisors, author=author,
-                           thesis_tags=thesis_tags, resources=resources, dt=datetime.fromtimestamp)
+                           supervisors=supervisors, author=author, objectives=objectives, 
+                           hypotheses=hypotheses, thesis_tags=thesis_tags, resources=resources, 
+                           dt=datetime.fromtimestamp)
 
 
 @supervisor.route("/post_update", methods=["POST"])
@@ -657,3 +662,209 @@ def thesis_unfolding():
     thesis = Thesis_Status.query.filter_by(thesis_id=thesis_id).order_by(db.desc(Thesis_Status.updated_at)).all()
 
     return theses_data("progress.html", thesis=thesis, thesis_id=thesis_id)
+
+
+@supervisor.route("/freeze_objective/<int:objective_id>", methods=["POST"])
+@login_required
+def freeze_objective(objective_id):
+    """
+    This route handles freezing an objective. It retrieves the objective by ID,
+    sets the frozen status to True, and saves it to the database.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify the objective belongs to a thesis supervised by the current user
+    objective = Thesis_Objective.query.join(Thesis, Thesis.id == Thesis_Objective.thesis_id).join(
+        Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id
+    ).filter(
+        Thesis_Objective.id == objective_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if objective:
+        objective.frozen = True
+        db.session.commit()
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=objective.thesis_id))
+    
+    return redirect(url_for('supervisor.theses_data'))
+
+
+@supervisor.route("/unfreeze_objective/<int:objective_id>", methods=["POST"])
+@login_required
+def unfreeze_objective(objective_id):
+    """
+    This route handles unfreezing an objective. It retrieves the objective by ID,
+    sets the frozen status to False, and saves it to the database.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify the objective belongs to a thesis supervised by the current user
+    objective = Thesis_Objective.query.join(Thesis, Thesis.id == Thesis_Objective.thesis_id).join(
+        Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id
+    ).filter(
+        Thesis_Objective.id == objective_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if objective:
+        objective.frozen = False
+        db.session.commit()
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=objective.thesis_id))
+    
+    return redirect(url_for('supervisor.theses_data'))
+
+
+@supervisor.route("/freeze_hypothesis/<int:hypothesis_id>", methods=["POST"])
+@login_required
+def freeze_hypothesis(hypothesis_id):
+    """
+    This route handles freezing a hypothesis. It retrieves the hypothesis by ID,
+    sets the frozen status to True, and saves it to the database.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify the hypothesis belongs to a thesis supervised by the current user
+    hypothesis = Thesis_Hypothesis.query.join(Thesis, Thesis.id == Thesis_Hypothesis.thesis_id).join(
+        Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id
+    ).filter(
+        Thesis_Hypothesis.id == hypothesis_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if hypothesis:
+        hypothesis.frozen = True
+        db.session.commit()
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=hypothesis.thesis_id))
+    
+    return redirect(url_for('supervisor.theses_data'))
+
+
+@supervisor.route("/unfreeze_hypothesis/<int:hypothesis_id>", methods=["POST"])
+@login_required
+def unfreeze_hypothesis(hypothesis_id):
+    """
+    This route handles unfreezing a hypothesis. It retrieves the hypothesis by ID,
+    sets the frozen status to False, and saves it to the database.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify the hypothesis belongs to a thesis supervised by the current user
+    hypothesis = Thesis_Hypothesis.query.join(Thesis, Thesis.id == Thesis_Hypothesis.thesis_id).join(
+        Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id
+    ).filter(
+        Thesis_Hypothesis.id == hypothesis_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if hypothesis:
+        hypothesis.frozen = False
+        db.session.commit()
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=hypothesis.thesis_id))
+    
+    return redirect(url_for('supervisor.theses_data'))
+
+
+@supervisor.route("/comment_on_update", methods=["POST"])
+@login_required
+def comment_on_update():
+    """
+    This route handles adding comments to student updates. It creates a comment
+    as a child update linked to the parent update.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    update_id = request.form.get("update_id")
+    comment_content = request.form.get("comment")
+    
+    # Verify the update belongs to a thesis supervised by the current user
+    parent_update = Thesis_Update.query.join(Thesis, Thesis.id == Thesis_Update.thesis_id).join(
+        Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id
+    ).filter(
+        Thesis_Update.id == update_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if parent_update:
+        new_comment = Thesis_Update(
+            thesis_id=parent_update.thesis_id,
+            author_id=current_user.id,
+            parent_id=parent_update.id,
+            content=comment_content,
+            update_type="supervisor_comment",
+            created_at=int(time.time())
+        )
+        
+        db.session.add(new_comment)
+        db.session.commit()
+        
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=parent_update.thesis_id))
+    
+    return redirect(url_for('supervisor.theses_data'))
+
+
+@supervisor.route("/tag_student_update", methods=["POST"])
+@login_required
+def tag_student_update():
+    """
+    This route handles tagging student updates. It adds tags to updates.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    update_id = request.form.get("update_id")
+    tag_text = request.form.get("tag")
+    
+    # Verify the update belongs to a thesis supervised by the current user
+    update = Thesis_Update.query.join(Thesis, Thesis.id == Thesis_Update.thesis_id).join(
+        Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id
+    ).filter(
+        Thesis_Update.id == update_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if update and tag_text:
+        # Check if tag already exists
+        existing_tag = Update_Tag.query.filter_by(update_id=update_id, tag=tag_text).first()
+        if not existing_tag:
+            new_tag = Update_Tag(
+                update_id=update_id,
+                tag=tag_text
+            )
+            db.session.add(new_tag)
+            db.session.commit()
+        
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=update.thesis_id))
+    
+    return redirect(url_for('supervisor.theses_data'))
+
+
+@supervisor.route("/set_thesis_status", methods=["POST"])
+@login_required
+def set_thesis_status():
+    """
+    This route handles setting the advancement status of a thesis. It creates or updates
+    the thesis status and saves it to the database.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    thesis_id = request.form.get("thesis_id")
+    status = request.form.get("status")
+    
+    # Verify the thesis is supervised by the current user
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if thesis_supervisor:
+        # Create new status entry
+        new_status = Thesis_Status(
+            thesis_id=thesis_id,
+            status=status,
+            updated_at=int(time.time())
+        )
+        db.session.add(new_status)
+        db.session.commit()
+        
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+    
+    return redirect(url_for('supervisor.theses_data'))

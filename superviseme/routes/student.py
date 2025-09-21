@@ -83,8 +83,13 @@ def thesis_data():
     # Get resources
     resources = Resource.query.filter_by(thesis_id=thesis.id).all()
     
+    # Get objectives and hypotheses
+    objectives = Thesis_Objective.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Objective.created_at.desc()).all()
+    hypotheses = Thesis_Hypothesis.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Hypothesis.created_at.desc()).all()
+    
     return render_template("student/thesis.html", thesis=thesis, supervisors=supervisors,
-                           tags=tags, updates=updates, resources=resources, dt=datetime.fromtimestamp)
+                           tags=tags, updates=updates, resources=resources, 
+                           objectives=objectives, hypotheses=hypotheses, dt=datetime.fromtimestamp)
 
 
 @student.route("/post_update", methods=["POST"])
@@ -358,6 +363,114 @@ def delete_resource(resource_id):
     
     if resource:
         db.session.delete(resource)
+        db.session.commit()
+
+    return redirect(url_for('student.thesis_data'))
+
+
+@student.route("/add_objective", methods=["POST"])
+@login_required
+def add_objective():
+    """
+    This route handles adding an objective to a thesis. It retrieves the necessary data from the form,
+    creates a new Thesis_Objective object, and saves it to the database.
+    """
+    check_privileges(current_user.username, role="student")
+    
+    thesis_id = request.form.get("thesis_id")
+    title = request.form.get("title")
+    description = request.form.get("description")
+    
+    # Verify the thesis belongs to the current student
+    thesis = Thesis.query.filter_by(id=thesis_id, author_id=current_user.id).first()
+    if not thesis:
+        return redirect(url_for('student.thesis_data'))
+
+    new_objective = Thesis_Objective(
+        thesis_id=thesis_id,
+        author_id=current_user.id,
+        title=title,
+        description=description,
+        created_at=int(time.time())
+    )
+
+    db.session.add(new_objective)
+    db.session.commit()
+
+    return redirect(url_for('student.thesis_data'))
+
+
+@student.route("/delete_objective/<int:objective_id>")
+@login_required
+def delete_objective(objective_id):
+    """
+    This route handles deleting an objective. It retrieves the objective by its ID,
+    deletes it from the database, and commits the changes.
+    """
+    check_privileges(current_user.username, role="student")
+    
+    # Verify the objective belongs to the current student
+    objective = Thesis_Objective.query.filter_by(
+        id=objective_id,
+        author_id=current_user.id
+    ).first()
+    
+    if objective and not objective.frozen:
+        db.session.delete(objective)
+        db.session.commit()
+
+    return redirect(url_for('student.thesis_data'))
+
+
+@student.route("/add_hypothesis", methods=["POST"])
+@login_required
+def add_hypothesis():
+    """
+    This route handles adding a hypothesis to a thesis. It retrieves the necessary data from the form,
+    creates a new Thesis_Hypothesis object, and saves it to the database.
+    """
+    check_privileges(current_user.username, role="student")
+    
+    thesis_id = request.form.get("thesis_id")
+    title = request.form.get("title")
+    description = request.form.get("description")
+    
+    # Verify the thesis belongs to the current student
+    thesis = Thesis.query.filter_by(id=thesis_id, author_id=current_user.id).first()
+    if not thesis:
+        return redirect(url_for('student.thesis_data'))
+
+    new_hypothesis = Thesis_Hypothesis(
+        thesis_id=thesis_id,
+        author_id=current_user.id,
+        title=title,
+        description=description,
+        created_at=int(time.time())
+    )
+
+    db.session.add(new_hypothesis)
+    db.session.commit()
+
+    return redirect(url_for('student.thesis_data'))
+
+
+@student.route("/delete_hypothesis/<int:hypothesis_id>")
+@login_required
+def delete_hypothesis(hypothesis_id):
+    """
+    This route handles deleting a hypothesis. It retrieves the hypothesis by its ID,
+    deletes it from the database, and commits the changes.
+    """
+    check_privileges(current_user.username, role="student")
+    
+    # Verify the hypothesis belongs to the current student
+    hypothesis = Thesis_Hypothesis.query.filter_by(
+        id=hypothesis_id,
+        author_id=current_user.id
+    ).first()
+    
+    if hypothesis and not hypothesis.frozen:
+        db.session.delete(hypothesis)
         db.session.commit()
 
     return redirect(url_for('student.thesis_data'))
