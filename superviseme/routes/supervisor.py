@@ -2,6 +2,7 @@ from flask import Blueprint, request, render_template, abort, redirect, url_for
 from flask_login import login_required, current_user
 from sqlalchemy import  select, and_, func
 from superviseme.utils.miscellanea import check_privileges
+from superviseme.utils.activity_tracker import get_inactive_students
 from superviseme.models import *
 from superviseme import db
 from datetime import datetime
@@ -94,12 +95,22 @@ def supervisee_data():
     # Get students through thesis supervision relationship
     thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
     supervisees = []
+    
+    # Get inactive students data
+    inactive_data = get_inactive_students(current_user.id)
+    inactive_dict = {data['student'].id: data for data in inactive_data}
+    
     for ts in thesis_supervisors:
         if ts.thesis and ts.thesis.author:
+            student_data = inactive_dict.get(ts.thesis.author.id, {})
             supervisees.append({
                 'student': ts.thesis.author,
-                'thesis': ts.thesis
+                'thesis': ts.thesis,
+                'is_inactive': student_data.get('is_inactive', False),
+                'days_inactive': student_data.get('days_inactive'),
+                'last_activity_location': student_data.get('last_activity_location')
             })
+    
     return render_template("supervisor/supervisees.html", supervisees=supervisees)
 
 

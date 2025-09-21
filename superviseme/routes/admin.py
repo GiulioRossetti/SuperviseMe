@@ -1,12 +1,14 @@
 from collections import defaultdict
 
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import select, and_, or_
 from sqlalchemy.orm import aliased
 from werkzeug.security import generate_password_hash
 from superviseme.models import *
 from superviseme.utils.miscellanea import check_privileges
+from superviseme.utils.task_scheduler import trigger_weekly_reports_now, get_scheduler_status
+from superviseme.utils.weekly_notifications import preview_weekly_supervisor_report
 from superviseme import db
 import datetime
 import time
@@ -1174,4 +1176,76 @@ def delete_thesis_status():
         flash(f"Error deleting status: {e}")
         return redirect(request.referrer)
 
+
+# Email Notification Management Routes
+
+@admin.route("/admin/notifications")
+@login_required
+def notifications():
+    """
+    This route displays the email notification management page
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    # Get scheduler status
+    scheduler_status = get_scheduler_status()
+    
+    # Get all supervisors for testing
+    supervisors = User_mgmt.query.filter_by(user_type="supervisor").all()
+    
+    return render_template("admin/notifications.html", 
+                         scheduler_status=scheduler_status,
+                         supervisors=supervisors)
+
+
+@admin.route("/admin/notifications/trigger", methods=["POST"])
+@login_required
+def trigger_notifications():
+    """
+    Manually trigger weekly supervisor reports
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    try:
+        results = trigger_weekly_reports_now()
+        flash(f"Weekly reports triggered successfully. Sent: {results.get('emails_sent', 0)}, Failed: {results.get('emails_failed', 0)}")
+    except Exception as e:
+        flash(f"Error triggering weekly reports: {str(e)}")
+    
+    return redirect(url_for("admin.notifications"))
+
+
+@admin.route("/admin/notifications/preview/<int:supervisor_id>")
+@login_required
+def preview_notification(supervisor_id):
+    """
+    Preview the weekly notification for a specific supervisor
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    try:
+        preview_data = preview_weekly_supervisor_report(supervisor_id)
+        
+        if 'error' in preview_data:
+            return jsonify({'error': preview_data['error']}), 400
+        
+        return jsonify(preview_data)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@admin.route("/admin/notifications/status")
+@login_required
+def notification_status():
+    """
+    Get the current status of the notification scheduler
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    try:
+        status = get_scheduler_status()
+        return jsonify(status)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 

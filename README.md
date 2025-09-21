@@ -18,14 +18,21 @@ SuperviseMe is a Flask-based web application designed to facilitate thesis super
 - **User Management**: Complete CRUD operations for all user types (admins, supervisors, students)
 - **System Dashboard**: Real-time statistics showing user counts and thesis distribution
 - **Thesis Overview**: Comprehensive view of all assigned and available theses
+- **Email Notification Management**: Configure and manage weekly supervisor email reports
+- **Activity Monitoring**: Track user activity across the platform
+- **Scheduler Management**: Monitor and control background task scheduling
+- **Email Testing**: Preview and test weekly notification emails before sending
 - **Data Export**: JSON and CSV export capabilities for system data
 - **System Health Monitoring**: Built-in health checks and system diagnostics
 
 ### 👨‍🏫 Supervisor Features
-- **Student Management**: View and manage supervised students
+- **Student Management**: View and manage supervised students with activity tracking
 - **Thesis Supervision**: Track thesis progress and provide feedback
 - **Resource Sharing**: Upload and manage thesis-related resources
 - **Progress Monitoring**: Track student updates and milestones
+- **Weekly Email Reports**: Automatic Monday morning activity summaries for all supervised students
+- **Activity Status Indicators**: Visual indicators for active/inactive students with last activity locations
+- **Inactive Student Alerts**: Clear highlighting of students inactive for more than 2 weeks
 - **Profile Management**: Update personal information and preferences
 
 ### 👨‍🎓 Student Features
@@ -34,6 +41,42 @@ SuperviseMe is a Flask-based web application designed to facilitate thesis super
 - **Progress Tracking**: Submit updates and track thesis milestones
 - **Resource Access**: Download supervisor-provided resources and materials
 - **Profile Management**: Update personal information and account settings
+
+## 📧 Weekly Email Notification System
+
+SuperviseMe includes a comprehensive weekly email notification system that keeps supervisors informed about their students' activities and engagement levels.
+
+### ✨ Email Report Features
+
+- **Automated Schedule**: Weekly reports are automatically sent every Monday morning at 9:00 AM
+- **Activity Summary**: Each supervisor receives a detailed summary of all supervised students' weekly activities
+- **Inactive Student Alerts**: Students who have been inactive for more than 2 weeks are clearly highlighted
+- **Last Activity Tracking**: Shows where students were last active on the platform (e.g., "student_dashboard", "posting_thesis_update")
+- **Update Statistics**: Number of thesis updates posted by each student during the past week
+- **Professional Templates**: Clean, easy-to-read email format with structured information
+
+### 📊 Activity Monitoring
+
+The system continuously tracks student engagement:
+- **Login Activity**: Records when students access their dashboards
+- **Update Posts**: Tracks when students post thesis progress updates
+- **Platform Interaction**: Monitors various forms of student engagement
+- **Location Tracking**: Records which part of the platform students were using
+
+### ⚙️ Administrative Control
+
+Administrators have full control over the email notification system:
+- **Scheduler Status**: Monitor the background task scheduler status
+- **Email Testing**: Preview weekly reports for any supervisor before sending
+- **Manual Triggers**: Send weekly reports immediately for testing purposes
+- **Schedule Management**: Monitor next run times and job configurations
+
+### 🎯 Benefits
+
+- **Proactive Supervision**: Supervisors are automatically notified of inactive students
+- **Improved Communication**: Regular updates keep everyone informed
+- **Early Intervention**: Identify struggling students before issues become critical
+- **Professional Workflow**: Automated system reduces manual oversight burden
 
 ### 🗄️ Data Management
 - **SQLite Database**: Lightweight, file-based database for development and small deployments
@@ -66,12 +109,18 @@ pip install -r requirements.txt
 python seed_database.py
 ```
 
-4. **Start the application**
+4. **Run database migration (for existing installations)**
+```bash
+# If upgrading from a previous version, run migration to add activity tracking
+python migrate_database.py
+```
+
+5. **Start the application**
 ```bash
 python superviseme.py
 ```
 
-5. **Access the application**
+6. **Access the application**
 Open your web browser and navigate to `http://localhost:8080`
 
 ### Advanced Configuration
@@ -193,14 +242,17 @@ Secure logout implementation:
 - **Flask**: Lightweight and flexible Python web framework
 - **Flask-SQLAlchemy**: ORM for database operations
 - **Flask-Login**: User session management and authentication
+- **Flask-Mail**: Email functionality for weekly notifications
+- **APScheduler**: Background task scheduling for automated emails
 - **Werkzeug**: Password hashing and security utilities
 
 ### Database Schema
-- **Users**: Administrators, supervisors, and students with role-based permissions
+- **Users**: Administrators, supervisors, and students with role-based permissions and activity tracking
 - **Theses**: Thesis information, descriptions, and metadata  
 - **Thesis-Supervisor Relationships**: Many-to-many relationships between theses and supervisors
 - **Thesis Status**: Current status tracking (Active, Completed, etc.)
 - **Thesis Tags**: Categorization and organization system
+- **Activity Tracking**: User activity monitoring with timestamps and location tracking
 
 ### Frontend Technologies
 - **HTML5/CSS3**: Modern, semantic markup and responsive styling
@@ -245,11 +297,22 @@ The application includes several API endpoints for data access:
 ```bash
 export FLASK_ENV=production
 export SECRET_KEY=your-secret-key-here
+
+# Database Configuration
 export PG_USER=your_db_user
 export PG_PASSWORD=your_db_password
 export PG_HOST=your_db_host
 export PG_PORT=5432
 export PG_DBNAME=superviseme_production
+
+# Email Configuration (required for weekly notifications)
+export MAIL_SERVER=smtp.gmail.com
+export MAIL_PORT=587
+export MAIL_USE_TLS=true
+export MAIL_USE_SSL=false
+export MAIL_USERNAME=your-email@gmail.com
+export MAIL_PASSWORD=your-app-password
+export MAIL_DEFAULT_SENDER=your-email@gmail.com
 ```
 
 ### WSGI Configuration
