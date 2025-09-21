@@ -1,0 +1,316 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'admin/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">User Details</h1>
+                        <a href="/admin/users" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> Back to Users
+                        </a>
+                    </div>
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- User Info Row -->
+                    <div class="row">
+                        
+                        <!-- User Details -->
+                        <div class="col-xl-8 col-lg-7">
+                            
+                            <!-- Basic Information -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Basic Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Name:</strong> {{ user.name }} {{ user.surname }}</p>
+                                            <p><strong>Username:</strong> {{ user.username }}</p>
+                                            <p><strong>Email:</strong> {{ user.email }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>User Type:</strong> <span class="badge badge-primary">{{ user.user_type }}</span></p>
+                                            <p><strong>Gender:</strong> {{ user.gender or "Not specified" }}</p>
+                                            <p><strong>Nationality:</strong> {{ user.nationality or "Not specified" }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Degree Course:</strong> {{ user.cdl or "Not specified" }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Joined On:</strong> {{ datetime.fromtimestamp(user.joined_on).strftime('%Y-%m-%d %H:%M') }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Edit User Form -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Edit User Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form action="/admin/update_user" method="POST">
+                                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="name">First Name</label>
+                                                    <input type="text" class="form-control" id="name" name="name" value="{{ user.name or '' }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="surname">Last Name</label>
+                                                    <input type="text" class="form-control" id="surname" name="surname" value="{{ user.surname or '' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="email">Email</label>
+                                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email or '' }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="username">Username</label>
+                                                    <input type="text" class="form-control" id="username" name="username" value="{{ user.username or '' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="user_type">User Type</label>
+                                                    <select class="form-control" id="user_type" name="user_type">
+                                                        <option value="admin" {% if user.user_type == 'admin' %}selected{% endif %}>Admin</option>
+                                                        <option value="supervisor" {% if user.user_type == 'supervisor' %}selected{% endif %}>Supervisor</option>
+                                                        <option value="student" {% if user.user_type == 'student' %}selected{% endif %}>Student</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="gender">Gender</label>
+                                                    <select class="form-control" id="gender" name="gender">
+                                                        <option value="">Not specified</option>
+                                                        <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Male</option>
+                                                        <option value="female" {% if user.gender == 'female' %}selected{% endif %}>Female</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label for="nationality">Nationality</label>
+                                                    <input type="text" class="form-control" id="nationality" name="nationality" value="{{ user.nationality or '' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label for="cdl">Degree Course</label>
+                                                    <input type="text" class="form-control" id="cdl" name="cdl" value="{{ user.cdl or '' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Update User</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Theses Information -->
+                            {% if user.user_type == "student" and authored_theses %}
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">Authored Theses</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% for thesis in authored_theses %}
+                                            <div class="border-bottom mb-3 pb-3">
+                                                <h6><a href="/admin/thesis/{{ thesis.id }}">{{ thesis.title }}</a></h6>
+                                                <p class="text-muted">{{ thesis.description[:100] }}...</p>
+                                                <small class="text-muted">Level: {{ thesis.level }} | Created: {{ datetime.fromtimestamp(thesis.created_at).strftime('%Y-%m-%d') }}</small>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {% if user.user_type == "supervisor" and supervised_theses %}
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">Supervised Theses</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        {% for thesis in supervised_theses %}
+                                            {% if thesis %}
+                                                <div class="border-bottom mb-3 pb-3">
+                                                    <h6><a href="/admin/thesis/{{ thesis.id }}">{{ thesis.title }}</a></h6>
+                                                    <p class="text-muted">{{ thesis.description[:100] }}...</p>
+                                                    <small class="text-muted">Level: {{ thesis.level }} | Created: {{ datetime.fromtimestamp(thesis.created_at).strftime('%Y-%m-%d') }}</small>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                        </div>
+
+                        <!-- Side Panel -->
+                        <div class="col-xl-4 col-lg-5">
+                            
+                            <!-- Statistics -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">User Statistics</h6>
+                                </div>
+                                <div class="card-body text-center">
+                                    {% if user.user_type == "student" %}
+                                        <div class="border-bottom mb-3 pb-3">
+                                            <h4 class="text-primary">{{ authored_theses|length }}</h4>
+                                            <p class="mb-0">Authored Theses</p>
+                                        </div>
+                                    {% elif user.user_type == "supervisor" %}
+                                        <div class="border-bottom mb-3 pb-3">
+                                            <h4 class="text-primary">{{ supervised_theses|length }}</h4>
+                                            <p class="mb-0">Supervised Theses</p>
+                                        </div>
+                                    {% endif %}
+                                    <div class="border-bottom mb-3 pb-3">
+                                        <h4 class="text-success">Active</h4>
+                                        <p class="mb-0">Account Status</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted">
+                                            Member since<br>
+                                            {{ datetime.fromtimestamp(user.joined_on).strftime('%B %Y') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Actions</h6>
+                                </div>
+                                <div class="card-body">
+                                    <button class="btn btn-warning btn-block mb-2" onclick="resetPassword({{ user.id }})">Reset Password</button>
+                                    <button class="btn btn-danger btn-block" onclick="deleteUser({{ user.id }})">Delete User</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <script>
+        function resetPassword(userId) {
+            if (confirm('Are you sure you want to reset this user\'s password?')) {
+                fetch(`/admin/reset_user_password/${userId}`, {
+                    method: 'POST',
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to reset password');
+                    alert('Password reset successfully');
+                    location.reload();
+                })
+                .catch(err => {
+                    alert('Error resetting password.');
+                    console.error(err);
+                });
+            }
+        }
+
+        function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user? This action cannot be undone and will remove all associated data.')) {
+                fetch(`/admin/delete_user/${userId}`, {
+                    method: 'DELETE',
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to delete');
+                    window.location.href = '/admin/users';
+                })
+                .catch(err => {
+                    alert('Error deleting user.');
+                    console.error(err);
+                });
+            }
+        }
+    </script>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
+
+</body>
+
+</html>

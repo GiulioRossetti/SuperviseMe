@@ -8,7 +8,7 @@ from werkzeug.security import generate_password_hash
 from superviseme.models import *
 from superviseme.utils.miscellanea import check_privileges
 from superviseme import db
-from datetime import datetime
+import datetime
 import time
 
 admin = Blueprint("admin", __name__)
@@ -99,7 +99,7 @@ def create_user():
     nationality = request.form.get("nationality")
     password = request.form.get("password")
     password2 = request.form.get("password2")
-    user_type = request.form.get("type")
+    user_type = request.form.get("role")
 
     user = User_mgmt.query.filter_by(email=email).first()
 
@@ -129,23 +129,129 @@ def create_user():
     return dashboard()
 
 
-@admin.route("/admin/delete_user/<int:uid>")
+@admin.route("/admin/delete_user/<int:uid>", methods=["GET", "DELETE"])
 @login_required
 def delete_user(uid):
     """
-    This route handles deleting a student. It retrieves the user by ID,
+    This route handles deleting a user. It retrieves the user by ID,
     deletes it from the database, and commits the changes.
     """
     check_privileges(current_user.username, role="admin")
     user = User_mgmt.query.filter_by(id=uid).first()
     if user:
+        # Delete related thesis data if user is a student
+        if user.user_type == "student":
+            # Remove thesis assignments
+            Thesis.query.filter_by(author_id=uid).update({"author_id": None})
+        
+        # Delete related supervisor assignments
+        if user.user_type == "supervisor":
+            Thesis_Supervisor.query.filter_by(supervisor_id=uid).delete()
+        
         db.session.delete(user)
         db.session.commit()
         flash("User deleted successfully")
     else:
         flash("User not found")
 
+    if request.method == "DELETE":
+        return {"status": "success"}, 200
+    
     return redirect(request.referrer)
+
+
+@admin.route("/admin/update_user", methods=["POST"])
+@login_required
+def update_user():
+    """
+    This route handles updating user information.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    user_id = request.form.get("user_id")
+    name = request.form.get("name")
+    surname = request.form.get("surname")
+    email = request.form.get("email")
+    username = request.form.get("username")
+    user_type = request.form.get("user_type")
+    gender = request.form.get("gender")
+    nationality = request.form.get("nationality")
+    cdl = request.form.get("cdl")
+    
+    user = User_mgmt.query.get_or_404(user_id)
+    
+    # Check if email or username is already taken by another user
+    if email != user.email:
+        existing_email = User_mgmt.query.filter_by(email=email).filter(User_mgmt.id != user_id).first()
+        if existing_email:
+            flash("Email address already exists")
+            return redirect(url_for("admin.user_detail", user_id=user_id))
+    
+    if username != user.username:
+        existing_username = User_mgmt.query.filter_by(username=username).filter(User_mgmt.id != user_id).first()
+        if existing_username:
+            flash("Username already exists")
+            return redirect(url_for("admin.user_detail", user_id=user_id))
+    
+    # Update user fields
+    user.name = name
+    user.surname = surname
+    user.email = email
+    user.username = username
+    user.user_type = user_type
+    user.gender = gender or None
+    user.nationality = nationality or None
+    user.cdl = cdl or None
+    
+    db.session.commit()
+    flash("User updated successfully")
+    return redirect(url_for("admin.user_detail", user_id=user_id))
+
+
+@admin.route("/admin/reset_user_password/<int:user_id>", methods=["POST"])
+@login_required
+def reset_user_password(user_id):
+    """
+    This route handles resetting a user's password to a default value.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    user = User_mgmt.query.get_or_404(user_id)
+    default_password = "password123"  # Default password
+    user.password = generate_password_hash(default_password, method="pbkdf2:sha256")
+    
+    db.session.commit()
+    
+    return {"status": "success", "message": f"Password reset to '{default_password}'"}, 200
+
+
+@admin.route("/admin/user/<int:user_id>")
+@login_required
+def user_detail(user_id):
+    """
+    This route displays the details of a specific user including all related information.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    user = User_mgmt.query.get_or_404(user_id)
+    
+    # Get theses authored by this user (if student)
+    authored_theses = []
+    if user.user_type == "student":
+        authored_theses = Thesis.query.filter_by(author_id=user_id).all()
+    
+    # Get theses supervised by this user (if supervisor)
+    supervised_theses = []
+    if user.user_type == "supervisor":
+        supervised_rels = Thesis_Supervisor.query.filter_by(supervisor_id=user_id).all()
+        supervised_theses = [Thesis.query.get(rel.thesis_id) for rel in supervised_rels]
+    
+    return render_template("/admin/user_detail.html",
+                         current_user=current_user,
+                         user=user,
+                         authored_theses=authored_theses,
+                         supervised_theses=supervised_theses,
+                         datetime=datetime.datetime)
 
 
 @admin.route("/admin/users_data")
@@ -435,7 +541,7 @@ def thesis_detail(thesis_id):
                          updates=updates,
                          students=students,
                          all_supervisors=all_supervisors,
-                         datetime=datetime)
+                         datetime=datetime.datetime)
 
 
 @admin.route("/admin/assign_student", methods=["POST"])
@@ -677,5 +783,309 @@ def miscellanea():
                          activity_summary=activity_summary,
                          datetime=datetime.datetime,
                          dt=datetime.datetime.fromtimestamp)
+
+
+@admin.route("/admin/api/system_stats")
+@login_required
+def system_stats():
+    """
+    API endpoint that returns system statistics.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    try:
+        import os
+        
+        # Database statistics
+        db_stats = {
+            "total_users": User_mgmt.query.count(),
+            "students": User_mgmt.query.filter_by(user_type="student").count(),
+            "supervisors": User_mgmt.query.filter_by(user_type="supervisor").count(),
+            "admins": User_mgmt.query.filter_by(user_type="admin").count(),
+            "total_theses": Thesis.query.count(),
+            "assigned_theses": Thesis.query.filter(Thesis.author_id.isnot(None)).count(),
+            "available_theses": Thesis.query.filter(Thesis.author_id.is_(None)).count(),
+            "frozen_theses": Thesis.query.filter_by(frozen=True).count(),
+        }
+        
+        # System information
+        system_info = {
+            "database_path": str(db.engine.url.database),
+            "database_size": "N/A"
+        }
+        
+        # Get database file size if SQLite
+        try:
+            if str(db.engine.url).startswith('sqlite'):
+                db_path = str(db.engine.url).replace('sqlite:///', '')
+                if os.path.exists(db_path):
+                    size_bytes = os.path.getsize(db_path)
+                    # Convert to human readable format
+                    for unit in ['B', 'KB', 'MB', 'GB']:
+                        if size_bytes < 1024:
+                            system_info["database_size"] = f"{size_bytes:.1f} {unit}"
+                            break
+                        size_bytes /= 1024
+        except Exception:
+            pass
+        
+        # Thesis levels distribution
+        level_stats = {
+            "bachelor": Thesis.query.filter_by(level="bachelor").count(),
+            "master": Thesis.query.filter_by(level="master").count(),
+            "other": Thesis.query.filter_by(level="other").count()
+        }
+        
+        # Recent activity (last 30 days)
+        import datetime
+        thirty_days_ago = int((datetime.datetime.now() - datetime.timedelta(days=30)).timestamp())
+        recent_activity = {
+            "new_users": User_mgmt.query.filter(User_mgmt.joined_on >= thirty_days_ago).count(),
+            "new_theses": Thesis.query.filter(Thesis.created_at >= thirty_days_ago).count(),
+        }
+        
+        return {
+            "status": "success",
+            "data": {
+                "database": db_stats,
+                "system": system_info,
+                "thesis_levels": level_stats,
+                "recent_activity": recent_activity,
+                "timestamp": datetime.datetime.now().isoformat()
+            }
+        }, 200
+        
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
+
+
+@admin.route("/admin/api/export_data")
+@login_required
+def export_data():
+    """
+    API endpoint that exports system data as JSON.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    try:
+        # Export users (excluding passwords)
+        users_data = []
+        users = User_mgmt.query.all()
+        for user in users:
+            users_data.append({
+                "id": user.id,
+                "username": user.username,
+                "name": user.name,
+                "surname": user.surname,
+                "email": user.email,
+                "user_type": user.user_type,
+                "cdl": user.cdl,
+                "gender": user.gender,
+                "nationality": user.nationality,
+                "joined_on": user.joined_on
+            })
+        
+        # Export theses
+        theses_data = []
+        theses = Thesis.query.all()
+        for thesis in theses:
+            # Get author info
+            author = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
+            
+            # Get supervisors
+            supervisors = []
+            supervisor_rels = Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).all()
+            for rel in supervisor_rels:
+                supervisor = User_mgmt.query.get(rel.supervisor_id)
+                if supervisor:
+                    supervisors.append({
+                        "id": supervisor.id,
+                        "name": supervisor.name,
+                        "surname": supervisor.surname,
+                        "email": supervisor.email
+                    })
+            
+            # Get tags
+            tags = []
+            thesis_tags = Thesis_Tag.query.filter_by(thesis_id=thesis.id).all()
+            for tag in thesis_tags:
+                tags.append(tag.tag)
+            
+            # Get latest status
+            latest_status = Thesis_Status.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Status.updated_at.desc()).first()
+            
+            theses_data.append({
+                "id": thesis.id,
+                "title": thesis.title,
+                "description": thesis.description,
+                "level": thesis.level,
+                "frozen": thesis.frozen,
+                "created_at": thesis.created_at,
+                "author": {
+                    "id": author.id,
+                    "name": author.name,
+                    "surname": author.surname,
+                    "email": author.email
+                } if author else None,
+                "supervisors": supervisors,
+                "tags": tags,
+                "status": latest_status.status if latest_status else None
+            })
+        
+        export_data = {
+            "export_info": {
+                "timestamp": datetime.datetime.now().isoformat(),
+                "version": "1.0.0",
+                "exported_by": current_user.username
+            },
+            "users": users_data,
+            "theses": theses_data
+        }
+        
+        return {
+            "status": "success",
+            "data": export_data
+        }, 200
+        
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
+
+
+@admin.route("/admin/api/export_data/csv")
+@login_required  
+def export_data_csv():
+    """
+    API endpoint that exports system data as CSV files.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    from flask import make_response
+    import csv
+    import io
+    import zipfile
+    
+    try:
+        # Create in-memory zip file
+        zip_buffer = io.BytesIO()
+        
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            # Export users CSV
+            users_csv = io.StringIO()
+            users_writer = csv.writer(users_csv)
+            users_writer.writerow(['ID', 'Username', 'Name', 'Surname', 'Email', 'User Type', 'CDL', 'Gender', 'Nationality', 'Joined On'])
+            
+            users = User_mgmt.query.all()
+            for user in users:
+                users_writer.writerow([
+                    user.id, user.username, user.name, user.surname, user.email,
+                    user.user_type, user.cdl, user.gender, user.nationality, 
+                    datetime.datetime.fromtimestamp(user.joined_on).isoformat() if user.joined_on else ''
+                ])
+            
+            zip_file.writestr('users.csv', users_csv.getvalue())
+            
+            # Export theses CSV  
+            theses_csv = io.StringIO()
+            theses_writer = csv.writer(theses_csv)
+            theses_writer.writerow(['ID', 'Title', 'Description', 'Level', 'Author', 'Author Email', 'Supervisors', 'Status', 'Frozen', 'Created At'])
+            
+            theses = Thesis.query.all()
+            for thesis in theses:
+                author = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
+                
+                # Get supervisors
+                supervisors = []
+                supervisor_rels = Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).all()
+                for rel in supervisor_rels:
+                    supervisor = User_mgmt.query.get(rel.supervisor_id)
+                    if supervisor:
+                        supervisors.append(f"{supervisor.name} {supervisor.surname}")
+                
+                # Get latest status
+                latest_status = Thesis_Status.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Status.updated_at.desc()).first()
+                
+                theses_writer.writerow([
+                    thesis.id, thesis.title, thesis.description, thesis.level,
+                    f"{author.name} {author.surname}" if author else "Unassigned",
+                    author.email if author else "",
+                    "; ".join(supervisors),
+                    latest_status.status if latest_status else "No status",
+                    thesis.frozen,
+                    datetime.datetime.fromtimestamp(thesis.created_at).isoformat() if thesis.created_at else ''
+                ])
+            
+            zip_file.writestr('theses.csv', theses_csv.getvalue())
+        
+        zip_buffer.seek(0)
+        
+        response = make_response(zip_buffer.getvalue())
+        response.headers['Content-Type'] = 'application/zip'
+        response.headers['Content-Disposition'] = f'attachment; filename=superviseme_export_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.zip'
+        
+        return response
+        
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
+
+
+# Miscellanea functionality endpoints
+@admin.route("/admin/api/export_data_action", methods=["POST"])
+@login_required
+def export_data_action():
+    """Export data in various formats"""
+    check_privileges(current_user.username, role="admin")
+    
+    format_type = request.json.get('format', 'json')
+    
+    if format_type == 'csv':
+        return redirect(url_for('admin.export_data_csv'))
+    else:
+        return redirect(url_for('admin.export_data'))
+
+
+@admin.route("/admin/api/system_health", methods=["GET"])
+@login_required
+def system_health():
+    """Check system health"""
+    check_privileges(current_user.username, role="admin")
+    
+    try:
+        health_status = {
+            "database_connection": "OK",
+            "user_count": User_mgmt.query.count(),
+            "thesis_count": Thesis.query.count(),
+            "status": "healthy"
+        }
+        
+        return {"status": "success", "health": health_status}, 200
+    except Exception as e:
+        return {"status": "error", "health": {"status": "unhealthy", "error": str(e)}}, 500
+
+
+@admin.route("/admin/api/generate_report", methods=["POST"])
+@login_required
+def generate_report():
+    """Generate system report"""
+    check_privileges(current_user.username, role="admin")
+    
+    try:
+        # Get comprehensive statistics
+        stats_response, _ = system_stats()
+        stats_data = stats_response.get('data', {}) if isinstance(stats_response, dict) else {}
+        
+        report = {
+            "generated_at": datetime.datetime.now().isoformat(),
+            "generated_by": current_user.username,
+            "summary": {
+                "total_users": stats_data.get('database', {}).get('total_users', 0),
+                "total_theses": stats_data.get('database', {}).get('total_theses', 0),
+                "system_status": "operational"
+            },
+            "detailed_stats": stats_data
+        }
+        
+        return {"status": "success", "report": report}, 200
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
 
 
