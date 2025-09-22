@@ -423,6 +423,11 @@
     <!-- Custom scripts for all pages-->
     <script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
 
+    <!-- Notifications system (required for admin users with topbar) -->
+    {% if user.user_type == 'admin' %}
+    <script src="{{ url_for('static', filename='assets/js/notifications.js') }}"></script>
+    {% endif %}
+
     <script>
         // Telegram configuration data
         let telegramUserConfig = {};

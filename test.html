@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>SuperviseMe Dropdown Test - Local Files</title>
+    
+    <!-- Use local Bootstrap files -->
+    <link href="../superviseme/static/assets/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="../superviseme/static/assets/js/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        .test-status { padding: 10px; margin: 5px 0; border-radius: 4px; }
+        .status-pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status-fail { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status-unknown { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .sidebar { transition: margin-left 0.3s; }
+        .sidebar.toggled { margin-left: -250px; }
+    </style>
+</head>
+<body id="page-top">
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar" style="width: 250px; min-height: 100vh;">
+            <li class="nav-item">
+                <a class="sidebar-brand d-flex align-items-center justify-content-center" href="#">
+                    <div class="sidebar-brand-text mx-3">SuperviseMe Test</div>
+                </a>
+            </li>
+            <hr class="sidebar-divider">
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-toggle="collapse" data-target="#collapseMenu" aria-expanded="true">
+                    <i class="fas fa-fw fa-folder"></i>
+                    <span>Collapsible Menu</span>
+                </a>
+                <div id="collapseMenu" class="collapse show" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="#">Sub-item 1</a>
+                        <a class="collapse-item" href="#">Sub-item 2</a>
+                    </div>
+                </div>
+            </li>
+            <hr class="sidebar-divider d-none d-md-block">
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+        </ul>
+        
+        <!-- Content -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Notifications -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-bell fa-fw"></i>
+                                <span class="badge badge-danger badge-counter">3</span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow" aria-labelledby="alertsDropdown">
+                                <h6 class="dropdown-header">Notifications</h6>
+                                <a class="dropdown-item" href="#">Test notification 1</a>
+                                <a class="dropdown-item" href="#">Test notification 2</a>
+                            </div>
+                        </li>
+                        
+                        <!-- User dropdown -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Test User</span>
+                                <i class="fas fa-user fa-fw"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow" aria-labelledby="userDropdown">
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Profile
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#" onclick="alert('Logout clicked!')">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Logout
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <!-- Page Content -->
+                <div class="container-fluid">
+                    <h1 class="h3 mb-4 text-gray-800">SuperviseMe JavaScript Test Results</h1>
+                    
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Test Results</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="test-results">
+                                        <div id="dropdown-test" class="test-status status-unknown">
+                                            <strong>Bootstrap Dropdown Test:</strong> <span>Testing...</span>
+                                        </div>
+                                        <div id="sidebar-test" class="test-status status-unknown">
+                                            <strong>Sidebar Toggle Test:</strong> <span>Click sidebar toggle button above</span>
+                                        </div>
+                                        <div id="collapse-test" class="test-status status-unknown">
+                                            <strong>Collapse Menu Test:</strong> <span>Click "Collapsible Menu" in sidebar</span>
+                                        </div>
+                                        <div id="notification-test" class="test-status status-unknown">
+                                            <strong>Notification Dropdown:</strong> <span>Click bell icon above</span>
+                                        </div>
+                                        <div id="user-test" class="test-status status-unknown">
+                                            <strong>User Dropdown:</strong> <span>Click user icon above</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts - Using local files -->
+    <script src="../superviseme/static/assets/js/vendor/jquery/jquery.min.js"></script>
+    <script src="../superviseme/static/assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../superviseme/static/assets/js/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="../superviseme/static/assets/js/sb-admin-2.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            console.log('Test page loaded, jQuery version:', $.fn.jquery);
+            console.log('Bootstrap version:', typeof $().modal !== 'undefined' ? 'Loaded' : 'Not loaded');
+            
+            // Test dropdown functionality
+            setTimeout(function() {
+                let dropdownWorks = false;
+                const alertsDropdown = $('#alertsDropdown');
+                
+                try {
+                    // Check if dropdown is initialized
+                    if (typeof alertsDropdown.dropdown === 'function') {
+                        dropdownWorks = true;
+                        $('#dropdown-test').removeClass('status-unknown').addClass('status-pass')
+                            .find('span').text('✓ Bootstrap dropdowns are initialized');
+                    } else {
+                        $('#dropdown-test').removeClass('status-unknown').addClass('status-fail')
+                            .find('span').text('✗ Bootstrap dropdowns not initialized');
+                    }
+                } catch(e) {
+                    console.error('Dropdown test error:', e);
+                    $('#dropdown-test').removeClass('status-unknown').addClass('status-fail')
+                        .find('span').text('✗ Error: ' + e.message);
+                }
+                
+                // Test if sidebar toggle function exists
+                if (typeof $("#sidebarToggle").off === 'function') {
+                    // Check if event handler is attached
+                    const events = $._data($("#sidebarToggle")[0], 'events');
+                    if (events && events.click) {
+                        $('#sidebar-test').removeClass('status-unknown').addClass('status-pass')
+                            .find('span').text('✓ Sidebar toggle event is attached - click to test');
+                    } else {
+                        $('#sidebar-test').removeClass('status-unknown').addClass('status-fail')
+                            .find('span').text('✗ No click event attached to sidebar toggle');
+                    }
+                }
+            }, 500);
+            
+            // Test notification dropdown events
+            $('#alertsDropdown').on('shown.bs.dropdown', function() {
+                $('#notification-test').removeClass('status-unknown status-fail').addClass('status-pass')
+                    .find('span').text('✓ Notification dropdown opened successfully');
+            });
+            
+            // Test user dropdown events  
+            $('#userDropdown').on('shown.bs.dropdown', function() {
+                $('#user-test').removeClass('status-unknown status-fail').addClass('status-pass')
+                    .find('span').text('✓ User dropdown opened successfully');
+            });
+            
+            // Test collapse functionality
+            $('#collapseMenu').on('shown.bs.collapse hidden.bs.collapse', function(e) {
+                const action = e.type === 'shown' ? 'expanded' : 'collapsed';
+                $('#collapse-test').removeClass('status-unknown status-fail').addClass('status-pass')
+                    .find('span').text('✓ Collapse menu ' + action + ' successfully');
+            });
+            
+            // Monitor sidebar toggle clicks
+            let sidebarToggleClicks = 0;
+            $(document).on('click', '#sidebarToggle, #sidebarToggleTop', function() {
+                sidebarToggleClicks++;
+                const isToggled = $('body').hasClass('sidebar-toggled');
+                $('#sidebar-test').removeClass('status-unknown status-fail').addClass('status-pass')
+                    .find('span').text('✓ Sidebar toggle clicked ' + sidebarToggleClicks + ' times. Toggled: ' + isToggled);
+            });
+        });
+    </script>
+</body>
+</html>
