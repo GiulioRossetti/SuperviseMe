@@ -584,6 +584,13 @@ def search():
     
     search_term = request.form.get("search_term", "").strip()
 
+    # Validate search term
+    if not search_term:
+        # If no search term, redirect back to dashboard with message
+        from flask import flash, redirect, url_for
+        flash("Please enter a search term.", "warning")
+        return redirect(url_for('supervisor.supervisor_dashboard'))
+
     # Search for theses supervised by current user
     thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
     supervised_thesis_ids = [ts.thesis_id for ts in thesis_supervisors]
