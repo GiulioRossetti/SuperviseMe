@@ -1,6 +1,6 @@
-from flask import Blueprint, request, render_template, abort, redirect, url_for
+from flask import Blueprint, request, render_template, abort, redirect, url_for, jsonify
 from flask_login import login_required, current_user
-from sqlalchemy import  select, and_, func
+from sqlalchemy import select, and_, func, or_
 from superviseme.utils.miscellanea import check_privileges
 from superviseme.utils.activity_tracker import get_inactive_students
 from superviseme.models import *
@@ -186,6 +186,10 @@ def post_update():
 
     db.session.add(new_update)
     db.session.commit()
+
+    # Create notification for student
+    from superviseme.utils.notifications import create_supervisor_feedback_notification
+    create_supervisor_feedback_notification(thesis_id, current_user.id, content)
 
     return thesis_detail(thesis_id)
 
@@ -569,22 +573,188 @@ def remove_thesis_supervisor():
     return theses_data()
 
 
-@supervisor.route("/search", methods=["POST"])
+@supervisor.route("/supervisor/search", methods=["POST"])
 @login_required
 def search():
     """
     This route handles searching for theses or supervisees. It retrieves the search term from the form,
     performs a search in the database, and returns the results.
     """
-    search_term = request.form.get("search_term")
+    check_privileges(current_user.username, role="supervisor")
+    
+    search_term = request.form.get("search_term", "").strip()
 
-    # Search for theses
-    theses = Thesis.query.filter(Thesis.title.ilike(f"%{search_term}%")).all()
+    # Search for theses supervised by current user
+    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
+    supervised_thesis_ids = [ts.thesis_id for ts in thesis_supervisors]
+    
+    theses = []
+    supervisees = []
+    
+    if search_term:
+        # Search for supervised theses
+        theses = Thesis.query.filter(
+            and_(
+                Thesis.id.in_(supervised_thesis_ids),
+                or_(
+                    Thesis.title.ilike(f"%{search_term}%"),
+                    Thesis.description.ilike(f"%{search_term}%"),
+                    Thesis.level.ilike(f"%{search_term}%")
+                )
+            )
+        ).all()
 
-    # Search for supervisees
-    supervisees = User_mgmt.query.filter(User_mgmt.username.ilike(f"%{search_term}%")).all()
+        # Search for supervisees (students with supervised theses)
+        supervised_student_ids = [thesis.author_id for thesis in Thesis.query.filter(Thesis.id.in_(supervised_thesis_ids)).all() if thesis.author_id]
+        supervisees = User_mgmt.query.filter(
+            and_(
+                User_mgmt.id.in_(supervised_student_ids),
+                or_(
+                    User_mgmt.name.ilike(f"%{search_term}%"),
+                    User_mgmt.surname.ilike(f"%{search_term}%"),
+                    User_mgmt.username.ilike(f"%{search_term}%"),
+                    User_mgmt.email.ilike(f"%{search_term}%")
+                )
+            )
+        ).all()
 
-    return render_template("search_results.html", theses=theses, supervisees=supervisees)
+    return render_template("supervisor/search_results.html", 
+                         theses=theses, 
+                         supervisees=supervisees,
+                         search_term=search_term,
+                         user_type="supervisor")
+
+
+@supervisor.route("/api/thesis/<int:thesis_id>/gantt_data")
+@login_required
+def get_gantt_data(thesis_id):
+    """
+    Get Gantt chart data for a thesis including updates, todos, and status changes.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify the thesis is supervised by the current user
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        return jsonify({"error": "Thesis not found or not supervised by you"}), 404
+    
+    thesis = Thesis.query.get(thesis_id)
+    if not thesis:
+        return jsonify({"error": "Thesis not found"}), 404
+    
+    # Get all timeline events
+    events = []
+    
+    # Add thesis creation event
+    events.append({
+        "id": f"thesis_created_{thesis.id}",
+        "title": f"Thesis Created: {thesis.title}",
+        "start": thesis.created_at * 1000,  # Convert to milliseconds for JavaScript
+        "end": thesis.created_at * 1000,
+        "type": "thesis_milestone",
+        "category": "Thesis",
+        "description": f"Thesis '{thesis.title}' was created",
+        "author": "System"
+    })
+    
+    # Add student updates
+    updates = Thesis_Update.query.filter_by(
+        thesis_id=thesis_id, 
+        update_type="student_update"
+    ).order_by(Thesis_Update.created_at.asc()).all()
+    
+    for update in updates:
+        author = User_mgmt.query.get(update.author_id) if update.author_id else None
+        events.append({
+            "id": f"update_{update.id}",
+            "title": f"Student Update",
+            "start": update.created_at * 1000,
+            "end": update.created_at * 1000,
+            "type": "student_update",
+            "category": "Updates",
+            "description": update.content[:100] + "..." if len(update.content) > 100 else update.content,
+            "author": author.name + " " + author.surname if author else "Student"
+        })
+    
+    # Add supervisor feedback
+    feedback = Thesis_Update.query.filter_by(
+        thesis_id=thesis_id, 
+        update_type="supervisor_update"
+    ).order_by(Thesis_Update.created_at.asc()).all()
+    
+    for fb in feedback:
+        author = User_mgmt.query.get(fb.author_id) if fb.author_id else None
+        events.append({
+            "id": f"feedback_{fb.id}",
+            "title": f"Supervisor Feedback",
+            "start": fb.created_at * 1000,
+            "end": fb.created_at * 1000,
+            "type": "supervisor_feedback",
+            "category": "Feedback", 
+            "description": fb.content[:100] + "..." if len(fb.content) > 100 else fb.content,
+            "author": author.name + " " + author.surname if author else "Supervisor"
+        })
+    
+    # Add todos (with duration if they have due dates)
+    todos = Todo.query.filter_by(thesis_id=thesis_id).order_by(Todo.created_at.asc()).all()
+    
+    for todo in todos:
+        start_time = todo.created_at * 1000
+        end_time = todo.due_date * 1000 if todo.due_date else start_time
+        if todo.completed_at:
+            end_time = todo.completed_at * 1000
+        
+        author = User_mgmt.query.get(todo.author_id) if todo.author_id else None
+        assigned_to = User_mgmt.query.get(todo.assigned_to_id) if todo.assigned_to_id else None
+            
+        events.append({
+            "id": f"todo_{todo.id}",
+            "title": f"Todo: {todo.title}",
+            "start": start_time,
+            "end": end_time,
+            "type": f"todo_{todo.status}",  # todo_pending, todo_completed, etc.
+            "category": "Tasks",
+            "description": todo.description or todo.title,
+            "author": author.name + " " + author.surname if author else "Unknown",
+            "priority": todo.priority,
+            "status": todo.status,
+            "assigned_to": assigned_to.name + " " + assigned_to.surname if assigned_to else None
+        })
+    
+    # Add thesis status changes
+    status_changes = Thesis_Status.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Status.updated_at.asc()).all()
+    
+    for status in status_changes:
+        events.append({
+            "id": f"status_{status.id}",
+            "title": f"Status: {status.status}",
+            "start": status.updated_at * 1000,
+            "end": status.updated_at * 1000,
+            "type": "status_change",
+            "category": "Status",
+            "description": f"Thesis status changed to '{status.status}'",
+            "author": "System"
+        })
+    
+    # Sort events by start time
+    events.sort(key=lambda x: x["start"])
+    
+    # Get the student author
+    thesis_author = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
+    
+    return jsonify({
+        "thesis": {
+            "id": thesis.id,
+            "title": thesis.title,
+            "author": thesis_author.name + " " + thesis_author.surname if thesis_author else "Unknown"
+        },
+        "events": events,
+        "categories": ["Thesis", "Updates", "Feedback", "Tasks", "Status"]
+    })
 
 
 @supervisor.route("/freeze_updates", methods=["POST"])

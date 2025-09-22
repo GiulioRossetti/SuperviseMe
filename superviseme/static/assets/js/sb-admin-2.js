@@ -1,14 +1,19 @@
 (function($) {
   "use strict"; // Start of use strict
 
-  // Toggle the side navigation
-  $("#sidebarToggle, #sidebarToggleTop").on('click', function(e) {
-    $("body").toggleClass("sidebar-toggled");
-    $(".sidebar").toggleClass("toggled");
-    if ($(".sidebar").hasClass("toggled")) {
-      $('.sidebar .collapse').collapse('hide');
-    };
-  });
+  // Ensure DOM is ready before attaching event handlers
+  $(document).ready(function() {
+    // Initialize Bootstrap dropdowns manually
+    $('[data-toggle="dropdown"]').dropdown();
+    
+    // Toggle the side navigation
+    $("#sidebarToggle, #sidebarToggleTop").on('click', function(e) {
+      $("body").toggleClass("sidebar-toggled");
+      $(".sidebar").toggleClass("toggled");
+      if ($(".sidebar").hasClass("toggled")) {
+        $('.sidebar .collapse').collapse('hide');
+      };
+    });
 
   // Close any open menu accordions when window is resized below 768px
   $(window).resize(function() {
@@ -52,5 +57,7 @@
     }, 1000, 'easeInOutExpo');
     e.preventDefault();
   });
+
+  }); // End of document ready
 
 })(jQuery); // End of use strict

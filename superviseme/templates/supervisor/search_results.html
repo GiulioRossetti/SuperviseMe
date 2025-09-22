@@ -1,0 +1,184 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'supervisor/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Search Results</h1>
+                        <a href="{{ url_for('supervisor.dashboard') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Dashboard
+                        </a>
+                    </div>
+
+                    <!-- Search Term Display -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <strong>Search results for:</strong> "{{ search_term }}"
+                                {% if not theses and not supervisees %}
+                                <br><small class="text-muted">No results found. Try a different search term.</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Theses Results -->
+                    {% if theses %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">My Supervised Theses ({{ theses|length }} found)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Title</th>
+                                                    <th>Student</th>
+                                                    <th>Level</th>
+                                                    <th>Description</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for thesis in theses %}
+                                                <tr>
+                                                    <td>{{ thesis.title }}</td>
+                                                    <td>
+                                                        {% if thesis.author %}
+                                                            {{ thesis.author.name }} {{ thesis.author.surname }}
+                                                        {% else %}
+                                                            <em>Available</em>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge badge-secondary">{{ thesis.level }}</span>
+                                                    </td>
+                                                    <td>{{ thesis.description[:100] }}{% if thesis.description|length > 100 %}...{% endif %}</td>
+                                                    <td>
+                                                        <a href="{{ url_for('supervisor.thesis_detail', thesis_id=thesis.id) }}" class="btn btn-sm btn-primary">
+                                                            <i class="fas fa-eye fa-sm"></i> View Details
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Students Results -->
+                    {% if supervisees %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">My Students ({{ supervisees|length }} found)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Email</th>
+                                                    <th>Department</th>
+                                                    <th>Thesis</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for student in supervisees %}
+                                                <tr>
+                                                    <td>{{ student.name }} {{ student.surname }}</td>
+                                                    <td>{{ student.email }}</td>
+                                                    <td>{{ student.cdl or 'N/A' }}</td>
+                                                    <td>
+                                                        {% set student_thesis = student.authored_theses.first() %}
+                                                        {% if student_thesis %}
+                                                            {{ student_thesis.title[:50] }}{% if student_thesis.title|length > 50 %}...{% endif %}
+                                                        {% else %}
+                                                            <em>No thesis assigned</em>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if student_thesis %}
+                                                        <a href="{{ url_for('supervisor.thesis_detail', thesis_id=student_thesis.id) }}" class="btn btn-sm btn-primary">
+                                                            <i class="fas fa-eye fa-sm"></i> View Thesis
+                                                        </a>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
+
+</body>
+
+</html>

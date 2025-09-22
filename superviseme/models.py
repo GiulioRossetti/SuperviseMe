@@ -143,3 +143,22 @@ class Todo(db.Model):
     thesis = db.relationship("Thesis", backref="todos", lazy=True)
     author = db.relationship("User_mgmt", foreign_keys=[author_id], backref="created_todos", lazy=True)
     assigned_to = db.relationship("User_mgmt", foreign_keys=[assigned_to_id], backref="assigned_todos", lazy=True)
+
+
+class Notification(db.Model):
+    __tablename__ = "notification"
+    id = db.Column(db.Integer, primary_key=True)
+    recipient_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    actor_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)  # Who performed the action
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=True)  # Related thesis if applicable
+    notification_type = db.Column(db.String(50), nullable=False)  # e.g., "new_update", "new_feedback", "new_todo"
+    title = db.Column(db.String(200), nullable=False)  # Short description
+    message = db.Column(db.Text, nullable=False)  # Detailed message
+    action_url = db.Column(db.String(200), nullable=True)  # URL to the relevant page
+    is_read = db.Column(db.Boolean, default=False, nullable=False)
+    created_at = db.Column(db.Integer, nullable=False)
+    
+    # Relationships
+    recipient = db.relationship("User_mgmt", foreign_keys=[recipient_id], backref="received_notifications", lazy=True)
+    actor = db.relationship("User_mgmt", foreign_keys=[actor_id], backref="sent_notifications", lazy=True)
+    thesis = db.relationship("Thesis", backref="notifications", lazy=True)

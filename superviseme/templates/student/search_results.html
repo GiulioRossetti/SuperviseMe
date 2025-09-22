@@ -1,0 +1,210 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'student/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Search Results</h1>
+                        <a href="{{ url_for('student.dashboard') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Dashboard
+                        </a>
+                    </div>
+
+                    <!-- Search Term Display -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <strong>Search results for:</strong> "{{ search_term }}"
+                                {% if not updates and not resources and not todos %}
+                                <br><small class="text-muted">No results found. Try a different search term.</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Updates Results -->
+                    {% if updates %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Updates ({{ updates|length }} found)</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% for update in updates %}
+                                    <div class="update-item mb-3 p-3 {% if update.update_type == 'supervisor_update' %}bg-light{% else %}bg-white{% endif %} border rounded">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="update-info">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    {% if update.update_type == 'student_update' %}
+                                                        <i class="fas fa-user text-success mr-2"></i>
+                                                        <strong class="text-success">You</strong>
+                                                    {% else %}
+                                                        <i class="fas fa-user-tie text-primary mr-2"></i>
+                                                        <strong class="text-primary">{{ update.author.name if update.author else 'Supervisor' }}</strong>
+                                                    {% endif %}
+                                                    <small class="text-muted ml-2">{{ update.created_at|timestamp_to_datetime|strftime('%Y-%m-%d %H:%M') if update.created_at else 'Unknown date' }}</small>
+                                                </div>
+                                                <p class="mb-0">{{ update.content }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Resources Results -->
+                    {% if resources %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Resources ({{ resources|length }} found)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" width="100%">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>URL</th>
+                                                    <th>Added</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for resource in resources %}
+                                                <tr>
+                                                    <td>{{ resource.name }}</td>
+                                                    <td>
+                                                        <a href="{{ resource.url }}" target="_blank" class="text-primary">
+                                                            {{ resource.url[:50] }}{% if resource.url|length > 50 %}...{% endif %}
+                                                            <i class="fas fa-external-link-alt fa-sm ml-1"></i>
+                                                        </a>
+                                                    </td>
+                                                    <td>
+                                                        <small class="text-muted">{{ resource.created_at|timestamp_to_datetime|strftime('%Y-%m-%d') if resource.created_at else 'Unknown' }}</small>
+                                                    </td>
+                                                    <td>
+                                                        <a href="{{ resource.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-external-link-alt fa-sm"></i> Open
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Todos Results -->
+                    {% if todos %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Todo Items ({{ todos|length }} found)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        {% for todo in todos %}
+                                        <div class="col-md-6 col-lg-4 mb-3">
+                                            <div class="card border-left-{% if todo.priority == 'high' %}danger{% elif todo.priority == 'medium' %}warning{% else %}info{% endif %} h-100">
+                                                <div class="card-body">
+                                                    <h6 class="font-weight-bold text-gray-900 {% if todo.status == 'completed' %}text-decoration-line-through{% endif %}">
+                                                        {{ todo.title }}
+                                                    </h6>
+                                                    {% if todo.description %}
+                                                    <p class="text-gray-700 small mb-2">{{ todo.description }}</p>
+                                                    {% endif %}
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <span class="badge badge-{% if todo.priority == 'high' %}danger{% elif todo.priority == 'medium' %}warning{% else %}info{% endif %} badge-pill">{{ todo.priority.title() }}</span>
+                                                        </div>
+                                                        {% if todo.due_date %}
+                                                        <small class="text-muted">Due: {{ todo.due_date.strftime('%m/%d/%Y') }}</small>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% if todo.assigned_to %}
+                                                    <div class="mt-2">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-user fa-sm"></i>
+                                                            Assigned to: {{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}
+                                                        </small>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
+
+</body>
+
+</html>

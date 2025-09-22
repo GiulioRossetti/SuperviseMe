@@ -86,12 +86,14 @@ Administrators have full control over the email notification system:
 
 ## 🚀 Installation & Setup
 
-### Prerequisites
+### Quick Start (Local Development)
+
+#### Prerequisites
 - Python 3.8+
 - pip (Python package installer)
 - (Optional) PostgreSQL for production deployment
 
-### Quick Start
+#### Local Installation
 
 1. **Clone the repository**
 ```bash
@@ -122,6 +124,72 @@ python superviseme.py
 
 6. **Access the application**
 Open your web browser and navigate to `http://localhost:8080`
+
+### 🐳 Docker Setup (Recommended)
+
+For a complete production-ready setup with database persistence, SSL, and mail server:
+
+#### Prerequisites
+- Docker and Docker Compose installed on your system
+
+#### Quick Start with Docker
+
+1. **Clone and navigate to the repository**:
+   ```bash
+   git clone https://github.com/GiulioRossetti/SuperviseMe.git
+   cd SuperviseMe
+   ```
+
+2. **Create environment configuration**:
+   ```bash
+   cp .env.example .env
+   ```
+   Edit `.env` and customize the values, especially:
+   - `SECRET_KEY`: Use a strong, unique secret key
+   - `PG_PASSWORD`: Set a secure database password
+
+3. **Start the application**:
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Access the application**:
+   - Main application: https://localhost (accept self-signed certificate)
+   - Mail server UI: http://localhost:8025
+
+#### Docker Architecture
+
+The Docker setup includes:
+- **superviseme_app**: Flask application running with Gunicorn
+- **postgres**: PostgreSQL database with persistent storage
+- **nginx**: Reverse proxy with SSL termination and static file serving
+- **mailhog**: Development mail server for testing email functionality
+
+#### Development Mode with Docker
+
+For development with hot reloading:
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+Development features:
+- Flask development server with auto-reload
+- Source code volume mounting
+- Debug mode enabled
+- Direct access to application on port 8080
+
+#### Data Persistence
+
+**Database Data**
+- Volume: `postgres_data`
+- Backup: `docker-compose exec postgres pg_dump -U superviseme_user superviseme > backup.sql`
+
+**Application Data**
+- Volume: `app_data`
+- Purpose: Persistent storage for SQLite fallback and file uploads
+
+For detailed Docker setup instructions, see [DOCKER_README.md](DOCKER_README.md).
 
 ### Advanced Configuration
 

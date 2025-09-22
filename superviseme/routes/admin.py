@@ -1235,6 +1235,49 @@ def preview_notification(supervisor_id):
         return jsonify({'error': str(e)}), 500
 
 
+
+@admin.route("/admin/search", methods=["POST"])
+@login_required
+def search():
+    """
+    Handle search requests from admin interface.
+    Search across users and theses.
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    search_term = request.form.get("search_term", "").strip()
+    
+    # Search for users
+    users = []
+    if search_term:
+        users = User_mgmt.query.filter(
+            or_(
+                User_mgmt.name.ilike(f"%{search_term}%"),
+                User_mgmt.surname.ilike(f"%{search_term}%"),
+                User_mgmt.username.ilike(f"%{search_term}%"),
+                User_mgmt.email.ilike(f"%{search_term}%"),
+                User_mgmt.cdl.ilike(f"%{search_term}%")
+            )
+        ).all()
+    
+    # Search for theses
+    theses = []
+    if search_term:
+        theses = Thesis.query.filter(
+            or_(
+                Thesis.title.ilike(f"%{search_term}%"),
+                Thesis.description.ilike(f"%{search_term}%"),
+                Thesis.level.ilike(f"%{search_term}%")
+            )
+        ).all()
+    
+    return render_template("admin/search_results.html", 
+                         users=users, 
+                         theses=theses, 
+                         search_term=search_term,
+                         user_type="admin")
+
+
 @admin.route("/admin/notifications/status")
 @login_required
 def notification_status():
