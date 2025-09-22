@@ -650,7 +650,8 @@ def search():
                          todos=todos,
                          thesis=thesis,
                          search_term=search_term,
-                         user_type="student")
+                         user_type="student",
+                         dt=datetime.fromtimestamp)
 
 
 @student.route("/api/thesis/<int:thesis_id>/gantt_data")
