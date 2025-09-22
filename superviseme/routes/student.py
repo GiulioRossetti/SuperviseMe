@@ -595,6 +595,13 @@ def search():
     
     search_term = request.form.get("search_term", "").strip()
     
+    # Validate search term
+    if not search_term:
+        # If no search term, redirect back to dashboard with message
+        from flask import flash, redirect, url_for
+        flash("Please enter a search term.", "warning")
+        return redirect(url_for('student.student_dashboard'))
+    
     # Get student's thesis
     thesis = Thesis.query.filter_by(author_id=current_user.id).first()
     
