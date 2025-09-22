@@ -63,7 +63,7 @@
                                                         <i class="fas fa-user-tie text-primary mr-2"></i>
                                                         <strong class="text-primary">{{ update.author.name if update.author else 'Supervisor' }}</strong>
                                                     {% endif %}
-                                                    <small class="text-muted ml-2">{{ update.created_at|timestamp_to_datetime|strftime('%Y-%m-%d %H:%M') if update.created_at else 'Unknown date' }}</small>
+                                                    <small class="text-muted ml-2">{{ dt(update.created_at).strftime('%Y-%m-%d %H:%M') if update.created_at else 'Unknown date' }}</small>
                                                 </div>
                                                 <p class="mb-0">{{ update.content }}</p>
                                             </div>
@@ -106,7 +106,7 @@
                                                         </a>
                                                     </td>
                                                     <td>
-                                                        <small class="text-muted">{{ resource.created_at|timestamp_to_datetime|strftime('%Y-%m-%d') if resource.created_at else 'Unknown' }}</small>
+                                                        <small class="text-muted">{{ dt(resource.created_at).strftime('%Y-%m-%d') if resource.created_at else 'Unknown' }}</small>
                                                     </td>
                                                     <td>
                                                         <a href="{{ resource.url }}" target="_blank" class="btn btn-sm btn-outline-primary">

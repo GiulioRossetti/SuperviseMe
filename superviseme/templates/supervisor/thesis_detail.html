@@ -603,6 +603,99 @@
     <!-- Logout Modal-->
     {% include 'admin/components/logout_modal.html' %}
 
+    <!-- Add moment.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+    <!-- Add Gantt Chart JS -->
+    <script src="{{ url_for('static', filename='assets/js/gantt-chart.js') }}"></script>
+
+    <script>
+        window.moment = moment;
+        
+        // Gantt chart instance
+        let ganttChart = null;
+        
+        // Initialize Gantt chart
+        function initGanttChart() {
+            ganttChart = new ThesisGanttChart('thesis-gantt-chart', {
+                height: 500,
+                barHeight: 25,
+                barSpacing: 8,
+                marginLeft: 220
+            });
+            ganttChart.loadData({{ thesis.id }});
+        }
+        
+        // Refresh Gantt chart
+        function refreshGanttChart() {
+            if (ganttChart) {
+                ganttChart.refresh();
+            } else {
+                initGanttChart();
+            }
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initGanttChart();
+        });
+        
+        // Status management functions
+        function freezeThesis(thesisId) {
+            if (confirm('Are you sure you want to freeze this thesis? This will prevent further updates.')) {
+                fetch(`/supervisor/freeze_thesis/${thesisId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error freezing thesis: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+            }
+        }
+        
+        function unfreezeThesis(thesisId) {
+            if (confirm('Are you sure you want to unfreeze this thesis?')) {
+                fetch(`/supervisor/unfreeze_thesis/${thesisId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error unfreezing thesis: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+            }
+        }
+
+        function editUpdate(updateId, content) {
+            $('#edit_update_id').val(updateId);
+            $('#edit_update_content').val(content);
+            $('#editUpdateModal').modal('show');
+        }
+
+        function addTag(updateId) {
+            $('#tag_update_id').val(updateId);
+            $('#addTagModal').modal('show');
+        }
+    </script>
 
 </body>
 

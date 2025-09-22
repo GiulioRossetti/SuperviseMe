@@ -1282,7 +1282,8 @@ def search():
                          users=users, 
                          theses=theses, 
                          search_term=search_term,
-                         user_type="admin")
+                         user_type="admin",
+                         dt=datetime.datetime.fromtimestamp)
 
 
 @admin.route("/admin/notifications/status")
