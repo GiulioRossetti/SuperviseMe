@@ -569,22 +569,56 @@ def remove_thesis_supervisor():
     return theses_data()
 
 
-@supervisor.route("/search", methods=["POST"])
+@supervisor.route("/supervisor/search", methods=["POST"])
 @login_required
 def search():
     """
     This route handles searching for theses or supervisees. It retrieves the search term from the form,
     performs a search in the database, and returns the results.
     """
-    search_term = request.form.get("search_term")
+    check_privileges(current_user.username, role="supervisor")
+    
+    search_term = request.form.get("search_term", "").strip()
 
-    # Search for theses
-    theses = Thesis.query.filter(Thesis.title.ilike(f"%{search_term}%")).all()
+    # Search for theses supervised by current user
+    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
+    supervised_thesis_ids = [ts.thesis_id for ts in thesis_supervisors]
+    
+    theses = []
+    supervisees = []
+    
+    if search_term:
+        # Search for supervised theses
+        theses = Thesis.query.filter(
+            and_(
+                Thesis.id.in_(supervised_thesis_ids),
+                or_(
+                    Thesis.title.ilike(f"%{search_term}%"),
+                    Thesis.description.ilike(f"%{search_term}%"),
+                    Thesis.level.ilike(f"%{search_term}%")
+                )
+            )
+        ).all()
 
-    # Search for supervisees
-    supervisees = User_mgmt.query.filter(User_mgmt.username.ilike(f"%{search_term}%")).all()
+        # Search for supervisees (students with supervised theses)
+        supervised_student_ids = [thesis.author_id for thesis in Thesis.query.filter(Thesis.id.in_(supervised_thesis_ids)).all() if thesis.author_id]
+        supervisees = User_mgmt.query.filter(
+            and_(
+                User_mgmt.id.in_(supervised_student_ids),
+                or_(
+                    User_mgmt.name.ilike(f"%{search_term}%"),
+                    User_mgmt.surname.ilike(f"%{search_term}%"),
+                    User_mgmt.username.ilike(f"%{search_term}%"),
+                    User_mgmt.email.ilike(f"%{search_term}%")
+                )
+            )
+        ).all()
 
-    return render_template("search_results.html", theses=theses, supervisees=supervisees)
+    return render_template("supervisor/search_results.html", 
+                         theses=theses, 
+                         supervisees=supervisees,
+                         search_term=search_term,
+                         user_type="supervisor")
 
 
 @supervisor.route("/freeze_updates", methods=["POST"])

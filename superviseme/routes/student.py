@@ -579,6 +579,68 @@ def toggle_todo(todo_id):
     return redirect(url_for('student.dashboard'))
 
 
+@student.route("/student/search", methods=["POST"])
+@login_required
+def search():
+    """
+    Handle search requests from student interface.
+    Search within student's thesis context.
+    """
+    check_privileges(current_user.username, role="student")
+    
+    search_term = request.form.get("search_term", "").strip()
+    
+    # Get student's thesis
+    thesis = Thesis.query.filter_by(author_id=current_user.id).first()
+    
+    # Search for updates and resources within student's thesis
+    updates = []
+    resources = []
+    todos = []
+    
+    if search_term and thesis:
+        # Search in thesis updates
+        updates = Update.query.filter(
+            and_(
+                Update.thesis_id == thesis.id,
+                or_(
+                    Update.content.ilike(f"%{search_term}%"),
+                    Update.update_type.ilike(f"%{search_term}%")
+                )
+            )
+        ).all()
+        
+        # Search in thesis resources
+        resources = Resource.query.filter(
+            and_(
+                Resource.thesis_id == thesis.id,
+                or_(
+                    Resource.name.ilike(f"%{search_term}%"),
+                    Resource.url.ilike(f"%{search_term}%")
+                )
+            )
+        ).all()
+        
+        # Search in todos
+        todos = Todo.query.filter(
+            and_(
+                Todo.thesis_id == thesis.id,
+                or_(
+                    Todo.title.ilike(f"%{search_term}%"),
+                    Todo.description.ilike(f"%{search_term}%")
+                )
+            )
+        ).all()
+    
+    return render_template("student/search_results.html", 
+                         updates=updates, 
+                         resources=resources, 
+                         todos=todos,
+                         thesis=thesis,
+                         search_term=search_term,
+                         user_type="student")
+
+
 @student.route("/delete_todo/<int:todo_id>")
 @login_required
 def delete_todo(todo_id):
