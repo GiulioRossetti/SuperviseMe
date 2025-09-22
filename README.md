@@ -42,11 +42,33 @@ SuperviseMe is a Flask-based web application designed to facilitate thesis super
 - **Resource Access**: Download supervisor-provided resources and materials
 - **Profile Management**: Update personal information and account settings
 
-## 📧 Weekly Email Notification System
+## 📧 Notification System
 
-SuperviseMe includes a comprehensive weekly email notification system that keeps supervisors informed about their students' activities and engagement levels.
+SuperviseMe includes comprehensive notification systems to keep users informed about thesis activities and important updates.
 
-### ✨ Email Report Features
+### 🔔 Telegram Notifications (NEW!)
+
+Real-time notifications delivered directly to your Telegram account:
+
+- **Instant Delivery**: Immediate notifications for urgent activities
+- **Customizable Types**: Choose which notifications to receive via Telegram
+- **Rich Formatting**: Formatted messages with emojis and action links
+- **Secure Setup**: Verified user identification prevents impersonation
+- **Multi-Channel**: Works alongside email notifications
+
+**Available Notification Types:**
+- 📝 New thesis updates from students
+- 💬 Supervisor feedback and comments
+- ✅ Task assignments and completions
+- 📊 Thesis status changes
+- ⏰ Deadline reminders
+- 📈 Weekly activity summaries
+
+See [TELEGRAM_SETUP.md](TELEGRAM_SETUP.md) for detailed setup instructions.
+
+### 📧 Weekly Email System
+
+Automated weekly email reports for supervisors:
 
 - **Automated Schedule**: Weekly reports are automatically sent every Monday morning at 9:00 AM
 - **Activity Summary**: Each supervisor receives a detailed summary of all supervised students' weekly activities
@@ -111,13 +133,19 @@ pip install -r requirements.txt
 python seed_database.py
 ```
 
-4. **Run database migration (for existing installations)**
+4. **Run database migrations (for existing installations)**
 ```bash
-# If upgrading from a previous version, run migration to add activity tracking
-python migrate_database.py
+# If upgrading from a previous version, run migrations to add new features
+python migrate_database.py      # For activity tracking
+python migrate_telegram.py      # For Telegram notifications (NEW!)
 ```
 
-5. **Start the application**
+5. **Configure Telegram notifications (optional)**
+   - See [TELEGRAM_SETUP.md](TELEGRAM_SETUP.md) for detailed setup instructions
+   - Create a Telegram bot via @BotFather
+   - Configure bot settings in the admin panel
+
+6. **Start the application**
 ```bash
 python superviseme.py
 ```
