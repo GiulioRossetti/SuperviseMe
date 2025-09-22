@@ -237,6 +237,9 @@ def create_app(db_type="sqlite"):
     from superviseme.routes.profile import profile as profile_blueprint
     app.register_blueprint(profile_blueprint)
 
+    from superviseme.routes.notifications import notifications as notifications_blueprint
+    app.register_blueprint(notifications_blueprint)
+
     # Initialize the task scheduler for background jobs
     from superviseme.utils.task_scheduler import init_scheduler
     init_scheduler(app)

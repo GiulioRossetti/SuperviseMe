@@ -145,6 +145,10 @@ def post_update():
     db.session.add(new_update)
     db.session.commit()
 
+    # Create notification for supervisors
+    from superviseme.utils.notifications import create_thesis_update_notification
+    create_thesis_update_notification(thesis_id, current_user.id, content)
+
     return redirect(url_for('student.thesis_data'))
 
 
