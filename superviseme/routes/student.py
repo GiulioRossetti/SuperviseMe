@@ -1,5 +1,6 @@
-from flask import Blueprint, request, render_template, redirect, url_for
+from flask import Blueprint, request, render_template, redirect, url_for, jsonify
 from flask_login import login_required, current_user
+from sqlalchemy import and_, or_
 from superviseme.utils.miscellanea import check_privileges
 from superviseme.utils.activity_tracker import update_user_activity
 from superviseme.models import *
@@ -600,12 +601,12 @@ def search():
     
     if search_term and thesis:
         # Search in thesis updates
-        updates = Update.query.filter(
+        updates = Thesis_Update.query.filter(
             and_(
-                Update.thesis_id == thesis.id,
+                Thesis_Update.thesis_id == thesis.id,
                 or_(
-                    Update.content.ilike(f"%{search_term}%"),
-                    Update.update_type.ilike(f"%{search_term}%")
+                    Thesis_Update.content.ilike(f"%{search_term}%"),
+                    Thesis_Update.update_type.ilike(f"%{search_term}%")
                 )
             )
         ).all()
@@ -639,6 +640,127 @@ def search():
                          thesis=thesis,
                          search_term=search_term,
                          user_type="student")
+
+
+@student.route("/api/thesis/<int:thesis_id>/gantt_data")
+@login_required
+def get_gantt_data(thesis_id):
+    """
+    Get Gantt chart data for a thesis including updates, todos, and status changes.
+    """
+    check_privileges(current_user.username, role="student")
+    
+    # Verify the thesis belongs to the current student
+    thesis = Thesis.query.filter_by(id=thesis_id, author_id=current_user.id).first()
+    if not thesis:
+        return jsonify({"error": "Thesis not found"}), 404
+    
+    # Get all timeline events
+    events = []
+    
+    # Add thesis creation event
+    events.append({
+        "id": f"thesis_created_{thesis.id}",
+        "title": f"Thesis Created: {thesis.title}",
+        "start": thesis.created_at * 1000,  # Convert to milliseconds for JavaScript
+        "end": thesis.created_at * 1000,
+        "type": "thesis_milestone",
+        "category": "Thesis",
+        "description": f"Thesis '{thesis.title}' was created",
+        "author": "System"
+    })
+    
+    # Add student updates
+    updates = Thesis_Update.query.filter_by(
+        thesis_id=thesis_id, 
+        update_type="student_update"
+    ).order_by(Thesis_Update.created_at.asc()).all()
+    
+    for update in updates:
+        author = User_mgmt.query.get(update.author_id) if update.author_id else None
+        events.append({
+            "id": f"update_{update.id}",
+            "title": f"Student Update",
+            "start": update.created_at * 1000,
+            "end": update.created_at * 1000,
+            "type": "student_update",
+            "category": "Updates",
+            "description": update.content[:100] + "..." if len(update.content) > 100 else update.content,
+            "author": author.name + " " + author.surname if author else "Student"
+        })
+    
+    # Add supervisor feedback
+    feedback = Thesis_Update.query.filter_by(
+        thesis_id=thesis_id, 
+        update_type="supervisor_update"
+    ).order_by(Thesis_Update.created_at.asc()).all()
+    
+    for fb in feedback:
+        author = User_mgmt.query.get(fb.author_id) if fb.author_id else None
+        events.append({
+            "id": f"feedback_{fb.id}",
+            "title": f"Supervisor Feedback",
+            "start": fb.created_at * 1000,
+            "end": fb.created_at * 1000,
+            "type": "supervisor_feedback",
+            "category": "Feedback", 
+            "description": fb.content[:100] + "..." if len(fb.content) > 100 else fb.content,
+            "author": author.name + " " + author.surname if author else "Supervisor"
+        })
+    
+    # Add todos (with duration if they have due dates)
+    todos = Todo.query.filter_by(thesis_id=thesis_id).order_by(Todo.created_at.asc()).all()
+    
+    for todo in todos:
+        start_time = todo.created_at * 1000
+        end_time = todo.due_date * 1000 if todo.due_date else start_time
+        if todo.completed_at:
+            end_time = todo.completed_at * 1000
+        
+        author = User_mgmt.query.get(todo.author_id) if todo.author_id else None
+        assigned_to = User_mgmt.query.get(todo.assigned_to_id) if todo.assigned_to_id else None
+            
+        events.append({
+            "id": f"todo_{todo.id}",
+            "title": f"Todo: {todo.title}",
+            "start": start_time,
+            "end": end_time,
+            "type": f"todo_{todo.status}",  # todo_pending, todo_completed, etc.
+            "category": "Tasks",
+            "description": todo.description or todo.title,
+            "author": author.name + " " + author.surname if author else "Unknown",
+            "priority": todo.priority,
+            "status": todo.status,
+            "assigned_to": assigned_to.name + " " + assigned_to.surname if assigned_to else None
+        })
+    
+    # Add thesis status changes
+    status_changes = Thesis_Status.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Status.updated_at.asc()).all()
+    
+    for status in status_changes:
+        events.append({
+            "id": f"status_{status.id}",
+            "title": f"Status: {status.status}",
+            "start": status.updated_at * 1000,
+            "end": status.updated_at * 1000,
+            "type": "status_change",
+            "category": "Status",
+            "description": f"Thesis status changed to '{status.status}'",
+            "author": "System"
+        })
+    
+    # Sort events by start time
+    events.sort(key=lambda x: x["start"])
+    
+    return jsonify({
+        "thesis": {
+            "id": thesis.id,
+            "title": thesis.title,
+            "author": current_user.name + " " + current_user.surname if current_user else "Unknown"
+        },
+        "events": events,
+        "categories": ["Thesis", "Updates", "Feedback", "Tasks", "Status"]
+    })
 
 
 @student.route("/delete_todo/<int:todo_id>")
