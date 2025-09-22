@@ -1292,3 +1292,110 @@ def notification_status():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+# Telegram Bot Configuration Routes
+
+@admin.route("/admin/telegram/config", methods=["GET", "POST"])
+@login_required
+def telegram_config():
+    """
+    Configure Telegram bot settings
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    if request.method == "POST":
+        try:
+            data = request.get_json()
+            
+            # Get or create Telegram bot config
+            config = TelegramBotConfig.query.filter_by(is_active=True).first()
+            if not config:
+                config = TelegramBotConfig(
+                    bot_token="",
+                    bot_username="",
+                    notification_types="[]",
+                    created_at=int(time.time()),
+                    updated_at=int(time.time())
+                )
+                db.session.add(config)
+            
+            # Update configuration
+            config.bot_token = data.get("bot_token", "")
+            config.bot_username = data.get("bot_username", "")
+            config.webhook_url = data.get("webhook_url", "")
+            config.is_active = data.get("is_active", True)
+            config.notification_types = data.get("notification_types", "[]")
+            config.frequency_settings = data.get("frequency_settings", "{}")
+            config.updated_at = int(time.time())
+            
+            db.session.commit()
+            
+            return jsonify({"success": True, "message": "Telegram configuration saved successfully"})
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"success": False, "message": f"Error saving configuration: {str(e)}"}), 500
+    
+    else:  # GET request
+        config = TelegramBotConfig.query.filter_by(is_active=True).first()
+        if config:
+            return jsonify({
+                "success": True,
+                "config": {
+                    "bot_token": config.bot_token[:10] + "..." if len(config.bot_token) > 10 else "",
+                    "bot_username": config.bot_username,
+                    "webhook_url": config.webhook_url,
+                    "is_active": config.is_active,
+                    "notification_types": config.notification_types,
+                    "frequency_settings": config.frequency_settings
+                }
+            })
+        else:
+            return jsonify({
+                "success": True,
+                "config": {
+                    "bot_token": "",
+                    "bot_username": "",
+                    "webhook_url": "",
+                    "is_active": False,
+                    "notification_types": "[]",
+                    "frequency_settings": "{}"
+                }
+            })
+
+
+@admin.route("/admin/telegram/test", methods=["POST"])
+@login_required
+def test_telegram_bot():
+    """
+    Test Telegram bot connection
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    try:
+        from superviseme.utils.telegram_service import get_telegram_service
+        service = get_telegram_service()
+        # Clear cached config to reload from database
+        service._config = None
+        service.bot = None
+        result = service.test_bot_connection()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error testing bot: {str(e)}"}), 500
+
+
+@admin.route("/admin/telegram/notification-types")
+@login_required
+def get_telegram_notification_types():
+    """
+    Get available Telegram notification types
+    """
+    check_privileges(current_user.username, role="admin")
+    
+    try:
+        from superviseme.utils.telegram_service import get_notification_types
+        types = get_notification_types()
+        return jsonify({"success": True, "types": types})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Error getting notification types: {str(e)}"}), 500
+

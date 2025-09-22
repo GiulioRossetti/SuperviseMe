@@ -224,6 +224,102 @@
                         </div>
                     </div>
 
+                    <!-- Telegram Bot Configuration -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fab fa-telegram-plane mr-2"></i>Telegram Bot Configuration
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="alert alert-info mb-4">
+                                                <h6><i class="fas fa-info-circle mr-2"></i>Setup Instructions</h6>
+                                                <ol class="mb-0">
+                                                    <li>Create a bot by messaging <a href="https://t.me/BotFather" target="_blank">@BotFather</a> on Telegram</li>
+                                                    <li>Send <code>/newbot</code> and follow the instructions</li>
+                                                    <li>Copy your bot token and paste it below</li>
+                                                    <li>Users can then configure their Telegram notifications in their profiles</li>
+                                                </ol>
+                                            </div>
+                                            
+                                            <form id="telegramBotSettings">
+                                                <div class="row">
+                                                    <div class="col-md-8">
+                                                        <div class="form-group">
+                                                            <label for="telegram-bot-token"><strong>Bot Token</strong></label>
+                                                            <input type="password" class="form-control" id="telegram-bot-token" 
+                                                                   placeholder="123456789:ABCdefGHIjklMNOpqrSTUvwxyz">
+                                                            <small class="form-text text-muted">Keep this token secure and never share it publicly</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
+                                                            <label for="telegram-bot-username"><strong>Bot Username</strong></label>
+                                                            <input type="text" class="form-control" id="telegram-bot-username" 
+                                                                   placeholder="YourBotName">
+                                                            <small class="form-text text-muted">Without @</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="custom-control custom-switch mb-3">
+                                                    <input type="checkbox" class="custom-control-input" id="telegram-enabled" checked>
+                                                    <label class="custom-control-label" for="telegram-enabled">
+                                                        <strong>Enable Telegram Notifications</strong>
+                                                    </label>
+                                                </div>
+                                                
+                                                <div class="form-group" id="notification-types-section">
+                                                    <label><strong>Enabled Notification Types</strong></label>
+                                                    <div class="row" id="notification-types-list">
+                                                        <!-- Notification types will be loaded here -->
+                                                    </div>
+                                                    <small class="form-text text-muted">Select which notification types can be sent via Telegram</small>
+                                                </div>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <button type="button" class="btn btn-info" id="test-telegram-bot">
+                                                            <i class="fab fa-telegram-plane"></i> Test Bot Connection
+                                                        </button>
+                                                    </div>
+                                                    <div class="col-md-6 text-right">
+                                                        <button type="submit" class="btn btn-success">
+                                                            <i class="fas fa-save"></i> Save Telegram Configuration
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <div class="card bg-light">
+                                                <div class="card-body">
+                                                    <h6 class="card-title">Bot Status</h6>
+                                                    <div id="telegram-bot-status">
+                                                        <span class="badge badge-secondary">Not Configured</span>
+                                                    </div>
+                                                    
+                                                    <hr>
+                                                    
+                                                    <h6 class="card-title">Usage Statistics</h6>
+                                                    <div class="small">
+                                                        <div>Users with Telegram: <span id="telegram-users-count">-</span></div>
+                                                        <div>Messages sent today: <span id="telegram-messages-today">-</span></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Email Configuration -->
                     <div class="row">
                         <div class="col-12">
@@ -465,6 +561,10 @@ SuperviseMe Team</textarea>
     <script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
 
     <script>
+        // Telegram configuration data
+        let telegramConfig = {};
+        let notificationTypes = {};
+
         function testEmailConnection() {
             // Show loading state
             const btn = event.target;
@@ -479,6 +579,179 @@ SuperviseMe Team</textarea>
                 alert('Email connection test completed!\n\nConnection: Successful\nLatency: 127ms\nStatus: Ready to send');
             }, 2000);
         }
+
+        // Telegram Bot Functions
+        function loadTelegramConfig() {
+            fetch('/admin/telegram/config')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        telegramConfig = data.config;
+                        populateTelegramForm();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading Telegram config:', error);
+                });
+        }
+
+        function loadNotificationTypes() {
+            fetch('/admin/telegram/notification-types')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        notificationTypes = data.types;
+                        renderNotificationTypes();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading notification types:', error);
+                });
+        }
+
+        function populateTelegramForm() {
+            document.getElementById('telegram-bot-token').value = '';  // Never show full token
+            document.getElementById('telegram-bot-username').value = telegramConfig.bot_username || '';
+            document.getElementById('telegram-enabled').checked = telegramConfig.is_active || false;
+            
+            // Update status
+            const statusEl = document.getElementById('telegram-bot-status');
+            if (telegramConfig.bot_token && telegramConfig.is_active) {
+                statusEl.innerHTML = '<span class="badge badge-success">Active</span>';
+            } else {
+                statusEl.innerHTML = '<span class="badge badge-secondary">Not Configured</span>';
+            }
+        }
+
+        function renderNotificationTypes() {
+            const container = document.getElementById('notification-types-list');
+            const enabledTypes = telegramConfig.notification_types ? 
+                JSON.parse(telegramConfig.notification_types) : [];
+
+            let html = '';
+            for (const [key, type] of Object.entries(notificationTypes)) {
+                const checked = enabledTypes.includes(key) ? 'checked' : '';
+                html += `
+                    <div class="col-md-6 mb-2">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" 
+                                   id="notification-type-${key}" value="${key}" ${checked}>
+                            <label class="custom-control-label" for="notification-type-${key}">
+                                <span class="mr-1">${type.icon}</span>${type.name}
+                                <br><small class="text-muted">${type.description}</small>
+                            </label>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function testTelegramBot() {
+            const btn = document.getElementById('test-telegram-bot');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            btn.disabled = true;
+
+            fetch('/admin/telegram/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                
+                if (data.success) {
+                    showAlert('success', `Bot test successful!<br>${data.message}`);
+                    const statusEl = document.getElementById('telegram-bot-status');
+                    statusEl.innerHTML = '<span class="badge badge-success">Connected</span>';
+                } else {
+                    showAlert('danger', `Bot test failed:<br>${data.message}`);
+                }
+            })
+            .catch(error => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                showAlert('danger', `Error testing bot: ${error.message}`);
+            });
+        }
+
+        function saveTelegramConfig(event) {
+            event.preventDefault();
+            
+            const form = document.getElementById('telegramBotSettings');
+            const formData = new FormData(form);
+            
+            // Collect enabled notification types
+            const enabledTypes = [];
+            document.querySelectorAll('input[id^="notification-type-"]:checked').forEach(checkbox => {
+                enabledTypes.push(checkbox.value);
+            });
+
+            const config = {
+                bot_token: document.getElementById('telegram-bot-token').value,
+                bot_username: document.getElementById('telegram-bot-username').value,
+                is_active: document.getElementById('telegram-enabled').checked,
+                notification_types: JSON.stringify(enabledTypes),
+                frequency_settings: JSON.stringify({})
+            };
+
+            fetch('/admin/telegram/config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(config)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('success', data.message);
+                    loadTelegramConfig(); // Reload to update display
+                } else {
+                    showAlert('danger', data.message);
+                }
+            })
+            .catch(error => {
+                showAlert('danger', `Error saving configuration: ${error.message}`);
+            });
+        }
+
+        function showAlert(type, message) {
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="close" data-dismiss="alert">
+                        <span>&times;</span>
+                    </button>
+                </div>
+            `;
+            
+            // Insert at the top of the page content
+            const container = document.querySelector('.container-fluid');
+            container.insertAdjacentHTML('afterbegin', alertHtml);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const alert = container.querySelector('.alert');
+                if (alert) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTelegramConfig();
+            loadNotificationTypes();
+            
+            // Bind event listeners
+            document.getElementById('test-telegram-bot').addEventListener('click', testTelegramBot);
+            document.getElementById('telegramBotSettings').addEventListener('submit', saveTelegramConfig);
+        });
 
         // Save forms functionality
         document.getElementById('notificationSettings').addEventListener('submit', function(e) {

@@ -6,12 +6,15 @@ Handles creating and managing notifications for user activities
 from superviseme.models import Notification, User_mgmt, Thesis
 from superviseme import db
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def create_notification(recipient_id, actor_id, notification_type, title, message, 
                        thesis_id=None, action_url=None):
     """
-    Create a new notification
+    Create a new notification and send via enabled channels (in-app, Telegram)
     
     Args:
         recipient_id: User ID who will receive the notification
@@ -35,6 +38,23 @@ def create_notification(recipient_id, actor_id, notification_type, title, messag
     
     db.session.add(notification)
     db.session.commit()
+    
+    # Send Telegram notification if enabled for user
+    try:
+        from superviseme.utils.telegram_service import send_telegram_notification
+        telegram_sent = send_telegram_notification(
+            recipient_id, notification_type, title, message, action_url
+        )
+        
+        if telegram_sent:
+            notification.telegram_sent = True
+            notification.telegram_sent_at = int(time.time())
+            db.session.commit()
+            
+    except ImportError:
+        logger.warning("Telegram service not available")
+    except Exception as e:
+        logger.error(f"Failed to send Telegram notification: {e}")
     
     return notification
 

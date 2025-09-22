@@ -18,6 +18,11 @@ class User_mgmt(UserMixin, db.Model):
     nationality = db.Column(db.String(15), default=None)
     last_activity = db.Column(db.Integer, nullable=True)  # Track last activity timestamp
     last_activity_location = db.Column(db.String(100), nullable=True)  # Track where they were last active
+    
+    # Telegram notification settings
+    telegram_user_id = db.Column(db.String(50), nullable=True)  # Telegram user ID for bot notifications
+    telegram_enabled = db.Column(db.Boolean, default=False, nullable=False)  # Enable/disable Telegram notifications
+    telegram_notification_types = db.Column(db.Text, nullable=True)  # JSON string of enabled notification types
 
     thesis = db.relationship("Thesis", backref="author", lazy=True)
 
@@ -158,7 +163,24 @@ class Notification(db.Model):
     is_read = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.Integer, nullable=False)
     
+    # Telegram notification tracking
+    telegram_sent = db.Column(db.Boolean, default=False, nullable=False)  # Track if Telegram notification was sent
+    telegram_sent_at = db.Column(db.Integer, nullable=True)  # When Telegram notification was sent
+    
     # Relationships
     recipient = db.relationship("User_mgmt", foreign_keys=[recipient_id], backref="received_notifications", lazy=True)
     actor = db.relationship("User_mgmt", foreign_keys=[actor_id], backref="sent_notifications", lazy=True)
     thesis = db.relationship("Thesis", backref="notifications", lazy=True)
+
+
+class TelegramBotConfig(db.Model):
+    __tablename__ = "telegram_bot_config"
+    id = db.Column(db.Integer, primary_key=True)
+    bot_token = db.Column(db.String(200), nullable=False)  # Telegram bot token
+    bot_username = db.Column(db.String(100), nullable=False)  # Bot username for display
+    webhook_url = db.Column(db.String(500), nullable=True)  # Webhook URL if using webhooks
+    is_active = db.Column(db.Boolean, default=True, nullable=False)  # Enable/disable bot
+    notification_types = db.Column(db.Text, nullable=False)  # JSON string of enabled notification types
+    frequency_settings = db.Column(db.Text, nullable=True)  # JSON string of frequency settings (immediate, digest, etc.)
+    created_at = db.Column(db.Integer, nullable=False)
+    updated_at = db.Column(db.Integer, nullable=False)
