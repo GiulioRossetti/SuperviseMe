@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, render_template
 from flask_login import login_required, current_user
 from superviseme.utils.notifications import (
     get_user_notifications, 
@@ -9,6 +9,27 @@ from superviseme.utils.notifications import (
 from datetime import datetime
 
 notifications = Blueprint("notifications", __name__)
+
+
+@notifications.route("/notifications")
+@login_required
+def notifications_page():
+    """
+    Render the notifications page
+    """
+    # Get all notifications for the current user
+    user_notifications = get_user_notifications(
+        user_id=current_user.id,
+        limit=100,  # Get more notifications for the full page
+        unread_only=False
+    )
+    
+    unread_count = get_unread_notification_count(current_user.id)
+    
+    return render_template("notifications.html", 
+                         notifications=user_notifications, 
+                         unread_count=unread_count,
+                         dt=datetime.fromtimestamp)
 
 
 @notifications.route("/api/notifications")
@@ -77,3 +98,42 @@ def get_unread_count():
     """
     count = get_unread_notification_count(current_user.id)
     return jsonify({'unread_count': count})
+
+
+@notifications.route("/api/notifications/<int:notification_id>/delete", methods=["DELETE"])
+@login_required
+def delete_notification(notification_id):
+    """
+    Delete a specific notification
+    """
+    from superviseme.models import Notification
+    from superviseme import db
+    
+    notification = Notification.query.filter_by(
+        id=notification_id, 
+        recipient_id=current_user.id
+    ).first()
+    
+    if notification:
+        db.session.delete(notification)
+        db.session.commit()
+        return jsonify({'success': True})
+    else:
+        return jsonify({'success': False, 'error': 'Notification not found'}), 404
+
+
+@notifications.route("/api/notifications/clear_all", methods=["DELETE"])
+@login_required
+def clear_all_notifications():
+    """
+    Clear all notifications for current user
+    """
+    from superviseme.models import Notification
+    from superviseme import db
+    
+    notifications = Notification.query.filter_by(recipient_id=current_user.id).all()
+    for notification in notifications:
+        db.session.delete(notification)
+    
+    db.session.commit()
+    return jsonify({'success': True})
