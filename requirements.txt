@@ -7,3 +7,4 @@ psycopg2-binary>=2.9.0
 Flask-Mail>=0.9.1
 APScheduler>=3.10.4
 pyTelegramBotAPI>=4.14.0
+Markdown>=3.0.0
