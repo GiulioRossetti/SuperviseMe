@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, abort, redirect, url_for, jsonify
+from flask import Blueprint, request, render_template, abort, redirect, url_for, jsonify, flash
 from flask_login import login_required, current_user
 from sqlalchemy import select, and_, func, or_
 from superviseme.utils.miscellanea import check_privileges
@@ -6,6 +6,7 @@ from superviseme.utils.activity_tracker import get_inactive_students
 from superviseme.models import *
 from superviseme import db
 from datetime import datetime
+from werkzeug.security import generate_password_hash
 import time
 
 supervisor = Blueprint("supervisor", __name__)
@@ -632,138 +633,6 @@ def search():
                          user_type="supervisor")
 
 
-@supervisor.route("/api/thesis/<int:thesis_id>/gantt_data")
-@login_required
-def get_gantt_data(thesis_id):
-    """
-    Get Gantt chart data for a thesis including updates, todos, and status changes.
-    """
-    check_privileges(current_user.username, role="supervisor")
-    
-    # Verify the thesis is supervised by the current user
-    thesis_supervisor = Thesis_Supervisor.query.filter_by(
-        thesis_id=thesis_id,
-        supervisor_id=current_user.id
-    ).first()
-    
-    if not thesis_supervisor:
-        return jsonify({"error": "Thesis not found or not supervised by you"}), 404
-    
-    thesis = Thesis.query.get(thesis_id)
-    if not thesis:
-        return jsonify({"error": "Thesis not found"}), 404
-    
-    # Get all timeline events
-    events = []
-    
-    # Add thesis creation event
-    events.append({
-        "id": f"thesis_created_{thesis.id}",
-        "title": f"Thesis Created: {thesis.title}",
-        "start": thesis.created_at * 1000,  # Convert to milliseconds for JavaScript
-        "end": thesis.created_at * 1000,
-        "type": "thesis_milestone",
-        "category": "Thesis",
-        "description": f"Thesis '{thesis.title}' was created",
-        "author": "System"
-    })
-    
-    # Add student updates
-    updates = Thesis_Update.query.filter_by(
-        thesis_id=thesis_id, 
-        update_type="student_update"
-    ).order_by(Thesis_Update.created_at.asc()).all()
-    
-    for update in updates:
-        author = User_mgmt.query.get(update.author_id) if update.author_id else None
-        events.append({
-            "id": f"update_{update.id}",
-            "title": f"Student Update",
-            "start": update.created_at * 1000,
-            "end": update.created_at * 1000,
-            "type": "student_update",
-            "category": "Updates",
-            "description": update.content[:100] + "..." if len(update.content) > 100 else update.content,
-            "author": author.name + " " + author.surname if author else "Student"
-        })
-    
-    # Add supervisor feedback
-    feedback = Thesis_Update.query.filter_by(
-        thesis_id=thesis_id, 
-        update_type="supervisor_update"
-    ).order_by(Thesis_Update.created_at.asc()).all()
-    
-    for fb in feedback:
-        author = User_mgmt.query.get(fb.author_id) if fb.author_id else None
-        events.append({
-            "id": f"feedback_{fb.id}",
-            "title": f"Supervisor Feedback",
-            "start": fb.created_at * 1000,
-            "end": fb.created_at * 1000,
-            "type": "supervisor_feedback",
-            "category": "Feedback", 
-            "description": fb.content[:100] + "..." if len(fb.content) > 100 else fb.content,
-            "author": author.name + " " + author.surname if author else "Supervisor"
-        })
-    
-    # Add todos (with duration if they have due dates)
-    todos = Todo.query.filter_by(thesis_id=thesis_id).order_by(Todo.created_at.asc()).all()
-    
-    for todo in todos:
-        start_time = todo.created_at * 1000
-        end_time = todo.due_date * 1000 if todo.due_date else start_time
-        if todo.completed_at:
-            end_time = todo.completed_at * 1000
-        
-        author = User_mgmt.query.get(todo.author_id) if todo.author_id else None
-        assigned_to = User_mgmt.query.get(todo.assigned_to_id) if todo.assigned_to_id else None
-            
-        events.append({
-            "id": f"todo_{todo.id}",
-            "title": f"Todo: {todo.title}",
-            "start": start_time,
-            "end": end_time,
-            "type": f"todo_{todo.status}",  # todo_pending, todo_completed, etc.
-            "category": "Tasks",
-            "description": todo.description or todo.title,
-            "author": author.name + " " + author.surname if author else "Unknown",
-            "priority": todo.priority,
-            "status": todo.status,
-            "assigned_to": assigned_to.name + " " + assigned_to.surname if assigned_to else None
-        })
-    
-    # Add thesis status changes
-    status_changes = Thesis_Status.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Status.updated_at.asc()).all()
-    
-    for status in status_changes:
-        events.append({
-            "id": f"status_{status.id}",
-            "title": f"Status: {status.status}",
-            "start": status.updated_at * 1000,
-            "end": status.updated_at * 1000,
-            "type": "status_change",
-            "category": "Status",
-            "description": f"Thesis status changed to '{status.status}'",
-            "author": "System"
-        })
-    
-    # Sort events by start time
-    events.sort(key=lambda x: x["start"])
-    
-    # Get the student author
-    thesis_author = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
-    
-    return jsonify({
-        "thesis": {
-            "id": thesis.id,
-            "title": thesis.title,
-            "author": thesis_author.name + " " + thesis_author.surname if thesis_author else "Unknown"
-        },
-        "events": events,
-        "categories": ["Thesis", "Updates", "Feedback", "Tasks", "Status"]
-    })
-
-
 @supervisor.route("/freeze_updates", methods=["POST"])
 @login_required
 def freeze_updates():
@@ -1175,3 +1044,339 @@ def delete_todo(todo_id):
         db.session.commit()
     
     return redirect(url_for('supervisor.dashboard'))
+
+
+# Student management routes for supervisors
+@supervisor.route("/create_student", methods=["POST"])
+@login_required
+def create_student():
+    """
+    This route allows supervisors to create new student accounts.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    email = request.form.get("email")
+    username = request.form.get("username")
+    name = request.form.get("name")
+    surname = request.form.get("surname")
+    cdl = request.form.get("cdl")
+    gender = request.form.get("gender")
+    nationality = request.form.get("nationality")
+    password = request.form.get("password")
+    password2 = request.form.get("password2")
+
+    # Validation
+    if User_mgmt.query.filter_by(email=email).first():
+        flash("Email address already exists")
+        return redirect(request.referrer)
+
+    if User_mgmt.query.filter_by(username=username).first():
+        flash("Username already exists")
+        return redirect(request.referrer)
+
+    if password != password2:
+        flash("Passwords do not match")
+        return redirect(request.referrer)
+
+    # Create new student
+    new_student = User_mgmt(
+        email=email,
+        username=username,
+        password=generate_password_hash(password, method="pbkdf2:sha256"),
+        name=name,
+        surname=surname,
+        cdl=cdl,
+        nationality=nationality,
+        gender=gender,
+        user_type="student",
+        joined_on=int(time.time()),
+    )
+    
+    db.session.add(new_student)
+    db.session.commit()
+    flash(f"Student {name} {surname} created successfully")
+    
+    return redirect(url_for('supervisor.supervisee_data'))
+
+
+@supervisor.route("/edit_student/<int:student_id>", methods=["POST"])
+@login_required
+def edit_student(student_id):
+    """
+    This route allows supervisors to edit student accounts they supervise.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify supervisor has access to this student
+    student = User_mgmt.query.join(Thesis, Thesis.author_id == User_mgmt.id).join(
+        Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id
+    ).filter(
+        User_mgmt.id == student_id,
+        User_mgmt.user_type == "student",
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if not student:
+        flash("Student not found or not supervised by you")
+        return redirect(url_for('supervisor.supervisee_data'))
+    
+    # Update student information
+    student.name = request.form.get("name", student.name)
+    student.surname = request.form.get("surname", student.surname)
+    student.email = request.form.get("email", student.email)
+    student.cdl = request.form.get("cdl", student.cdl)
+    student.gender = request.form.get("gender", student.gender)
+    student.nationality = request.form.get("nationality", student.nationality)
+    
+    # Only update password if provided
+    new_password = request.form.get("password")
+    if new_password:
+        password2 = request.form.get("password2")
+        if new_password != password2:
+            flash("Passwords do not match")
+            return redirect(request.referrer)
+        student.password = generate_password_hash(new_password, method="pbkdf2:sha256")
+    
+    db.session.commit()
+    flash(f"Student {student.name} {student.surname} updated successfully")
+    
+    return redirect(url_for('supervisor.supervisee_data'))
+
+
+@supervisor.route("/assign_thesis", methods=["POST"])
+@login_required
+def assign_thesis():
+    """
+    This route allows supervisors to assign thesis to students.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    student_id = request.form.get("student_id")
+    thesis_id = request.form.get("thesis_id")
+    
+    # Verify supervisor owns the thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("Thesis not found or not supervised by you")
+        return redirect(url_for('supervisor.theses_data'))
+    
+    # Verify student exists
+    student = User_mgmt.query.filter_by(id=student_id, user_type="student").first()
+    if not student:
+        flash("Student not found")
+        return redirect(url_for('supervisor.theses_data'))
+    
+    # Check if thesis already has an author
+    thesis = Thesis.query.get(thesis_id)
+    if thesis.author_id:
+        flash("Thesis is already assigned to a student")
+        return redirect(url_for('supervisor.theses_data'))
+    
+    # Assign thesis to student
+    thesis.author_id = student_id
+    db.session.commit()
+    flash(f"Thesis '{thesis.title}' assigned to {student.name} {student.surname}")
+    
+    return redirect(url_for('supervisor.theses_data'))
+
+
+@supervisor.route("/unassign_thesis/<int:thesis_id>", methods=["POST"])
+@login_required
+def unassign_thesis(thesis_id):
+    """
+    This route allows supervisors to unassign thesis from students.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify supervisor owns the thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("Thesis not found or not supervised by you")
+        return redirect(url_for('supervisor.theses_data'))
+    
+    thesis = Thesis.query.get(thesis_id)
+    student_name = ""
+    if thesis.author_id:
+        student = User_mgmt.query.get(thesis.author_id)
+        student_name = f"{student.name} {student.surname}" if student else ""
+    
+    # Unassign thesis
+    thesis.author_id = None
+    db.session.commit()
+    flash(f"Thesis '{thesis.title}' unassigned from {student_name}")
+    
+    return redirect(url_for('supervisor.theses_data'))
+
+
+@supervisor.route("/add_resource", methods=["POST"])
+@login_required
+def add_resource():
+    """
+    Allow supervisors to add resources to supervised theses
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    thesis_id = request.form.get("thesis_id")
+    resource_type = request.form.get("resource_type")
+    resource_url = request.form.get("resource_url")
+    description = request.form.get("description")
+    
+    # Verify supervisor has access to this thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("Thesis not found or not supervised by you")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    new_resource = Resource(
+        thesis_id=thesis_id,
+        resource_type=resource_type,
+        resource_url=resource_url,
+        description=description,
+        created_at=int(time.time())
+    )
+    
+    db.session.add(new_resource)
+    db.session.commit()
+    flash("Resource added successfully")
+    
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+
+
+@supervisor.route("/add_objective", methods=["POST"])
+@login_required
+def add_objective():
+    """
+    Allow supervisors to add objectives to supervised theses
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    thesis_id = request.form.get("thesis_id")
+    title = request.form.get("title")
+    description = request.form.get("description")
+    
+    # Verify supervisor has access to this thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("Thesis not found or not supervised by you")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    new_objective = Thesis_Objective(
+        thesis_id=thesis_id,
+        author_id=current_user.id,
+        title=title,
+        description=description,
+        created_at=int(time.time())
+    )
+    
+    db.session.add(new_objective)
+    db.session.commit()
+    flash("Objective added successfully")
+    
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+
+
+@supervisor.route("/edit_objective/<int:objective_id>", methods=["POST"])
+@login_required
+def edit_objective(objective_id):
+    """
+    Allow supervisors to edit objectives in supervised theses
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify supervisor has access to this objective
+    objective = Thesis_Objective.query.join(Thesis_Supervisor).filter(
+        Thesis_Objective.id == objective_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if not objective:
+        flash("Objective not found or not accessible")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    objective.title = request.form.get("title", objective.title)
+    objective.description = request.form.get("description", objective.description)
+    
+    db.session.commit()
+    flash("Objective updated successfully")
+    
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=objective.thesis_id))
+
+
+@supervisor.route("/add_hypothesis", methods=["POST"])
+@login_required
+def add_hypothesis():
+    """
+    Allow supervisors to add hypotheses to supervised theses
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    thesis_id = request.form.get("thesis_id")
+    title = request.form.get("title")
+    description = request.form.get("description")
+    
+    # Verify supervisor has access to this thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("Thesis not found or not supervised by you")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    new_hypothesis = Thesis_Hypothesis(
+        thesis_id=thesis_id,
+        author_id=current_user.id,
+        title=title,
+        description=description,
+        created_at=int(time.time())
+    )
+    
+    db.session.add(new_hypothesis)
+    db.session.commit()
+    flash("Hypothesis added successfully")
+    
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+
+
+@supervisor.route("/edit_hypothesis/<int:hypothesis_id>", methods=["POST"])
+@login_required
+def edit_hypothesis(hypothesis_id):
+    """
+    Allow supervisors to edit hypotheses in supervised theses
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify supervisor has access to this hypothesis
+    hypothesis = Thesis_Hypothesis.query.join(Thesis_Supervisor).filter(
+        Thesis_Hypothesis.id == hypothesis_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if not hypothesis:
+        flash("Hypothesis not found or not accessible")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    hypothesis.title = request.form.get("title", hypothesis.title)
+    hypothesis.description = request.form.get("description", hypothesis.description)
+    
+    db.session.commit()
+    flash("Hypothesis updated successfully")
+    
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=hypothesis.thesis_id))

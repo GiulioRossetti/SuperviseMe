@@ -118,37 +118,6 @@
                         </div>
                     </div>
 
-                    <!-- Gantt Chart Section -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary" id="timeline">Thesis Timeline</h6>
-                                    <button class="btn btn-outline-primary btn-sm" onclick="refreshGanttChart()">
-                                        <i class="fas fa-sync-alt"></i> Refresh
-                                    </button>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <small class="text-muted">
-                                            <i class="fas fa-info-circle"></i>
-                                            Interactive timeline showing your thesis progress including updates, todos, feedback, and status changes.
-                                            Hover over items for details.
-                                        </small>
-                                    </div>
-                                    <div id="thesis-gantt-chart" style="min-height: 400px;">
-                                        <div class="d-flex align-items-center justify-content-center" style="height: 200px;">
-                                            <div class="text-center">
-                                                <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
-                                                <div class="mt-2 text-muted">Loading timeline...</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Objectives Section -->
                     <div class="row">
                         <div class="col-12">
@@ -469,58 +438,12 @@
     {% include 'admin/components/logout_modal.html' %}
 
 
-    <!-- Add moment.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-
-    <!-- Add Gantt Chart JS -->
-    <script src="{{ url_for('static', filename='assets/js/gantt-chart.js') }}"></script>
-
-    <script>
-        window.moment = moment;
-        
-        // Gantt chart instance
-        let ganttChart = null;
-        
-        // Initialize Gantt chart
-        function initGanttChart() {
-            ganttChart = new ThesisGanttChart('thesis-gantt-chart', {
-                height: 500,
-                barHeight: 25,
-                barSpacing: 8,
-                marginLeft: 220
-            });
-            ganttChart.loadData({{ thesis.id }});
-        }
-        
-        // Refresh Gantt chart
-        function refreshGanttChart() {
-            if (ganttChart) {
-                ganttChart.refresh();
-            } else {
-                initGanttChart();
-            }
-        }
-        
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            initGanttChart();
-        });
-        
+    <script>        
         function editUpdate(updateId, content) {
             $('#edit_update_id').val(updateId);
             $('#edit_update_content').val(content);
             $('#editUpdateModal').modal('show');
         }
-        
-        // Refresh Gantt chart after adding updates, todos, etc.
-        $('#addUpdateModal form, #addTodoModal form, #addObjectiveModal form, #addHypothesisModal form').on('submit', function() {
-            // Delay refresh to allow database update
-            setTimeout(() => {
-                if (ganttChart) {
-                    ganttChart.refresh();
-                }
-            }, 1000);
-        });
     </script>
 
 </body>
