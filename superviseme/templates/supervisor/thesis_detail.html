@@ -62,10 +62,45 @@
                                     <div class="mt-3">
                                         <strong>Student:</strong> {{ author.name }} {{ author.surname }}
                                         <br><small class="text-muted">{{ author.email }}</small>
+                                        <div class="mt-2">
+                                            <form method="POST" action="{{ url_for('supervisor.unassign_thesis', thesis_id=thesis.id) }}" style="display: inline;">
+                                                <button type="submit" class="btn btn-warning btn-sm" 
+                                                        onclick="return confirm('Are you sure you want to unassign this student from the thesis?')">
+                                                    <i class="fas fa-user-times"></i> Unassign Student
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                     {% else %}
                                     <div class="mt-3">
                                         <span class="badge badge-warning">No student assigned</span>
+                                        {% if available_students %}
+                                        <div class="mt-3">
+                                            <strong>Assign Student:</strong>
+                                            <form method="POST" action="{{ url_for('supervisor.assign_thesis') }}" class="mt-2">
+                                                <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                                                <div class="form-row">
+                                                    <div class="col-md-8">
+                                                        <select name="student_id" class="form-control form-control-sm" required>
+                                                            <option value="">Select a student...</option>
+                                                            {% for student in available_students %}
+                                                            <option value="{{ student.id }}">{{ student.name }} {{ student.surname }} ({{ student.email }})</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <button type="submit" class="btn btn-success btn-sm">
+                                                            <i class="fas fa-user-plus"></i> Assign
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        {% else %}
+                                        <div class="mt-2">
+                                            <small class="text-muted">No available students (all students have active thesis assignments)</small>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     {% endif %}
                                     

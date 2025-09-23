@@ -176,10 +176,18 @@ def thesis_detail(thesis_id):
     objectives = Thesis_Objective.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Objective.created_at.desc()).all()
     hypotheses = Thesis_Hypothesis.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Hypothesis.created_at.desc()).all()
 
+    # Get all students for assignment dropdown (only students without active thesis assignments)
+    available_students = User_mgmt.query.filter(
+        User_mgmt.user_type == "student",
+        ~User_mgmt.id.in_(
+            db.session.query(Thesis.author_id).filter(Thesis.author_id.isnot(None))
+        )
+    ).all()
+
     return render_template("supervisor/thesis_detail.html", thesis=thesis, updates=updates,
                            supervisors=supervisors, author=author, objectives=objectives, 
-                           hypotheses=hypotheses, thesis_tags=thesis_tags, resources=resources, 
-                           dt=datetime.fromtimestamp)
+                           hypotheses=hypotheses, thesis_tags=thesis_tags, resources=resources,
+                           available_students=available_students, dt=datetime.fromtimestamp)
 
 
 @supervisor.route("/post_update", methods=["POST"])
@@ -1154,6 +1162,45 @@ def edit_student(student_id):
     
     db.session.commit()
     flash(f"Student {student.name} {student.surname} updated successfully")
+    
+    return redirect(url_for('supervisor.supervisee_data'))
+
+
+@supervisor.route("/delete_student/<int:student_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_student(student_id):
+    """
+    This route allows supervisors to delete student accounts they supervise.
+    Only students with no active thesis assignments can be deleted.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify supervisor has access to this student
+    student = User_mgmt.query.join(Thesis, Thesis.author_id == User_mgmt.id).join(
+        Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id
+    ).filter(
+        User_mgmt.id == student_id,
+        User_mgmt.user_type == "student",
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if not student:
+        flash("Student not found or not supervised by you")
+        return redirect(url_for('supervisor.supervisee_data'))
+    
+    # Check if student has any active theses (only allow deletion if no active theses)
+    active_theses = Thesis.query.filter_by(author_id=student_id, frozen=False).count()
+    if active_theses > 0:
+        flash(f"Cannot delete student {student.name} {student.surname}. Student has active thesis assignments.")
+        return redirect(url_for('supervisor.supervisee_data'))
+    
+    # Remove thesis assignments (set author_id to None for completed/frozen theses)
+    Thesis.query.filter_by(author_id=student_id).update({"author_id": None})
+    
+    # Delete the student
+    db.session.delete(student)
+    db.session.commit()
+    flash(f"Student {student.name} {student.surname} deleted successfully")
     
     return redirect(url_for('supervisor.supervisee_data'))
 
