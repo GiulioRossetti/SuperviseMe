@@ -184,10 +184,13 @@ def thesis_detail(thesis_id):
         )
     ).all()
 
+    # Get todos for this thesis for reference dropdown
+    todos = Todo.query.filter_by(thesis_id=thesis_id).order_by(Todo.created_at.desc()).all()
+
     return render_template("supervisor/thesis_detail.html", thesis=thesis, updates=updates,
                            supervisors=supervisors, author=author, objectives=objectives, 
                            hypotheses=hypotheses, thesis_tags=thesis_tags, resources=resources,
-                           available_students=available_students, dt=datetime.fromtimestamp)
+                           available_students=available_students, todos=todos, dt=datetime.fromtimestamp)
 
 
 @supervisor.route("/post_update", methods=["POST"])
@@ -210,6 +213,12 @@ def post_update():
 
     db.session.add(new_update)
     db.session.commit()
+
+    # Parse and create todo references
+    from superviseme.utils.todo_parser import parse_todo_references, create_todo_references
+    todo_refs = parse_todo_references(content)
+    if todo_refs:
+        create_todo_references(new_update.id, todo_refs)
 
     # Create notification for student
     from superviseme.utils.notifications import create_supervisor_feedback_notification
@@ -1164,6 +1173,35 @@ def edit_student(student_id):
     flash(f"Student {student.name} {student.surname} updated successfully")
     
     return redirect(url_for('supervisor.supervisee_data'))
+
+
+@supervisor.route("/todo/<int:todo_id>")
+@login_required
+def todo_detail(todo_id):
+    """
+    Display todo detail with linked updates and references
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Get the todo and verify access
+    todo = Todo.query.join(Thesis_Supervisor).filter(
+        Todo.id == todo_id,
+        Thesis_Supervisor.supervisor_id == current_user.id  # Supervisor can access their supervised thesis todos
+    ).first()
+    
+    if not todo:
+        flash("Todo not found or access denied")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    # Get associated updates that reference this todo
+    from superviseme.models import Todo_Reference
+    referenced_updates = db.session.query(Thesis_Update).join(Todo_Reference).filter(
+        Todo_Reference.todo_id == todo_id
+    ).order_by(Thesis_Update.created_at.desc()).all()
+    
+    return render_template("supervisor/todo_detail.html", todo=todo, 
+                           referenced_updates=referenced_updates, 
+                           dt=datetime.fromtimestamp)
 
 
 @supervisor.route("/delete_student/<int:student_id>", methods=["POST", "DELETE"])

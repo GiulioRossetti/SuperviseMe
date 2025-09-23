@@ -150,6 +150,17 @@ class Todo(db.Model):
     assigned_to = db.relationship("User_mgmt", foreign_keys=[assigned_to_id], backref="assigned_todos", lazy=True)
 
 
+class Todo_Reference(db.Model):
+    __tablename__ = "todo_reference"
+    id = db.Column(db.Integer, primary_key=True)
+    update_id = db.Column(db.Integer, db.ForeignKey("thesis_update.id"), nullable=False)
+    todo_id = db.Column(db.Integer, db.ForeignKey("todo.id"), nullable=False)
+    created_at = db.Column(db.Integer, nullable=False)
+    
+    update = db.relationship("Thesis_Update", backref="todo_references", lazy=True)
+    todo = db.relationship("Todo", backref="update_references", lazy=True)
+
+
 class Notification(db.Model):
     __tablename__ = "notification"
     id = db.Column(db.Integer, primary_key=True)
