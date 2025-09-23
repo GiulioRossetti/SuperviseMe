@@ -76,7 +76,7 @@ def create_thesis_update_notification(thesis_id, student_id, update_content):
     
     title = f"New update on {thesis.title}"
     message = f"{student_name} posted a new update: {update_content[:100]}..."
-    action_url = f"/supervisor/thesis/{thesis_id}"
+    action_url = f"/thesis/{thesis_id}"
     
     # Create notification for each supervisor
     for supervisor_rel in supervisors:
