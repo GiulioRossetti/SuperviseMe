@@ -21,65 +21,39 @@
             <!-- Divider -->
             <hr class="sidebar-divider">
 
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                My Work
-            </div>
-
-            <!-- Nav Item - Thesis -->
+            <!-- Nav Item - My Thesis (Collapsible) -->
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('student.thesis_data') }}">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseThesis"
+                   aria-expanded="false" aria-controls="collapseThesis">
                     <i class="fas fa-fw fa-book"></i>
                     <span>My Thesis</span>
                 </a>
-            </li>
-
-            <!-- Nav Item - Status -->
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#status">
-                    <i class="fas fa-fw fa-chart-line"></i>
-                    <span>Status</span>
-                </a>
-            </li>
-            
-            <!-- Nav Item - Objectives -->
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#objectives">
-                    <i class="fas fa-fw fa-bullseye"></i>
-                    <span>Objectives</span>
-                </a>
-            </li>
-            
-            <!-- Nav Item - Hypotheses -->
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#hypotheses">
-                    <i class="fas fa-fw fa-lightbulb"></i>
-                    <span>Hypotheses</span>
-                </a>
-            </li>
-
-            <!-- Nav Item - Updates -->
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#updates">
-                    <i class="fas fa-fw fa-edit"></i>
-                    <span>Updates & Progress</span>
-                </a>
-            </li>
-
-            <!-- Nav Item - ToDo -->
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#todos">
-                    <i class="fas fa-fw fa-tasks"></i>
-                    <span>ToDo List</span>
-                </a>
-            </li>
-
-            <!-- Nav Item - Resources -->
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#resources">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Resources</span>
-                </a>
+                <div id="collapseThesis" class="collapse" aria-labelledby="headingThesis" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Thesis Management:</h6>
+                        <a class="collapse-item" href="{{ url_for('student.thesis_data') }}">
+                            <i class="fas fa-fw fa-home"></i> Overview
+                        </a>
+                        <a class="collapse-item" href="{{ url_for('student.thesis_data') }}#status">
+                            <i class="fas fa-fw fa-chart-line"></i> Status
+                        </a>
+                        <a class="collapse-item" href="{{ url_for('student.thesis_data') }}#objectives">
+                            <i class="fas fa-fw fa-bullseye"></i> Objectives
+                        </a>
+                        <a class="collapse-item" href="{{ url_for('student.thesis_data') }}#hypotheses">
+                            <i class="fas fa-fw fa-lightbulb"></i> Hypotheses
+                        </a>
+                        <a class="collapse-item" href="{{ url_for('student.thesis_data') }}#updates">
+                            <i class="fas fa-fw fa-edit"></i> Updates & Progress
+                        </a>
+                        <a class="collapse-item" href="{{ url_for('student.thesis_data') }}#todos">
+                            <i class="fas fa-fw fa-tasks"></i> ToDo List
+                        </a>
+                        <a class="collapse-item" href="{{ url_for('student.thesis_data') }}#resources">
+                            <i class="fas fa-fw fa-folder"></i> Resources
+                        </a>
+                    </div>
+                </div>
             </li>
 
 

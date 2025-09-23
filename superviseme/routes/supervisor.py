@@ -1025,7 +1025,7 @@ def add_todo():
     db.session.add(new_todo)
     db.session.commit()
     
-    return redirect(url_for('supervisor.dashboard'))
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
 
 
 @supervisor.route("/toggle_todo/<int:todo_id>")
