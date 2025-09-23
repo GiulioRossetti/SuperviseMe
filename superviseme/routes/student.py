@@ -99,7 +99,27 @@ def thesis_data():
     # Get thesis tags
     tags = Thesis_Tag.query.filter_by(thesis_id=thesis.id).all()
     
-    # Get all updates for this thesis (both student and supervisor updates)
+    # Get all updates for this thesis, organized for threaded display
+    # Get parent updates (top-level updates with no parent_id)
+    parent_updates = Thesis_Update.query.filter_by(
+        thesis_id=thesis.id, 
+        parent_id=None
+    ).order_by(Thesis_Update.created_at.desc()).all()
+    
+    # Get all comments/replies
+    all_comments = Thesis_Update.query.filter(
+        Thesis_Update.thesis_id == thesis.id,
+        Thesis_Update.parent_id.isnot(None)
+    ).order_by(Thesis_Update.created_at.asc()).all()
+    
+    # Group comments by parent_id
+    comments_by_parent = {}
+    for comment in all_comments:
+        if comment.parent_id not in comments_by_parent:
+            comments_by_parent[comment.parent_id] = []
+        comments_by_parent[comment.parent_id].append(comment)
+    
+    # Also get all updates for backwards compatibility (if needed elsewhere)
     updates = Thesis_Update.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Update.created_at.desc()).all()
     
     # Get resources
@@ -109,9 +129,17 @@ def thesis_data():
     objectives = Thesis_Objective.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Objective.created_at.desc()).all()
     hypotheses = Thesis_Hypothesis.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Hypothesis.created_at.desc()).all()
     
+    # Get todos
+    todos = Todo.query.filter_by(thesis_id=thesis.id).order_by(Todo.created_at.desc()).all()
+    
+    # Get thesis status history
+    thesis_statuses = Thesis_Status.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Status.updated_at.desc()).all()
+    
     return render_template("student/thesis.html", thesis=thesis, supervisors=supervisors,
-                           tags=tags, updates=updates, resources=resources, 
-                           objectives=objectives, hypotheses=hypotheses, dt=datetime.fromtimestamp)
+                           tags=tags, updates=updates, parent_updates=parent_updates,
+                           comments_by_parent=comments_by_parent, resources=resources, 
+                           objectives=objectives, hypotheses=hypotheses, todos=todos, 
+                           thesis_statuses=thesis_statuses, dt=datetime.fromtimestamp)
 
 
 @student.route("/post_update", methods=["POST"])
@@ -652,127 +680,6 @@ def search():
                          search_term=search_term,
                          user_type="student",
                          dt=datetime.fromtimestamp)
-
-
-@student.route("/api/thesis/<int:thesis_id>/gantt_data")
-@login_required
-def get_gantt_data(thesis_id):
-    """
-    Get Gantt chart data for a thesis including updates, todos, and status changes.
-    """
-    check_privileges(current_user.username, role="student")
-    
-    # Verify the thesis belongs to the current student
-    thesis = Thesis.query.filter_by(id=thesis_id, author_id=current_user.id).first()
-    if not thesis:
-        return jsonify({"error": "Thesis not found"}), 404
-    
-    # Get all timeline events
-    events = []
-    
-    # Add thesis creation event
-    events.append({
-        "id": f"thesis_created_{thesis.id}",
-        "title": f"Thesis Created: {thesis.title}",
-        "start": thesis.created_at * 1000,  # Convert to milliseconds for JavaScript
-        "end": thesis.created_at * 1000,
-        "type": "thesis_milestone",
-        "category": "Thesis",
-        "description": f"Thesis '{thesis.title}' was created",
-        "author": "System"
-    })
-    
-    # Add student updates
-    updates = Thesis_Update.query.filter_by(
-        thesis_id=thesis_id, 
-        update_type="student_update"
-    ).order_by(Thesis_Update.created_at.asc()).all()
-    
-    for update in updates:
-        author = User_mgmt.query.get(update.author_id) if update.author_id else None
-        events.append({
-            "id": f"update_{update.id}",
-            "title": f"Student Update",
-            "start": update.created_at * 1000,
-            "end": update.created_at * 1000,
-            "type": "student_update",
-            "category": "Updates",
-            "description": update.content[:100] + "..." if len(update.content) > 100 else update.content,
-            "author": author.name + " " + author.surname if author else "Student"
-        })
-    
-    # Add supervisor feedback
-    feedback = Thesis_Update.query.filter_by(
-        thesis_id=thesis_id, 
-        update_type="supervisor_update"
-    ).order_by(Thesis_Update.created_at.asc()).all()
-    
-    for fb in feedback:
-        author = User_mgmt.query.get(fb.author_id) if fb.author_id else None
-        events.append({
-            "id": f"feedback_{fb.id}",
-            "title": f"Supervisor Feedback",
-            "start": fb.created_at * 1000,
-            "end": fb.created_at * 1000,
-            "type": "supervisor_feedback",
-            "category": "Feedback", 
-            "description": fb.content[:100] + "..." if len(fb.content) > 100 else fb.content,
-            "author": author.name + " " + author.surname if author else "Supervisor"
-        })
-    
-    # Add todos (with duration if they have due dates)
-    todos = Todo.query.filter_by(thesis_id=thesis_id).order_by(Todo.created_at.asc()).all()
-    
-    for todo in todos:
-        start_time = todo.created_at * 1000
-        end_time = todo.due_date * 1000 if todo.due_date else start_time
-        if todo.completed_at:
-            end_time = todo.completed_at * 1000
-        
-        author = User_mgmt.query.get(todo.author_id) if todo.author_id else None
-        assigned_to = User_mgmt.query.get(todo.assigned_to_id) if todo.assigned_to_id else None
-            
-        events.append({
-            "id": f"todo_{todo.id}",
-            "title": f"Todo: {todo.title}",
-            "start": start_time,
-            "end": end_time,
-            "type": f"todo_{todo.status}",  # todo_pending, todo_completed, etc.
-            "category": "Tasks",
-            "description": todo.description or todo.title,
-            "author": author.name + " " + author.surname if author else "Unknown",
-            "priority": todo.priority,
-            "status": todo.status,
-            "assigned_to": assigned_to.name + " " + assigned_to.surname if assigned_to else None
-        })
-    
-    # Add thesis status changes
-    status_changes = Thesis_Status.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Status.updated_at.asc()).all()
-    
-    for status in status_changes:
-        events.append({
-            "id": f"status_{status.id}",
-            "title": f"Status: {status.status}",
-            "start": status.updated_at * 1000,
-            "end": status.updated_at * 1000,
-            "type": "status_change",
-            "category": "Status",
-            "description": f"Thesis status changed to '{status.status}'",
-            "author": "System"
-        })
-    
-    # Sort events by start time
-    events.sort(key=lambda x: x["start"])
-    
-    return jsonify({
-        "thesis": {
-            "id": thesis.id,
-            "title": thesis.title,
-            "author": current_user.name + " " + current_user.surname if current_user else "Unknown"
-        },
-        "events": events,
-        "categories": ["Thesis", "Updates", "Feedback", "Tasks", "Status"]
-    })
 
 
 @student.route("/delete_todo/<int:todo_id>")
