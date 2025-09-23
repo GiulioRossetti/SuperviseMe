@@ -72,7 +72,11 @@
                                                                     {% if supervisee_info.is_inactive %}
                                                                         <div class="alert alert-warning py-2 mb-2" style="font-size: 0.85em;">
                                                                             <i class="fas fa-exclamation-triangle"></i>
-                                                                            <strong>Inactive for {{ supervisee_info.days_inactive }} days</strong>
+                                                                            {% if supervisee_info.days_inactive == 'Unknown' or supervisee_info.days_inactive is none %}
+                                                                                <strong>Not yet logged</strong>
+                                                                            {% else %}
+                                                                                <strong>Inactive for {{ supervisee_info.days_inactive }} days</strong>
+                                                                            {% endif %}
                                                                             {% if supervisee_info.last_activity_location %}
                                                                                 <br><small>Last seen: {{ supervisee_info.last_activity_location }}</small>
                                                                             {% endif %}
@@ -83,6 +87,15 @@
                                                                             <strong>Active</strong>
                                                                             {% if supervisee_info.last_activity_location %}
                                                                                 <br><small>Last seen: {{ supervisee_info.last_activity_location }}</small>
+                                                                            {% endif %}
+                                                                            {% if supervisee_info.days_inactive is not none and supervisee_info.days_inactive != 'Unknown' %}
+                                                                                {% if supervisee_info.days_inactive == 0 %}
+                                                                                    <br><small>Last online: Today</small>
+                                                                                {% elif supervisee_info.days_inactive == 1 %}
+                                                                                    <br><small>Last online: Yesterday</small>
+                                                                                {% else %}
+                                                                                    <br><small>Last online: {{ supervisee_info.days_inactive }} days ago</small>
+                                                                                {% endif %}
                                                                             {% endif %}
                                                                         </div>
                                                                     {% endif %}
@@ -168,10 +181,17 @@
                                                     <td>
                                                         <strong>{{ supervisee_info.student.name }} {{ supervisee_info.student.surname }}</strong>
                                                         {% if supervisee_info.is_inactive %}
-                                                            <br><small class="text-warning">
-                                                                <i class="fas fa-exclamation-triangle"></i>
-                                                                Inactive for {{ supervisee_info.days_inactive }} days
-                                                            </small>
+                                                            {% if supervisee_info.days_inactive == 'Unknown' or supervisee_info.days_inactive is none %}
+                                                                <br><small class="text-warning">
+                                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                                    Not yet logged
+                                                                </small>
+                                                            {% else %}
+                                                                <br><small class="text-warning">
+                                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                                    Inactive for {{ supervisee_info.days_inactive }} days
+                                                                </small>
+                                                            {% endif %}
                                                         {% endif %}
                                                     </td>
                                                     <td>{{ supervisee_info.student.email }}</td>
