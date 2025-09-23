@@ -95,7 +95,8 @@ def supervisee_data():
     
     # Get students through thesis supervision relationship
     thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
-    supervisees = []
+    active_supervisees = []
+    past_supervisees = []
     
     # Get inactive students data
     inactive_data = get_inactive_students(current_user.id)
@@ -104,15 +105,29 @@ def supervisee_data():
     for ts in thesis_supervisors:
         if ts.thesis and ts.thesis.author:
             student_data = inactive_dict.get(ts.thesis.author.id, {})
-            supervisees.append({
+            
+            supervisee_info = {
                 'student': ts.thesis.author,
                 'thesis': ts.thesis,
                 'is_inactive': student_data.get('is_inactive', False),
                 'days_inactive': student_data.get('days_inactive'),
                 'last_activity_location': student_data.get('last_activity_location')
-            })
+            }
+            
+            # Separate active and archived/frozen theses
+            if ts.thesis.frozen:
+                past_supervisees.append(supervisee_info)
+            else:
+                active_supervisees.append(supervisee_info)
     
-    return render_template("supervisor/supervisees.html", supervisees=supervisees)
+    # Fix "Inactive for None days" issue by providing a default value
+    for supervisee in active_supervisees + past_supervisees:
+        if supervisee['days_inactive'] is None:
+            supervisee['days_inactive'] = 'Unknown'
+    
+    return render_template("supervisor/supervisees.html", 
+                         supervisees=active_supervisees, 
+                         past_supervisees=past_supervisees)
 
 
 @supervisor.route("/theses")

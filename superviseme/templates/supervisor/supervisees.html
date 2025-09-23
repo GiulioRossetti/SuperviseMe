@@ -32,7 +32,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Supervised Students</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">Current Supervised Students</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if supervisees %}
@@ -118,6 +118,73 @@
                         </div>
                     </div>
 
+                    <!-- Past Students Section -->
+                    {% if past_supervisees %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Past Students (Archived/Frozen Theses)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Student</th>
+                                                    <th>Email</th>
+                                                    <th>Thesis Title</th>
+                                                    <th>Level</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for supervisee_info in past_supervisees %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ supervisee_info.student.name }} {{ supervisee_info.student.surname }}</strong>
+                                                        {% if supervisee_info.is_inactive %}
+                                                            <br><small class="text-warning">
+                                                                <i class="fas fa-exclamation-triangle"></i>
+                                                                Inactive for {{ supervisee_info.days_inactive }} days
+                                                            </small>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ supervisee_info.student.email }}</td>
+                                                    <td>{{ supervisee_info.thesis.title }}</td>
+                                                    <td>
+                                                        <span class="badge badge-info">
+                                                            {{ supervisee_info.thesis.level|title if supervisee_info.thesis.level else 'No Level' }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge badge-danger">Archived</span>
+                                                        {% if supervisee_info.thesis.frozen %}
+                                                            <span class="badge badge-secondary">Frozen</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <a href="{{ url_for('supervisor.thesis_detail', thesis_id=supervisee_info.thesis.id) }}" 
+                                                           class="btn btn-primary btn-sm">
+                                                            <i class="fas fa-eye"></i> View
+                                                        </a>
+                                                        <a href="mailto:{{ supervisee_info.student.email }}" 
+                                                           class="btn btn-outline-secondary btn-sm">
+                                                            <i class="fas fa-envelope"></i> Email
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Statistics Row -->
                     {% if supervisees %}
                     <div class="row">
@@ -127,7 +194,7 @@
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                Total Students</div>
+                                                Active Students</div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ supervisees|length }}</div>
                                         </div>
                                         <div class="col-auto">
