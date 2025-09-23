@@ -244,7 +244,7 @@
                                                     </div>
                                                     <div class="update-content">
                                                         {% set formatted_content = update.content|replace('\n', '<br>') %}
-                                                        {{ formatted_content|format_todo_links|safe }}
+                                                        {{ formatted_content|format_todo_links('supervisor')|safe }}
                                                     </div>
                                                     
                                                     <!-- Todo References -->

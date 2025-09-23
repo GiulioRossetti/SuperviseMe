@@ -1175,7 +1175,7 @@ def edit_student(student_id):
     return redirect(url_for('supervisor.supervisee_data'))
 
 
-@supervisor.route("/todo/<int:todo_id>")
+@supervisor.route("/supervisor/todo/<int:todo_id>")
 @login_required
 def todo_detail(todo_id):
     """
@@ -1183,13 +1183,16 @@ def todo_detail(todo_id):
     """
     check_privileges(current_user.username, role="supervisor")
     
-    # Get the todo and verify access
-    todo = Todo.query.join(Thesis_Supervisor).filter(
-        Todo.id == todo_id,
-        Thesis_Supervisor.supervisor_id == current_user.id  # Supervisor can access their supervised thesis todos
+    # Get the todo first
+    todo = Todo.query.get_or_404(todo_id)
+    
+    # Verify supervisor has access to this todo's thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter(
+        Thesis_Supervisor.thesis_id == todo.thesis_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
     ).first()
     
-    if not todo:
+    if not thesis_supervisor:
         flash("Todo not found or access denied")
         return redirect(url_for('supervisor.dashboard'))
     

@@ -246,8 +246,9 @@ def create_app(db_type="sqlite"):
 
     # Register template filters
     @app.template_filter('format_todo_links')
-    def format_todo_links_filter(text):
+    def format_todo_links_filter(text, user_type='supervisor'):
         from superviseme.utils.todo_parser import format_text_with_todo_links
-        return format_text_with_todo_links(text)
+        base_url = f"/{user_type}/" if user_type else "/"
+        return format_text_with_todo_links(text, base_url)
 
     return app

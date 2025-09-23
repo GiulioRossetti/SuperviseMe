@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, url_for, jsonify
+from flask import Blueprint, request, render_template, redirect, url_for, jsonify, flash
 from flask_login import login_required, current_user
 from sqlalchemy import and_, or_
 from superviseme.utils.miscellanea import check_privileges
@@ -688,7 +688,7 @@ def search():
                          dt=datetime.fromtimestamp)
 
 
-@student.route("/todo/<int:todo_id>")
+@student.route("/student/todo/<int:todo_id>")
 @login_required
 def todo_detail(todo_id):
     """
@@ -697,7 +697,7 @@ def todo_detail(todo_id):
     check_privileges(current_user.username, role="student")
     
     # Get the todo and verify access (must be from student's thesis)
-    todo = Todo.query.join(Thesis).filter(
+    todo = Todo.query.join(Thesis, Todo.thesis_id == Thesis.id).filter(
         Todo.id == todo_id,
         Thesis.author_id == current_user.id  # Student can access their thesis todos
     ).first()

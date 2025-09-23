@@ -63,13 +63,13 @@ def create_todo_references(update_id, todo_ids):
     db.session.commit()
 
 
-def format_text_with_todo_links(text, base_url="/"):
+def format_text_with_todo_links(text, base_url="/supervisor/"):
     """
     Replace todo references in text with HTML links
     
     Args:
         text: The text content to process
-        base_url: Base URL for todo links (default: "/")
+        base_url: Base URL for todo links (default: "/supervisor/")
     
     Returns:
         HTML string with todo references converted to links
