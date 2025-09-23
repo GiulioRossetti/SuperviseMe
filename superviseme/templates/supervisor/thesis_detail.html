@@ -211,6 +211,100 @@
                         </div>
                     </div>
 
+                    <!-- Objectives Section -->
+                    {% if objectives %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Student Objectives</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% for objective in objectives %}
+                                    <div class="card mb-3 {% if objective.frozen %}border-warning{% endif %}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="font-weight-bold">{{ objective.title }}</h6>
+                                                <div class="d-flex align-items-center">
+                                                    {% if objective.frozen %}
+                                                        <span class="badge badge-warning mr-2">Frozen</span>
+                                                        <form method="POST" action="{{ url_for('supervisor.unfreeze_objective', objective_id=objective.id) }}" class="d-inline">
+                                                            <button type="submit" class="btn btn-sm btn-outline-success" 
+                                                                    onclick="return confirm('Unfreeze this objective?')">
+                                                                <i class="fas fa-unlock"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <form method="POST" action="{{ url_for('supervisor.freeze_objective', objective_id=objective.id) }}" class="d-inline">
+                                                            <button type="submit" class="btn btn-sm btn-outline-warning"
+                                                                    onclick="return confirm('Freeze this objective?')">
+                                                                <i class="fas fa-lock"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <p class="text-gray-700">{{ objective.description }}</p>
+                                            <small class="text-muted">
+                                                Created: {{ dt(objective.created_at).strftime('%B %d, %Y at %I:%M %p') }}
+                                                {% if objective.author %}by {{ objective.author.name }} {{ objective.author.surname }}{% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Hypotheses Section -->
+                    {% if hypotheses %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Student Hypotheses</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% for hypothesis in hypotheses %}
+                                    <div class="card mb-3 {% if hypothesis.frozen %}border-warning{% endif %}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="font-weight-bold">{{ hypothesis.title }}</h6>
+                                                <div class="d-flex align-items-center">
+                                                    {% if hypothesis.frozen %}
+                                                        <span class="badge badge-warning mr-2">Frozen</span>
+                                                        <form method="POST" action="{{ url_for('supervisor.unfreeze_hypothesis', hypothesis_id=hypothesis.id) }}" class="d-inline">
+                                                            <button type="submit" class="btn btn-sm btn-outline-success"
+                                                                    onclick="return confirm('Unfreeze this hypothesis?')">
+                                                                <i class="fas fa-unlock"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <form method="POST" action="{{ url_for('supervisor.freeze_hypothesis', hypothesis_id=hypothesis.id) }}" class="d-inline">
+                                                            <button type="submit" class="btn btn-sm btn-outline-warning"
+                                                                    onclick="return confirm('Freeze this hypothesis?')">
+                                                                <i class="fas fa-lock"></i>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <p class="text-gray-700">{{ hypothesis.description }}</p>
+                                            <small class="text-muted">
+                                                Created: {{ dt(hypothesis.created_at).strftime('%B %d, %Y at %I:%M %p') }}
+                                                {% if hypothesis.author %}by {{ hypothesis.author.name }} {{ hypothesis.author.surname }}{% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Updates Section -->
                     <div class="row">
                         <div class="col-12">
@@ -325,94 +419,65 @@
                         </div>
                     </div>
 
-                    <!-- Objectives Section -->
-                    {% if objectives %}
+                    <!-- ToDo Section -->
+                    {% if todos %}
                     <div class="row">
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Student Objectives</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">Student ToDo List</h6>
                                 </div>
                                 <div class="card-body">
-                                    {% for objective in objectives %}
-                                    <div class="card mb-3 {% if objective.frozen %}border-warning{% endif %}">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <h6 class="font-weight-bold">{{ objective.title }}</h6>
-                                                <div class="d-flex align-items-center">
-                                                    {% if objective.frozen %}
-                                                        <span class="badge badge-warning mr-2">Frozen</span>
-                                                        <form method="POST" action="{{ url_for('supervisor.unfreeze_objective', objective_id=objective.id) }}" class="d-inline">
-                                                            <button type="submit" class="btn btn-sm btn-outline-success" 
-                                                                    onclick="return confirm('Unfreeze this objective?')">
-                                                                <i class="fas fa-unlock"></i>
-                                                            </button>
-                                                        </form>
-                                                    {% else %}
-                                                        <form method="POST" action="{{ url_for('supervisor.freeze_objective', objective_id=objective.id) }}" class="d-inline">
-                                                            <button type="submit" class="btn btn-sm btn-outline-warning"
-                                                                    onclick="return confirm('Freeze this objective?')">
-                                                                <i class="fas fa-lock"></i>
-                                                            </button>
-                                                        </form>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                            <p class="text-gray-700">{{ objective.description }}</p>
-                                            <small class="text-muted">
-                                                Created: {{ dt(objective.created_at).strftime('%B %d, %Y at %I:%M %p') }}
-                                                {% if objective.author %}by {{ objective.author.name }} {{ objective.author.surname }}{% endif %}
-                                            </small>
-                                        </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th width="5%">Status</th>
+                                                    <th width="30%">Task</th>
+                                                    <th width="25%">Description</th>
+                                                    <th width="10%">Priority</th>
+                                                    <th width="15%">Due Date</th>
+                                                    <th width="15%">Created By</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for todo in todos %}
+                                                <tr class="{% if todo.status == 'completed' %}table-success{% elif todo.status == 'cancelled' %}table-danger{% endif %}">
+                                                    <td class="text-center">
+                                                        {% if todo.status == 'completed' %}
+                                                            <i class="fas fa-check-circle text-success" title="Completed"></i>
+                                                        {% elif todo.status == 'cancelled' %}
+                                                            <i class="fas fa-times-circle text-danger" title="Cancelled"></i>
+                                                        {% else %}
+                                                            <i class="fas fa-clock text-warning" title="Pending"></i>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td><strong>{{ todo.title }}</strong></td>
+                                                    <td>{{ todo.description or 'No description' }}</td>
+                                                    <td>
+                                                        <span class="badge badge-{% if todo.priority == 'high' %}danger{% elif todo.priority == 'medium' %}warning{% else %}secondary{% endif %}">
+                                                            {{ todo.priority|title }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        {% if todo.due_date %}
+                                                            {{ dt(todo.due_date).strftime('%Y-%m-%d') }}
+                                                        {% else %}
+                                                            <span class="text-muted">No due date</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if todo.author %}
+                                                            {{ todo.author.name }} {{ todo.author.surname }}
+                                                        {% else %}
+                                                            <span class="text-muted">Unknown</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- Hypotheses Section -->
-                    {% if hypotheses %}
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Student Hypotheses</h6>
-                                </div>
-                                <div class="card-body">
-                                    {% for hypothesis in hypotheses %}
-                                    <div class="card mb-3 {% if hypothesis.frozen %}border-warning{% endif %}">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <h6 class="font-weight-bold">{{ hypothesis.title }}</h6>
-                                                <div class="d-flex align-items-center">
-                                                    {% if hypothesis.frozen %}
-                                                        <span class="badge badge-warning mr-2">Frozen</span>
-                                                        <form method="POST" action="{{ url_for('supervisor.unfreeze_hypothesis', hypothesis_id=hypothesis.id) }}" class="d-inline">
-                                                            <button type="submit" class="btn btn-sm btn-outline-success"
-                                                                    onclick="return confirm('Unfreeze this hypothesis?')">
-                                                                <i class="fas fa-unlock"></i>
-                                                            </button>
-                                                        </form>
-                                                    {% else %}
-                                                        <form method="POST" action="{{ url_for('supervisor.freeze_hypothesis', hypothesis_id=hypothesis.id) }}" class="d-inline">
-                                                            <button type="submit" class="btn btn-sm btn-outline-warning"
-                                                                    onclick="return confirm('Freeze this hypothesis?')">
-                                                                <i class="fas fa-lock"></i>
-                                                            </button>
-                                                        </form>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                            <p class="text-gray-700">{{ hypothesis.description }}</p>
-                                            <small class="text-muted">
-                                                Created: {{ dt(hypothesis.created_at).strftime('%B %d, %Y at %I:%M %p') }}
-                                                {% if hypothesis.author %}by {{ hypothesis.author.name }} {{ hypothesis.author.surname }}{% endif %}
-                                            </small>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
@@ -692,6 +757,16 @@
             $('#edit_update_id').val(updateId);
             $('#edit_update_content').val(content);
             $('#editUpdateModal').modal('show');
+        }
+
+        function commentOnUpdate(updateId) {
+            $('#comment_update_id').val(updateId);
+            $('#commentModal').modal('show');
+        }
+
+        function tagUpdate(updateId) {
+            $('#tag_update_id').val(updateId);
+            $('#tagModal').modal('show');
         }
 
         function addTag(updateId) {
