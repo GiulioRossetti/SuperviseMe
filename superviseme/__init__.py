@@ -250,5 +250,26 @@ def create_app(db_type="sqlite"):
         from superviseme.utils.todo_parser import format_text_with_todo_links
         base_url = f"/{user_type}/" if user_type else "/"
         return format_text_with_todo_links(text, base_url)
+    
+    @app.template_filter('markdown')
+    def markdown_filter(text):
+        """Convert markdown text to HTML"""
+        if not text:
+            return ""
+        import markdown
+        return markdown.markdown(text, extensions=['nl2br', 'fenced_code'])
+    
+    @app.template_filter('markdown_with_todos')
+    def markdown_with_todos_filter(text, user_type='supervisor'):
+        """Convert markdown text to HTML and process todo links"""
+        if not text:
+            return ""
+        import markdown
+        # First convert markdown to HTML
+        html = markdown.markdown(text, extensions=['nl2br', 'fenced_code'])
+        # Then process todo links
+        from superviseme.utils.todo_parser import format_text_with_todo_links
+        base_url = f"/{user_type}/" if user_type else "/"
+        return format_text_with_todo_links(html, base_url)
 
     return app

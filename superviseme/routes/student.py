@@ -132,6 +132,9 @@ def thesis_data():
     # Get todos
     todos = Todo.query.filter_by(thesis_id=thesis.id).order_by(Todo.created_at.desc()).all()
     
+    # Get meeting notes
+    meeting_notes = MeetingNote.query.filter_by(thesis_id=thesis.id).order_by(MeetingNote.created_at.desc()).all()
+    
     # Get thesis status history
     thesis_statuses = Thesis_Status.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Status.updated_at.desc()).all()
     
@@ -139,7 +142,7 @@ def thesis_data():
                            tags=tags, updates=updates, parent_updates=parent_updates,
                            comments_by_parent=comments_by_parent, resources=resources, 
                            objectives=objectives, hypotheses=hypotheses, todos=todos, 
-                           thesis_statuses=thesis_statuses, dt=datetime.fromtimestamp)
+                           meeting_notes=meeting_notes, thesis_statuses=thesis_statuses, dt=datetime.fromtimestamp)
 
 
 @student.route("/post_update", methods=["POST"])
@@ -735,5 +738,107 @@ def delete_todo(todo_id):
     if todo:
         db.session.delete(todo)
         db.session.commit()
+    
+    return redirect(url_for('student.thesis_data'))
+
+
+# Meeting Notes routes for students
+@student.route("/add_meeting_note", methods=["POST"])
+@login_required
+def add_meeting_note():
+    """
+    Allow students to add meeting notes to their thesis
+    """
+    check_privileges(current_user.username, role="student")
+    
+    thesis_id = request.form.get("thesis_id")
+    title = request.form.get("title")
+    content = request.form.get("content")
+    
+    # Verify the thesis belongs to the current student
+    thesis = Thesis.query.filter_by(id=thesis_id, author_id=current_user.id).first()
+    if not thesis:
+        flash("Thesis not found or access denied")
+        return redirect(url_for('student.dashboard'))
+    
+    current_time = int(time.time())
+    new_meeting_note = MeetingNote(
+        thesis_id=thesis_id,
+        author_id=current_user.id,
+        title=title,
+        content=content,
+        created_at=current_time,
+        updated_at=current_time
+    )
+    
+    db.session.add(new_meeting_note)
+    db.session.commit()
+    
+    # Parse and create todo references
+    from superviseme.utils.todo_parser import parse_todo_references, create_meeting_note_todo_references
+    todo_refs = parse_todo_references(content)
+    if todo_refs:
+        create_meeting_note_todo_references(new_meeting_note.id, todo_refs)
+    
+    flash("Meeting note added successfully")
+    return redirect(url_for('student.thesis_data'))
+
+
+@student.route("/edit_meeting_note/<int:note_id>", methods=["POST"])
+@login_required
+def edit_meeting_note(note_id):
+    """
+    Allow students to edit their meeting notes
+    """
+    check_privileges(current_user.username, role="student")
+    
+    # Verify student has access to this meeting note
+    meeting_note = MeetingNote.query.join(Thesis).filter(
+        MeetingNote.id == note_id,
+        Thesis.author_id == current_user.id
+    ).first()
+    
+    if not meeting_note:
+        flash("Meeting note not found or not accessible")
+        return redirect(url_for('student.dashboard'))
+    
+    meeting_note.title = request.form.get("title", meeting_note.title)
+    meeting_note.content = request.form.get("content", meeting_note.content)
+    meeting_note.updated_at = int(time.time())
+    
+    db.session.commit()
+    
+    # Update todo references
+    from superviseme.utils.todo_parser import parse_todo_references, create_meeting_note_todo_references
+    todo_refs = parse_todo_references(meeting_note.content)
+    create_meeting_note_todo_references(meeting_note.id, todo_refs)
+    
+    flash("Meeting note updated successfully")
+    return redirect(url_for('student.thesis_data'))
+
+
+@student.route("/delete_meeting_note/<int:note_id>", methods=["POST"])
+@login_required
+def delete_meeting_note(note_id):
+    """
+    Allow students to delete their meeting notes
+    """
+    check_privileges(current_user.username, role="student")
+    
+    # Verify student has access to this meeting note
+    meeting_note = MeetingNote.query.join(Thesis).filter(
+        MeetingNote.id == note_id,
+        Thesis.author_id == current_user.id
+    ).first()
+    
+    if not meeting_note:
+        flash("Meeting note not found or not accessible")
+        return redirect(url_for('student.dashboard'))
+    
+    db.session.delete(meeting_note)
+    db.session.commit()
+    
+    flash("Meeting note deleted successfully")
+    return redirect(url_for('student.thesis_data'))
     
     return redirect(url_for('student.dashboard'))
