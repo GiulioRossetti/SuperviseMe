@@ -271,8 +271,22 @@
                                                             </small>
                                                         </div>
                                                         <div class="update-content">
-                                                            {{ update.content|replace('\n', '<br>')|safe }}
+                                                            {% set formatted_content = update.content|replace('\n', '<br>') %}
+                                                            {{ formatted_content|format_todo_links('student')|safe }}
                                                         </div>
+                                                        
+                                                        <!-- Todo References -->
+                                                        {% if update.todo_references %}
+                                                        <div class="mt-2">
+                                                            <small class="text-muted">Referenced Todos:</small>
+                                                            {% for ref in update.todo_references %}
+                                                            <a href="{{ url_for('student.todo_detail', todo_id=ref.todo.id) }}" 
+                                                               class="badge badge-primary ml-1" title="{{ ref.todo.title }}">
+                                                                <i class="fas fa-tasks"></i> {{ ref.todo.title[:20] }}{% if ref.todo.title|length > 20 %}...{% endif %}
+                                                            </a>
+                                                            {% endfor %}
+                                                        </div>
+                                                        {% endif %}
                                                     </div>
                                                     {% if update.update_type == 'student_update' and update.author_id == current_user.id %}
                                                     <div class="update-actions">
@@ -519,7 +533,28 @@
                         <div class="form-group">
                             <label for="content">Update Content:</label>
                             <textarea class="form-control" name="content" rows="5" required placeholder="Describe your progress, challenges, or achievements..."></textarea>
+                            <small class="form-text text-muted">
+                                <strong>Todo References:</strong> Use @todo:ID or #todo-ID to reference todos. 
+                                {% if todos %}Available todos: 
+                                {% for todo in todos[:3] %}@todo:{{ todo.id }} ({{ todo.title[:20] }}{% if todo.title|length > 20 %}...{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
+                                {% if todos|length > 3 %}... and {{ todos|length - 3 }} more{% endif %}
+                                {% endif %}
+                            </small>
                         </div>
+                        {% if todos %}
+                        <div class="form-group">
+                            <label>Quick Todo Reference:</label>
+                            <div class="btn-group-toggle" data-toggle="buttons">
+                                {% for todo in todos %}
+                                <label class="btn btn-outline-secondary btn-sm mr-1 mb-1" onclick="insertTodoReference({{ todo.id }}, '{{ todo.title }}')">
+                                    <input type="checkbox"> @todo:{{ todo.id }}
+                                    <br><small>{{ todo.title[:30] }}{% if todo.title|length > 30 %}...{% endif %}</small>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <small class="form-text text-muted">Click buttons above to insert todo references into your update.</small>
+                        </div>
+                        {% endif %}
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
@@ -723,6 +758,25 @@
             $('#edit_update_id').val(updateId);
             $('#edit_update_content').val(content);
             $('#editUpdateModal').modal('show');
+        }
+
+        function insertTodoReference(todoId, todoTitle) {
+            const textarea = document.querySelector('textarea[name="content"]');
+            const reference = `@todo:${todoId}`;
+            const currentPos = textarea.selectionStart;
+            const textBefore = textarea.value.substring(0, currentPos);
+            const textAfter = textarea.value.substring(textarea.selectionEnd);
+            
+            // Add space before if needed
+            const spaceBefore = (textBefore.length > 0 && !textBefore.endsWith(' ') && !textBefore.endsWith('\n')) ? ' ' : '';
+            const spaceAfter = ' ';
+            
+            textarea.value = textBefore + spaceBefore + reference + spaceAfter + textAfter;
+            textarea.focus();
+            
+            // Set cursor after the reference
+            const newPos = currentPos + spaceBefore.length + reference.length + spaceAfter.length;
+            textarea.setSelectionRange(newPos, newPos);
         }
     </script>
 

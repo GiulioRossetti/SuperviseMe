@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, url_for, jsonify
+from flask import Blueprint, request, render_template, redirect, url_for, jsonify, flash
 from flask_login import login_required, current_user
 from sqlalchemy import and_, or_
 from superviseme.utils.miscellanea import check_privileges
@@ -172,6 +172,12 @@ def post_update():
 
     db.session.add(new_update)
     db.session.commit()
+
+    # Parse and create todo references
+    from superviseme.utils.todo_parser import parse_todo_references, create_todo_references
+    todo_refs = parse_todo_references(content)
+    if todo_refs:
+        create_todo_references(new_update.id, todo_refs)
 
     # Create notification for supervisors
     from superviseme.utils.notifications import create_thesis_update_notification
@@ -680,6 +686,35 @@ def search():
                          search_term=search_term,
                          user_type="student",
                          dt=datetime.fromtimestamp)
+
+
+@student.route("/student/todo/<int:todo_id>")
+@login_required
+def todo_detail(todo_id):
+    """
+    Display todo detail with linked updates and references for student
+    """
+    check_privileges(current_user.username, role="student")
+    
+    # Get the todo and verify access (must be from student's thesis)
+    todo = Todo.query.join(Thesis, Todo.thesis_id == Thesis.id).filter(
+        Todo.id == todo_id,
+        Thesis.author_id == current_user.id  # Student can access their thesis todos
+    ).first()
+    
+    if not todo:
+        flash("Todo not found or access denied")
+        return redirect(url_for('student.dashboard'))
+    
+    # Get associated updates that reference this todo
+    from superviseme.models import Todo_Reference
+    referenced_updates = db.session.query(Thesis_Update).join(Todo_Reference).filter(
+        Todo_Reference.todo_id == todo_id
+    ).order_by(Thesis_Update.created_at.desc()).all()
+    
+    return render_template("student/todo_detail.html", todo=todo, 
+                           referenced_updates=referenced_updates, 
+                           dt=datetime.fromtimestamp)
 
 
 @student.route("/delete_todo/<int:todo_id>")

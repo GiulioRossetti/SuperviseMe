@@ -176,10 +176,21 @@ def thesis_detail(thesis_id):
     objectives = Thesis_Objective.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Objective.created_at.desc()).all()
     hypotheses = Thesis_Hypothesis.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Hypothesis.created_at.desc()).all()
 
+    # Get all students for assignment dropdown (only students without active thesis assignments)
+    available_students = User_mgmt.query.filter(
+        User_mgmt.user_type == "student",
+        ~User_mgmt.id.in_(
+            db.session.query(Thesis.author_id).filter(Thesis.author_id.isnot(None))
+        )
+    ).all()
+
+    # Get todos for this thesis for reference dropdown
+    todos = Todo.query.filter_by(thesis_id=thesis_id).order_by(Todo.created_at.desc()).all()
+
     return render_template("supervisor/thesis_detail.html", thesis=thesis, updates=updates,
                            supervisors=supervisors, author=author, objectives=objectives, 
-                           hypotheses=hypotheses, thesis_tags=thesis_tags, resources=resources, 
-                           dt=datetime.fromtimestamp)
+                           hypotheses=hypotheses, thesis_tags=thesis_tags, resources=resources,
+                           available_students=available_students, todos=todos, dt=datetime.fromtimestamp)
 
 
 @supervisor.route("/post_update", methods=["POST"])
@@ -202,6 +213,12 @@ def post_update():
 
     db.session.add(new_update)
     db.session.commit()
+
+    # Parse and create todo references
+    from superviseme.utils.todo_parser import parse_todo_references, create_todo_references
+    todo_refs = parse_todo_references(content)
+    if todo_refs:
+        create_todo_references(new_update.id, todo_refs)
 
     # Create notification for student
     from superviseme.utils.notifications import create_supervisor_feedback_notification
@@ -1154,6 +1171,77 @@ def edit_student(student_id):
     
     db.session.commit()
     flash(f"Student {student.name} {student.surname} updated successfully")
+    
+    return redirect(url_for('supervisor.supervisee_data'))
+
+
+@supervisor.route("/supervisor/todo/<int:todo_id>")
+@login_required
+def todo_detail(todo_id):
+    """
+    Display todo detail with linked updates and references
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Get the todo first
+    todo = Todo.query.get_or_404(todo_id)
+    
+    # Verify supervisor has access to this todo's thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter(
+        Thesis_Supervisor.thesis_id == todo.thesis_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("Todo not found or access denied")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    # Get associated updates that reference this todo
+    from superviseme.models import Todo_Reference
+    referenced_updates = db.session.query(Thesis_Update).join(Todo_Reference).filter(
+        Todo_Reference.todo_id == todo_id
+    ).order_by(Thesis_Update.created_at.desc()).all()
+    
+    return render_template("supervisor/todo_detail.html", todo=todo, 
+                           referenced_updates=referenced_updates, 
+                           dt=datetime.fromtimestamp)
+
+
+@supervisor.route("/delete_student/<int:student_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_student(student_id):
+    """
+    This route allows supervisors to delete student accounts they supervise.
+    Only students with no active thesis assignments can be deleted.
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify supervisor has access to this student
+    student = User_mgmt.query.join(Thesis, Thesis.author_id == User_mgmt.id).join(
+        Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id
+    ).filter(
+        User_mgmt.id == student_id,
+        User_mgmt.user_type == "student",
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if not student:
+        flash("Student not found or not supervised by you")
+        return redirect(url_for('supervisor.supervisee_data'))
+    
+    # Check if student has any active theses (only allow deletion if no active theses)
+    active_theses = Thesis.query.filter_by(author_id=student_id, frozen=False).count()
+    if active_theses > 0:
+        flash(f"Cannot delete student {student.name} {student.surname}. Student has active thesis assignments.")
+        return redirect(url_for('supervisor.supervisee_data'))
+    
+    # Remove thesis assignments (set author_id to None for completed/frozen theses)
+    Thesis.query.filter_by(author_id=student_id).update({"author_id": None})
+    
+    # Delete the student
+    db.session.delete(student)
+    db.session.commit()
+    flash(f"Student {student.name} {student.surname} deleted successfully")
     
     return redirect(url_for('supervisor.supervisee_data'))
 

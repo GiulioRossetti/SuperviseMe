@@ -25,6 +25,9 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">My Students</h1>
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createStudentModal">
+                            <i class="fas fa-plus"></i> Create Student
+                        </button>
                     </div>
 
                     <!-- Content Row -->
@@ -92,6 +95,26 @@
                                                                     <a href="mailto:{{ supervisee_info.student.email }}" class="btn btn-outline-secondary btn-sm">
                                                                         <i class="fas fa-envelope"></i> Email
                                                                     </a>
+                                                                    <button type="button" class="btn btn-info btn-sm" 
+                                                                            data-toggle="modal" 
+                                                                            data-target="#editStudentModal"
+                                                                            data-student-id="{{ supervisee_info.student.id }}"
+                                                                            data-student-name="{{ supervisee_info.student.name }}"
+                                                                            data-student-surname="{{ supervisee_info.student.surname }}"
+                                                                            data-student-email="{{ supervisee_info.student.email }}"
+                                                                            data-student-cdl="{{ supervisee_info.student.cdl }}"
+                                                                            data-student-gender="{{ supervisee_info.student.gender }}"
+                                                                            data-student-nationality="{{ supervisee_info.student.nationality }}">
+                                                                        <i class="fas fa-edit"></i> Edit
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-danger btn-sm"
+                                                                            data-toggle="modal" 
+                                                                            data-target="#deleteStudentModal"
+                                                                            data-student-id="{{ supervisee_info.student.id }}"
+                                                                            data-student-name="{{ supervisee_info.student.name }}"
+                                                                            data-student-surname="{{ supervisee_info.student.surname }}">
+                                                                        <i class="fas fa-trash"></i> Delete
+                                                                    </button>
                                                                 </div>
                                                             </div>
                                                             <div class="col-auto">
@@ -323,8 +346,247 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
+    <!-- Create Student Modal -->
+    <div class="modal fade" id="createStudentModal" tabindex="-1" role="dialog" aria-labelledby="createStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createStudentModalLabel">Create New Student</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('supervisor.create_student') }}">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">First Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="surname">Last Name</label>
+                                    <input type="text" class="form-control" id="surname" name="surname" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="username">Username</label>
+                                    <input type="text" class="form-control" id="username" name="username" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="cdl">Course of Study</label>
+                                    <input type="text" class="form-control" id="cdl" name="cdl">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="gender">Gender</label>
+                                    <select class="form-control" id="gender" name="gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nationality">Nationality</label>
+                                    <input type="text" class="form-control" id="nationality" name="nationality">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="password">Password</label>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="password2">Confirm Password</label>
+                                    <input type="password" class="form-control" id="password2" name="password2" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Student</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div class="modal fade" id="editStudentModal" tabindex="-1" role="dialog" aria-labelledby="editStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editStudentModalLabel">Edit Student</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" id="editStudentForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_name">First Name</label>
+                                    <input type="text" class="form-control" id="edit_name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_surname">Last Name</label>
+                                    <input type="text" class="form-control" id="edit_surname" name="surname" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="edit_email">Email</label>
+                                    <input type="email" class="form-control" id="edit_email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_cdl">Course of Study</label>
+                                    <input type="text" class="form-control" id="edit_cdl" name="cdl">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_gender">Gender</label>
+                                    <select class="form-control" id="edit_gender" name="gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_nationality">Nationality</label>
+                                    <input type="text" class="form-control" id="edit_nationality" name="nationality">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_password">New Password (leave blank to keep current)</label>
+                                    <input type="password" class="form-control" id="edit_password" name="password">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_password2">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="edit_password2" name="password2">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Student</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Student Modal -->
+    <div class="modal fade" id="deleteStudentModal" tabindex="-1" role="dialog" aria-labelledby="deleteStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteStudentModalLabel">Delete Student</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete student <strong><span id="deleteStudentName"></span></strong>?</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Warning:</strong> This action cannot be undone. Students with active thesis assignments cannot be deleted.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <form method="POST" id="deleteStudentForm" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Delete Student</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Logout Modal-->
     {% include 'admin/components/logout_modal.html' %}
+
+    <!-- JavaScript for modal functionality -->
+    <script>
+        // Edit Student Modal
+        $('#editStudentModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var studentId = button.data('student-id');
+            var studentName = button.data('student-name');
+            var studentSurname = button.data('student-surname');
+            var studentEmail = button.data('student-email');
+            var studentCdl = button.data('student-cdl');
+            var studentGender = button.data('student-gender');
+            var studentNationality = button.data('student-nationality');
+            
+            var modal = $(this);
+            modal.find('#edit_name').val(studentName);
+            modal.find('#edit_surname').val(studentSurname);
+            modal.find('#edit_email').val(studentEmail);
+            modal.find('#edit_cdl').val(studentCdl);
+            modal.find('#edit_gender').val(studentGender);
+            modal.find('#edit_nationality').val(studentNationality);
+            modal.find('#editStudentForm').attr('action', '/edit_student/' + studentId);
+        });
+
+        // Delete Student Modal
+        $('#deleteStudentModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var studentId = button.data('student-id');
+            var studentName = button.data('student-name');
+            var studentSurname = button.data('student-surname');
+            
+            var modal = $(this);
+            modal.find('#deleteStudentName').text(studentName + ' ' + studentSurname);
+            modal.find('#deleteStudentForm').attr('action', '/delete_student/' + studentId);
+        });
+    </script>
 
 
 </body>

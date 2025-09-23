@@ -188,9 +188,11 @@
                                                 <div class="card border-left-{% if todo.priority == 'high' %}danger{% elif todo.priority == 'medium' %}warning{% else %}info{% endif %} h-100">
                                                     <div class="card-body">
                                                         <div class="d-flex justify-content-between align-items-start mb-2">
-                                                            <h6 class="font-weight-bold text-gray-900 {% if todo.status == 'completed' %}text-decoration-line-through{% endif %}">
-                                                                {{ todo.title }}
-                                                            </h6>
+                                                            <a href="{{ url_for('student.todo_detail', todo_id=todo.id) }}" class="text-decoration-none">
+                                                                <h6 class="font-weight-bold text-gray-900 {% if todo.status == 'completed' %}text-decoration-line-through{% endif %}">
+                                                                    {{ todo.title }}
+                                                                </h6>
+                                                            </a>
                                                             <div class="dropdown no-arrow">
                                                                 <a class="dropdown-toggle" href="#" role="button" id="todoDropdown{{ todo.id }}" data-toggle="dropdown">
                                                                     <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>

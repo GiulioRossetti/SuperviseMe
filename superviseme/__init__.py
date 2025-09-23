@@ -244,4 +244,11 @@ def create_app(db_type="sqlite"):
     from superviseme.utils.task_scheduler import init_scheduler
     init_scheduler(app)
 
+    # Register template filters
+    @app.template_filter('format_todo_links')
+    def format_todo_links_filter(text, user_type='supervisor'):
+        from superviseme.utils.todo_parser import format_text_with_todo_links
+        base_url = f"/{user_type}/" if user_type else "/"
+        return format_text_with_todo_links(text, base_url)
+
     return app
