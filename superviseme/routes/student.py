@@ -587,7 +587,7 @@ def add_todo():
     db.session.add(new_todo)
     db.session.commit()
     
-    return redirect(url_for('student.dashboard'))
+    return redirect(url_for('student.thesis_data'))
 
 
 @student.route("/toggle_todo/<int:todo_id>")

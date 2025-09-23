@@ -424,8 +424,11 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="card shadow mb-4">
-                                <div class="card-header py-3">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                                     <h6 class="m-0 font-weight-bold text-primary">Student ToDo List</h6>
+                                    <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addTodoModal">
+                                        <i class="fas fa-plus"></i> Add ToDo
+                                    </button>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
@@ -693,6 +696,65 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-info">Set Status</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Todo Modal -->
+    <div class="modal fade" id="addTodoModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New ToDo</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('supervisor.add_todo') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                        <div class="form-group">
+                            <label for="title">Task Title:</label>
+                            <input type="text" class="form-control" name="title" required placeholder="Brief description of the task">
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Task Description:</label>
+                            <textarea class="form-control" name="description" rows="3" placeholder="Detailed description of what needs to be done..."></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="priority">Priority:</label>
+                                    <select class="form-control" name="priority">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="due_date">Due Date (optional):</label>
+                                    <input type="date" class="form-control" name="due_date">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="assigned_to_id">Assign to:</label>
+                            <select class="form-control" name="assigned_to_id">
+                                <option value="">Select assignee (optional)</option>
+                                {% if author %}
+                                    <option value="{{ author.id }}">{{ author.name }} {{ author.surname }} (Student)</option>
+                                {% endif %}
+                                <option value="{{ current_user.id }}">{{ current_user.name }} {{ current_user.surname }} (You - Supervisor)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add ToDo</button>
                     </div>
                 </form>
             </div>
