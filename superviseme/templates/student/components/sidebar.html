@@ -34,19 +34,11 @@
                 </a>
             </li>
 
-            <!-- Nav Item - Updates -->
+            <!-- Nav Item - Status -->
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#updates">
-                    <i class="fas fa-fw fa-edit"></i>
-                    <span>Updates & Progress</span>
-                </a>
-            </li>
-
-            <!-- Nav Item - Resources -->
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#resources">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Resources</span>
+                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#status">
+                    <i class="fas fa-fw fa-chart-line"></i>
+                    <span>Status</span>
                 </a>
             </li>
             
@@ -63,6 +55,30 @@
                 <a class="nav-link" href="{{ url_for('student.thesis_data') }}#hypotheses">
                     <i class="fas fa-fw fa-lightbulb"></i>
                     <span>Hypotheses</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Updates -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#updates">
+                    <i class="fas fa-fw fa-edit"></i>
+                    <span>Updates & Progress</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - ToDo -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#todos">
+                    <i class="fas fa-fw fa-tasks"></i>
+                    <span>ToDo List</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Resources -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('student.thesis_data') }}#resources">
+                    <i class="fas fa-fw fa-folder"></i>
+                    <span>Resources</span>
                 </a>
             </li>
 

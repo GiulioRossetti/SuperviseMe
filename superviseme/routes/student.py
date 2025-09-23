@@ -109,9 +109,16 @@ def thesis_data():
     objectives = Thesis_Objective.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Objective.created_at.desc()).all()
     hypotheses = Thesis_Hypothesis.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Hypothesis.created_at.desc()).all()
     
+    # Get todos
+    todos = Todo.query.filter_by(thesis_id=thesis.id).order_by(Todo.created_at.desc()).all()
+    
+    # Get thesis status history
+    thesis_statuses = Thesis_Status.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Status.updated_at.desc()).all()
+    
     return render_template("student/thesis.html", thesis=thesis, supervisors=supervisors,
                            tags=tags, updates=updates, resources=resources, 
-                           objectives=objectives, hypotheses=hypotheses, dt=datetime.fromtimestamp)
+                           objectives=objectives, hypotheses=hypotheses, todos=todos, 
+                           thesis_statuses=thesis_statuses, dt=datetime.fromtimestamp)
 
 
 @student.route("/post_update", methods=["POST"])
