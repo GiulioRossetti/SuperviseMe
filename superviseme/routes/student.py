@@ -99,7 +99,27 @@ def thesis_data():
     # Get thesis tags
     tags = Thesis_Tag.query.filter_by(thesis_id=thesis.id).all()
     
-    # Get all updates for this thesis (both student and supervisor updates)
+    # Get all updates for this thesis, organized for threaded display
+    # Get parent updates (top-level updates with no parent_id)
+    parent_updates = Thesis_Update.query.filter_by(
+        thesis_id=thesis.id, 
+        parent_id=None
+    ).order_by(Thesis_Update.created_at.desc()).all()
+    
+    # Get all comments/replies
+    all_comments = Thesis_Update.query.filter(
+        Thesis_Update.thesis_id == thesis.id,
+        Thesis_Update.parent_id.isnot(None)
+    ).order_by(Thesis_Update.created_at.asc()).all()
+    
+    # Group comments by parent_id
+    comments_by_parent = {}
+    for comment in all_comments:
+        if comment.parent_id not in comments_by_parent:
+            comments_by_parent[comment.parent_id] = []
+        comments_by_parent[comment.parent_id].append(comment)
+    
+    # Also get all updates for backwards compatibility (if needed elsewhere)
     updates = Thesis_Update.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Update.created_at.desc()).all()
     
     # Get resources
@@ -116,7 +136,8 @@ def thesis_data():
     thesis_statuses = Thesis_Status.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Status.updated_at.desc()).all()
     
     return render_template("student/thesis.html", thesis=thesis, supervisors=supervisors,
-                           tags=tags, updates=updates, resources=resources, 
+                           tags=tags, updates=updates, parent_updates=parent_updates,
+                           comments_by_parent=comments_by_parent, resources=resources, 
                            objectives=objectives, hypotheses=hypotheses, todos=todos, 
                            thesis_statuses=thesis_statuses, dt=datetime.fromtimestamp)
 
