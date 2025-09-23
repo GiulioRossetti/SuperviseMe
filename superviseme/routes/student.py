@@ -772,13 +772,18 @@ def add_meeting_note():
     )
     
     db.session.add(new_meeting_note)
+    db.session.flush()  # This assigns the ID without committing the transaction
+    
+    # Get the ID immediately after flush
+    meeting_note_id = new_meeting_note.id
+    
     db.session.commit()
     
     # Parse and create todo references
     from superviseme.utils.todo_parser import parse_todo_references, create_meeting_note_todo_references
     todo_refs = parse_todo_references(content)
     if todo_refs:
-        create_meeting_note_todo_references(new_meeting_note.id, todo_refs)
+        create_meeting_note_todo_references(meeting_note_id, todo_refs)
     
     flash("Meeting note added successfully")
     return redirect(url_for('student.thesis_data'))
@@ -806,12 +811,15 @@ def edit_meeting_note(note_id):
     meeting_note.content = request.form.get("content", meeting_note.content)
     meeting_note.updated_at = int(time.time())
     
+    # Get the ID before any potential session changes
+    meeting_note_id = meeting_note.id
+    
     db.session.commit()
     
     # Update todo references
     from superviseme.utils.todo_parser import parse_todo_references, create_meeting_note_todo_references
     todo_refs = parse_todo_references(meeting_note.content)
-    create_meeting_note_todo_references(meeting_note.id, todo_refs)
+    create_meeting_note_todo_references(meeting_note_id, todo_refs)
     
     flash("Meeting note updated successfully")
     return redirect(url_for('student.thesis_data'))
