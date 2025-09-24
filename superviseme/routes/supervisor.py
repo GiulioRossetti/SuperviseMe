@@ -1600,5 +1600,3 @@ def delete_meeting_note(note_id):
     
     flash("Meeting note deleted successfully")
     return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
-    
-    return redirect(url_for('supervisor.thesis_detail', thesis_id=hypothesis.thesis_id))
