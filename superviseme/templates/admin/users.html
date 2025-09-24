@@ -152,7 +152,7 @@ try {
       } else {
         return {
           contentEditable: 'true',
-          'data-element-id': row.cells[0].data,
+          'data-element-id': row && row.cells && row.cells[0] ? row.cells[0].data : '',
           'data-column-id': column.id
         };
       }
