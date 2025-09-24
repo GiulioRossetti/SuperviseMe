@@ -383,13 +383,13 @@ def theses_data():
         for s in sort.split(","):
             direction = s[0]
             name = s[1:]
-            if name not in ["title", "level", "author_cd"]:
+            if name not in ["title", "level", "author_cdl"]:
                 continue
             
             # Get the correct column from the appropriate model
             if name in ["title", "level"]:
                 col = getattr(Thesis, name, None)
-            elif name == "author_cd":
+            elif name == "author_cdl":
                 col = getattr(Author, "cdl", None)
             else:
                 col = None
@@ -419,7 +419,7 @@ def theses_data():
                 "thesis_id": thesis.id,
                 "title": thesis.title,
                 "level": thesis.level,
-                "author_cd": author.cdl if author else None,
+                "author_cdl": author.cdl if author else None,
                 "assigned": "True" if author else "False",
             }
             for thesis, author in results
