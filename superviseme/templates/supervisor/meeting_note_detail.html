@@ -1,0 +1,283 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'supervisor/components/sidebar.html' %}
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ meeting_note.title }}</h1>
+                        <div>
+                            <button class="btn btn-warning" onclick="editMeetingNote({{ meeting_note.id }}, '{{ meeting_note.title }}', '{{ meeting_note.content|replace('\n', '\\n')|replace('\'', '\\\'') }}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <form method="POST" action="{{ url_for('supervisor.delete_meeting_note', note_id=meeting_note.id) }}" 
+                                  style="display: inline;"
+                                  onsubmit="return confirm('Are you sure you want to delete this meeting note?');">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                            <a href="{{ url_for('supervisor.thesis_detail', thesis_id=thesis.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Thesis
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Main Content -->
+                        <div class="col-lg-8">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Meeting Note Content</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="meeting-note-content">
+                                        {{ meeting_note.content|markdown_with_todos('supervisor')|safe }}
+                                    </div>
+                                    
+                                    <!-- Todo References -->
+                                    {% if meeting_note.todo_references %}
+                                    <div class="mt-4">
+                                        <hr>
+                                        <h6 class="text-muted">Referenced Todos:</h6>
+                                        <div class="d-flex flex-wrap">
+                                            {% for ref in meeting_note.todo_references %}
+                                            <a href="{{ url_for('supervisor.todo_detail', todo_id=ref.todo.id) }}" 
+                                               class="badge badge-primary ml-1 mb-1 p-2" title="{{ ref.todo.title }}">
+                                                <i class="fas fa-tasks"></i> {{ ref.todo.title[:30] }}{% if ref.todo.title|length > 30 %}...{% endif %}
+                                                <small class="ml-1">({{ ref.todo.status }})</small>
+                                            </a>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sidebar -->
+                        <div class="col-lg-4">
+                            <!-- Meeting Info -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Meeting Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-2">
+                                        <div class="col-sm-4"><strong>Thesis:</strong></div>
+                                        <div class="col-sm-8">
+                                            <a href="{{ url_for('supervisor.thesis_detail', thesis_id=thesis.id) }}">
+                                                {{ thesis.title }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-4"><strong>Author:</strong></div>
+                                        <div class="col-sm-8">
+                                            {{ meeting_note.author.name }} {{ meeting_note.author.surname }}
+                                            {% if meeting_note.author.user_type == 'supervisor' %}
+                                                <i class="fas fa-chalkboard-teacher text-primary" title="Supervisor"></i>
+                                            {% else %}
+                                                <i class="fas fa-user-graduate text-success" title="Student"></i>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-4"><strong>Created:</strong></div>
+                                        <div class="col-sm-8">{{ dt(meeting_note.created_at).strftime('%B %d, %Y at %I:%M %p') if meeting_note.created_at else 'Unknown' }}</div>
+                                    </div>
+                                    {% if meeting_note.updated_at != meeting_note.created_at %}
+                                    <div class="row mb-2">
+                                        <div class="col-sm-4"><strong>Updated:</strong></div>
+                                        <div class="col-sm-8">{{ dt(meeting_note.updated_at).strftime('%B %d, %Y at %I:%M %p') if meeting_note.updated_at else 'Unknown' }}</div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                                </div>
+                                <div class="card-body">
+                                    <button class="btn btn-outline-primary btn-sm btn-block mb-2" onclick="editMeetingNote({{ meeting_note.id }}, '{{ meeting_note.title }}', '{{ meeting_note.content|replace('\n', '\\n')|replace('\'', '\\\'') }}')">
+                                        <i class="fas fa-edit"></i> Edit Meeting Note
+                                    </button>
+                                    <a href="{{ url_for('supervisor.thesis_detail', thesis_id=thesis.id) }}" class="btn btn-outline-secondary btn-sm btn-block mb-2">
+                                        <i class="fas fa-eye"></i> View Thesis Details
+                                    </a>
+                                    <button class="btn btn-outline-success btn-sm btn-block" data-toggle="modal" data-target="#addMeetingNoteModal">
+                                        <i class="fas fa-plus"></i> Add New Meeting Note
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Edit Meeting Note Modal -->
+    <div class="modal fade" id="editMeetingNoteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Meeting Note</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" id="editMeetingNoteForm">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="editMeetingNoteTitle">Meeting Title:</label>
+                            <input type="text" class="form-control" name="title" id="editMeetingNoteTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editMeetingNoteContent">Meeting Notes:</label>
+                            <textarea class="form-control" name="content" id="editMeetingNoteContent" rows="12" required></textarea>
+                            <small class="form-text text-muted">
+                                <strong>Markdown supported:</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
+                                <strong>Todo References:</strong> Use @todo:ID to reference todos. 
+                                {% if todos %}Available todos: 
+                                {% for todo in todos[:3] %}@todo:{{ todo.id }} ({{ todo.title[:20] }}{% if todo.title|length > 20 %}...{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
+                                {% if todos|length > 3 %}... and {{ todos|length - 3 }} more{% endif %}
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% if todos %}
+                        <div class="form-group">
+                            <label>Quick Todo Reference:</label>
+                            <div class="btn-group-toggle" data-toggle="buttons">
+                                {% for todo in todos[:6] %}
+                                <label class="btn btn-outline-secondary btn-sm mr-1 mb-1" onclick="insertTodoReference({{ todo.id }}, '{{ todo.title }}', 'editMeetingNoteContent')">
+                                    <input type="checkbox"> @todo:{{ todo.id }}
+                                    <br><small>{{ todo.title[:30] }}{% if todo.title|length > 30 %}...{% endif %}</small>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <small class="form-text text-muted">Click buttons above to insert todo references into your meeting notes.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Meeting Note</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Meeting Note Modal -->
+    <div class="modal fade" id="addMeetingNoteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Meeting Note</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('supervisor.add_meeting_note') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                        <div class="form-group">
+                            <label for="meetingNoteTitle">Meeting Title:</label>
+                            <input type="text" class="form-control" name="title" id="meetingNoteTitle" required 
+                                   placeholder="e.g., Weekly Meeting - Progress Review">
+                        </div>
+                        <div class="form-group">
+                            <label for="meetingNoteContent">Meeting Notes:</label>
+                            <textarea class="form-control" name="content" id="meetingNoteContent" rows="8" required 
+                                      placeholder="Write your meeting notes using markdown. You can reference todos using @todo:ID syntax."></textarea>
+                            <small class="form-text text-muted">
+                                <strong>Markdown supported:</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
+                                <strong>Todo References:</strong> Use @todo:ID to reference todos. 
+                                {% if todos %}Available todos: 
+                                {% for todo in todos[:3] %}@todo:{{ todo.id }} ({{ todo.title[:20] }}{% if todo.title|length > 20 %}...{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
+                                {% if todos|length > 3 %}... and {{ todos|length - 3 }} more{% endif %}
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% if todos %}
+                        <div class="form-group">
+                            <label>Quick Todo Reference:</label>
+                            <div class="btn-group-toggle" data-toggle="buttons">
+                                {% for todo in todos %}
+                                <label class="btn btn-outline-secondary btn-sm mr-1 mb-1" onclick="insertTodoReference({{ todo.id }}, '{{ todo.title }}', 'meetingNoteContent')">
+                                    <input type="checkbox"> @todo:{{ todo.id }}
+                                    <br><small>{{ todo.title[:30] }}{% if todo.title|length > 30 %}...{% endif %}</small>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <small class="form-text text-muted">Click buttons above to insert todo references into your meeting notes.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Meeting Note</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function editMeetingNote(noteId, title, content) {
+            $('#editMeetingNoteTitle').val(title);
+            $('#editMeetingNoteContent').val(content);
+            $('#editMeetingNoteForm').attr('action', '/edit_meeting_note/' + noteId);
+            $('#editMeetingNoteModal').modal('show');
+        }
+        
+        function insertTodoReference(todoId, todoTitle, targetTextareaId) {
+            const textarea = document.getElementById(targetTextareaId);
+            const reference = `@todo:${todoId}`;
+            
+            // Insert at cursor position or at the end
+            const startPos = textarea.selectionStart;
+            const endPos = textarea.selectionEnd;
+            const beforeText = textarea.value.substring(0, startPos);
+            const afterText = textarea.value.substring(endPos, textarea.value.length);
+            
+            textarea.value = beforeText + reference + afterText;
+            textarea.selectionStart = textarea.selectionEnd = startPos + reference.length;
+            textarea.focus();
+        }
+    </script>

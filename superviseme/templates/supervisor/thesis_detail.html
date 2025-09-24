@@ -447,7 +447,12 @@
                                                 {% for note in meeting_notes %}
                                                 <tr>
                                                     <td>
-                                                        <strong>{{ note.title }}</strong>
+                                                        <strong>
+                                                            <a href="{{ url_for('supervisor.meeting_note_detail', note_id=note.id) }}" 
+                                                               class="text-decoration-none">
+                                                                {{ note.title }}
+                                                            </a>
+                                                        </strong>
                                                     </td>
                                                     <td>
                                                         <div class="meeting-note-content">
@@ -494,6 +499,10 @@
                                                     </td>
                                                     <td>
                                                         <div class="btn-group" role="group">
+                                                            <a href="{{ url_for('supervisor.meeting_note_detail', note_id=note.id) }}" 
+                                                               class="btn btn-outline-info btn-sm" title="View Details">
+                                                                <i class="fas fa-eye"></i>
+                                                            </a>
                                                             <button class="btn btn-outline-primary btn-sm" 
                                                                     onclick="editMeetingNote({{ note.id }}, '{{ note.title }}', '{{ note.content|replace('\n', '\\n')|replace('\'', '\\\'') }}')"
                                                                     title="Edit">
