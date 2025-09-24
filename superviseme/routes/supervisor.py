@@ -1490,7 +1490,7 @@ def edit_hypothesis(hypothesis_id):
 
 
 # Meeting Notes routes for supervisors
-@supervisor.route("/supervisor_add_meeting_note", methods=["POST"])
+@supervisor.route("/add_meeting_note", methods=["POST"])
 @login_required
 def add_meeting_note():
     """
@@ -1540,7 +1540,7 @@ def add_meeting_note():
     return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
 
 
-@supervisor.route("/supervisor_edit_meeting_note/<int:note_id>", methods=["POST"])
+@supervisor.route("/edit_meeting_note/<int:note_id>", methods=["POST"])
 @login_required
 def edit_meeting_note(note_id):
     """
@@ -1549,10 +1549,11 @@ def edit_meeting_note(note_id):
     check_privileges(current_user.username, role="supervisor")
     
     # Verify supervisor has access to this meeting note
-    meeting_note = MeetingNote.query.join(Thesis_Supervisor).filter(
-        MeetingNote.id == note_id,
-        Thesis_Supervisor.supervisor_id == current_user.id
-    ).first()
+    meeting_note = MeetingNote.query.join(Thesis, MeetingNote.thesis_id == Thesis.id)\
+                                   .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)\
+                                   .filter(MeetingNote.id == note_id,
+                                          Thesis_Supervisor.supervisor_id == current_user.id)\
+                                   .first()
     
     if not meeting_note:
         flash("Meeting note not found or not accessible")
@@ -1576,7 +1577,39 @@ def edit_meeting_note(note_id):
     return redirect(url_for('supervisor.thesis_detail', thesis_id=meeting_note.thesis_id))
 
 
-@supervisor.route("/supervisor_delete_meeting_note/<int:note_id>", methods=["POST"])
+@supervisor.route("/meeting_note/<int:note_id>")
+@login_required
+def meeting_note_detail(note_id):
+    """
+    Display detailed view of a meeting note with full CRUD capabilities
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify supervisor has access to this meeting note
+    meeting_note = MeetingNote.query.join(Thesis, MeetingNote.thesis_id == Thesis.id)\
+                                   .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)\
+                                   .filter(MeetingNote.id == note_id,
+                                          Thesis_Supervisor.supervisor_id == current_user.id)\
+                                   .first()
+    
+    if not meeting_note:
+        flash("Meeting note not found or not accessible")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    # Get thesis information for context
+    thesis = meeting_note.thesis
+    
+    # Get todos for this thesis for reference dropdown
+    todos = Todo.query.filter_by(thesis_id=thesis.id).order_by(Todo.created_at.desc()).all()
+    
+    return render_template("supervisor/meeting_note_detail.html", 
+                         meeting_note=meeting_note, 
+                         thesis=thesis,
+                         todos=todos,
+                         dt=datetime.fromtimestamp)
+
+
+@supervisor.route("/delete_meeting_note/<int:note_id>", methods=["POST"])
 @login_required
 def delete_meeting_note(note_id):
     """
@@ -1585,10 +1618,11 @@ def delete_meeting_note(note_id):
     check_privileges(current_user.username, role="supervisor")
     
     # Verify supervisor has access to this meeting note
-    meeting_note = MeetingNote.query.join(Thesis_Supervisor).filter(
-        MeetingNote.id == note_id,
-        Thesis_Supervisor.supervisor_id == current_user.id
-    ).first()
+    meeting_note = MeetingNote.query.join(Thesis, MeetingNote.thesis_id == Thesis.id)\
+                                   .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)\
+                                   .filter(MeetingNote.id == note_id,
+                                          Thesis_Supervisor.supervisor_id == current_user.id)\
+                                   .first()
     
     if not meeting_note:
         flash("Meeting note not found or not accessible")

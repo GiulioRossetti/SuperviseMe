@@ -3,6 +3,7 @@ from superviseme.models import (
 )
 
 from flask import redirect, url_for, abort
+from superviseme.utils.logging_config import log_privilege_escalation_attempt
 
 
 def check_privileges(username, role="admin"):
@@ -12,6 +13,9 @@ def check_privileges(username, role="admin"):
         abort(404)
 
     if user.user_type != role:
+        # Log privilege escalation attempt
+        log_privilege_escalation_attempt(username, f"Attempted to access {role} resources with {user.user_type} privileges")
+        
         # Redirect to appropriate dashboard based on user type
         if user.user_type == "admin":
             return redirect(url_for("admin.dashboard"))

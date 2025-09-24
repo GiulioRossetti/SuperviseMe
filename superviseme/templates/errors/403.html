@@ -1,0 +1,21 @@
+{% extends "errors/base_error.html" %}
+
+{% block title %}403 - Forbidden - SuperviseMe{% endblock %}
+
+{% block error_code %}403{% endblock %}
+
+{% block error_display %}403{% endblock %}
+
+{% block error_title %}Access Forbidden{% endblock %}
+
+{% block error_description %}
+You don't have permission to access this resource. This area is restricted to authorized users only.
+{% endblock %}
+
+{% block additional_actions %}
+<div class="mt-4">
+    <small class="text-muted">
+        If you believe you should have access to this resource, please contact your administrator or supervisor.
+    </small>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "errors/base_error.html" %}
+
+{% block title %}502 - Bad Gateway - SuperviseMe{% endblock %}
+
+{% block error_code %}502{% endblock %}
+
+{% block error_display %}502{% endblock %}
+
+{% block error_title %}Bad Gateway{% endblock %}
+
+{% block error_description %}
+The server received an invalid response from an upstream server. This is usually a temporary problem.
+{% endblock %}
+
+{% block additional_actions %}
+<div class="mt-4">
+    <small class="text-muted">
+        This typically indicates a problem with our server infrastructure. Please try again in a few minutes.
+    </small>
+</div>
+{% endblock %}

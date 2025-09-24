@@ -1,0 +1,127 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Error Content -->
+                    <div class="text-center">
+                        <div class="error mx-auto" data-text="{% block error_code %}{% endblock %}">{% block error_display %}{% endblock %}</div>
+                        <p class="lead text-gray-800 mb-5">{% block error_title %}An error occurred{% endblock %}</p>
+                        <p class="text-gray-500 mb-0">{% block error_description %}Something went wrong on our end.{% endblock %}</p>
+                        <a href="javascript:history.back()" class="btn btn-primary mt-4 mr-2">
+                            <i class="fas fa-arrow-left"></i> Go Back
+                        </a>
+                        <a href="{% if current_user.is_authenticated %}
+                                    {% if current_user.user_type == 'admin' %}/admin/dashboard
+                                    {% elif current_user.user_type == 'supervisor' %}/supervisor/dashboard  
+                                    {% elif current_user.user_type == 'student' %}/student/dashboard
+                                    {% else %}/{% endif %}
+                                 {% else %}/{% endif %}" class="btn btn-secondary mt-4">
+                            <i class="fas fa-home"></i> Go Home
+                        </a>
+                        
+                        {% block additional_actions %}{% endblock %}
+                    </div>
+
+                    <!-- Error Details (only show in debug mode) -->
+                    {% if config.DEBUG and error %}
+                    <div class="row mt-5">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="m-0 font-weight-bold text-danger">Debug Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Error Type:</strong> {{ error.__class__.__name__ }}</p>
+                                    <p><strong>Error Message:</strong> {{ error }}</p>
+                                    <p><strong>URL:</strong> {{ request.url }}</p>
+                                    <p><strong>Method:</strong> {{ request.method }}</p>
+                                    <p><strong>User Agent:</strong> {{ request.headers.get('User-Agent', 'N/A') }}</p>
+                                    <p><strong>Timestamp:</strong> {{ moment().format('YYYY-MM-DD HH:mm:ss') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <style>
+        .error {
+            font-size: 3rem;
+            position: relative;
+            line-height: 1;
+            width: 12.5rem;
+            color: #eaecf4;
+        }
+        .error:before {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            color: #5a5c69;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 2rem,
+                #eaecf4 2rem,
+                #eaecf4 2.25rem
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        #content-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container-fluid {
+            max-width: 800px;
+        }
+    </style>
+
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+{% extends "errors/base_error.html" %}
+
+{% block title %}400 - Bad Request - SuperviseMe{% endblock %}
+
+{% block error_code %}400{% endblock %}
+
+{% block error_display %}400{% endblock %}
+
+{% block error_title %}Bad Request{% endblock %}
+
+{% block error_description %}
+The request could not be understood by the server due to malformed syntax. 
+Please check your input and try again.
+{% endblock %}
+
+{% block additional_actions %}
+<div class="mt-4">
+    <small class="text-muted">
+        If you believe this is an error, please contact support with the details of what you were trying to do.
+    </small>
+</div>
+{% endblock %}

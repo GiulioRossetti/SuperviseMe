@@ -1,0 +1,21 @@
+{% extends "errors/base_error.html" %}
+
+{% block title %}405 - Method Not Allowed - SuperviseMe{% endblock %}
+
+{% block error_code %}405{% endblock %}
+
+{% block error_display %}405{% endblock %}
+
+{% block error_title %}Method Not Allowed{% endblock %}
+
+{% block error_description %}
+The HTTP method used is not allowed for this resource. Please use the correct method or contact support.
+{% endblock %}
+
+{% block additional_actions %}
+<div class="mt-4">
+    <small class="text-muted">
+        This usually happens when trying to POST to a GET-only endpoint or vice versa.
+    </small>
+</div>
+{% endblock %}

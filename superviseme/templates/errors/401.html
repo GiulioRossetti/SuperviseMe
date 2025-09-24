@@ -1,0 +1,24 @@
+{% extends "errors/base_error.html" %}
+
+{% block title %}401 - Unauthorized - SuperviseMe{% endblock %}
+
+{% block error_code %}401{% endblock %}
+
+{% block error_display %}401{% endblock %}
+
+{% block error_title %}Unauthorized Access{% endblock %}
+
+{% block error_description %}
+You need to be logged in to access this resource. Please log in and try again.
+{% endblock %}
+
+{% block additional_actions %}
+<a href="/login" class="btn btn-success mt-3">
+    <i class="fas fa-sign-in-alt"></i> Login
+</a>
+<div class="mt-4">
+    <small class="text-muted">
+        Don't have an account? Contact your administrator for access.
+    </small>
+</div>
+{% endblock %}
