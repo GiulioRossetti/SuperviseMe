@@ -170,6 +170,9 @@ try {
           name: 'Actions',
           sort: false,
           formatter: (cell, row) => {
+            if (!row || !row.cells || !row.cells[0]) {
+              return '';
+            }
             const id = row.cells[0].data;
             return gridjs.html(`
               <div style="display: flex; gap: 8px; justify-content: center;">
