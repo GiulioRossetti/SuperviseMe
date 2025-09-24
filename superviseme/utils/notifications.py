@@ -11,6 +11,70 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def get_user_role_url_prefix(user_id):
+    """
+    Get the URL prefix based on user role
+    
+    Args:
+        user_id: User ID to get role for
+        
+    Returns:
+        str: URL prefix (/admin/, /supervisor/, /student/)
+    """
+    user = User_mgmt.query.get(user_id)
+    if not user:
+        return ""
+    
+    role_prefixes = {
+        'admin': '/admin/',
+        'supervisor': '/supervisor/',
+        'student': '/student/'
+    }
+    
+    return role_prefixes.get(user.user_type, "")
+
+
+def build_role_aware_url(recipient_id, path, thesis_id=None):
+    """
+    Build a role-aware URL for notifications
+    
+    Args:
+        recipient_id: ID of the user who will receive the notification
+        path: The path part of the URL (e.g., 'dashboard', 'thesis')
+        thesis_id: Optional thesis ID for thesis-specific URLs
+        
+    Returns:
+        str: Complete role-aware URL
+    """
+    user = User_mgmt.query.get(recipient_id)
+    if not user:
+        return "#"
+    
+    role_prefix = get_user_role_url_prefix(recipient_id)
+    
+    # Handle special cases based on user role and path
+    if path == 'dashboard':
+        return f"{role_prefix}dashboard"
+    elif path == 'thesis':
+        if user.user_type == 'student':
+            return f"{role_prefix}thesis"
+        elif user.user_type == 'supervisor' and thesis_id:
+            return f"{role_prefix}thesis/{thesis_id}"
+        elif user.user_type == 'admin' and thesis_id:
+            return f"{role_prefix}thesis/{thesis_id}"
+        else:
+            return f"{role_prefix}theses"
+    elif path == 'thesis_todos':
+        if user.user_type == 'student':
+            return f"{role_prefix}thesis#todos"
+        elif user.user_type == 'supervisor' and thesis_id:
+            return f"{role_prefix}thesis/{thesis_id}#todos"
+        else:
+            return f"{role_prefix}thesis#todos"
+    
+    return f"{role_prefix}{path}"
+
+
 def create_notification(recipient_id, actor_id, notification_type, title, message, 
                        thesis_id=None, action_url=None):
     """
@@ -76,10 +140,10 @@ def create_thesis_update_notification(thesis_id, student_id, update_content):
     
     title = f"New update on {thesis.title}"
     message = f"{student_name} posted a new update: {update_content[:100]}..."
-    action_url = f"/thesis/{thesis_id}"
     
-    # Create notification for each supervisor
+    # Create notification for each supervisor with role-aware URL
     for supervisor_rel in supervisors:
+        action_url = build_role_aware_url(supervisor_rel.supervisor_id, 'thesis', thesis_id)
         create_notification(
             recipient_id=supervisor_rel.supervisor_id,
             actor_id=student_id,
@@ -104,7 +168,7 @@ def create_supervisor_feedback_notification(thesis_id, supervisor_id, feedback_c
     
     title = f"New feedback on {thesis.title}"
     message = f"{supervisor_name} provided feedback: {feedback_content[:100]}..."
-    action_url = f"/thesis"
+    action_url = build_role_aware_url(thesis.author_id, 'thesis', thesis_id)
     
     create_notification(
         recipient_id=thesis.author_id,
@@ -131,7 +195,7 @@ def create_todo_assignment_notification(todo_id, assigner_id, assignee_id):
     
     title = f"New task assigned: {todo.title}"
     message = f"{assigner_name} assigned you a new task: {todo.description[:100]}..."
-    action_url = f"/thesis#todos" if todo.thesis_id else "#"
+    action_url = build_role_aware_url(assignee_id, 'thesis_todos', todo.thesis_id) if todo.thesis_id else "#"
     
     create_notification(
         recipient_id=assignee_id,
@@ -158,8 +222,9 @@ def create_thesis_status_change_notification(thesis_id, changer_id, new_status):
     title = f"Thesis status updated: {thesis.title}"
     message = f"{changer_name} changed the status to '{new_status}'"
     
-    # Notify student
+    # Notify student with role-aware URL
     if thesis.author_id:
+        action_url = build_role_aware_url(thesis.author_id, 'thesis', thesis_id)
         create_notification(
             recipient_id=thesis.author_id,
             actor_id=changer_id,
@@ -167,15 +232,16 @@ def create_thesis_status_change_notification(thesis_id, changer_id, new_status):
             title=title,
             message=message,
             thesis_id=thesis_id,
-            action_url="/thesis"
+            action_url=action_url
         )
     
-    # Notify supervisors
+    # Notify supervisors with role-aware URLs
     from superviseme.models import Thesis_Supervisor
     supervisors = Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).all()
     
     for supervisor_rel in supervisors:
         if supervisor_rel.supervisor_id != changer_id:  # Don't notify the person who made the change
+            action_url = build_role_aware_url(supervisor_rel.supervisor_id, 'thesis', thesis_id)
             create_notification(
                 recipient_id=supervisor_rel.supervisor_id,
                 actor_id=changer_id,
@@ -183,7 +249,7 @@ def create_thesis_status_change_notification(thesis_id, changer_id, new_status):
                 title=title,
                 message=message,
                 thesis_id=thesis_id,
-                action_url=f"/thesis/{thesis_id}"
+                action_url=action_url
             )
 
 
