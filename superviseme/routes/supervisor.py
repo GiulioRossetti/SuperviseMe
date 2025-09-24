@@ -197,7 +197,7 @@ def thesis_detail(thesis_id):
                            dt=datetime.fromtimestamp)
 
 
-@supervisor.route("/post_update", methods=["POST"])
+@supervisor.route("/supervisor/post_update", methods=["POST"])
 @login_required
 def post_update():
     """
@@ -231,7 +231,7 @@ def post_update():
     return thesis_detail(thesis_id)
 
 
-@supervisor.route("/post_comment", methods=["POST"])
+@supervisor.route("/supervisor/post_comment", methods=["POST"])
 @login_required
 def post_comment():
     """
@@ -255,7 +255,7 @@ def post_comment():
     return thesis_detail(update_id)
 
 
-@supervisor.route("/delete_update/<int:update_id>")
+@supervisor.route("/supervisor/delete_update/<int:update_id>")
 @login_required
 def delete_update(update_id):
     """
@@ -323,7 +323,7 @@ def delete_comment():
     return redirect(url_for('supervisor.theses_data'))
 
 
-@supervisor.route("/modify_update", methods=["POST"])
+@supervisor.route("/supervisor/modify_update", methods=["POST"])
 @login_required
 def modify_update():
     """
@@ -351,7 +351,7 @@ def modify_update():
     return redirect(url_for('supervisor.theses_data'))
 
 
-@supervisor.route("/modify_comment", methods=["POST"])
+@supervisor.route("/supervisor/modify_comment", methods=["POST"])
 @login_required
 def modify_comment():
     """
@@ -406,7 +406,7 @@ def delete_tag():
     return thesis_detail(tag.thesis_id)
 
 
-@supervisor.route("/tag_update", methods=["POST"])
+@supervisor.route("/supervisor/tag_update", methods=["POST"])
 @login_required
 def tag_update():
     """
@@ -981,7 +981,7 @@ def set_thesis_status():
 
 
 # Todo routes for supervisors
-@supervisor.route("/add_todo", methods=["POST"])
+@supervisor.route("/supervisor/add_todo", methods=["POST"])
 @login_required
 def add_todo():
     """
@@ -1032,7 +1032,7 @@ def add_todo():
     return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
 
 
-@supervisor.route("/toggle_todo/<int:todo_id>")
+@supervisor.route("/supervisor/toggle_todo/<int:todo_id>")
 @login_required
 def toggle_todo(todo_id):
     """
@@ -1060,7 +1060,7 @@ def toggle_todo(todo_id):
     return redirect(url_for('supervisor.dashboard'))
 
 
-@supervisor.route("/delete_todo/<int:todo_id>")
+@supervisor.route("/supervisor/delete_todo/<int:todo_id>")
 @login_required
 def delete_todo(todo_id):
     """
@@ -1323,7 +1323,7 @@ def unassign_thesis(thesis_id):
     return redirect(url_for('supervisor.theses_data'))
 
 
-@supervisor.route("/add_resource", methods=["POST"])
+@supervisor.route("/supervisor/add_resource", methods=["POST"])
 @login_required
 def add_resource():
     """
@@ -1361,7 +1361,7 @@ def add_resource():
     return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
 
 
-@supervisor.route("/add_objective", methods=["POST"])
+@supervisor.route("/supervisor/add_objective", methods=["POST"])
 @login_required
 def add_objective():
     """
@@ -1425,7 +1425,7 @@ def edit_objective(objective_id):
     return redirect(url_for('supervisor.thesis_detail', thesis_id=objective.thesis_id))
 
 
-@supervisor.route("/add_hypothesis", methods=["POST"])
+@supervisor.route("/supervisor/add_hypothesis", methods=["POST"])
 @login_required
 def add_hypothesis():
     """
@@ -1490,7 +1490,7 @@ def edit_hypothesis(hypothesis_id):
 
 
 # Meeting Notes routes for supervisors
-@supervisor.route("/add_meeting_note", methods=["POST"])
+@supervisor.route("/supervisor/add_meeting_note", methods=["POST"])
 @login_required
 def add_meeting_note():
     """
@@ -1540,7 +1540,7 @@ def add_meeting_note():
     return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
 
 
-@supervisor.route("/edit_meeting_note/<int:note_id>", methods=["POST"])
+@supervisor.route("/supervisor/edit_meeting_note/<int:note_id>", methods=["POST"])
 @login_required
 def edit_meeting_note(note_id):
     """
@@ -1577,7 +1577,7 @@ def edit_meeting_note(note_id):
     return redirect(url_for('supervisor.thesis_detail', thesis_id=meeting_note.thesis_id))
 
 
-@supervisor.route("/meeting_note/<int:note_id>")
+@supervisor.route("/supervisor/meeting_note/<int:note_id>")
 @login_required
 def meeting_note_detail(note_id):
     """
@@ -1609,7 +1609,7 @@ def meeting_note_detail(note_id):
                          dt=datetime.fromtimestamp)
 
 
-@supervisor.route("/delete_meeting_note/<int:note_id>", methods=["POST"])
+@supervisor.route("/supervisor/delete_meeting_note/<int:note_id>", methods=["POST"])
 @login_required
 def delete_meeting_note(note_id):
     """

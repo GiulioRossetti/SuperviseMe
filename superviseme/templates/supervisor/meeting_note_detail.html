@@ -262,7 +262,7 @@
         function editMeetingNote(noteId, title, content) {
             $('#editMeetingNoteTitle').val(title);
             $('#editMeetingNoteContent').val(content);
-            $('#editMeetingNoteForm').attr('action', '/edit_meeting_note/' + noteId);
+            $('#editMeetingNoteForm').attr('action', '/supervisor/edit_meeting_note/' + noteId);
             $('#editMeetingNoteModal').modal('show');
         }
         
