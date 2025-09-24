@@ -1,0 +1,24 @@
+{% extends "errors/base_error.html" %}
+
+{% block title %}503 - Service Unavailable - SuperviseMe{% endblock %}
+
+{% block error_code %}503{% endblock %}
+
+{% block error_display %}503{% endblock %}
+
+{% block error_title %}Service Unavailable{% endblock %}
+
+{% block error_description %}
+The service is temporarily unavailable due to maintenance or high load. Please try again later.
+{% endblock %}
+
+{% block additional_actions %}
+<div class="mt-4">
+    <p class="text-muted">
+        We're working to restore normal service as quickly as possible. Thank you for your patience.
+    </p>
+    <a href="javascript:location.reload()" class="btn btn-info mt-2">
+        <i class="fas fa-sync-alt"></i> Check Again
+    </a>
+</div>
+{% endblock %}

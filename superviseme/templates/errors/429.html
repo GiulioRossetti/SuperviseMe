@@ -1,0 +1,27 @@
+{% extends "errors/base_error.html" %}
+
+{% block title %}429 - Too Many Requests - SuperviseMe{% endblock %}
+
+{% block error_code %}429{% endblock %}
+
+{% block error_display %}429{% endblock %}
+
+{% block error_title %}Too Many Requests{% endblock %}
+
+{% block error_description %}
+You have made too many requests in a short period. Please wait a moment and try again.
+{% endblock %}
+
+{% block additional_actions %}
+<div class="mt-4">
+    <small class="text-muted">
+        Rate limiting helps us maintain service quality for all users. Please try again in a few minutes.
+    </small>
+</div>
+<script>
+    // Auto-refresh after 30 seconds
+    setTimeout(function() {
+        window.location.reload();
+    }, 30000);
+</script>
+{% endblock %}

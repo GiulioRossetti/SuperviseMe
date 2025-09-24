@@ -8,9 +8,6 @@ from werkzeug.security import generate_password_hash
 import time
 import logging
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 client_processes = {}
@@ -239,6 +236,15 @@ def create_app(db_type="sqlite"):
 
     from superviseme.routes.notifications import notifications as notifications_blueprint
     app.register_blueprint(notifications_blueprint)
+
+    # Register error handlers
+    from superviseme.routes.errors import errors as errors_blueprint
+    app.register_blueprint(errors_blueprint)
+
+    # Set up comprehensive logging
+    from superviseme.utils.logging_config import setup_logging, log_request_response
+    loggers = setup_logging(app)
+    log_request_response(app, loggers)
 
     # Initialize the task scheduler for background jobs
     from superviseme.utils.task_scheduler import init_scheduler
