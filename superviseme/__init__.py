@@ -278,4 +278,31 @@ def create_app(db_type="sqlite"):
         base_url = f"/{user_type}/" if user_type else "/"
         return format_text_with_todo_links(html, base_url)
 
+    # Register template globals
+    @app.template_global()
+    def moment():
+        """Return a datetime object for the current moment"""
+        from datetime import datetime
+        class MomentWrapper:
+            def __init__(self, dt):
+                self.dt = dt
+            
+            def format(self, format_string):
+                """Format datetime using strftime-like format but with moment.js style"""
+                # Convert moment.js format to Python strftime format
+                format_mapping = {
+                    'YYYY': '%Y',
+                    'MM': '%m', 
+                    'DD': '%d',
+                    'HH': '%H',
+                    'mm': '%M',
+                    'ss': '%S'
+                }
+                python_format = format_string
+                for moment_fmt, python_fmt in format_mapping.items():
+                    python_format = python_format.replace(moment_fmt, python_fmt)
+                return self.dt.strftime(python_format)
+        
+        return MomentWrapper(datetime.now())
+
     return app
