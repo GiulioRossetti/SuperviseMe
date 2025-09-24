@@ -183,7 +183,7 @@ def create_thesis_status_change_notification(thesis_id, changer_id, new_status):
                 title=title,
                 message=message,
                 thesis_id=thesis_id,
-                action_url=f"/supervisor/thesis/{thesis_id}"
+                action_url=f"/thesis/{thesis_id}"
             )
 
 
