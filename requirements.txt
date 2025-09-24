@@ -8,3 +8,4 @@ Flask-Mail>=0.9.1
 APScheduler>=3.10.4
 pyTelegramBotAPI>=4.14.0
 Markdown>=3.0.0
+flask-moment
