@@ -86,7 +86,7 @@ def dashboard():
                            theses_by_supervisor=theses_by_supervisor, available_theses=available_theses_by_supervisor, 
                            todos=todos, students_info=students_info, dt=datetime.fromtimestamp, str=str)
 
-@supervisor.route("/supervisee")
+@supervisor.route("/supervisor/supervisee")
 @login_required
 def supervisee_data():
     """
@@ -134,7 +134,7 @@ def supervisee_data():
                          past_supervisees=past_supervisees)
 
 
-@supervisor.route("/theses")
+@supervisor.route("/supervisor/theses")
 @login_required
 def theses_data():
     """
@@ -151,7 +151,7 @@ def theses_data():
     return render_template("supervisor/theses.html", theses=theses, dt=datetime.fromtimestamp)
 
 
-@supervisor.route("/thesis/<thesis_id>")
+@supervisor.route("/supervisor/thesis/<thesis_id>")
 @login_required
 def thesis_detail(thesis_id):
     """
@@ -305,7 +305,7 @@ def delete_thesis(thesis_id):
     return theses_data()
 
 
-@supervisor.route("/delete_comment", methods=["POST"])
+@supervisor.route("/supervisor/delete_comment", methods=["POST"])
 @login_required
 def delete_comment():
     """
@@ -382,7 +382,7 @@ def modify_comment():
     return thesis_detail(comment.thesis_id)
 
 
-@supervisor.route("/tag_thesis", methods=["POST"])
+@supervisor.route("/supervisor/tag_thesis", methods=["POST"])
 @login_required
 def tag_thesis():
     """
@@ -405,7 +405,7 @@ def tag_thesis():
     return thesis_detail(thesis_id)
 
 
-@supervisor.route("/delete_tag", methods=["POST"])
+@supervisor.route("/supervisor/delete_tag", methods=["POST"])
 @login_required
 def delete_tag():
     """
@@ -443,7 +443,7 @@ def tag_update():
     return thesis_detail(update_id)
 
 
-@supervisor.route("/delete_update_tag", methods=["POST"])
+@supervisor.route("/supervisor/delete_update_tag", methods=["POST"])
 @login_required
 def delete_update_tag():
     """
@@ -458,7 +458,7 @@ def delete_update_tag():
     return thesis_detail(tag.update_id)
 
 
-@supervisor.route("/add_supervisee", methods=["POST"])
+@supervisor.route("/supervisor/add_supervisee", methods=["POST"])
 @login_required
 def add_supervisee():
     """
@@ -481,7 +481,7 @@ def add_supervisee():
     return supervisee_data()
 
 
-@supervisor.route("/remove_supervisee/<int:supervisee_id>")
+@supervisor.route("/supervisor/remove_supervisee/<int:supervisee_id>")
 @login_required
 def remove_supervisee(supervisee_id):
     """
@@ -496,7 +496,7 @@ def remove_supervisee(supervisee_id):
     return supervisee_data()
 
 
-@supervisor.route("/delete_supervisee/<int:supervisee_id>")
+@supervisor.route("/supervisor/delete_supervisee/<int:supervisee_id>")
 @login_required
 def delete_supervisee(supervisee_id):
     """
@@ -511,7 +511,7 @@ def delete_supervisee(supervisee_id):
     return supervisee_data()
 
 
-@supervisor.route("/create_thesis", methods=["POST"])
+@supervisor.route("/supervisor/create_thesis", methods=["POST"])
 @login_required
 def create_thesis():
     """
@@ -549,7 +549,7 @@ def create_thesis():
     return redirect(url_for('supervisor.theses_data'))
 
 
-@supervisor.route("/update_thesis", methods=["POST"])
+@supervisor.route("/supervisor/update_thesis", methods=["POST"])
 @login_required
 def update_thesis():
     """
@@ -568,7 +568,7 @@ def update_thesis():
     return theses_data()
 
 
-@supervisor.route("/delete_thesis/<int:thesis_id>")
+@supervisor.route("/supervisor/delete_thesis/<int:thesis_id>")
 @login_required
 def delete_thesis(thesis_id):
     """
@@ -593,7 +593,7 @@ def delete_thesis(thesis_id):
     return redirect(url_for('supervisor.theses_data'))
 
 
-@supervisor.route("/add_thesis_supervisor", methods=["POST"])
+@supervisor.route("/supervisor/add_thesis_supervisor", methods=["POST"])
 @login_required
 def add_thesis_supervisor():
     thesis_id = request.form.get("thesis_id")
@@ -610,7 +610,7 @@ def add_thesis_supervisor():
     return theses_data()
 
 
-@supervisor.route("/remove_thesis_supervisor")
+@supervisor.route("/supervisor/remove_thesis_supervisor")
 @login_required
 def remove_thesis_supervisor():
     """
@@ -689,7 +689,7 @@ def search():
                          user_type="supervisor")
 
 
-@supervisor.route("/freeze_updates", methods=["POST"])
+@supervisor.route("/supervisor/freeze_updates", methods=["POST"])
 @login_required
 def freeze_updates():
     """
@@ -703,7 +703,7 @@ def freeze_updates():
     return thesis_detail(update.thesis_id)
 
 
-@supervisor.route("/unfreeze_updates", methods=["POST"])
+@supervisor.route("/supervisor/unfreeze_updates", methods=["POST"])
 @login_required
 def unfreeze_updates():
     """
@@ -717,7 +717,7 @@ def unfreeze_updates():
     return thesis_detail(update.thesis_id)
 
 
-@supervisor.route("/freeze_thesis", methods=["POST"])
+@supervisor.route("/supervisor/freeze_thesis", methods=["POST"])
 @login_required
 def freeze_thesis():
     """
@@ -731,7 +731,7 @@ def freeze_thesis():
     return theses_data()
 
 
-@supervisor.route("/unfreeze_thesis", methods=["POST"])
+@supervisor.route("/supervisor/unfreeze_thesis", methods=["POST"])
 @login_required
 def unfreeze_thesis():
     """
