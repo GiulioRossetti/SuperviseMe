@@ -51,7 +51,7 @@ def migrate_database():
 def create_sample_notifications():
     """Create some sample notifications for testing"""
     from superviseme.models import User_mgmt, Thesis
-    from superviseme.utils.notifications import create_notification
+    from superviseme.utils.notifications import create_notification, build_role_aware_url
     
     try:
         # Get some users for testing
@@ -60,24 +60,28 @@ def create_sample_notifications():
         student_user = User_mgmt.query.filter_by(user_type='student').first()
         
         if admin_user and supervisor_user:
+            # Create role-aware URL for supervisor dashboard
+            action_url = build_role_aware_url(supervisor_user.id, 'dashboard')
             create_notification(
                 recipient_id=supervisor_user.id,
                 actor_id=admin_user.id,
                 notification_type='system',
                 title='Welcome to SuperviseMe Notifications!',
                 message='The new notification system is now active. You will receive notifications about thesis activities.',
-                action_url='/supervisor/dashboard'
+                action_url=action_url
             )
             print("📧 Sample notification created for supervisor")
             
         if supervisor_user and student_user:
+            # Create role-aware URL for student thesis page
+            action_url = build_role_aware_url(student_user.id, 'thesis')
             create_notification(
                 recipient_id=student_user.id,
                 actor_id=supervisor_user.id,
                 notification_type='system',
                 title='New Notification System',
                 message='You will now receive notifications about your thesis progress and supervisor feedback.',
-                action_url='/thesis'
+                action_url=action_url
             )
             print("📧 Sample notification created for student")
             

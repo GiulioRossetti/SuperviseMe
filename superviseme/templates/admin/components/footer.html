@@ -1,7 +1,28 @@
- <!-- Bootstrap core JavaScript-->
+<footer class="sticky-footer bg-white">
+  <div class="container my-auto">
+    <div class="copyright text-center my-auto">
+      <span>SuperviseMe - 2025</span>
+    </div>
+  </div>
+</footer>
+            <!-- End of Footer -->
 
+        </div>
+        <!-- End of Content Wrapper -->
 
-   <script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 
     <!-- Core plugin JavaScript-->
@@ -20,15 +41,14 @@
     <script src="{{ url_for('static', filename='assets/js/vendor/datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ url_for('static', filename='assets/js/vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
 
+    <!-- Page level custom scripts -->
+    <script>
+        $(document).ready(function() {
+            $('#dataTable').DataTable();
+            $('#dataTable1').DataTable();
+        });
+    </script>
 
 </body>
 
 </html>
-
-<footer class="sticky-footer bg-white">
-  <div class="container my-auto">
-    <div class="copyright text-center my-auto">
-      <span>SuperviseMe - 2025</span>
-    </div>
-  </div>
-</footer>
