@@ -395,7 +395,12 @@
                                                 {% for note in meeting_notes %}
                                                 <tr>
                                                     <td>
-                                                        <strong>{{ note.title }}</strong>
+                                                        <strong>
+                                                            <a href="{{ url_for('student.meeting_note_detail', note_id=note.id) }}" 
+                                                               class="text-decoration-none">
+                                                                {{ note.title }}
+                                                            </a>
+                                                        </strong>
                                                     </td>
                                                     <td>
                                                         <div class="meeting-note-content">
@@ -441,8 +446,12 @@
                                                         </small>
                                                     </td>
                                                     <td>
-                                                        {% if note.author_id == thesis.author_id %}
                                                         <div class="btn-group" role="group">
+                                                            <a href="{{ url_for('student.meeting_note_detail', note_id=note.id) }}" 
+                                                               class="btn btn-outline-info btn-sm" title="View Details">
+                                                                <i class="fas fa-eye"></i>
+                                                            </a>
+                                                            {% if note.author_id == thesis.author_id %}
                                                             <button class="btn btn-outline-primary btn-sm" 
                                                                     onclick="editMeetingNote({{ note.id }}, '{{ note.title }}', '{{ note.content|replace('\n', '\\n')|replace('\'', '\\\'') }}')"
                                                                     title="Edit">
@@ -455,10 +464,8 @@
                                                                     <i class="fas fa-trash"></i>
                                                                 </button>
                                                             </form>
+                                                            {% endif %}
                                                         </div>
-                                                        {% else %}
-                                                        <small class="text-muted">View only</small>
-                                                        {% endif %}
                                                     </td>
                                                 </tr>
                                                 {% endfor %}
