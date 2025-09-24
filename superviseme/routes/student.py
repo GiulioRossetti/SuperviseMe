@@ -18,7 +18,9 @@ def dashboard():
     This route is for student dashboard. It shows the student's thesis information,
     updates, and progress.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Update user activity
     update_user_activity("student_dashboard")
@@ -84,7 +86,9 @@ def thesis_data():
     This route is for thesis data. It retrieves the student's thesis and related data
     and renders them in a template.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Get student's thesis
     thesis = Thesis.query.filter_by(author_id=current_user.id).first()
@@ -152,7 +156,9 @@ def post_update():
     This route handles posting updates to a thesis. It retrieves the necessary data from the form,
     creates a new Update object, and saves it to the database.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Update user activity
     update_user_activity("posting_thesis_update")
@@ -196,7 +202,9 @@ def post_comment():
     This route handles posting comments on updates. It retrieves the necessary data from the form,
     creates a new Update object with the comment, and saves it to the database.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     update_id = request.form.get("update_id")
     content = request.form.get("content")
@@ -229,7 +237,9 @@ def delete_update(update_id):
     This route handles deleting an update. It retrieves the update by its ID,
     deletes it from the database, and commits the changes.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify the update belongs to the current student
     update = Thesis_Update.query.filter_by(
@@ -252,7 +262,9 @@ def delete_comment(comment_id):
     This route handles deleting a comment. It retrieves the comment by its ID,
     deletes it from the database, and commits the changes.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify the comment belongs to the current student
     comment = Thesis_Update.query.filter_by(
@@ -275,7 +287,9 @@ def modify_comment():
     This route handles modifying a comment. It retrieves the necessary data from the form,
     updates the comment in the database, and commits the changes.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     comment_id = request.form.get("comment_id")
     new_content = request.form.get("new_content")
@@ -301,7 +315,9 @@ def modify_update():
     This route handles modifying an update. It retrieves the necessary data from the form,
     updates the update in the database, and commits the changes.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Update user activity
     update_user_activity("modifying_thesis_update")
@@ -330,7 +346,9 @@ def tag_update():
     This route handles tagging an update. It retrieves the necessary data from the form,
     creates a new Update_Tag object, and saves it to the database.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     update_id = request.form.get("update_id")
     tag = request.form.get("tag")
@@ -361,7 +379,9 @@ def remove_update_tag():
     This route handles removing a tag from an update. It retrieves the necessary data from the form,
     finds the Update_Tag object, deletes it from the database, and commits the changes.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     update_id = request.form.get("update_id")
     tag = request.form.get("tag")
@@ -389,7 +409,9 @@ def add_resource():
     This route handles adding a resource to a thesis. It retrieves the necessary data from the form,
     creates a new Resource object, and saves it to the database.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     resource_type = request.form.get("resource_type")
@@ -422,7 +444,9 @@ def delete_resource(resource_id):
     This route handles deleting a resource. It retrieves the resource by its ID,
     deletes it from the database, and commits the changes.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify the resource belongs to a thesis owned by the current student
     resource = Resource.query.join(Thesis).filter(
@@ -444,7 +468,9 @@ def add_objective():
     This route handles adding an objective to a thesis. It retrieves the necessary data from the form,
     creates a new Thesis_Objective object, and saves it to the database.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     title = request.form.get("title")
@@ -476,7 +502,9 @@ def delete_objective(objective_id):
     This route handles deleting an objective. It retrieves the objective by its ID,
     deletes it from the database, and commits the changes.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify the objective belongs to the current student
     objective = Thesis_Objective.query.filter_by(
@@ -498,7 +526,9 @@ def add_hypothesis():
     This route handles adding a hypothesis to a thesis. It retrieves the necessary data from the form,
     creates a new Thesis_Hypothesis object, and saves it to the database.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     title = request.form.get("title")
@@ -530,7 +560,9 @@ def delete_hypothesis(hypothesis_id):
     This route handles deleting a hypothesis. It retrieves the hypothesis by its ID,
     deletes it from the database, and commits the changes.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify the hypothesis belongs to the current student
     hypothesis = Thesis_Hypothesis.query.filter_by(
@@ -552,7 +584,9 @@ def add_todo():
     """
     Add a new todo item to the student's thesis
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     title = request.form.get("title")
@@ -599,7 +633,9 @@ def toggle_todo(todo_id):
     """
     Toggle todo completion status
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Get the todo item and verify access
     todo = Todo.query.join(Thesis).filter(
@@ -628,7 +664,9 @@ def search():
     Handle search requests from student interface.
     Search within student's thesis context.
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     search_term = request.form.get("search_term", "").strip()
     
@@ -697,7 +735,9 @@ def todo_detail(todo_id):
     """
     Display todo detail with linked updates and references for student
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Get the todo and verify access (must be from student's thesis)
     todo = Todo.query.join(Thesis, Todo.thesis_id == Thesis.id).filter(
@@ -726,7 +766,9 @@ def delete_todo(todo_id):
     """
     Delete a todo item
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Get the todo item and verify access (only author can delete)
     todo = Todo.query.join(Thesis).filter(
@@ -749,7 +791,9 @@ def add_meeting_note():
     """
     Allow students to add meeting notes to their thesis
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     title = request.form.get("title")
@@ -795,7 +839,9 @@ def edit_meeting_note(note_id):
     """
     Allow students to edit their meeting notes
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify student has access to this meeting note
     meeting_note = MeetingNote.query.join(Thesis).filter(
@@ -831,7 +877,9 @@ def delete_meeting_note(note_id):
     """
     Allow students to delete their meeting notes
     """
-    check_privileges(current_user.username, role="student")
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify student has access to this meeting note
     meeting_note = MeetingNote.query.join(Thesis).filter(
