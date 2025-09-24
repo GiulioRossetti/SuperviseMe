@@ -745,7 +745,7 @@ def unfreeze_thesis():
     return theses_data()
 
 
-@supervisor.route("/set_advancement_status", methods=["POST"])
+@supervisor.route("/supervisor/set_advancement_status", methods=["POST"])
 @login_required
 def set_advancement_status():
     """
@@ -766,7 +766,7 @@ def set_advancement_status():
     return theses_data()
 
 
-@supervisor.route("/delete_advancement_status", methods=["POST"])
+@supervisor.route("/supervisor/delete_advancement_status", methods=["POST"])
 @login_required
 def delete_advancement_status():
     """
@@ -781,7 +781,7 @@ def delete_advancement_status():
     return theses_data()
 
 
-@supervisor.route("/thesis_unfolding", methods=["POST"])
+@supervisor.route("/supervisor/thesis_unfolding", methods=["POST"])
 @login_required
 def thesis_unfolding():
     """
@@ -794,7 +794,7 @@ def thesis_unfolding():
     return theses_data("progress.html", thesis=thesis, thesis_id=thesis_id)
 
 
-@supervisor.route("/freeze_objective/<int:objective_id>", methods=["POST"])
+@supervisor.route("/supervisor/freeze_objective/<int:objective_id>", methods=["POST"])
 @login_required
 def freeze_objective(objective_id):
     """
@@ -821,7 +821,7 @@ def freeze_objective(objective_id):
     return redirect(url_for('supervisor.theses_data'))
 
 
-@supervisor.route("/unfreeze_objective/<int:objective_id>", methods=["POST"])
+@supervisor.route("/supervisor/unfreeze_objective/<int:objective_id>", methods=["POST"])
 @login_required
 def unfreeze_objective(objective_id):
     """
@@ -848,7 +848,7 @@ def unfreeze_objective(objective_id):
     return redirect(url_for('supervisor.theses_data'))
 
 
-@supervisor.route("/freeze_hypothesis/<int:hypothesis_id>", methods=["POST"])
+@supervisor.route("/supervisor/freeze_hypothesis/<int:hypothesis_id>", methods=["POST"])
 @login_required
 def freeze_hypothesis(hypothesis_id):
     """
@@ -875,7 +875,7 @@ def freeze_hypothesis(hypothesis_id):
     return redirect(url_for('supervisor.theses_data'))
 
 
-@supervisor.route("/unfreeze_hypothesis/<int:hypothesis_id>", methods=["POST"])
+@supervisor.route("/supervisor/unfreeze_hypothesis/<int:hypothesis_id>", methods=["POST"])
 @login_required
 def unfreeze_hypothesis(hypothesis_id):
     """
@@ -902,7 +902,7 @@ def unfreeze_hypothesis(hypothesis_id):
     return redirect(url_for('supervisor.theses_data'))
 
 
-@supervisor.route("/comment_on_update", methods=["POST"])
+@supervisor.route("/supervisor/comment_on_update", methods=["POST"])
 @login_required
 def comment_on_update():
     """
@@ -942,7 +942,7 @@ def comment_on_update():
     return redirect(url_for('supervisor.theses_data'))
 
 
-@supervisor.route("/tag_student_update", methods=["POST"])
+@supervisor.route("/supervisor/tag_student_update", methods=["POST"])
 @login_required
 def tag_student_update():
     """
@@ -979,7 +979,7 @@ def tag_student_update():
     return redirect(url_for('supervisor.theses_data'))
 
 
-@supervisor.route("/set_thesis_status", methods=["POST"])
+@supervisor.route("/supervisor/set_thesis_status", methods=["POST"])
 @login_required
 def set_thesis_status():
     """
@@ -1123,7 +1123,7 @@ def delete_todo(todo_id):
 
 
 # Student management routes for supervisors
-@supervisor.route("/create_student", methods=["POST"])
+@supervisor.route("/supervisor/create_student", methods=["POST"])
 @login_required
 def create_student():
     """
@@ -1177,7 +1177,7 @@ def create_student():
     return redirect(url_for('supervisor.supervisee_data'))
 
 
-@supervisor.route("/edit_student/<int:student_id>", methods=["POST"])
+@supervisor.route("/supervisor/edit_student/<int:student_id>", methods=["POST"])
 @login_required
 def edit_student(student_id):
     """
@@ -1257,7 +1257,7 @@ def todo_detail(todo_id):
                            dt=datetime.fromtimestamp)
 
 
-@supervisor.route("/delete_student/<int:student_id>", methods=["POST", "DELETE"])
+@supervisor.route("/supervisor/delete_student/<int:student_id>", methods=["POST", "DELETE"])
 @login_required
 def delete_student(student_id):
     """
@@ -1298,7 +1298,7 @@ def delete_student(student_id):
     return redirect(url_for('supervisor.supervisee_data'))
 
 
-@supervisor.route("/assign_thesis", methods=["POST"])
+@supervisor.route("/supervisor/assign_thesis", methods=["POST"])
 @login_required
 def assign_thesis():
     """
@@ -1341,7 +1341,7 @@ def assign_thesis():
     return redirect(url_for('supervisor.theses_data'))
 
 
-@supervisor.route("/unassign_thesis/<int:thesis_id>", methods=["POST"])
+@supervisor.route("/supervisor/unassign_thesis/<int:thesis_id>", methods=["POST"])
 @login_required
 def unassign_thesis(thesis_id):
     """
@@ -1454,7 +1454,7 @@ def add_objective():
     return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
 
 
-@supervisor.route("/edit_objective/<int:objective_id>", methods=["POST"])
+@supervisor.route("/supervisor/edit_objective/<int:objective_id>", methods=["POST"])
 @login_required
 def edit_objective(objective_id):
     """
@@ -1522,7 +1522,7 @@ def add_hypothesis():
     return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
 
 
-@supervisor.route("/edit_hypothesis/<int:hypothesis_id>", methods=["POST"])
+@supervisor.route("/supervisor/edit_hypothesis/<int:hypothesis_id>", methods=["POST"])
 @login_required
 def edit_hypothesis(hypothesis_id):
     """
