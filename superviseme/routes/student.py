@@ -896,3 +896,36 @@ def delete_meeting_note(note_id):
     
     flash("Meeting note deleted successfully")
     return redirect(url_for('student.thesis_data'))
+
+
+@student.route("/student/meeting_note/<int:note_id>")
+@login_required
+def meeting_note_detail(note_id):
+    """
+    Display detailed view of a meeting note with full CRUD capabilities for student
+    """
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Verify student has access to this meeting note
+    meeting_note = MeetingNote.query.join(Thesis).filter(
+        MeetingNote.id == note_id,
+        Thesis.author_id == current_user.id
+    ).first()
+    
+    if not meeting_note:
+        flash("Meeting note not found or not accessible")
+        return redirect(url_for('student.dashboard'))
+    
+    # Get thesis information for context
+    thesis = meeting_note.thesis
+    
+    # Get todos for this thesis for reference dropdown
+    todos = Todo.query.filter_by(thesis_id=thesis.id).order_by(Todo.created_at.desc()).all()
+    
+    return render_template("student/meeting_note_detail.html", 
+                         meeting_note=meeting_note, 
+                         thesis=thesis,
+                         todos=todos,
+                         dt=datetime.fromtimestamp)
