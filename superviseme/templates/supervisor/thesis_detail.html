@@ -186,7 +186,7 @@
                                                     {{ latest_status.status|title }}
                                                 </span>
                                                 <small class="text-muted ml-2">
-                                                    Updated: {{ dt(latest_status.updated_at).strftime('%B %d, %Y at %I:%M %p') }}
+                                                    Updated: {{ dt(latest_status.updated_at).strftime('%B %d, %Y at %I:%M %p') if latest_status.updated_at else 'Unknown' }}
                                                 </small>
                                             </div>
                                         </div>
@@ -198,7 +198,7 @@
                                             {% for status in thesis.status[:-1]|reverse %}
                                             <div class="border-left border-secondary pl-3 mb-2">
                                                 <span class="badge badge-secondary">{{ status.status|title }}</span>
-                                                <small class="text-muted ml-2">{{ dt(status.updated_at).strftime('%B %d, %Y') }}</small>
+                                                <small class="text-muted ml-2">{{ dt(status.updated_at).strftime('%B %d, %Y') if status.updated_at else 'Unknown' }}</small>
                                             </div>
                                             {% endfor %}
                                         </div>
@@ -246,7 +246,7 @@
                                             </div>
                                             <p class="text-gray-700">{{ objective.description }}</p>
                                             <small class="text-muted">
-                                                Created: {{ dt(objective.created_at).strftime('%B %d, %Y at %I:%M %p') }}
+                                                Created: {{ dt(objective.created_at).strftime('%B %d, %Y at %I:%M %p') if objective.created_at else 'Unknown' }}
                                                 {% if objective.author %}by {{ objective.author.name }} {{ objective.author.surname }}{% endif %}
                                             </small>
                                         </div>
@@ -293,7 +293,7 @@
                                             </div>
                                             <p class="text-gray-700">{{ hypothesis.description }}</p>
                                             <small class="text-muted">
-                                                Created: {{ dt(hypothesis.created_at).strftime('%B %d, %Y at %I:%M %p') }}
+                                                Created: {{ dt(hypothesis.created_at).strftime('%B %d, %Y at %I:%M %p') if hypothesis.created_at else 'Unknown' }}
                                                 {% if hypothesis.author %}by {{ hypothesis.author.name }} {{ hypothesis.author.surname }}{% endif %}
                                             </small>
                                         </div>
@@ -402,7 +402,7 @@
                                                     {% for comment in child_comments %}
                                                     <div class="bg-light p-2 rounded mb-2">
                                                         <strong class="text-warning">You:</strong>
-                                                        <small class="text-muted">{{ dt(comment.created_at).strftime('%B %d, %Y at %I:%M %p') }}</small>
+                                                        <small class="text-muted">{{ dt(comment.created_at).strftime('%B %d, %Y at %I:%M %p') if comment.created_at else 'Unknown' }}</small>
                                                         <div class="mt-1">{{ comment.content|replace('\n', '<br>')|safe }}</div>
                                                     </div>
                                                     {% endfor %}
@@ -481,12 +481,12 @@
                                                         </small>
                                                     </td>
                                                     <td>
-                                                        <small class="text-muted">{{ dt(note.created_at).strftime('%m/%d/%Y') }}</small>
+                                                        <small class="text-muted">{{ dt(note.created_at).strftime('%m/%d/%Y') if note.created_at else 'Unknown' }}</small>
                                                     </td>
                                                     <td>
                                                         <small class="text-muted">
                                                             {% if note.updated_at != note.created_at %}
-                                                                {{ dt(note.updated_at).strftime('%m/%d/%Y') }}
+                                                                {{ dt(note.updated_at).strftime('%m/%d/%Y') if note.updated_at else 'Unknown' }}
                                                             {% else %}
                                                                 -
                                                             {% endif %}
