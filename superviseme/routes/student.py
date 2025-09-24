@@ -79,7 +79,7 @@ def dashboard():
                          dt=datetime.fromtimestamp)
 
 
-@student.route("/thesis")
+@student.route("/student/thesis")
 @login_required
 def thesis_data():
     """
@@ -149,7 +149,7 @@ def thesis_data():
                            meeting_notes=meeting_notes, thesis_statuses=thesis_statuses, dt=datetime.fromtimestamp)
 
 
-@student.route("/post_update", methods=["POST"])
+@student.route("/student/post_update", methods=["POST"])
 @login_required
 def post_update():
     """
@@ -195,7 +195,7 @@ def post_update():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/post_comment", methods=["POST"])
+@student.route("/student/post_comment", methods=["POST"])
 @login_required
 def post_comment():
     """
@@ -230,7 +230,7 @@ def post_comment():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/delete_update/<int:update_id>")
+@student.route("/student/delete_update/<int:update_id>")
 @login_required
 def delete_update(update_id):
     """
@@ -255,7 +255,7 @@ def delete_update(update_id):
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/delete_comment/<int:comment_id>")
+@student.route("/student/delete_comment/<int:comment_id>")
 @login_required
 def delete_comment(comment_id):
     """
@@ -280,7 +280,7 @@ def delete_comment(comment_id):
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/modify_comment", methods=["POST"])
+@student.route("/student/modify_comment", methods=["POST"])
 @login_required
 def modify_comment():
     """
@@ -308,7 +308,7 @@ def modify_comment():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/modify_update", methods=["POST"])
+@student.route("/student/modify_update", methods=["POST"])
 @login_required
 def modify_update():
     """
@@ -339,7 +339,7 @@ def modify_update():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/tag_update", methods=["POST"])
+@student.route("/student/tag_update", methods=["POST"])
 @login_required
 def tag_update():
     """
@@ -372,7 +372,7 @@ def tag_update():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/remove_update_tag", methods=["POST"])
+@student.route("/student/remove_update_tag", methods=["POST"])
 @login_required
 def remove_update_tag():
     """
@@ -402,7 +402,7 @@ def remove_update_tag():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/add_resource", methods=["POST"])
+@student.route("/student/add_resource", methods=["POST"])
 @login_required
 def add_resource():
     """
@@ -437,7 +437,7 @@ def add_resource():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/delete_resource/<int:resource_id>")
+@student.route("/student/delete_resource/<int:resource_id>")
 @login_required
 def delete_resource(resource_id):
     """
@@ -461,7 +461,7 @@ def delete_resource(resource_id):
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/add_objective", methods=["POST"])
+@student.route("/student/add_objective", methods=["POST"])
 @login_required
 def add_objective():
     """
@@ -495,7 +495,7 @@ def add_objective():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/delete_objective/<int:objective_id>")
+@student.route("/student/delete_objective/<int:objective_id>")
 @login_required
 def delete_objective(objective_id):
     """
@@ -519,7 +519,7 @@ def delete_objective(objective_id):
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/add_hypothesis", methods=["POST"])
+@student.route("/student/add_hypothesis", methods=["POST"])
 @login_required
 def add_hypothesis():
     """
@@ -553,7 +553,7 @@ def add_hypothesis():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/delete_hypothesis/<int:hypothesis_id>")
+@student.route("/student/delete_hypothesis/<int:hypothesis_id>")
 @login_required
 def delete_hypothesis(hypothesis_id):
     """
@@ -578,7 +578,7 @@ def delete_hypothesis(hypothesis_id):
 
 
 # Todo routes for students
-@student.route("/add_todo", methods=["POST"])
+@student.route("/student/add_todo", methods=["POST"])
 @login_required
 def add_todo():
     """
@@ -627,7 +627,7 @@ def add_todo():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/toggle_todo/<int:todo_id>")
+@student.route("/student/toggle_todo/<int:todo_id>")
 @login_required
 def toggle_todo(todo_id):
     """
@@ -760,7 +760,7 @@ def todo_detail(todo_id):
                            dt=datetime.fromtimestamp)
 
 
-@student.route("/delete_todo/<int:todo_id>")
+@student.route("/student/delete_todo/<int:todo_id>")
 @login_required
 def delete_todo(todo_id):
     """
@@ -785,7 +785,7 @@ def delete_todo(todo_id):
 
 
 # Meeting Notes routes for students
-@student.route("/add_meeting_note", methods=["POST"])
+@student.route("/student/add_meeting_note", methods=["POST"])
 @login_required
 def add_meeting_note():
     """
@@ -833,7 +833,7 @@ def add_meeting_note():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/edit_meeting_note/<int:note_id>", methods=["POST"])
+@student.route("/student/edit_meeting_note/<int:note_id>", methods=["POST"])
 @login_required
 def edit_meeting_note(note_id):
     """
@@ -871,7 +871,7 @@ def edit_meeting_note(note_id):
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/delete_meeting_note/<int:note_id>", methods=["POST"])
+@student.route("/student/delete_meeting_note/<int:note_id>", methods=["POST"])
 @login_required
 def delete_meeting_note(note_id):
     """
