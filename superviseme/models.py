@@ -184,6 +184,31 @@ class Notification(db.Model):
     thesis = db.relationship("Thesis", backref="notifications", lazy=True)
 
 
+class MeetingNote(db.Model):
+    __tablename__ = "meeting_note"
+    id = db.Column(db.Integer, primary_key=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)  # Markdown content
+    created_at = db.Column(db.Integer, nullable=False)
+    updated_at = db.Column(db.Integer, nullable=False)
+    
+    thesis = db.relationship("Thesis", backref="meeting_notes", lazy=True)
+    author = db.relationship("User_mgmt", backref="authored_meeting_notes", lazy=True)
+
+
+class MeetingNoteReference(db.Model):
+    __tablename__ = "meeting_note_reference"
+    id = db.Column(db.Integer, primary_key=True)
+    meeting_note_id = db.Column(db.Integer, db.ForeignKey("meeting_note.id"), nullable=False)
+    todo_id = db.Column(db.Integer, db.ForeignKey("todo.id"), nullable=False)
+    created_at = db.Column(db.Integer, nullable=False)
+    
+    meeting_note = db.relationship("MeetingNote", backref="todo_references", lazy=True)
+    todo = db.relationship("Todo", backref="meeting_note_references", lazy=True)
+
+
 class TelegramBotConfig(db.Model):
     __tablename__ = "telegram_bot_config"
     id = db.Column(db.Integer, primary_key=True)

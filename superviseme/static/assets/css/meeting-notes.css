@@ -1,0 +1,130 @@
+/* Meeting Notes Custom Styles */
+.meeting-note-content {
+    max-height: 200px;
+    overflow-y: auto;
+    border-left: 3px solid #4e73df;
+    padding-left: 10px;
+    margin: 5px 0;
+}
+
+.meeting-note-content h1,
+.meeting-note-content h2,
+.meeting-note-content h3,
+.meeting-note-content h4,
+.meeting-note-content h5,
+.meeting-note-content h6 {
+    color: #5a5c69;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.meeting-note-content h1 { font-size: 1.2em; }
+.meeting-note-content h2 { font-size: 1.1em; }
+.meeting-note-content h3 { font-size: 1.05em; }
+.meeting-note-content h4,
+.meeting-note-content h5,
+.meeting-note-content h6 { font-size: 1em; }
+
+.meeting-note-content p {
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.meeting-note-content ul,
+.meeting-note-content ol {
+    margin-bottom: 10px;
+    padding-left: 20px;
+}
+
+.meeting-note-content li {
+    margin-bottom: 5px;
+}
+
+.meeting-note-content code {
+    background-color: #f8f9fc;
+    color: #e74c3c;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+.meeting-note-content pre {
+    background-color: #f8f9fc;
+    padding: 10px;
+    border-radius: 5px;
+    border-left: 3px solid #e3e6f0;
+    overflow-x: auto;
+}
+
+.meeting-note-content pre code {
+    background-color: transparent;
+    color: inherit;
+    padding: 0;
+}
+
+.meeting-note-content blockquote {
+    border-left: 4px solid #e3e6f0;
+    margin: 10px 0;
+    padding: 5px 15px;
+    background-color: #f8f9fc;
+    color: #6c757d;
+}
+
+.meeting-note-content strong {
+    font-weight: 600;
+}
+
+.meeting-note-content em {
+    font-style: italic;
+}
+
+.meeting-note-content a {
+    color: #4e73df;
+    text-decoration: none;
+}
+
+.meeting-note-content a:hover {
+    color: #2e59d9;
+    text-decoration: underline;
+}
+
+/* Todo reference styling in meeting notes */
+.meeting-note-content .todo-reference {
+    margin: 2px;
+    font-size: 0.8em;
+}
+
+/* Meeting notes table responsive improvements */
+@media (max-width: 768px) {
+    .meeting-note-content {
+        max-height: 150px;
+    }
+    
+    #meetingNotesTable th,
+    #meetingNotesTable td {
+        font-size: 0.9em;
+        padding: 8px 5px;
+    }
+}
+
+/* Enhanced button styling for meeting notes */
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+/* Meeting note modal improvements */
+.modal-lg .form-group textarea {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.modal .btn-group-toggle .btn {
+    font-size: 0.8em;
+    padding: 5px 8px;
+    margin-bottom: 5px;
+}

@@ -186,11 +186,15 @@ def thesis_detail(thesis_id):
 
     # Get todos for this thesis for reference dropdown
     todos = Todo.query.filter_by(thesis_id=thesis_id).order_by(Todo.created_at.desc()).all()
+    
+    # Get meeting notes for this thesis
+    meeting_notes = MeetingNote.query.filter_by(thesis_id=thesis_id).order_by(MeetingNote.created_at.desc()).all()
 
     return render_template("supervisor/thesis_detail.html", thesis=thesis, updates=updates,
                            supervisors=supervisors, author=author, objectives=objectives, 
                            hypotheses=hypotheses, thesis_tags=thesis_tags, resources=resources,
-                           available_students=available_students, todos=todos, dt=datetime.fromtimestamp)
+                           available_students=available_students, todos=todos, meeting_notes=meeting_notes,
+                           dt=datetime.fromtimestamp)
 
 
 @supervisor.route("/post_update", methods=["POST"])
@@ -1481,5 +1485,120 @@ def edit_hypothesis(hypothesis_id):
     
     db.session.commit()
     flash("Hypothesis updated successfully")
+    
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=hypothesis.thesis_id))
+
+
+# Meeting Notes routes for supervisors
+@supervisor.route("/supervisor_add_meeting_note", methods=["POST"])
+@login_required
+def add_meeting_note():
+    """
+    Allow supervisors to add meeting notes to supervised theses
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    thesis_id = request.form.get("thesis_id")
+    title = request.form.get("title")
+    content = request.form.get("content")
+    
+    # Verify supervisor has access to this thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("Thesis not found or not supervised by you")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    current_time = int(time.time())
+    new_meeting_note = MeetingNote(
+        thesis_id=thesis_id,
+        author_id=current_user.id,
+        title=title,
+        content=content,
+        created_at=current_time,
+        updated_at=current_time
+    )
+    
+    db.session.add(new_meeting_note)
+    db.session.flush()  # This assigns the ID without committing the transaction
+    
+    # Get the ID immediately after flush
+    meeting_note_id = new_meeting_note.id
+    
+    db.session.commit()
+    
+    # Parse and create todo references
+    from superviseme.utils.todo_parser import parse_todo_references, create_meeting_note_todo_references
+    todo_refs = parse_todo_references(content)
+    if todo_refs:
+        create_meeting_note_todo_references(meeting_note_id, todo_refs)
+    
+    flash("Meeting note added successfully")
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+
+
+@supervisor.route("/supervisor_edit_meeting_note/<int:note_id>", methods=["POST"])
+@login_required
+def edit_meeting_note(note_id):
+    """
+    Allow supervisors to edit meeting notes in supervised theses
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify supervisor has access to this meeting note
+    meeting_note = MeetingNote.query.join(Thesis_Supervisor).filter(
+        MeetingNote.id == note_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if not meeting_note:
+        flash("Meeting note not found or not accessible")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    meeting_note.title = request.form.get("title", meeting_note.title)
+    meeting_note.content = request.form.get("content", meeting_note.content)
+    meeting_note.updated_at = int(time.time())
+    
+    # Get the ID before any potential session changes
+    meeting_note_id = meeting_note.id
+    
+    db.session.commit()
+    
+    # Update todo references
+    from superviseme.utils.todo_parser import parse_todo_references, create_meeting_note_todo_references
+    todo_refs = parse_todo_references(meeting_note.content)
+    create_meeting_note_todo_references(meeting_note_id, todo_refs)
+    
+    flash("Meeting note updated successfully")
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=meeting_note.thesis_id))
+
+
+@supervisor.route("/supervisor_delete_meeting_note/<int:note_id>", methods=["POST"])
+@login_required
+def delete_meeting_note(note_id):
+    """
+    Allow supervisors to delete meeting notes from supervised theses
+    """
+    check_privileges(current_user.username, role="supervisor")
+    
+    # Verify supervisor has access to this meeting note
+    meeting_note = MeetingNote.query.join(Thesis_Supervisor).filter(
+        MeetingNote.id == note_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if not meeting_note:
+        flash("Meeting note not found or not accessible")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    thesis_id = meeting_note.thesis_id
+    db.session.delete(meeting_note)
+    db.session.commit()
+    
+    flash("Meeting note deleted successfully")
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
     
     return redirect(url_for('supervisor.thesis_detail', thesis_id=hypothesis.thesis_id))

@@ -6,7 +6,7 @@ and create links between updates/feedback and todos.
 """
 import re
 import time
-from superviseme.models import Todo, Todo_Reference, Thesis_Update
+from superviseme.models import Todo, Todo_Reference, Thesis_Update, MeetingNoteReference
 from superviseme import db
 
 
@@ -120,6 +120,47 @@ def get_todo_references_summary(update_id):
     Get summary of todo references for an update
     """
     references = Todo_Reference.query.filter_by(update_id=update_id).all()
+    todos = []
+    for ref in references:
+        if ref.todo:
+            todos.append({
+                'id': ref.todo.id,
+                'title': ref.todo.title,
+                'status': ref.todo.status,
+                'priority': ref.todo.priority
+            })
+    return todos
+
+
+def create_meeting_note_todo_references(meeting_note_id, todo_ids):
+    """
+    Create MeetingNoteReference entries for the given meeting note and todo IDs
+    """
+    current_time = int(time.time())
+    
+    # Remove existing references for this meeting note
+    MeetingNoteReference.query.filter_by(meeting_note_id=meeting_note_id).delete()
+    
+    # Create new references
+    for todo_id in todo_ids:
+        # Verify todo exists
+        todo = Todo.query.get(todo_id)
+        if todo:
+            reference = MeetingNoteReference(
+                meeting_note_id=meeting_note_id,
+                todo_id=todo_id,
+                created_at=current_time
+            )
+            db.session.add(reference)
+    
+    db.session.commit()
+
+
+def get_meeting_note_todo_references_summary(meeting_note_id):
+    """
+    Get summary of todo references for a meeting note
+    """
+    references = MeetingNoteReference.query.filter_by(meeting_note_id=meeting_note_id).all()
     todos = []
     for ref in references:
         if ref.todo:
