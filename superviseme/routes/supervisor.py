@@ -1490,7 +1490,7 @@ def edit_hypothesis(hypothesis_id):
 
 
 # Meeting Notes routes for supervisors
-@supervisor.route("/supervisor_add_meeting_note", methods=["POST"])
+@supervisor.route("/add_meeting_note", methods=["POST"])
 @login_required
 def add_meeting_note():
     """
@@ -1540,7 +1540,7 @@ def add_meeting_note():
     return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
 
 
-@supervisor.route("/supervisor_edit_meeting_note/<int:note_id>", methods=["POST"])
+@supervisor.route("/edit_meeting_note/<int:note_id>", methods=["POST"])
 @login_required
 def edit_meeting_note(note_id):
     """
@@ -1576,7 +1576,7 @@ def edit_meeting_note(note_id):
     return redirect(url_for('supervisor.thesis_detail', thesis_id=meeting_note.thesis_id))
 
 
-@supervisor.route("/supervisor_delete_meeting_note/<int:note_id>", methods=["POST"])
+@supervisor.route("/delete_meeting_note/<int:note_id>", methods=["POST"])
 @login_required
 def delete_meeting_note(note_id):
     """
