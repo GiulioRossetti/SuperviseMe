@@ -180,7 +180,7 @@
                                                 </div>
                                                 <p class="text-gray-700">{{ objective.description }}</p>
                                                 <small class="text-muted">
-                                                    Created: {{ dt(objective.created_at).strftime('%B %d, %Y at %I:%M %p') }}
+                                                    Created: {{ dt(objective.created_at).strftime('%B %d, %Y at %I:%M %p') if objective.created_at else 'Unknown' }}
                                                 </small>
                                             </div>
                                         </div>
@@ -225,7 +225,7 @@
                                                 </div>
                                                 <p class="text-gray-700">{{ hypothesis.description }}</p>
                                                 <small class="text-muted">
-                                                    Created: {{ dt(hypothesis.created_at).strftime('%B %d, %Y at %I:%M %p') }}
+                                                    Created: {{ dt(hypothesis.created_at).strftime('%B %d, %Y at %I:%M %p') if hypothesis.created_at else 'Unknown' }}
                                                 </small>
                                             </div>
                                         </div>
@@ -429,12 +429,12 @@
                                                         </small>
                                                     </td>
                                                     <td>
-                                                        <small class="text-muted">{{ dt(note.created_at).strftime('%m/%d/%Y') }}</small>
+                                                        <small class="text-muted">{{ dt(note.created_at).strftime('%m/%d/%Y') if note.created_at else 'Unknown' }}</small>
                                                     </td>
                                                     <td>
                                                         <small class="text-muted">
                                                             {% if note.updated_at != note.created_at %}
-                                                                {{ dt(note.updated_at).strftime('%m/%d/%Y') }}
+                                                                {{ dt(note.updated_at).strftime('%m/%d/%Y') if note.updated_at else 'Unknown' }}
                                                             {% else %}
                                                                 -
                                                             {% endif %}
