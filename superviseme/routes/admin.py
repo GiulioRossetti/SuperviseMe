@@ -273,6 +273,10 @@ def user_detail(user_id):
 @admin.route("/admin/users_data")
 @login_required
 def users_data():
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
+    
     query = User_mgmt.query
 
     # search filter
@@ -381,7 +385,15 @@ def theses_data():
             name = s[1:]
             if name not in ["title", "level", "author_cd"]:
                 continue
-            col = getattr(Author, name, None)
+            
+            # Get the correct column from the appropriate model
+            if name in ["title", "level"]:
+                col = getattr(Thesis, name, None)
+            elif name == "author_cd":
+                col = getattr(Author, "cdl", None)
+            else:
+                col = None
+                
             if col is not None:
                 col = col.desc() if direction == "-" else col.asc()
                 order.append(col)
