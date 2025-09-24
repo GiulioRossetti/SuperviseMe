@@ -19,7 +19,9 @@ def dashboard():
     This route is for admin data. It retrieves all users from the database
     and renders them in a template.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
 
     user_counts = {
         "students": db.session.execute(
@@ -91,7 +93,9 @@ def supervisee_data():
     This route is for supervisee data. It retrieves all supervisees from the database
     and renders them in a template.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Get students through thesis supervision relationship
     thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
@@ -137,7 +141,9 @@ def theses_data():
     This route is for thesis data. It retrieves all theses supervised by the current user
     and renders them in a template.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Get theses through the supervisor relationship
     thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
@@ -151,7 +157,9 @@ def thesis_detail(thesis_id):
     """
     This route retrieves details of a specific thesis by its ID and renders them in a template.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Check if the thesis is supervised by the current user
     thesis_supervisor = Thesis_Supervisor.query.filter_by(
@@ -262,7 +270,9 @@ def delete_update(update_id):
     This route handles deleting an update by its ID. It retrieves the update, deletes it from the database,
     and redirects to the thesis detail page.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify the update belongs to a thesis supervised by the current user
     update = Thesis_Update.query.join(Thesis_Supervisor).filter(
@@ -302,7 +312,9 @@ def delete_comment():
     This route handles deleting a comment. It retrieves the comment ID from the form,
     deletes the comment from the database, and redirects to the thesis detail page.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     comment_id = request.form.get("comment_id")
     
@@ -330,7 +342,9 @@ def modify_update():
     This route handles modifying an update. It retrieves the necessary data from the form,
     updates the content of the update in the database, and redirects to the thesis detail page.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     update_id = request.form.get("update_id")
     new_content = request.form.get("new_content")
@@ -504,7 +518,9 @@ def create_thesis():
     This route handles creating a new thesis. It retrieves the necessary data from the form,
     creates a new Thesis object, and saves it to the database.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     title = request.form.get("title")
     description = request.form.get("description")
@@ -559,7 +575,9 @@ def delete_thesis(thesis_id):
     This route handles deleting a thesis by its ID. It retrieves the Thesis object,
     deletes it from the database, and redirects to the theses data page.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify the thesis is supervised by the current user
     thesis_supervisor = Thesis_Supervisor.query.filter_by(
@@ -617,7 +635,9 @@ def search():
     This route handles searching for theses or supervisees. It retrieves the search term from the form,
     performs a search in the database, and returns the results.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     search_term = request.form.get("search_term", "").strip()
 
@@ -781,7 +801,9 @@ def freeze_objective(objective_id):
     This route handles freezing an objective. It retrieves the objective by ID,
     sets the frozen status to True, and saves it to the database.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify the objective belongs to a thesis supervised by the current user
     objective = Thesis_Objective.query.join(Thesis, Thesis.id == Thesis_Objective.thesis_id).join(
@@ -806,7 +828,9 @@ def unfreeze_objective(objective_id):
     This route handles unfreezing an objective. It retrieves the objective by ID,
     sets the frozen status to False, and saves it to the database.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify the objective belongs to a thesis supervised by the current user
     objective = Thesis_Objective.query.join(Thesis, Thesis.id == Thesis_Objective.thesis_id).join(
@@ -831,7 +855,9 @@ def freeze_hypothesis(hypothesis_id):
     This route handles freezing a hypothesis. It retrieves the hypothesis by ID,
     sets the frozen status to True, and saves it to the database.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify the hypothesis belongs to a thesis supervised by the current user
     hypothesis = Thesis_Hypothesis.query.join(Thesis, Thesis.id == Thesis_Hypothesis.thesis_id).join(
@@ -856,7 +882,9 @@ def unfreeze_hypothesis(hypothesis_id):
     This route handles unfreezing a hypothesis. It retrieves the hypothesis by ID,
     sets the frozen status to False, and saves it to the database.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify the hypothesis belongs to a thesis supervised by the current user
     hypothesis = Thesis_Hypothesis.query.join(Thesis, Thesis.id == Thesis_Hypothesis.thesis_id).join(
@@ -881,7 +909,9 @@ def comment_on_update():
     This route handles adding comments to student updates. It creates a comment
     as a child update linked to the parent update.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     update_id = request.form.get("update_id")
     comment_content = request.form.get("comment")
@@ -918,7 +948,9 @@ def tag_student_update():
     """
     This route handles tagging student updates. It adds tags to updates.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     update_id = request.form.get("update_id")
     tag_text = request.form.get("tag")
@@ -954,7 +986,9 @@ def set_thesis_status():
     This route handles setting the advancement status of a thesis. It creates or updates
     the thesis status and saves it to the database.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     status = request.form.get("status")
@@ -987,7 +1021,9 @@ def add_todo():
     """
     Add a new todo item for a supervised thesis
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     title = request.form.get("title")
@@ -1038,7 +1074,9 @@ def toggle_todo(todo_id):
     """
     Toggle todo completion status
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Get the todo item and verify access
     todo = Todo.query.join(Thesis_Supervisor).filter(
@@ -1066,7 +1104,9 @@ def delete_todo(todo_id):
     """
     Delete a todo item
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Get the todo item and verify access (only author or supervisor can delete)
     todo = Todo.query.join(Thesis_Supervisor).filter(
@@ -1089,7 +1129,9 @@ def create_student():
     """
     This route allows supervisors to create new student accounts.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     email = request.form.get("email")
     username = request.form.get("username")
@@ -1141,7 +1183,9 @@ def edit_student(student_id):
     """
     This route allows supervisors to edit student accounts they supervise.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify supervisor has access to this student
     student = User_mgmt.query.join(Thesis, Thesis.author_id == User_mgmt.id).join(
@@ -1185,7 +1229,9 @@ def todo_detail(todo_id):
     """
     Display todo detail with linked updates and references
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Get the todo first
     todo = Todo.query.get_or_404(todo_id)
@@ -1218,7 +1264,9 @@ def delete_student(student_id):
     This route allows supervisors to delete student accounts they supervise.
     Only students with no active thesis assignments can be deleted.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify supervisor has access to this student
     student = User_mgmt.query.join(Thesis, Thesis.author_id == User_mgmt.id).join(
@@ -1256,7 +1304,9 @@ def assign_thesis():
     """
     This route allows supervisors to assign thesis to students.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     student_id = request.form.get("student_id")
     thesis_id = request.form.get("thesis_id")
@@ -1297,7 +1347,9 @@ def unassign_thesis(thesis_id):
     """
     This route allows supervisors to unassign thesis from students.
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify supervisor owns the thesis
     thesis_supervisor = Thesis_Supervisor.query.filter_by(
@@ -1329,7 +1381,9 @@ def add_resource():
     """
     Allow supervisors to add resources to supervised theses
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     resource_type = request.form.get("resource_type")
@@ -1367,7 +1421,9 @@ def add_objective():
     """
     Allow supervisors to add objectives to supervised theses
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     title = request.form.get("title")
@@ -1404,7 +1460,9 @@ def edit_objective(objective_id):
     """
     Allow supervisors to edit objectives in supervised theses
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify supervisor has access to this objective
     objective = Thesis_Objective.query.join(Thesis_Supervisor).filter(
@@ -1431,7 +1489,9 @@ def add_hypothesis():
     """
     Allow supervisors to add hypotheses to supervised theses
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     title = request.form.get("title")
@@ -1468,7 +1528,9 @@ def edit_hypothesis(hypothesis_id):
     """
     Allow supervisors to edit hypotheses in supervised theses
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify supervisor has access to this hypothesis
     hypothesis = Thesis_Hypothesis.query.join(Thesis_Supervisor).filter(
@@ -1496,7 +1558,9 @@ def add_meeting_note():
     """
     Allow supervisors to add meeting notes to supervised theses
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     title = request.form.get("title")
@@ -1546,7 +1610,9 @@ def edit_meeting_note(note_id):
     """
     Allow supervisors to edit meeting notes in supervised theses
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify supervisor has access to this meeting note
     meeting_note = MeetingNote.query.join(Thesis, MeetingNote.thesis_id == Thesis.id)\
@@ -1583,7 +1649,9 @@ def meeting_note_detail(note_id):
     """
     Display detailed view of a meeting note with full CRUD capabilities
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify supervisor has access to this meeting note
     meeting_note = MeetingNote.query.join(Thesis, MeetingNote.thesis_id == Thesis.id)\
@@ -1615,7 +1683,9 @@ def delete_meeting_note(note_id):
     """
     Allow supervisors to delete meeting notes from supervised theses
     """
-    check_privileges(current_user.username, role="supervisor")
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
     
     # Verify supervisor has access to this meeting note
     meeting_note = MeetingNote.query.join(Thesis, MeetingNote.thesis_id == Thesis.id)\

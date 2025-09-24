@@ -39,6 +39,31 @@
                                 <div class="card-body">
 
                                 <div id="table"></div>
+                                <div id="fallback-table" style="display:none;">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Title</th>
+                                                    <th>Assigned</th>
+                                                    <th>Assignee CDL</th>
+                                                    <th>Level</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="theses-tbody">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <div>
+                                            <input type="text" id="search-input" class="form-control" placeholder="Search theses..." style="width: 200px;">
+                                        </div>
+                                        <div>
+                                            <button id="refresh-btn" class="btn btn-secondary">Refresh</button>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
 
@@ -49,31 +74,102 @@
                                 </style>
 
                                 <script>
-  const tableDiv = document.getElementById('table');
+// Check if GridJS is available, otherwise use fallback
+const tableDiv = document.getElementById('table');
+const fallbackDiv = document.getElementById('fallback-table');
 
-  const updateUrl = (prev, query) => {
-    return prev + (prev.indexOf('?') >= 0 ? '&' : '?') + new URLSearchParams(query).toString();
-  };
-
-  const editableCellAttributes = (data, row, col) => {
-    if (row) {
-      return {
-        contentEditable: 'true',
-        'data-element-id': row.cells[0].data,
-        'data-column-id': col.id
-      };
-    } else {
-      return {};
+function updateUrl(prev, params) {
+  const url = new URL(prev);
+  for (const key in params) {
+    if (params[key] !== undefined) {
+      url.searchParams.set(key, params[key]);
     }
-  };
+  }
+  return url.toString();
+}
 
+// Function to load theses data
+async function loadThesesData(searchTerm = '') {
+  try {
+    const url = searchTerm ? `/admin/theses_data?search=${encodeURIComponent(searchTerm)}` : '/admin/theses_data';
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error loading theses:', error);
+    return { data: [], total: 0 };
+  }
+}
 
-  new gridjs.Grid({
+// Function to render fallback table
+function renderFallbackTable(thesesData) {
+  const tbody = document.getElementById('theses-tbody');
+  tbody.innerHTML = '';
+  
+  thesesData.forEach(thesis => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${thesis.title || ''}</td>
+      <td>${thesis.assigned || 'Not assigned'}</td>
+      <td>${thesis.author_cdl || ''}</td>
+      <td><span class="badge badge-info">${thesis.level || ''}</span></td>
+      <td>
+        <div style="display: flex; gap: 8px; justify-content: center;">
+          <a href="/admin/thesis/${thesis.thesis_id}" class="btn btn-success btn-sm">Details</a>
+          <button class="btn btn-danger btn-sm delete-button" data-id="${thesis.thesis_id}">Delete</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// Function to handle delete
+function handleDelete(thesisId) {
+  if (confirm('Are you sure you want to delete this thesis? This action cannot be undone.')) {
+    fetch(`/admin/delete_thesis/${thesisId}`, {
+      method: 'DELETE',
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Failed to delete');
+      return response.json();
+    })
+    .then(data => {
+      if (data.status === 'success') {
+        location.reload(); // Refresh the table
+      } else {
+        throw new Error('Delete failed');
+      }
+    })
+    .catch(err => {
+      alert('Error deleting thesis.');
+      console.error(err);
+    });
+  }
+}
+
+// Try to initialize GridJS
+try {
+  if (typeof gridjs !== 'undefined') {
+    // GridJS is available
+    const editableCellAttributes = (data, row, col) => {
+      if (row) {
+        return {
+          contentEditable: 'true',
+          'data-element-id': row.cells[0].data,
+          'data-column-id': col.id
+        };
+      } else {
+        return {};
+      }
+    };
+
+    new gridjs.Grid({
     columns: [
         { id: 'thesis_id', hidden: true },
         { id: 'title', name: 'Title', attributes: editableCellAttributes },
         {id: "assigned", name: 'Assigned'},
-        {id: "author_cd", name: 'Assignee CDL'},
+        {id: "author_cdl", name: 'Assignee CDL'},
         { id: 'level', name: 'Level', attributes: editableCellAttributes },
       {
         id: 'actions',
@@ -114,7 +210,7 @@
       multiColumn: true,
       server: {
         url: (prev, columns) => {
-          const columnIds = ['id', 'title', 'assigned', 'level', 'author_cdl'];
+          const columnIds = ['thesis_id', 'title', 'assigned', 'level', 'author_cdl'];
           const sort = columns.map(col => (col.direction === 1 ? '+' : '-') + columnIds[col.index]);
           return updateUrl(prev, { sort });
         },
@@ -189,28 +285,49 @@
     const target = event.target;
     if (target.classList.contains('delete-button')) {
       const id = target.getAttribute('data-id');
-      if (confirm('Are you sure you want to delete this thesis? This action cannot be undone.')) {
-        fetch(`/admin/delete_thesis/${id}`, {
-          method: 'DELETE',
-        })
-        .then(response => {
-          if (!response.ok) throw new Error('Failed to delete');
-          return response.json();
-        })
-        .then(data => {
-          if (data.status === 'success') {
-            location.reload(); // Refresh the table
-          } else {
-            throw new Error('Delete failed');
-          }
-        })
-        .catch(err => {
-          alert('Error deleting thesis.');
-          console.error(err);
-        });
-      }
+      handleDelete(id);
     }
   });
+  
+  } else {
+    throw new Error('GridJS not available');
+  }
+  
+} catch (error) {
+  // GridJS failed, show fallback table
+  console.warn('GridJS not available, using fallback table:', error);
+  tableDiv.style.display = 'none';
+  fallbackDiv.style.display = 'block';
+  
+  // Load initial data
+  loadThesesData().then(data => {
+    renderFallbackTable(data.data);
+  });
+  
+  // Search functionality
+  const searchInput = document.getElementById('search-input');
+  const refreshBtn = document.getElementById('refresh-btn');
+  
+  searchInput.addEventListener('input', async (e) => {
+    const searchTerm = e.target.value;
+    const data = await loadThesesData(searchTerm);
+    renderFallbackTable(data.data);
+  });
+  
+  refreshBtn.addEventListener('click', async () => {
+    const data = await loadThesesData(searchInput.value);
+    renderFallbackTable(data.data);
+  });
+  
+  // Handle delete button clicks
+  fallbackDiv.addEventListener('click', function (event) {
+    const target = event.target;
+    if (target.classList.contains('delete-button')) {
+      const id = target.getAttribute('data-id');
+      handleDelete(id);
+    }
+  });
+}
 </script>
 
 

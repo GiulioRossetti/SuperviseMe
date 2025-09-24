@@ -23,7 +23,9 @@ def dashboard():
     This route is for admin data. It retrieves all users from the database
     and renders them in a template.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
 
     # count all users by their user_type
     user_counts = {
@@ -80,7 +82,9 @@ def users():
     """
     This route renders the form for creating a new user. It checks if the current user has admin privileges.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     return render_template("/admin/users.html", current_user=current_user)
 
 
@@ -91,7 +95,9 @@ def create_user():
     This route handles creating a new student. It retrieves the necessary data from the form,
     creates a new User_mgmt object, and saves it to the database.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     email = request.form.get("email")
     username = request.form.get("username")
     name = request.form.get("name")
@@ -138,7 +144,9 @@ def delete_user(uid):
     This route handles deleting a user. It retrieves the user by ID,
     deletes it from the database, and commits the changes.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     user = User_mgmt.query.filter_by(id=uid).first()
     if user:
         # Delete related thesis data if user is a student
@@ -168,7 +176,9 @@ def update_user():
     """
     This route handles updating user information.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     user_id = request.form.get("user_id")
     name = request.form.get("name")
@@ -216,7 +226,9 @@ def reset_user_password(user_id):
     """
     This route handles resetting a user's password to a default value.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     user = User_mgmt.query.get_or_404(user_id)
     default_password = "password123"  # Default password
@@ -233,7 +245,9 @@ def user_detail(user_id):
     """
     This route displays the details of a specific user including all related information.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     user = User_mgmt.query.get_or_404(user_id)
     
@@ -308,7 +322,9 @@ def theses():
     """
     This route renders the form for creating a new thesis. It checks if the current user has admin privileges.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     students = User_mgmt.query.filter_by(user_type="student").all()
     supervisors = User_mgmt.query.filter_by(user_type="supervisor").all()
     return render_template("/admin/theses.html", current_user=current_user,
@@ -318,7 +334,9 @@ def theses():
 @admin.route("/admin/theses_data", methods=["GET", "POST"])
 @login_required
 def theses_data():
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     # Handle POST request for inline editing
     if request.method == "POST":
@@ -406,7 +424,9 @@ def create_thesis():
     This route handles creating a new thesis. It retrieves the necessary data from the form,
     creates a new Thesis object, and saves it to the database.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     title = request.form.get("title")
     description = request.form.get("description")
     student_id = request.form.get("student_id")
@@ -463,7 +483,9 @@ def update_thesis():
     This route handles updating an existing thesis. It retrieves the necessary data from the form,
     updates the Thesis object, and saves it to the database.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id") or request.json.get("id")
     title = request.form.get("title") or request.json.get("title")
@@ -495,7 +517,9 @@ def delete_thesis(thesis_id):
     This route handles deleting a thesis by its ID. It retrieves the Thesis object,
     deletes it from the database, and redirects to the theses data page.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis = Thesis.query.get_or_404(thesis_id)
     
@@ -519,7 +543,9 @@ def thesis_detail(thesis_id):
     This route displays the details of a specific thesis including all related information
     like supervisors, tags, updates, and allows for editing.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis = Thesis.query.get_or_404(thesis_id)
     author = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
@@ -552,7 +578,9 @@ def assign_student():
     """
     This route handles assigning or reassigning a student to a thesis.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     student_id = request.form.get("student_id")
@@ -571,7 +599,9 @@ def assign_supervisor():
     """
     This route handles assigning a supervisor to a thesis.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     supervisor_id = request.form.get("supervisor_id")
@@ -599,7 +629,9 @@ def remove_supervisor():
     """
     This route handles removing a supervisor from a thesis.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     supervisor_id = request.form.get("supervisor_id")
@@ -619,7 +651,9 @@ def add_thesis_tag():
     """
     This route handles adding tags to a thesis.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     tag = request.form.get("tag")
@@ -647,7 +681,9 @@ def remove_thesis_tag():
     """
     This route handles removing tags from a thesis.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     tag_id = request.form.get("tag_id")
     thesis_id = request.form.get("thesis_id")
@@ -666,7 +702,9 @@ def archive_thesis():
     """
     This route handles archiving/unarchiving a thesis using the frozen field.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     action = request.form.get("action")  # "archive" or "unarchive"
@@ -686,7 +724,9 @@ def theses_settings():
     """
     General Settings page for thesis management configuration.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     # Get statistics for the settings overview
     stats = {
@@ -712,7 +752,9 @@ def notify_settings():
     """
     Annotation & Notification settings page for managing communication and updates.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     # Get notification-related statistics
     stats = {
@@ -734,7 +776,9 @@ def misc():
     """
     Miscellanea page for various administrative tools and utilities.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     # System information and utilities
     import os
@@ -793,7 +837,9 @@ def system_stats():
     """
     API endpoint that returns system statistics.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     try:
         import os
@@ -867,7 +913,9 @@ def export_data():
     """
     API endpoint that exports system data as JSON.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     try:
         # Export users (excluding passwords)
@@ -959,7 +1007,9 @@ def export_data_csv():
     """
     API endpoint that exports system data as CSV files.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     from flask import make_response
     import csv
@@ -1035,7 +1085,9 @@ def export_data_csv():
 @login_required
 def export_data_action():
     """Export data in various formats"""
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     format_type = request.json.get('format', 'json')
     
@@ -1049,7 +1101,9 @@ def export_data_action():
 @login_required
 def system_health():
     """Check system health"""
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     try:
         health_status = {
@@ -1068,7 +1122,9 @@ def system_health():
 @login_required
 def generate_report():
     """Generate system report"""
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     try:
         # Get comprehensive statistics
@@ -1097,7 +1153,9 @@ def add_thesis_status():
     """
     Add a new status entry to a thesis status history
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     thesis_id = request.form.get("thesis_id")
     status = request.form.get("status")
@@ -1128,7 +1186,9 @@ def update_thesis_status():
     """
     Update an existing thesis status entry
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     status_id = request.form.get("status_id")
     new_status_value = request.form.get("status")
@@ -1156,7 +1216,9 @@ def delete_thesis_status():
     """
     Delete a thesis status entry
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     status_id = request.form.get("status_id")
     
@@ -1185,7 +1247,9 @@ def notifications():
     """
     This route displays the email notification management page
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     # Get scheduler status
     scheduler_status = get_scheduler_status()
@@ -1204,7 +1268,9 @@ def trigger_notifications():
     """
     Manually trigger weekly supervisor reports
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     try:
         results = trigger_weekly_reports_now()
@@ -1221,7 +1287,9 @@ def preview_notification(supervisor_id):
     """
     Preview the weekly notification for a specific supervisor
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     try:
         preview_data = preview_weekly_supervisor_report(supervisor_id)
@@ -1243,7 +1311,9 @@ def search():
     Handle search requests from admin interface.
     Search across users and theses.
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     search_term = request.form.get("search_term", "").strip()
     
@@ -1292,7 +1362,9 @@ def notification_status():
     """
     Get the current status of the notification scheduler
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     try:
         status = get_scheduler_status()
@@ -1309,7 +1381,9 @@ def telegram_config():
     """
     Configure Telegram bot settings
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     if request.method == "POST":
         try:
@@ -1378,7 +1452,9 @@ def test_telegram_bot():
     """
     Test Telegram bot connection
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     try:
         from superviseme.utils.telegram_service import get_telegram_service
@@ -1398,7 +1474,9 @@ def get_telegram_notification_types():
     """
     Get available Telegram notification types
     """
-    check_privileges(current_user.username, role="admin")
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
     
     try:
         from superviseme.utils.telegram_service import get_notification_types
