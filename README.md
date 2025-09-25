@@ -1,29 +1,39 @@
 # SuperviseMe
 
-A comprehensive web application for thesis supervision and management in academic environments. SuperviseMe streamlines the process of thesis supervision by providing dedicated dashboards for administrators, supervisors, and students, along with robust user management and thesis tracking capabilities.
+A comprehensive web application for thesis supervision and research project management in academic environments. SuperviseMe streamlines the process of thesis supervision by providing dedicated dashboards for administrators, supervisors, researchers, and students, along with robust user management and project tracking capabilities.
 
 ## 🎯 Project Overview
 
-SuperviseMe is a Flask-based web application designed to facilitate thesis supervision in universities and academic institutions. The platform provides role-based access control with distinct interfaces for administrators, supervisors, and students, each tailored to their specific needs and responsibilities.
+SuperviseMe is a Flask-based web application designed to facilitate thesis supervision and research collaboration in universities and academic institutions. The platform provides role-based access control with distinct interfaces for administrators, supervisors, researchers, and students, each tailored to their specific needs and responsibilities.
 
 ## ✨ Key Features
 
 ### 🔐 Authentication & Authorization
 - **Secure Login System**: Email-based authentication with password hashing using PBKDF2-SHA256
-- **Role-Based Access Control**: Separate dashboards and permissions for admins, supervisors, and students
+- **Role-Based Access Control**: Separate dashboards and permissions for admins, supervisors, researchers, and students
 - **Session Management**: Secure session handling with remember-me functionality
 - **Logout Protection**: Proper session cleanup and redirect handling
 
 ### 👨‍💼 Administrator Features
-- **User Management**: Complete CRUD operations for all user types (admins, supervisors, students)
+- **User Management**: Complete CRUD operations for all user types (admins, supervisors, researchers, students)
 - **System Dashboard**: Real-time statistics showing user counts and thesis distribution
 - **Thesis Overview**: Comprehensive view of all assigned and available theses
+- **Research Project Monitoring**: Overview of research projects and collaborations
+- **Supervisor Role Management**: Grant and revoke supervisor privileges to researchers
 - **Email Notification Management**: Configure and manage weekly supervisor email reports
 - **Activity Monitoring**: Track user activity across the platform
 - **Scheduler Management**: Monitor and control background task scheduling
 - **Email Testing**: Preview and test weekly notification emails before sending
 - **Data Export**: JSON and CSV export capabilities for system data
 - **System Health Monitoring**: Built-in health checks and system diagnostics
+
+### 🔬 Researcher Features (NEW!)
+- **Research Project Management**: Create, update, and delete research projects
+- **Collaboration System**: Invite other researchers as collaborators with different roles
+- **Project Dashboard**: Overview of personal research projects and statistics
+- **Dual Role Support**: Access supervisor functions when granted supervisor privileges
+- **Collaborative Workspace**: Share projects with team members and manage permissions
+- **Progress Tracking**: Monitor research project milestones and activities
 
 ### 👨‍🏫 Supervisor Features
 - **Student Management**: View and manage supervised students with activity tracking
@@ -138,6 +148,7 @@ python seed_database.py
 # If upgrading from a previous version, run migrations to add new features
 python migrate_database.py      # For activity tracking
 python migrate_telegram.py      # For Telegram notifications (NEW!)
+python migrate_researcher.py    # For researcher role and research projects (NEW!)
 ```
 
 5. **Configure Telegram notifications (optional)**
@@ -271,6 +282,17 @@ The application comes pre-configured with sample data for immediate testing and 
 - **Role**: Thesis Supervisors
 - **Access**: Student supervision, thesis management, resource sharing
 
+#### Researcher Accounts (NEW!)
+- **Email**: `alice.johnson@university.edu` | **Password**: `researcher123`
+  - **Special Role**: Also has supervisor privileges
+  - **Access**: Research project management + thesis supervision
+- **Email**: `bob.williams@university.edu` | **Password**: `researcher123`
+  - **Role**: Researcher only
+  - **Access**: Research project management and collaboration
+- **Email**: `maria.rodriguez@university.edu` | **Password**: `researcher123`
+  - **Special Role**: Also has supervisor privileges
+  - **Access**: Research project management + thesis supervision
+
 #### Student Accounts
 - **Email**: `alice.doe@student.university.edu` | **Password**: `student123`
 - **Email**: `bob.wilson@student.university.edu` | **Password**: `student123`
@@ -295,6 +317,24 @@ The system includes 7 sample theses across different academic levels:
 1. **IoT Security Framework for Smart Cities** (Other level)
 2. **AI-Driven Personalized Learning Systems** (Bachelor's level)
 
+### 🔬 Sample Research Projects Data (NEW!)
+
+The system includes 4 sample research projects with collaborations:
+
+#### Research Projects
+1. **Machine Learning for Climate Prediction** (Dr. Alice Johnson - Research level)
+   - **Collaborator**: Dr. Bob Williams (Co-investigator)
+2. **Social Network Analysis in Online Communities** (Dr. Bob Williams - Full-scale)
+   - **Collaborator**: Dr. Maria Rodriguez (Collaborator)
+3. **Ethics in Artificial Intelligence Systems** (Dr. Maria Rodriguez - Longitudinal)
+   - **Collaborator**: Dr. Alice Johnson (Advisor)
+4. **Quantum Computing Applications in Healthcare** (Dr. Alice Johnson - Pilot)
+
+#### Collaboration Features
+- **Role-Based Collaboration**: Different collaboration roles (collaborator, co-investigator, advisor)
+- **Cross-Project Collaboration**: Researchers can collaborate on multiple projects
+- **Access Control**: Project owners can add/remove collaborators
+
 ## 📱 User Interface Screenshots
 
 ### 🔐 Login Interface
@@ -307,13 +347,51 @@ The login page features a clean, modern design with:
 - Clear error messaging for failed login attempts
 
 ### 👨‍💼 Administrator Dashboard
-![Admin Dashboard](https://github.com/user-attachments/assets/882874cd-9b5b-4ae9-a53c-90a950b138a7)
+![Admin Dashboard with Researchers](admin-dashboard-with-researchers.png)
 
 The administrator dashboard provides:
-- **System Statistics**: Real-time counts of admins, supervisors, students, and theses
+- **System Statistics**: Real-time counts of admins, supervisors, researchers, students, and theses
 - **Assigned Theses Table**: Complete overview of all active thesis assignments
 - **Available Theses Table**: List of theses available for assignment
 - **Navigation Menu**: Quick access to user management, thesis management, and system tools
+
+### 👨‍💼 Administrator User Management
+![Admin Users with Researchers](admin-users-with-researchers.png)
+
+The user management interface shows:
+- **Complete User List**: All users across different roles including researchers
+- **Role-Based Filtering**: Easy identification of different user types
+- **Create User Form**: Includes researcher role option in the dropdown
+- **User Actions**: Direct access to user details and deletion functions
+
+### 🔬 Researcher Dashboard (With Supervisor Access)
+*Screenshot showing researcher dashboard with both research projects and supervisor access panel*
+
+The researcher dashboard features:
+- **Research Project Statistics**: Overview of personal research projects
+- **Supervised Theses Count**: Shows supervised theses when user has supervisor privileges
+- **Recent Projects Table**: Quick access to research projects with status and collaboration info
+- **Dual Navigation**: Both research and supervision menu sections when applicable
+- **Supervisor Functions**: Quick access panel to supervisor tools when privileges are granted
+
+### 🔬 Researcher Project Management
+*Screenshot showing research project management interface with collaborations*
+
+The research project management interface provides:
+- **Project Overview Table**: Complete list of research projects with descriptions, levels, and collaborators
+- **Collaboration Status**: Visual indicators showing project collaborators and their roles
+- **Project Actions**: Edit, delete, and view options for each project
+- **Create Project Modal**: Easy project creation with title, description, and level selection
+- **Collaborator Management**: Add/remove collaborators with different role assignments
+
+### 🔬 Researcher Dashboard (Researcher Only)
+*Screenshot showing researcher dashboard without supervisor privileges*
+
+For researchers without supervisor privileges:
+- **Research-Focused Interface**: Clean dashboard focusing on research activities
+- **Project Statistics**: Personal research project metrics and collaboration counts
+- **Simplified Navigation**: Research-only menu without supervisor functions
+- **Collaboration Overview**: Shows projects where user is a collaborator
 
 ### 👨‍🎓 Student Dashboard
 ![Student Dashboard](https://github.com/user-attachments/assets/2fa0923e-7984-4251-8449-023be3643757)
@@ -343,11 +421,14 @@ Secure logout implementation:
 - **Werkzeug**: Password hashing and security utilities
 
 ### Database Schema
-- **Users**: Administrators, supervisors, and students with role-based permissions and activity tracking
+- **Users**: Administrators, supervisors, researchers, and students with role-based permissions and activity tracking
 - **Theses**: Thesis information, descriptions, and metadata  
 - **Thesis-Supervisor Relationships**: Many-to-many relationships between theses and supervisors
 - **Thesis Status**: Current status tracking (Active, Completed, etc.)
 - **Thesis Tags**: Categorization and organization system
+- **Research Projects**: Research project information, descriptions, and researcher ownership
+- **Research Collaborations**: Many-to-many relationships between research projects and collaborating researchers
+- **Supervisor Roles**: Role grants allowing researchers to access supervisor functions
 - **Activity Tracking**: User activity monitoring with timestamps and location tracking
 
 ### Frontend Technologies
@@ -366,14 +447,31 @@ Secure logout implementation:
 
 ### Database Management
 ```bash
-# Initialize fresh database
+# Initialize fresh database with all sample data (including researchers)
 python seed_database.py
 
 # The seed script will:
 # - Clear existing data
-# - Create admin, supervisor, and student accounts
+# - Create admin, supervisor, researcher, and student accounts
 # - Generate sample theses and relationships
+# - Create sample research projects and collaborations
+# - Grant supervisor roles to selected researchers
 # - Set up proper foreign key constraints
+```
+
+### Migration Scripts
+For existing installations, run these migration scripts in order:
+```bash
+# Core system migrations
+python migrate_database.py      # For activity tracking
+python migrate_telegram.py      # For Telegram notifications
+python migrate_researcher.py    # For researcher role and research projects (NEW!)
+
+# The researcher migration will:
+# - Add researcher user accounts
+# - Create research project and collaboration tables
+# - Set up supervisor role management
+# - Add sample research data for testing
 ```
 
 ### API Endpoints
@@ -429,18 +527,21 @@ SuperviseMe/
 │   │   ├── auth.py             # Authentication routes (login/logout)
 │   │   ├── admin.py            # Administrator dashboard and management
 │   │   ├── supervisor.py       # Supervisor dashboard and tools  
+│   │   ├── researcher.py       # Researcher dashboard and project management (NEW!)
 │   │   ├── student.py          # Student dashboard and features
 │   │   └── profile.py          # User profile management
 │   ├── templates/              # Jinja2 HTML templates
 │   │   ├── login.html          # Authentication interface
 │   │   ├── admin/              # Administrator interface templates
 │   │   ├── supervisor/         # Supervisor interface templates
+│   │   ├── researcher/         # Researcher interface templates (NEW!)
 │   │   └── student/            # Student interface templates
 │   ├── static/                 # Static assets (CSS, JS, images)
 │   │   └── assets/             # Bootstrap and custom assets
 │   └── utils/                  # Utility functions and helpers
 ├── data_schema/                # Database schema and initialization
-├── seed_database.py            # Sample data generation script
+├── seed_database.py            # Sample data generation script (enhanced with researchers)
+├── migrate_researcher.py       # Migration script for researcher functionality (NEW!)
 ├── superviseme.py              # Application entry point
 ├── requirements.txt            # Python dependencies
 └── README.md                   # This documentation
@@ -467,4 +568,4 @@ For questions, issues, or contributions, please:
 
 ---
 
-**SuperviseMe** - Streamlining thesis supervision for the modern academic environment.
+**SuperviseMe** - Streamlining thesis supervision and research collaboration for the modern academic environment.

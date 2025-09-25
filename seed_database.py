@@ -259,12 +259,169 @@ def seed_database():
         
         db.session.commit()
         
+        # Create researchers
+        print("Creating researchers...")
+        researchers_data = [
+            {
+                'username': 'dr_alice',
+                'name': 'Alice',
+                'surname': 'Johnson',
+                'email': 'alice.johnson@university.edu',
+                'cdl': 'Computer Science',
+                'gender': 'Female',
+                'nationality': 'Canadian'
+            },
+            {
+                'username': 'dr_bob',
+                'name': 'Bob',
+                'surname': 'Williams', 
+                'email': 'bob.williams@university.edu',
+                'cdl': 'Data Science',
+                'gender': 'Male',
+                'nationality': 'American'
+            },
+            {
+                'username': 'dr_maria',
+                'name': 'Maria',
+                'surname': 'Rodriguez',
+                'email': 'maria.rodriguez@university.edu',
+                'cdl': 'Artificial Intelligence',
+                'gender': 'Female',
+                'nationality': 'Spanish'
+            }
+        ]
+        
+        researchers = []
+        hashed_researcher_pw = generate_password_hash('researcher123', method='pbkdf2:sha256')
+        for researcher_data in researchers_data:
+            researcher = User_mgmt(
+                username=researcher_data['username'],
+                name=researcher_data['name'],
+                surname=researcher_data['surname'],
+                email=researcher_data['email'],
+                password=hashed_researcher_pw,
+                user_type='researcher',
+                cdl=researcher_data['cdl'],
+                gender=researcher_data['gender'],
+                nationality=researcher_data['nationality'],
+                joined_on=int(time.time())
+            )
+            researchers.append(researcher)
+            db.session.add(researcher)
+        
+        db.session.commit()
+        
+        # Create research projects
+        print("Creating research projects...")
+        from superviseme.models import ResearchProject, ResearchProject_Collaborator, Supervisor_Role
+        
+        projects_data = [
+            {
+                'title': 'Machine Learning for Climate Prediction',
+                'description': 'A comprehensive study on using advanced ML algorithms to improve climate change prediction models, focusing on temperature and precipitation forecasting.',
+                'researcher': researchers[0],  # Dr. Alice
+                'level': 'research'
+            },
+            {
+                'title': 'Social Network Analysis in Online Communities',
+                'description': 'Investigating patterns of interaction and influence in online social networks, analyzing user behavior and community formation.',
+                'researcher': researchers[1],  # Dr. Bob
+                'level': 'full-scale'
+            },
+            {
+                'title': 'Ethics in Artificial Intelligence Systems',
+                'description': 'Examining ethical considerations in AI development, including bias detection, fairness algorithms, and responsible AI deployment.',
+                'researcher': researchers[2],  # Dr. Maria
+                'level': 'longitudinal'
+            },
+            {
+                'title': 'Quantum Computing Applications in Healthcare',
+                'description': 'Exploring the potential of quantum computing in medical research, drug discovery, and personalized medicine applications.',
+                'researcher': researchers[0],  # Dr. Alice (second project)
+                'level': 'pilot'
+            }
+        ]
+        
+        projects = []
+        for project_data in projects_data:
+            project = ResearchProject(
+                title=project_data['title'],
+                description=project_data['description'],
+                researcher_id=project_data['researcher'].id,
+                level=project_data['level'],
+                frozen=False,
+                created_at=int(time.time())
+            )
+            projects.append(project)
+            db.session.add(project)
+        
+        db.session.commit()
+        
+        # Create collaborations
+        print("Creating research collaborations...")
+        collaborations = [
+            # Dr. Bob collaborates on Dr. Alice's ML project
+            {
+                'project': projects[0],  # ML for Climate Prediction
+                'collaborator': researchers[1],  # Dr. Bob
+                'role': 'co-investigator'
+            },
+            # Dr. Maria collaborates on Dr. Bob's social network project
+            {
+                'project': projects[1],  # Social Network Analysis
+                'collaborator': researchers[2],  # Dr. Maria
+                'role': 'collaborator'
+            },
+            # Dr. Alice collaborates on Dr. Maria's ethics project
+            {
+                'project': projects[2],  # Ethics in AI
+                'collaborator': researchers[0],  # Dr. Alice
+                'role': 'advisor'
+            }
+        ]
+        
+        for collab_data in collaborations:
+            collaboration = ResearchProject_Collaborator(
+                project_id=collab_data['project'].id,
+                collaborator_id=collab_data['collaborator'].id,
+                role=collab_data['role'],
+                added_at=int(time.time())
+            )
+            db.session.add(collaboration)
+        
+        db.session.commit()
+        
+        # Grant supervisor roles
+        print("Granting supervisor roles...")
+        # Make Dr. Alice and Dr. Maria supervisors (Dr. Bob remains researcher-only)
+        supervisor_grants = [
+            {'researcher': researchers[0], 'granted_by_id': 1},  # Dr. Alice
+            {'researcher': researchers[2], 'granted_by_id': 1}   # Dr. Maria
+        ]
+        
+        for grant in supervisor_grants:
+            supervisor_role = Supervisor_Role(
+                researcher_id=grant['researcher'].id,
+                granted_by=grant['granted_by_id'],
+                granted_at=int(time.time()),
+                active=True,
+                created_at=int(time.time()),
+                updated_at=int(time.time())
+            )
+            db.session.add(supervisor_role)
+        
+        db.session.commit()
+        
         print("Database seeding completed successfully!")
         print(f"Created:")
         print(f"  - 1 admin user (username: admin, password: test)")
         print(f"  - {len(supervisors)} supervisors (password: supervisor123)")
         print(f"  - {len(students)} students (password: student123)")
+        print(f"  - {len(researchers)} researchers (password: researcher123)")
         print(f"  - {len(theses)} theses (5 assigned, 2 available)")
+        print(f"  - {len(projects)} research projects")
+        print(f"  - {len(collaborations)} research collaborations")
+        print(f"  - 2 supervisor role grants (Dr. Alice & Dr. Maria)")
         print(f"  - Thesis statuses and tags")
 
 if __name__ == '__main__':
