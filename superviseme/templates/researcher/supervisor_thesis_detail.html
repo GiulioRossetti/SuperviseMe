@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Thesis Detail - SuperviseMe</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'researcher/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ thesis.title }}</h1>
+                        <div>
+                            <a href="{{ url_for('researcher.supervisor_theses') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Theses
+                            </a>
+                            <button class="btn btn-warning" data-toggle="modal" data-target="#editThesisModal">
+                                <i class="fas fa-edit"></i> Edit Thesis
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Thesis Information -->
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Thesis Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Title:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            {{ thesis.title }}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Description:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            {{ thesis.description }}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Level:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            <span class="badge badge-info">{{ thesis.level or 'Not specified' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Student:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            {% if student %}
+                                                {{ student.name }} {{ student.surname }} ({{ student.email }})
+                                            {% else %}
+                                                <em class="text-muted">Not assigned</em>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Created:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            {{ dt(thesis.created_at).strftime('%Y-%m-%d %H:%M') }}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Status:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            {% if thesis.frozen %}
+                                                <span class="badge badge-danger">Frozen</span>
+                                            {% else %}
+                                                <span class="badge badge-success">Active</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Thesis Updates -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Recent Updates</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if updates %}
+                                        {% for update in updates[:5] %}
+                                        <div class="border-left-primary shadow-sm p-3 mb-3">
+                                            <div class="d-flex justify-content-between">
+                                                <h6 class="font-weight-bold">{{ update.title }}</h6>
+                                                <small class="text-muted">{{ dt(update.created_at).strftime('%Y-%m-%d') }}</small>
+                                            </div>
+                                            <p class="mb-0">{{ update.description[:200] }}{% if update.description|length > 200 %}...{% endif %}</p>
+                                        </div>
+                                        {% endfor %}
+                                        {% if updates|length > 5 %}
+                                        <small class="text-muted">And {{ updates|length - 5 }} more updates...</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="text-muted text-center">No updates yet.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <!-- Quick Stats -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Quick Stats</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center mb-3">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Updates</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ updates|length }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                    <div class="row no-gutters align-items-center mb-3">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">To-Do Items</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ todos|length }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                    <div class="row no-gutters align-items-center mb-3">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Resources</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resources|length }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-file-alt fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Objectives</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ objectives|length }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-bullseye fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Todos -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Recent To-Do Items</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if todos %}
+                                        {% for todo in todos[:5] %}
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="mr-2">
+                                                {% if todo.status == 'completed' %}
+                                                    <i class="fas fa-check-circle text-success"></i>
+                                                {% else %}
+                                                    <i class="fas fa-circle text-warning"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <small class="{% if todo.status == 'completed' %}text-muted{% endif %}">
+                                                    {{ todo.title }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted text-center">No to-do items yet.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Resources -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Resources</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if resources %}
+                                        {% for resource in resources %}
+                                        <div class="mb-2">
+                                            <div class="d-flex justify-content-between">
+                                                <a href="{{ resource.resource_url }}" target="_blank" class="text-primary">
+                                                    <i class="fas fa-external-link-alt"></i> {{ resource.description or 'Resource' }}
+                                                </a>
+                                                <small class="text-muted">{{ resource.resource_type }}</small>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted text-center">No resources yet.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Edit Thesis Modal -->
+    <div class="modal fade" id="editThesisModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Thesis</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.update_thesis') }}">
+                    <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="title">Thesis Title:</label>
+                            <input type="text" class="form-control" name="title" value="{{ thesis.title }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description:</label>
+                            <textarea class="form-control" name="description" rows="4" required>{{ thesis.description }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="level">Level:</label>
+                            <select class="form-control" name="level" required>
+                                <option value="bachelor" {% if thesis.level == 'bachelor' %}selected{% endif %}>Bachelor</option>
+                                <option value="master" {% if thesis.level == 'master' %}selected{% endif %}>Master</option>
+                                <option value="phd" {% if thesis.level == 'phd' %}selected{% endif %}>PhD</option>
+                                <option value="other" {% if thesis.level == 'other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Thesis</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
+
+</body>
+
+</html>

@@ -453,3 +453,481 @@ def supervisor_students():
         dt=datetime.fromtimestamp,
         str=str
     )
+
+
+@researcher.route("/researcher/supervisor/theses")
+@login_required
+def supervisor_theses():
+    """
+    Supervised theses management within researcher context - Enhanced with full CRUD
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    # Get theses supervised by this researcher
+    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
+    theses = [ts.thesis for ts in thesis_supervisors]
+
+    return render_template(
+        "researcher/supervisor_theses.html",
+        current_user=current_user,
+        theses=theses,
+        has_supervisor_role=True,
+        datetime=datetime,
+        dt=datetime.fromtimestamp,
+        str=str
+    )
+
+
+@researcher.route("/researcher/supervisor/thesis/<thesis_id>")
+@login_required
+def supervisor_thesis_detail(thesis_id):
+    """
+    Thesis detail view within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    # Verify supervisor relationship
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id, 
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("You don't have permission to view this thesis")
+        return redirect(url_for("researcher.supervisor_theses"))
+
+    thesis = Thesis.query.get_or_404(thesis_id)
+    
+    # Get student if assigned
+    student = None
+    if thesis.author_id:
+        student = User_mgmt.query.get(thesis.author_id)
+    
+    # Get thesis updates, todos, resources, etc.
+    updates = Thesis_Update.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Update.created_at.desc()).all()
+    todos = Todo.query.filter_by(thesis_id=thesis_id).order_by(Todo.created_at.desc()).all()
+    resources = Resource.query.filter_by(thesis_id=thesis_id).all()
+    objectives = Thesis_Objective.query.filter_by(thesis_id=thesis_id).all()
+    hypotheses = Thesis_Hypothesis.query.filter_by(thesis_id=thesis_id).all()
+
+    return render_template(
+        "researcher/supervisor_thesis_detail.html",
+        current_user=current_user,
+        thesis=thesis,
+        student=student,
+        updates=updates,
+        todos=todos,
+        resources=resources,
+        objectives=objectives,
+        hypotheses=hypotheses,
+        has_supervisor_role=True,
+        datetime=datetime,
+        dt=datetime.fromtimestamp,
+        str=str
+    )
+
+
+@researcher.route("/researcher/supervisor/create_thesis", methods=["POST"])
+@login_required
+def create_thesis():
+    """
+    Create new thesis within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    title = request.form.get("title")
+    description = request.form.get("description")
+    level = request.form.get("level")
+    student_id = request.form.get("student_id")
+
+    if not title or not description:
+        flash("Title and description are required")
+        return redirect(url_for("researcher.supervisor_theses"))
+
+    try:
+        # Create thesis
+        new_thesis = Thesis(
+            title=title,
+            description=description,
+            author_id=int(student_id) if student_id and student_id != "" else None,
+            frozen=False,
+            level=level,
+            created_at=int(time.time()),
+        )
+        db.session.add(new_thesis)
+        db.session.commit()
+
+        # Assign supervisor
+        thesis_supervisor = Thesis_Supervisor(
+            thesis_id=new_thesis.id,
+            supervisor_id=current_user.id,
+            assigned_at=int(time.time()),
+        )
+        db.session.add(thesis_supervisor)
+
+        # Set initial status
+        thesis_status = Thesis_Status(
+            thesis_id=new_thesis.id,
+            status="thesis accepted",
+            updated_at=int(time.time()),
+        )
+        db.session.add(thesis_status)
+        db.session.commit()
+
+        flash("Thesis created successfully")
+    except Exception as e:
+        flash(f"Error creating thesis: {e}")
+    
+    return redirect(url_for("researcher.supervisor_theses"))
+
+
+@researcher.route("/researcher/supervisor/update_thesis", methods=["POST"])
+@login_required
+def update_thesis():
+    """
+    Update thesis within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    thesis_id = request.form.get("thesis_id")
+    title = request.form.get("title")
+    description = request.form.get("description")
+    level = request.form.get("level")
+
+    # Verify supervisor relationship
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id, 
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("You don't have permission to update this thesis")
+        return redirect(url_for("researcher.supervisor_theses"))
+
+    try:
+        thesis = Thesis.query.get(thesis_id)
+        if thesis:
+            thesis.title = title
+            thesis.description = description
+            thesis.level = level
+            db.session.commit()
+            flash("Thesis updated successfully")
+    except Exception as e:
+        flash(f"Error updating thesis: {e}")
+    
+    return redirect(url_for("researcher.supervisor_theses"))
+
+
+@researcher.route("/researcher/supervisor/delete_thesis/<int:thesis_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_thesis(thesis_id):
+    """
+    Delete thesis within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    # Verify supervisor relationship
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id, 
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("You don't have permission to delete this thesis")
+        return redirect(url_for("researcher.supervisor_theses"))
+
+    try:
+        # Get thesis
+        thesis = Thesis.query.get(thesis_id)
+        if thesis:
+            # Delete related records first
+            Thesis_Status.query.filter_by(thesis_id=thesis_id).delete()
+            Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).delete()
+            Todo.query.filter_by(thesis_id=thesis_id).delete()
+            Resource.query.filter_by(thesis_id=thesis_id).delete()
+            Thesis_Objective.query.filter_by(thesis_id=thesis_id).delete()
+            Thesis_Hypothesis.query.filter_by(thesis_id=thesis_id).delete()
+            Thesis_Update.query.filter_by(thesis_id=thesis_id).delete()
+            
+            # Delete thesis
+            db.session.delete(thesis)
+            db.session.commit()
+            flash("Thesis deleted successfully")
+    except Exception as e:
+        flash(f"Error deleting thesis: {e}")
+    
+    return redirect(url_for("researcher.supervisor_theses"))
+
+
+@researcher.route("/researcher/supervisor/create_student", methods=["POST"])
+@login_required
+def create_student():
+    """
+    Create new student within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    username = request.form.get("username")
+    name = request.form.get("name")
+    surname = request.form.get("surname")
+    email = request.form.get("email")
+    password = request.form.get("password")
+    cdl = request.form.get("cdl")
+    gender = request.form.get("gender")
+    nationality = request.form.get("nationality")
+
+    if not all([username, name, surname, email, password]):
+        flash("All required fields must be filled")
+        return redirect(url_for("researcher.supervisor_students"))
+
+    # Check if username or email already exists
+    existing_user = User_mgmt.query.filter(
+        or_(User_mgmt.username == username, User_mgmt.email == email)
+    ).first()
+    
+    if existing_user:
+        flash("Username or email already exists")
+        return redirect(url_for("researcher.supervisor_students"))
+
+    try:
+        # Create student
+        new_student = User_mgmt(
+            username=username,
+            name=name,
+            surname=surname,
+            email=email,
+            password=generate_password_hash(password, method='pbkdf2:sha256'),
+            user_type="student",
+            cdl=cdl,
+            gender=gender,
+            nationality=nationality,
+            joined_on=int(time.time())
+        )
+        db.session.add(new_student)
+        db.session.commit()
+        flash("Student created successfully")
+    except Exception as e:
+        flash(f"Error creating student: {e}")
+    
+    return redirect(url_for("researcher.supervisor_students"))
+
+
+@researcher.route("/researcher/supervisor/edit_student/<int:student_id>", methods=["POST"])
+@login_required
+def edit_student(student_id):
+    """
+    Edit student within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    student = User_mgmt.query.get_or_404(student_id)
+    
+    # Check if this student is supervised by current user
+    supervised_relationship = db.session.execute(
+        select(Thesis_Supervisor)
+        .join(Thesis, Thesis.id == Thesis_Supervisor.thesis_id)
+        .where(Thesis.author_id == student_id)
+        .where(Thesis_Supervisor.supervisor_id == current_user.id)
+    ).first()
+    
+    if not supervised_relationship:
+        flash("You don't have permission to edit this student")
+        return redirect(url_for("researcher.supervisor_students"))
+
+    try:
+        student.name = request.form.get("name", student.name)
+        student.surname = request.form.get("surname", student.surname)
+        student.email = request.form.get("email", student.email)
+        student.cdl = request.form.get("cdl", student.cdl)
+        student.gender = request.form.get("gender", student.gender)
+        student.nationality = request.form.get("nationality", student.nationality)
+        
+        # Update password if provided
+        new_password = request.form.get("password")
+        if new_password:
+            student.password = generate_password_hash(new_password, method='pbkdf2:sha256')
+        
+        db.session.commit()
+        flash("Student updated successfully")
+    except Exception as e:
+        flash(f"Error updating student: {e}")
+    
+    return redirect(url_for("researcher.supervisor_students"))
+
+
+@researcher.route("/researcher/supervisor/delete_student/<int:student_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_student(student_id):
+    """
+    Delete student within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    student = User_mgmt.query.get_or_404(student_id)
+    
+    # Check if this student is supervised by current user
+    supervised_relationship = db.session.execute(
+        select(Thesis_Supervisor)
+        .join(Thesis, Thesis.id == Thesis_Supervisor.thesis_id)
+        .where(Thesis.author_id == student_id)
+        .where(Thesis_Supervisor.supervisor_id == current_user.id)
+    ).first()
+    
+    if not supervised_relationship:
+        flash("You don't have permission to delete this student")
+        return redirect(url_for("researcher.supervisor_students"))
+
+    try:
+        # Delete associated theses and relationships
+        theses = Thesis.query.filter_by(author_id=student_id).all()
+        for thesis in theses:
+            Thesis_Status.query.filter_by(thesis_id=thesis.id).delete()
+            Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).delete()
+            Todo.query.filter_by(thesis_id=thesis.id).delete()
+            Resource.query.filter_by(thesis_id=thesis.id).delete()
+            Thesis_Objective.query.filter_by(thesis_id=thesis.id).delete()
+            Thesis_Hypothesis.query.filter_by(thesis_id=thesis.id).delete()
+            Thesis_Update.query.filter_by(thesis_id=thesis.id).delete()
+            db.session.delete(thesis)
+        
+        # Delete student
+        db.session.delete(student)
+        db.session.commit()
+        flash("Student and associated data deleted successfully")
+    except Exception as e:
+        flash(f"Error deleting student: {e}")
+    
+    return redirect(url_for("researcher.supervisor_students"))
+
+
+@researcher.route("/researcher/supervisor/assign_thesis", methods=["POST"])
+@login_required
+def assign_thesis():
+    """
+    Assign thesis to student within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    thesis_id = request.form.get("thesis_id")
+    student_id = request.form.get("student_id")
+
+    # Verify supervisor relationship with thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id, 
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("You don't have permission to assign this thesis")
+        return redirect(url_for("researcher.supervisor_theses"))
+
+    try:
+        thesis = Thesis.query.get(thesis_id)
+        if thesis:
+            thesis.author_id = int(student_id) if student_id else None
+            db.session.commit()
+            flash("Thesis assigned successfully")
+    except Exception as e:
+        flash(f"Error assigning thesis: {e}")
+    
+    return redirect(url_for("researcher.supervisor_theses"))
+
+
+@researcher.route("/researcher/supervisor/unassign_thesis/<int:thesis_id>", methods=["POST"])
+@login_required
+def unassign_thesis(thesis_id):
+    """
+    Unassign thesis from student within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    # Verify supervisor relationship
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id, 
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("You don't have permission to unassign this thesis")
+        return redirect(url_for("researcher.supervisor_theses"))
+
+    try:
+        thesis = Thesis.query.get(thesis_id)
+        if thesis:
+            thesis.author_id = None
+            db.session.commit()
+            flash("Thesis unassigned successfully")
+    except Exception as e:
+        flash(f"Error unassigning thesis: {e}")
+    
+    return redirect(url_for("researcher.supervisor_theses"))
