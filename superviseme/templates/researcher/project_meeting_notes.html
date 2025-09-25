@@ -1,0 +1,153 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'researcher/components/sidebar.html' %}
+
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+
+                <div class="container-fluid">
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ project.title }} - Meeting Notes</h1>
+                        <div>
+                            <a href="{{ url_for('researcher.project_detail', project_id=project.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Project
+                            </a>
+                            <button class="btn btn-dark" data-toggle="modal" data-target="#addMeetingNoteModal">
+                                <i class="fas fa-plus"></i> Add Meeting Note
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Meeting Notes List -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Project Meeting Notes</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if meeting_notes %}
+                                {% for note in meeting_notes %}
+                                <div class="card mb-3 border-left-dark">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-1">{{ note.title }}</h6>
+                                            <small class="text-muted">{{ dt(note.meeting_date).strftime('%B %d, %Y') }}</small>
+                                        </div>
+                                        {% if note.participants %}
+                                        <p class="text-sm text-muted mb-2">
+                                            <i class="fas fa-users"></i> Participants: {{ note.participants }}
+                                        </p>
+                                        {% endif %}
+                                        <p class="card-text">{{ note.content[:200] }}{% if note.content|length > 200 %}...{% endif %}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-user"></i> Added by {{ note.author.name }} {{ note.author.surname }}
+                                            </small>
+                                            <a href="{{ url_for('researcher.project_meeting_note_detail', note_id=note.id) }}" class="btn btn-sm btn-outline-dark">
+                                                <i class="fas fa-eye"></i> View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-clipboard fa-3x text-gray-300 mb-3"></i>
+                                    <h5 class="text-gray-500">No meeting notes yet</h5>
+                                    <p class="text-muted">Keep track of meetings, discussions, and decisions for this project</p>
+                                    <button class="btn btn-dark" data-toggle="modal" data-target="#addMeetingNoteModal">
+                                        <i class="fas fa-plus"></i> Add First Meeting Note
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Add Meeting Note Modal -->
+                    <div class="modal fade" id="addMeetingNoteModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Add Meeting Note</h5>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <form method="POST" action="{{ url_for('researcher.add_project_meeting_note', project_id=project.id) }}">
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label>Meeting Title</label>
+                                            <input type="text" name="title" class="form-control" required 
+                                                   placeholder="e.g., Weekly Progress Meeting, Research Planning Session">
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Meeting Date</label>
+                                                    <input type="date" name="meeting_date" class="form-control" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Participants</label>
+                                                    <input type="text" name="participants" class="form-control" 
+                                                           placeholder="e.g., John Smith, Jane Doe, Project Team">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Meeting Content</label>
+                                            <textarea name="content" class="form-control" rows="8" required 
+                                                      placeholder="Meeting agenda, discussion points, decisions made, action items..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-dark">Add Meeting Note</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
+
+</body>
+</html>

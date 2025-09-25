@@ -289,7 +289,7 @@ def remove_collaborator():
 @login_required
 def project_detail(project_id):
     """
-    This route displays detailed information about a research project.
+    This route displays detailed information about a research project with all features.
     """
     privilege_check = check_privileges(current_user.username, role="researcher")
     if privilege_check is not True:
@@ -318,6 +318,24 @@ def project_detail(project_id):
         if user:
             collaborator_users.append({"user": user, "role": collab.role})
 
+    # Get project statistics
+    updates_count = ResearchProject_Update.query.filter_by(project_id=project_id).count()
+    todos_count = ResearchProject_Todo.query.filter_by(project_id=project_id).count()
+    completed_todos_count = ResearchProject_Todo.query.filter_by(project_id=project_id, status="completed").count()
+    resources_count = ResearchProject_Resource.query.filter_by(project_id=project_id).count()
+    objectives_count = ResearchProject_Objective.query.filter_by(project_id=project_id).count()
+    hypotheses_count = ResearchProject_Hypothesis.query.filter_by(project_id=project_id).count()
+    meeting_notes_count = ResearchProject_MeetingNote.query.filter_by(project_id=project_id).count()
+
+    # Get recent updates (last 5)
+    recent_updates = ResearchProject_Update.query.filter_by(project_id=project_id).order_by(ResearchProject_Update.created_at.desc()).limit(5).all()
+
+    # Get recent todos (last 5)
+    recent_todos = ResearchProject_Todo.query.filter_by(project_id=project_id).order_by(ResearchProject_Todo.created_at.desc()).limit(5).all()
+
+    # Get current status
+    current_status = ResearchProject_Status.query.filter_by(project_id=project_id).order_by(ResearchProject_Status.updated_at.desc()).first()
+
     return render_template(
         "researcher/project_detail.html",
         current_user=current_user,
@@ -325,6 +343,16 @@ def project_detail(project_id):
         collaborators=collaborator_users,
         has_supervisor_role=user_has_supervisor_role(current_user),
         is_owner=(project.researcher_id == current_user.id),
+        updates_count=updates_count,
+        todos_count=todos_count,
+        completed_todos_count=completed_todos_count,
+        resources_count=resources_count,
+        objectives_count=objectives_count,
+        hypotheses_count=hypotheses_count,
+        meeting_notes_count=meeting_notes_count,
+        recent_updates=recent_updates,
+        recent_todos=recent_todos,
+        current_status=current_status,
         datetime=datetime,
         dt=datetime.fromtimestamp
     )
@@ -1035,3 +1063,635 @@ def supervisor_search():
                          supervisees=supervisees,
                          search_term=search_term,
                          user_type="researcher")
+
+
+# ============================================================================
+# RESEARCH PROJECT ADVANCED FEATURES - STATUS, UPDATES, TODOS, RESOURCES, ETC.
+# ============================================================================
+
+@researcher.route("/researcher/project/<int:project_id>/updates")
+@login_required
+def project_updates(project_id):
+    """
+    Display all updates for a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Check access
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project_id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    # Get all updates
+    updates = ResearchProject_Update.query.filter_by(project_id=project_id).order_by(ResearchProject_Update.created_at.desc()).all()
+
+    return render_template(
+        "researcher/project_updates.html",
+        current_user=current_user,
+        project=project,
+        updates=updates,
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
+    )
+
+
+@researcher.route("/researcher/project/<int:project_id>/add_update", methods=["POST"])
+@login_required
+def add_project_update(project_id):
+    """
+    Add a new update to a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Check access
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project_id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    content = request.form.get("content")
+    update_type = request.form.get("update_type", "progress")
+
+    if not content:
+        flash("Update content is required")
+        return redirect(url_for("researcher.project_detail", project_id=project_id))
+
+    try:
+        new_update = ResearchProject_Update(
+            project_id=project_id,
+            author_id=current_user.id,
+            update_type=update_type,
+            content=content,
+            created_at=int(time.time())
+        )
+        db.session.add(new_update)
+        db.session.commit()
+        flash("Update added successfully")
+    except Exception as e:
+        flash(f"Error adding update: {e}")
+
+    return redirect(url_for("researcher.project_detail", project_id=project_id))
+
+
+@researcher.route("/researcher/project/<int:project_id>/todos")
+@login_required
+def project_todos(project_id):
+    """
+    Display all todos for a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Check access
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project_id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    # Get all todos
+    todos = ResearchProject_Todo.query.filter_by(project_id=project_id).order_by(ResearchProject_Todo.created_at.desc()).all()
+
+    # Get all collaborators for assignment dropdown
+    collaborators = ResearchProject_Collaborator.query.filter_by(project_id=project_id).all()
+    collaborator_users = [project.researcher]  # Include project owner
+    for collab in collaborators:
+        user = User_mgmt.query.get(collab.collaborator_id)
+        if user:
+            collaborator_users.append(user)
+
+    return render_template(
+        "researcher/project_todos.html",
+        current_user=current_user,
+        project=project,
+        todos=todos,
+        collaborator_users=collaborator_users,
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
+    )
+
+
+@researcher.route("/researcher/project/<int:project_id>/add_todo", methods=["POST"])
+@login_required
+def add_project_todo(project_id):
+    """
+    Add a new todo to a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Check access
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project_id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    title = request.form.get("title")
+    description = request.form.get("description", "")
+    priority = request.form.get("priority", "medium")
+    assigned_to_id = request.form.get("assigned_to_id")
+    due_date = request.form.get("due_date")
+
+    if not title:
+        flash("Todo title is required")
+        return redirect(url_for("researcher.project_todos", project_id=project_id))
+
+    try:
+        # Convert due_date to timestamp if provided
+        due_date_timestamp = None
+        if due_date:
+            due_date_timestamp = int(datetime.strptime(due_date, "%Y-%m-%d").timestamp())
+
+        new_todo = ResearchProject_Todo(
+            project_id=project_id,
+            author_id=current_user.id,
+            title=title,
+            description=description,
+            priority=priority,
+            assigned_to_id=int(assigned_to_id) if assigned_to_id else None,
+            due_date=due_date_timestamp,
+            created_at=int(time.time()),
+            updated_at=int(time.time())
+        )
+        db.session.add(new_todo)
+        db.session.commit()
+        flash("Todo added successfully")
+    except Exception as e:
+        flash(f"Error adding todo: {e}")
+
+    return redirect(url_for("researcher.project_todos", project_id=project_id))
+
+
+@researcher.route("/researcher/project_todo/<int:todo_id>/complete", methods=["POST"])
+@login_required
+def complete_project_todo(todo_id):
+    """
+    Mark a project todo as completed
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    todo = ResearchProject_Todo.query.get(todo_id)
+    if not todo:
+        abort(404)
+
+    # Check access to the project
+    project = todo.project
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    try:
+        todo.status = "completed"
+        todo.completed_at = int(time.time())
+        todo.updated_at = int(time.time())
+        db.session.commit()
+        flash("Todo marked as completed")
+    except Exception as e:
+        flash(f"Error completing todo: {e}")
+
+    return redirect(url_for("researcher.project_todos", project_id=project.id))
+
+
+@researcher.route("/researcher/project/<int:project_id>/resources")
+@login_required
+def project_resources(project_id):
+    """
+    Display all resources for a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Check access
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project_id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    # Get all resources
+    resources = ResearchProject_Resource.query.filter_by(project_id=project_id).order_by(ResearchProject_Resource.created_at.desc()).all()
+
+    return render_template(
+        "researcher/project_resources.html",
+        current_user=current_user,
+        project=project,
+        resources=resources,
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
+    )
+
+
+@researcher.route("/researcher/project/<int:project_id>/add_resource", methods=["POST"])
+@login_required
+def add_project_resource(project_id):
+    """
+    Add a new resource to a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Check access
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project_id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    resource_url = request.form.get("resource_url")
+    resource_type = request.form.get("resource_type", "link")
+    description = request.form.get("description", "")
+
+    if not resource_url:
+        flash("Resource URL is required")
+        return redirect(url_for("researcher.project_resources", project_id=project_id))
+
+    try:
+        new_resource = ResearchProject_Resource(
+            project_id=project_id,
+            resource_type=resource_type,
+            resource_url=resource_url,
+            description=description,
+            created_at=int(time.time())
+        )
+        db.session.add(new_resource)
+        db.session.commit()
+        flash("Resource added successfully")
+    except Exception as e:
+        flash(f"Error adding resource: {e}")
+
+    return redirect(url_for("researcher.project_resources", project_id=project_id))
+
+
+@researcher.route("/researcher/project/<int:project_id>/objectives")
+@login_required
+def project_objectives(project_id):
+    """
+    Display all objectives for a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Check access
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project_id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    # Get all objectives
+    objectives = ResearchProject_Objective.query.filter_by(project_id=project_id).order_by(ResearchProject_Objective.created_at.desc()).all()
+
+    return render_template(
+        "researcher/project_objectives.html",
+        current_user=current_user,
+        project=project,
+        objectives=objectives,
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
+    )
+
+
+@researcher.route("/researcher/project/<int:project_id>/add_objective", methods=["POST"])
+@login_required
+def add_project_objective(project_id):
+    """
+    Add a new objective to a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Check access
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project_id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    title = request.form.get("title")
+    description = request.form.get("description")
+
+    if not title or not description:
+        flash("Title and description are required")
+        return redirect(url_for("researcher.project_objectives", project_id=project_id))
+
+    try:
+        new_objective = ResearchProject_Objective(
+            project_id=project_id,
+            author_id=current_user.id,
+            title=title,
+            description=description,
+            created_at=int(time.time())
+        )
+        db.session.add(new_objective)
+        db.session.commit()
+        flash("Objective added successfully")
+    except Exception as e:
+        flash(f"Error adding objective: {e}")
+
+    return redirect(url_for("researcher.project_objectives", project_id=project_id))
+
+
+@researcher.route("/researcher/project/<int:project_id>/hypotheses")
+@login_required
+def project_hypotheses(project_id):
+    """
+    Display all hypotheses for a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Check access
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project_id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    # Get all hypotheses
+    hypotheses = ResearchProject_Hypothesis.query.filter_by(project_id=project_id).order_by(ResearchProject_Hypothesis.created_at.desc()).all()
+
+    return render_template(
+        "researcher/project_hypotheses.html",
+        current_user=current_user,
+        project=project,
+        hypotheses=hypotheses,
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
+    )
+
+
+@researcher.route("/researcher/project/<int:project_id>/add_hypothesis", methods=["POST"])
+@login_required
+def add_project_hypothesis(project_id):
+    """
+    Add a new hypothesis to a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Check access
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project_id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    title = request.form.get("title")
+    description = request.form.get("description")
+
+    if not title or not description:
+        flash("Title and description are required")
+        return redirect(url_for("researcher.project_hypotheses", project_id=project_id))
+
+    try:
+        new_hypothesis = ResearchProject_Hypothesis(
+            project_id=project_id,
+            author_id=current_user.id,
+            title=title,
+            description=description,
+            created_at=int(time.time())
+        )
+        db.session.add(new_hypothesis)
+        db.session.commit()
+        flash("Hypothesis added successfully")
+    except Exception as e:
+        flash(f"Error adding hypothesis: {e}")
+
+    return redirect(url_for("researcher.project_hypotheses", project_id=project_id))
+
+
+@researcher.route("/researcher/project/<int:project_id>/meeting_notes")
+@login_required  
+def project_meeting_notes(project_id):
+    """
+    Display all meeting notes for a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Check access
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project_id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    # Get all meeting notes
+    meeting_notes = ResearchProject_MeetingNote.query.filter_by(project_id=project_id).order_by(ResearchProject_MeetingNote.created_at.desc()).all()
+
+    return render_template(
+        "researcher/project_meeting_notes.html",
+        current_user=current_user,
+        project=project,
+        meeting_notes=meeting_notes,
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
+    )
+
+
+@researcher.route("/researcher/project/<int:project_id>/add_meeting_note", methods=["POST"])
+@login_required
+def add_project_meeting_note(project_id):
+    """
+    Add a new meeting note to a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Check access
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project_id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        abort(403)
+
+    title = request.form.get("title")
+    content = request.form.get("content")
+
+    if not title or not content:
+        flash("Title and content are required")
+        return redirect(url_for("researcher.project_meeting_notes", project_id=project_id))
+
+    try:
+        new_meeting_note = ResearchProject_MeetingNote(
+            project_id=project_id,
+            author_id=current_user.id,
+            title=title,
+            content=content,
+            created_at=int(time.time()),
+            updated_at=int(time.time())
+        )
+        db.session.add(new_meeting_note)
+        db.session.commit()
+        flash("Meeting note added successfully")
+    except Exception as e:
+        flash(f"Error adding meeting note: {e}")
+
+    return redirect(url_for("researcher.project_meeting_notes", project_id=project_id))
+
+
+@researcher.route("/researcher/project/<int:project_id>/change_status", methods=["POST"])
+@login_required
+def change_project_status(project_id):
+    """
+    Change the status of a research project
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    project = ResearchProject.query.get(project_id)
+    if not project:
+        abort(404)
+
+    # Only project owner can change status
+    if project.researcher_id != current_user.id:
+        abort(403)
+
+    new_status = request.form.get("status")
+    if not new_status:
+        flash("Status is required")
+        return redirect(url_for("researcher.project_detail", project_id=project_id))
+
+    try:
+        # Add status history entry
+        status_entry = ResearchProject_Status(
+            project_id=project_id,
+            status=new_status,
+            updated_at=int(time.time())
+        )
+        db.session.add(status_entry)
+        db.session.commit()
+        flash("Project status updated successfully")
+    except Exception as e:
+        flash(f"Error updating status: {e}")
+
+    return redirect(url_for("researcher.project_detail", project_id=project_id))

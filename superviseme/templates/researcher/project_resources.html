@@ -1,0 +1,175 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'researcher/components/sidebar.html' %}
+
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+
+                <div class="container-fluid">
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ project.title }} - Resources</h1>
+                        <div>
+                            <a href="{{ url_for('researcher.project_detail', project_id=project.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Project
+                            </a>
+                            <button class="btn btn-info" data-toggle="modal" data-target="#addResourceModal">
+                                <i class="fas fa-plus"></i> Add Resource
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Resources List -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Project Resources</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if resources %}
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="resourcesTable" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Type</th>
+                                                <th>Description</th>
+                                                <th>URL/Link</th>
+                                                <th>Added</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for resource in resources %}
+                                            <tr>
+                                                <td>
+                                                    <span class="badge badge-{{ 'info' if resource.resource_type == 'document' else 'success' if resource.resource_type == 'link' else 'warning' }}">
+                                                        {{ resource.resource_type|title }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ resource.description or 'No description' }}</td>
+                                                <td>
+                                                    <a href="{{ resource.resource_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-external-link-alt"></i> Open
+                                                    </a>
+                                                </td>
+                                                <td>{{ dt(resource.created_at).strftime('%m/%d/%Y') }}</td>
+                                                <td>
+                                                    <form method="POST" action="{{ url_for('researcher.delete_project_resource', resource_id=resource.id) }}" style="display: inline;">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                                onclick="return confirm('Delete this resource?')">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-file-alt fa-3x text-gray-300 mb-3"></i>
+                                    <h5 class="text-gray-500">No resources yet</h5>
+                                    <p class="text-muted">Add resources like documents, links, and references to support this project</p>
+                                    <button class="btn btn-info" data-toggle="modal" data-target="#addResourceModal">
+                                        <i class="fas fa-plus"></i> Add First Resource
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Add Resource Modal -->
+                    <div class="modal fade" id="addResourceModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Add Project Resource</h5>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <form method="POST" action="{{ url_for('researcher.add_project_resource', project_id=project.id) }}">
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label>Resource Type</label>
+                                            <select name="resource_type" class="form-control">
+                                                <option value="document">Document</option>
+                                                <option value="link">Link</option>
+                                                <option value="reference">Reference</option>
+                                                <option value="dataset">Dataset</option>
+                                                <option value="software">Software</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>URL/Link</label>
+                                            <input type="url" name="resource_url" class="form-control" required 
+                                                   placeholder="https://example.com/resource">
+                                            <small class="form-text text-muted">Enter the URL where this resource can be accessed</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Description</label>
+                                            <textarea name="description" class="form-control" rows="4" 
+                                                      placeholder="Describe what this resource is and how it relates to the project..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-info">Add Resource</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Page level plugins -->
+    <script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
+
+    <!-- Page level custom scripts -->
+    <script>
+        $(document).ready(function() {
+            $('#resourcesTable').DataTable();
+        });
+    </script>
+
+</body>
+</html>

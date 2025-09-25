@@ -1,0 +1,170 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'researcher/components/sidebar.html' %}
+
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+
+                <div class="container-fluid">
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ meeting_note.title }}</h1>
+                        <div>
+                            <a href="{{ url_for('researcher.project_meeting_notes', project_id=project.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Meeting Notes
+                            </a>
+                            <button class="btn btn-dark" data-toggle="modal" data-target="#editMeetingNoteModal">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="row">
+                        <!-- Meeting Note Details -->
+                        <div class="col-lg-8">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Meeting Details</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3"><strong>Meeting Date:</strong></div>
+                                        <div class="col-sm-9">{{ dt(meeting_note.meeting_date).strftime('%B %d, %Y') }}</div>
+                                    </div>
+                                    {% if meeting_note.participants %}
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3"><strong>Participants:</strong></div>
+                                        <div class="col-sm-9">{{ meeting_note.participants }}</div>
+                                    </div>
+                                    {% endif %}
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3"><strong>Added by:</strong></div>
+                                        <div class="col-sm-9">{{ meeting_note.author.name }} {{ meeting_note.author.surname }}</div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3"><strong>Created:</strong></div>
+                                        <div class="col-sm-9">{{ dt(meeting_note.created_at).strftime('%B %d, %Y at %I:%M %p') }}</div>
+                                    </div>
+                                    <hr>
+                                    <h6><strong>Meeting Content:</strong></h6>
+                                    <div class="mt-3">
+                                        {{ meeting_note.content|replace('\n', '<br>')|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project Context -->
+                        <div class="col-lg-4">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Project Context</h6>
+                                </div>
+                                <div class="card-body">
+                                    <h6>{{ project.title }}</h6>
+                                    <p class="text-muted">{{ project.description[:100] }}{% if project.description|length > 100 %}...{% endif %}</p>
+                                    <hr>
+                                    <div class="list-group">
+                                        <a href="{{ url_for('researcher.project_detail', project_id=project.id) }}" class="list-group-item list-group-item-action">
+                                            <i class="fas fa-project-diagram text-primary"></i> Project Overview
+                                        </a>
+                                        <a href="{{ url_for('researcher.project_meeting_notes', project_id=project.id) }}" class="list-group-item list-group-item-action">
+                                            <i class="fas fa-clipboard text-dark"></i> All Meeting Notes
+                                        </a>
+                                        <a href="{{ url_for('researcher.project_todos', project_id=project.id) }}" class="list-group-item list-group-item-action">
+                                            <i class="fas fa-tasks text-warning"></i> Project Todos
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edit Meeting Note Modal -->
+                    <div class="modal fade" id="editMeetingNoteModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Meeting Note</h5>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <form method="POST" action="{{ url_for('researcher.edit_project_meeting_note', note_id=meeting_note.id) }}">
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label>Meeting Title</label>
+                                            <input type="text" name="title" class="form-control" required 
+                                                   value="{{ meeting_note.title }}">
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Meeting Date</label>
+                                                    <input type="date" name="meeting_date" class="form-control" required
+                                                           value="{{ dt(meeting_note.meeting_date).strftime('%Y-%m-%d') }}">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Participants</label>
+                                                    <input type="text" name="participants" class="form-control" 
+                                                           value="{{ meeting_note.participants or '' }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Meeting Content</label>
+                                            <textarea name="content" class="form-control" rows="8" required>{{ meeting_note.content }}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-dark">Update Meeting Note</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
+
+</body>
+</html>

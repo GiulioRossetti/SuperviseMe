@@ -1,40 +1,45 @@
-{% include 'admin/components/header.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{{ project.title }} - Research Project Details</title>
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+</head>
 
 <body id="page-top">
-
-    <!-- Page Wrapper -->
     <div id="wrapper">
-
-        <!-- Sidebar -->
         {% include 'researcher/components/sidebar.html' %}
-        <!-- End of Sidebar -->
 
-        <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">
-
-            <!-- Main Content -->
             <div id="content">
-
-                <!-- Topbar -->
                 {% include 'admin/components/topbar.html' %}
-                <!-- End of Topbar -->
 
-                <!-- Begin Page Content -->
                 <div class="container-fluid">
-
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">{{ project.title }}</h1>
-                        <div>
-                            <a href="{{ url_for('researcher.projects') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Back to Projects
-                            </a>
-                            {% if is_owner %}
-                            <button class="btn btn-success" data-toggle="modal" data-target="#addCollaboratorModal">
-                                <i class="fas fa-user-plus"></i> Add Collaborator
+                        {% if is_owner %}
+                        <div class="dropdown">
+                            <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                                <i class="fas fa-cog fa-sm"></i> Project Actions
                             </button>
-                            {% endif %}
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#editProjectModal">
+                                    <i class="fas fa-edit"></i> Edit Project
+                                </a>
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#changeStatusModal">
+                                    <i class="fas fa-flag"></i> Change Status
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item text-danger" href="#" onclick="confirmDeleteProject()">
+                                    <i class="fas fa-trash"></i> Delete Project
+                                </a>
+                            </div>
                         </div>
+                        {% endif %}
                     </div>
 
                     <!-- Flash Messages -->
@@ -51,179 +56,351 @@
                         {% endif %}
                     {% endwith %}
 
-                    <!-- Project Info -->
+                    <!-- Project Info Cards -->
                     <div class="row">
-                        <div class="col-lg-8">
+                        <!-- Project Overview -->
+                        <div class="col-xl-8 col-lg-7">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-success">Project Details</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">Project Overview</h6>
                                 </div>
                                 <div class="card-body">
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3">
-                                            <strong>Title:</strong>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Level:</strong> {{ project.level|title if project.level else 'Not specified' }}</p>
+                                            <p><strong>Created:</strong> {{ dt(project.created_at).strftime('%B %d, %Y') }}</p>
+                                            <p><strong>Principal Researcher:</strong> {{ project.researcher.name }} {{ project.researcher.surname }}</p>
                                         </div>
-                                        <div class="col-sm-9">
-                                            {{ project.title }}
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3">
-                                            <strong>Description:</strong>
-                                        </div>
-                                        <div class="col-sm-9">
-                                            {{ project.description }}
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3">
-                                            <strong>Level:</strong>
-                                        </div>
-                                        <div class="col-sm-9">
-                                            <span class="badge badge-info">{{ project.level or 'Not specified' }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3">
-                                            <strong>Principal Investigator:</strong>
-                                        </div>
-                                        <div class="col-sm-9">
-                                            {{ project.researcher.name }} {{ project.researcher.surname }}
-                                            <small class="text-muted">({{ project.researcher.email }})</small>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3">
-                                            <strong>Status:</strong>
-                                        </div>
-                                        <div class="col-sm-9">
-                                            {% if project.frozen %}
-                                                <span class="badge badge-warning">Frozen</span>
+                                        <div class="col-md-6">
+                                            {% if current_status %}
+                                            <p><strong>Current Status:</strong> 
+                                                <span class="badge badge-info">{{ current_status.status|title }}</span>
+                                            </p>
+                                            <p><strong>Status Updated:</strong> {{ dt(current_status.updated_at).strftime('%B %d, %Y') }}</p>
                                             {% else %}
-                                                <span class="badge badge-success">Active</span>
+                                            <p><strong>Status:</strong> <span class="badge badge-secondary">Not set</span></p>
                                             {% endif %}
                                         </div>
                                     </div>
+                                    <hr>
+                                    <h6 class="font-weight-bold">Description</h6>
+                                    <p>{{ project.description }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Project Statistics -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Project Statistics</h6>
+                                </div>
+                                <div class="card-body">
                                     <div class="row">
-                                        <div class="col-sm-3">
-                                            <strong>Created:</strong>
+                                        <div class="col-md-3 text-center">
+                                            <h4 class="text-info">{{ updates_count }}</h4>
+                                            <p class="text-xs">Updates</p>
                                         </div>
-                                        <div class="col-sm-9">
-                                            {{ dt(project.created_at).strftime('%Y-%m-%d %H:%M') }}
+                                        <div class="col-md-3 text-center">
+                                            <h4 class="text-warning">{{ todos_count }}</h4>
+                                            <p class="text-xs">Todos</p>
+                                        </div>
+                                        <div class="col-md-3 text-center">
+                                            <h4 class="text-success">{{ completed_todos_count }}</h4>
+                                            <p class="text-xs">Completed</p>
+                                        </div>
+                                        <div class="col-md-3 text-center">
+                                            <h4 class="text-secondary">{{ resources_count }}</h4>
+                                            <p class="text-xs">Resources</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-4 text-center">
+                                            <h4 class="text-primary">{{ objectives_count }}</h4>
+                                            <p class="text-xs">Objectives</p>
+                                        </div>
+                                        <div class="col-md-4 text-center">
+                                            <h4 class="text-info">{{ hypotheses_count }}</h4>
+                                            <p class="text-xs">Hypotheses</p>
+                                        </div>
+                                        <div class="col-md-4 text-center">
+                                            <h4 class="text-dark">{{ meeting_notes_count }}</h4>
+                                            <p class="text-xs">Meeting Notes</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Collaborators -->
-                        <div class="col-lg-4">
+                        <!-- Quick Actions & Navigation -->
+                        <div class="col-xl-4 col-lg-5">
+                            <!-- Quick Actions -->
                             <div class="card shadow mb-4">
-                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-success">Collaborators</h6>
-                                    <span class="badge badge-success">{{ collaborators|length }}</span>
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="list-group">
+                                        <a href="{{ url_for('researcher.project_updates', project_id=project.id) }}" class="list-group-item list-group-item-action">
+                                            <i class="fas fa-comments text-primary"></i> View All Updates ({{ updates_count }})
+                                        </a>
+                                        <a href="{{ url_for('researcher.project_todos', project_id=project.id) }}" class="list-group-item list-group-item-action">
+                                            <i class="fas fa-tasks text-warning"></i> Manage Todos ({{ todos_count }})
+                                        </a>
+                                        <a href="{{ url_for('researcher.project_resources', project_id=project.id) }}" class="list-group-item list-group-item-action">
+                                            <i class="fas fa-file-alt text-secondary"></i> Resources ({{ resources_count }})
+                                        </a>
+                                        <a href="{{ url_for('researcher.project_objectives', project_id=project.id) }}" class="list-group-item list-group-item-action">
+                                            <i class="fas fa-bullseye text-success"></i> Objectives ({{ objectives_count }})
+                                        </a>
+                                        <a href="{{ url_for('researcher.project_hypotheses', project_id=project.id) }}" class="list-group-item list-group-item-action">
+                                            <i class="fas fa-lightbulb text-info"></i> Hypotheses ({{ hypotheses_count }})
+                                        </a>
+                                        <a href="{{ url_for('researcher.project_meeting_notes', project_id=project.id) }}" class="list-group-item list-group-item-action">
+                                            <i class="fas fa-clipboard text-dark"></i> Meeting Notes ({{ meeting_notes_count }})
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Collaborators -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="m-0 font-weight-bold text-primary">Collaborators</h6>
+                                    {% if is_owner %}
+                                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addCollaboratorModal">
+                                        <i class="fas fa-plus"></i> Add
+                                    </button>
+                                    {% endif %}
                                 </div>
                                 <div class="card-body">
                                     {% if collaborators %}
                                         {% for collab in collaborators %}
-                                        <div class="d-flex align-items-center justify-content-between mb-3 p-2 border rounded">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
                                             <div>
-                                                <div class="font-weight-bold">
-                                                    {{ collab.user.name }} {{ collab.user.surname }}
-                                                </div>
-                                                <small class="text-muted">{{ collab.user.email }}</small><br>
-                                                <span class="badge badge-secondary">{{ collab.role }}</span>
+                                                <strong>{{ collab.user.name }} {{ collab.user.surname }}</strong><br>
+                                                <small class="text-muted">{{ collab.role|title }}</small>
                                             </div>
                                             {% if is_owner %}
-                                            <form method="POST" action="{{ url_for('researcher.remove_collaborator') }}" style="margin: 0;">
-                                                <input type="hidden" name="project_id" value="{{ project.id }}">
-                                                <input type="hidden" name="collaborator_id" value="{{ collab.user.id }}">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
-                                                        onclick="return confirm('Remove {{ collab.user.name }} {{ collab.user.surname }} from this project?')">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </form>
+                                            <button class="btn btn-outline-danger btn-sm" onclick="removeCollaborator({{ collab.user.id }})">
+                                                <i class="fas fa-times"></i>
+                                            </button>
                                             {% endif %}
                                         </div>
+                                        {% if not loop.last %}<hr>{% endif %}
                                         {% endfor %}
                                     {% else %}
-                                        <div class="text-center py-3">
-                                            <i class="fas fa-users fa-2x text-gray-300 mb-2"></i>
-                                            <p class="text-gray-500 mb-0">No collaborators yet</p>
-                                            {% if is_owner %}
-                                            <small class="text-muted">Add collaborators to start working together</small>
-                                            {% endif %}
-                                        </div>
+                                        <p class="text-muted">No collaborators yet</p>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Recent Activity -->
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Recent Updates</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if recent_updates %}
+                                        {% for update in recent_updates %}
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between">
+                                                <strong>{{ update.author.name }} {{ update.author.surname }}</strong>
+                                                <small class="text-muted">{{ dt(update.created_at).strftime('%m/%d/%Y') }}</small>
+                                            </div>
+                                            <span class="badge badge-{{ 'info' if update.update_type == 'progress' else 'warning' }}">{{ update.update_type|title }}</span>
+                                            <p class="mt-2">{{ update.content[:100] }}{% if update.content|length > 100 %}...{% endif %}</p>
+                                            {% if not loop.last %}<hr>{% endif %}
+                                        </div>
+                                        {% endfor %}
+                                        <a href="{{ url_for('researcher.project_updates', project_id=project.id) }}" class="btn btn-outline-primary btn-sm">View All Updates</a>
+                                    {% else %}
+                                        <p class="text-muted">No updates yet</p>
+                                        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addUpdateModal">Add First Update</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Recent Todos</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if recent_todos %}
+                                        {% for todo in recent_todos %}
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between">
+                                                <strong class="{% if todo.status == 'completed' %}text-success{% endif %}">{{ todo.title }}</strong>
+                                                <small class="text-muted">{{ dt(todo.created_at).strftime('%m/%d/%Y') }}</small>
+                                            </div>
+                                            <div>
+                                                <span class="badge badge-{{ 'success' if todo.status == 'completed' else 'warning' }}">{{ todo.status|title }}</span>
+                                                <span class="badge badge-{{ 'danger' if todo.priority == 'high' else 'info' if todo.priority == 'medium' else 'secondary' }}">{{ todo.priority|title }}</span>
+                                            </div>
+                                            {% if todo.assigned_to %}
+                                            <small class="text-muted">Assigned to: {{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}</small>
+                                            {% endif %}
+                                            {% if not loop.last %}<hr>{% endif %}
+                                        </div>
+                                        {% endfor %}
+                                        <a href="{{ url_for('researcher.project_todos', project_id=project.id) }}" class="btn btn-outline-warning btn-sm">View All Todos</a>
+                                    {% else %}
+                                        <p class="text-muted">No todos yet</p>
+                                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#addTodoModal">Add First Todo</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Add Modals -->
+                    {% if is_owner or collaborators %}
+                    <!-- Add Update Modal -->
+                    <div class="modal fade" id="addUpdateModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Add Update</h5>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <form method="POST" action="{{ url_for('researcher.add_project_update', project_id=project.id) }}">
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label>Update Type</label>
+                                            <select name="update_type" class="form-control">
+                                                <option value="progress">Progress Update</option>
+                                                <option value="feedback">Feedback</option>
+                                                <option value="milestone">Milestone</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Content</label>
+                                            <textarea name="content" class="form-control" rows="4" required></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Add Update</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Todo Modal -->
+                    <div class="modal fade" id="addTodoModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Add Todo</h5>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <form method="POST" action="{{ url_for('researcher.add_project_todo', project_id=project.id) }}">
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label>Title</label>
+                                            <input type="text" name="title" class="form-control" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Description</label>
+                                            <textarea name="description" class="form-control" rows="3"></textarea>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Priority</label>
+                                                    <select name="priority" class="form-control">
+                                                        <option value="low">Low</option>
+                                                        <option value="medium" selected>Medium</option>
+                                                        <option value="high">High</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Due Date</label>
+                                                    <input type="date" name="due_date" class="form-control">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Assign To</label>
+                                            <select name="assigned_to_id" class="form-control">
+                                                <option value="">No assignment</option>
+                                                <option value="{{ project.researcher.id }}">{{ project.researcher.name }} {{ project.researcher.surname }} (Principal Researcher)</option>
+                                                {% for collab in collaborators %}
+                                                <option value="{{ collab.user.id }}">{{ collab.user.name }} {{ collab.user.surname }} ({{ collab.role|title }})</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-warning">Add Todo</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if is_owner %}
+                    <!-- Add Collaborator Modal -->
+                    <div class="modal fade" id="addCollaboratorModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Add Collaborator</h5>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <form method="POST" action="{{ url_for('researcher.add_collaborator') }}">
+                                    <input type="hidden" name="project_id" value="{{ project.id }}">
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label for="collaborator_email">Collaborator Email:</label>
+                                            <input type="email" class="form-control" name="collaborator_email" required 
+                                                   placeholder="Enter the email of the person you want to add">
+                                            <small class="form-text text-muted">The person must have an account in the system</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="role">Role:</label>
+                                            <select class="form-control" name="role">
+                                                <option value="collaborator">Collaborator</option>
+                                                <option value="co-investigator">Co-Investigator</option>
+                                                <option value="research-assistant">Research Assistant</option>
+                                                <option value="advisor">Advisor</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-success">Add Collaborator</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                 </div>
-                <!-- /.container-fluid -->
-
             </div>
-            <!-- End of Main Content -->
 
-            <!-- Footer -->
             {% include 'admin/components/footer.html' %}
-            <!-- End of Footer -->
-
-        </div>
-        <!-- End of Content Wrapper -->
-
-    </div>
-    <!-- End of Page Wrapper -->
-
-    {% if is_owner %}
-    <!-- Add Collaborator Modal -->
-    <div class="modal fade" id="addCollaboratorModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Collaborator</h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form method="POST" action="{{ url_for('researcher.add_collaborator') }}">
-                    <input type="hidden" name="project_id" value="{{ project.id }}">
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="collaborator_email">Collaborator Email:</label>
-                            <input type="email" class="form-control" name="collaborator_email" required 
-                                   placeholder="Enter the email of the person you want to add">
-                            <small class="form-text text-muted">The person must have an account in the system</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="role">Role:</label>
-                            <select class="form-control" name="role">
-                                <option value="collaborator">Collaborator</option>
-                                <option value="co-investigator">Co-Investigator</option>
-                                <option value="research-assistant">Research Assistant</option>
-                                <option value="advisor">Advisor</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success">Add Collaborator</button>
-                    </div>
-                </form>
-            </div>
         </div>
     </div>
-    {% endif %}
 
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-
-    <!-- Logout Modal-->
-    {% include 'admin/components/logout_modal.html' %}
-
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
 </body>
-
 </html>
