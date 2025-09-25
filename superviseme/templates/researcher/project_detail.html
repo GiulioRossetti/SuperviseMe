@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>{{ project.title }} - SuperviseMe</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'researcher/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ project.title }}</h1>
+                        <div>
+                            <a href="{{ url_for('researcher.projects') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Projects
+                            </a>
+                            {% if is_owner %}
+                            <button class="btn btn-success" data-toggle="modal" data-target="#addCollaboratorModal">
+                                <i class="fas fa-user-plus"></i> Add Collaborator
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Project Info -->
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-success">Project Details</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Title:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            {{ project.title }}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Description:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            {{ project.description }}
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Level:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            <span class="badge badge-info">{{ project.level or 'Not specified' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Principal Investigator:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            {{ project.researcher.name }} {{ project.researcher.surname }}
+                                            <small class="text-muted">({{ project.researcher.email }})</small>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-sm-3">
+                                            <strong>Status:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            {% if project.frozen %}
+                                                <span class="badge badge-warning">Frozen</span>
+                                            {% else %}
+                                                <span class="badge badge-success">Active</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-3">
+                                            <strong>Created:</strong>
+                                        </div>
+                                        <div class="col-sm-9">
+                                            {{ dt(project.created_at).strftime('%Y-%m-%d %H:%M') }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Collaborators -->
+                        <div class="col-lg-4">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-success">Collaborators</h6>
+                                    <span class="badge badge-success">{{ collaborators|length }}</span>
+                                </div>
+                                <div class="card-body">
+                                    {% if collaborators %}
+                                        {% for collab in collaborators %}
+                                        <div class="d-flex align-items-center justify-content-between mb-3 p-2 border rounded">
+                                            <div>
+                                                <div class="font-weight-bold">
+                                                    {{ collab.user.name }} {{ collab.user.surname }}
+                                                </div>
+                                                <small class="text-muted">{{ collab.user.email }}</small><br>
+                                                <span class="badge badge-secondary">{{ collab.role }}</span>
+                                            </div>
+                                            {% if is_owner %}
+                                            <form method="POST" action="{{ url_for('researcher.remove_collaborator') }}" style="margin: 0;">
+                                                <input type="hidden" name="project_id" value="{{ project.id }}">
+                                                <input type="hidden" name="collaborator_id" value="{{ collab.user.id }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="return confirm('Remove {{ collab.user.name }} {{ collab.user.surname }} from this project?')">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="text-center py-3">
+                                            <i class="fas fa-users fa-2x text-gray-300 mb-2"></i>
+                                            <p class="text-gray-500 mb-0">No collaborators yet</p>
+                                            {% if is_owner %}
+                                            <small class="text-muted">Add collaborators to start working together</small>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    {% if is_owner %}
+    <!-- Add Collaborator Modal -->
+    <div class="modal fade" id="addCollaboratorModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Collaborator</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.add_collaborator') }}">
+                    <input type="hidden" name="project_id" value="{{ project.id }}">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="collaborator_email">Collaborator Email:</label>
+                            <input type="email" class="form-control" name="collaborator_email" required 
+                                   placeholder="Enter the email of the person you want to add">
+                            <small class="form-text text-muted">The person must have an account in the system</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Role:</label>
+                            <select class="form-control" name="role">
+                                <option value="collaborator">Collaborator</option>
+                                <option value="co-investigator">Co-Investigator</option>
+                                <option value="research-assistant">Research Assistant</option>
+                                <option value="advisor">Advisor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Add Collaborator</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
+
+</body>
+
+</html>

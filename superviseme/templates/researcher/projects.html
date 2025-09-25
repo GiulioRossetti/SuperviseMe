@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Research Projects - SuperviseMe</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet">
+
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'researcher/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Research Projects</h1>
+                        <button class="btn btn-success" data-toggle="modal" data-target="#createProjectModal">
+                            <i class="fas fa-plus"></i> Create New Project
+                        </button>
+                    </div>
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Projects Table -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-success">My Research Projects</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if projects_with_collaborators %}
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Title</th>
+                                                        <th>Description</th>
+                                                        <th>Level</th>
+                                                        <th>Collaborators</th>
+                                                        <th>Status</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for item in projects_with_collaborators %}
+                                                    {% set project = item.project %}
+                                                    {% set collaborators = item.collaborators %}
+                                                    <tr>
+                                                        <td>
+                                                            <strong>{{ project.title }}</strong>
+                                                        </td>
+                                                        <td>
+                                                            <div class="text-truncate" style="max-width: 300px;">
+                                                                {{ project.description[:100] }}
+                                                                {% if project.description|length > 100 %}...{% endif %}
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge badge-info">{{ project.level or 'Not specified' }}</span>
+                                                        </td>
+                                                        <td>
+                                                            {% if collaborators %}
+                                                                {% for collab in collaborators[:2] %}
+                                                                    <span class="badge badge-secondary mr-1">
+                                                                        {{ collab.user.name }} {{ collab.user.surname }}
+                                                                        <small>({{ collab.role }})</small>
+                                                                    </span>
+                                                                {% endfor %}
+                                                                {% if collaborators|length > 2 %}
+                                                                    <span class="text-muted">+{{ collaborators|length - 2 }} more</span>
+                                                                {% endif %}
+                                                            {% else %}
+                                                                <span class="text-muted">No collaborators</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            {% if project.frozen %}
+                                                                <span class="badge badge-warning">Frozen</span>
+                                                            {% else %}
+                                                                <span class="badge badge-success">Active</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            <div class="btn-group" role="group">
+                                                                <a href="{{ url_for('researcher.project_detail', project_id=project.id) }}" 
+                                                                   class="btn btn-sm btn-outline-primary">
+                                                                    <i class="fas fa-eye"></i>
+                                                                </a>
+                                                                <button class="btn btn-sm btn-outline-secondary" 
+                                                                        onclick="editProject({{ project.id }}, '{{ project.title }}', '{{ project.description }}', '{{ project.level }}')">
+                                                                    <i class="fas fa-edit"></i>
+                                                                </button>
+                                                                <button class="btn btn-sm btn-outline-danger" 
+                                                                        onclick="deleteProject({{ project.id }}, '{{ project.title }}')">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-5">
+                                            <i class="fas fa-project-diagram fa-4x text-gray-300 mb-4"></i>
+                                            <h4 class="text-gray-400">No Research Projects Yet</h4>
+                                            <p class="text-gray-500 mb-4">Create your first research project to get started with collaborative research!</p>
+                                            <button class="btn btn-success" data-toggle="modal" data-target="#createProjectModal">
+                                                <i class="fas fa-plus"></i> Create Your First Project
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Create Project Modal -->
+    <div class="modal fade" id="createProjectModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Research Project</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.create_project') }}">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="title">Project Title:</label>
+                            <input type="text" class="form-control" name="title" required placeholder="Enter project title...">
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description:</label>
+                            <textarea class="form-control" name="description" rows="4" required placeholder="Provide a detailed description of the research project..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="level">Level:</label>
+                            <select class="form-control" name="level">
+                                <option value="">Select Level</option>
+                                <option value="pilot">Pilot Study</option>
+                                <option value="research">Research Project</option>
+                                <option value="full-scale">Full-Scale Study</option>
+                                <option value="longitudinal">Longitudinal Study</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Create Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Project Modal -->
+    <div class="modal fade" id="editProjectModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Research Project</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.update_project') }}">
+                    <input type="hidden" name="project_id" id="edit_project_id">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="edit_title">Project Title:</label>
+                            <input type="text" class="form-control" name="title" id="edit_title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_description">Description:</label>
+                            <textarea class="form-control" name="description" id="edit_description" rows="4" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_level">Level:</label>
+                            <select class="form-control" name="level" id="edit_level">
+                                <option value="">Select Level</option>
+                                <option value="pilot">Pilot Study</option>
+                                <option value="research">Research Project</option>
+                                <option value="full-scale">Full-Scale Study</option>
+                                <option value="longitudinal">Longitudinal Study</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Update Project</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
+
+    <script>
+        function editProject(id, title, description, level) {
+            document.getElementById('edit_project_id').value = id;
+            document.getElementById('edit_title').value = title;
+            document.getElementById('edit_description').value = description;
+            document.getElementById('edit_level').value = level || '';
+            $('#editProjectModal').modal('show');
+        }
+
+        function deleteProject(id, title) {
+            if (confirm(`Are you sure you want to delete the project "${title}"? This action cannot be undone.`)) {
+                fetch(`/researcher/delete_project/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting the project.');
+                });
+            }
+        }
+    </script>
+
+</body>
+
+</html>

@@ -218,5 +218,42 @@ class TelegramBotConfig(db.Model):
     is_active = db.Column(db.Boolean, default=True, nullable=False)  # Enable/disable bot
     notification_types = db.Column(db.Text, nullable=False)  # JSON string of enabled notification types
     frequency_settings = db.Column(db.Text, nullable=True)  # JSON string of frequency settings (immediate, digest, etc.)
+
+
+class ResearchProject(db.Model):
+    __tablename__ = "research_project"
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    researcher_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    frozen = db.Column(db.Boolean, default=False)
+    level = db.Column(db.Text, nullable=True)  # e.g., "research", "pilot", "full-scale"
+    created_at = db.Column(db.Integer, nullable=False)
+
+    researcher = db.relationship("User_mgmt", backref="research_projects", lazy=True)
+
+
+class ResearchProject_Collaborator(db.Model):
+    __tablename__ = "research_project_collaborator"
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey("research_project.id"), nullable=False)
+    collaborator_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    role = db.Column(db.String(50), nullable=False, default="collaborator")  # collaborator, co-investigator, etc.
+    added_at = db.Column(db.Integer, nullable=False)
+
+    project = db.relationship("ResearchProject", backref="collaborators", lazy=True)
+    collaborator = db.relationship("User_mgmt", backref="collaborated_projects", lazy=True)
+
+
+class Supervisor_Role(db.Model):
+    __tablename__ = "supervisor_role"
+    id = db.Column(db.Integer, primary_key=True)
+    researcher_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    granted_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    granted_at = db.Column(db.Integer, nullable=False)
+    active = db.Column(db.Boolean, default=True, nullable=False)
+
+    researcher = db.relationship("User_mgmt", foreign_keys=[researcher_id], backref="supervisor_roles", lazy=True)
+    granter = db.relationship("User_mgmt", foreign_keys=[granted_by], backref="granted_supervisor_roles", lazy=True)
     created_at = db.Column(db.Integer, nullable=False)
     updated_at = db.Column(db.Integer, nullable=False)

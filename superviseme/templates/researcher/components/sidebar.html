@@ -1,0 +1,95 @@
+<ul class="navbar-nav bg-gradient-success sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('researcher.dashboard') }}">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-microscope"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">SuperviseMe</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item active">
+                <a class="nav-link" href="{{ url_for('researcher.dashboard') }}">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span></a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Research
+            </div>
+
+            <!-- Nav Item - Research Projects -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('researcher.projects') }}">
+                    <i class="fas fa-fw fa-project-diagram"></i>
+                    <span>My Projects</span>
+                </a>
+            </li>
+
+            {% if has_supervisor_role %}
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Supervision
+            </div>
+
+            <!-- Nav Item - Supervisor Dashboard -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('supervisor.dashboard') }}">
+                    <i class="fas fa-fw fa-user-tie"></i>
+                    <span>Supervisor Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Theses -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('supervisor.theses_data') }}">
+                    <i class="fas fa-fw fa-book"></i>
+                    <span>Supervised Theses</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Students -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('supervisor.supervisee_data') }}">
+                    <i class="fas fa-fw fa-user-graduate"></i>
+                    <span>My Students</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Account
+            </div>
+
+            <!-- Nav Item - Profile -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('profile.profile_page') }}">
+                    <i class="fas fa-fw fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+
+        </ul>

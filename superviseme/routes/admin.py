@@ -31,6 +31,7 @@ def dashboard():
     user_counts = {
         "students": User_mgmt.query.filter_by(user_type="student").count(),
         "supervisors": User_mgmt.query.filter_by(user_type="supervisor").count(),
+        "researchers": User_mgmt.query.filter_by(user_type="researcher").count(),
         "admins": User_mgmt.query.filter_by(user_type="admin").count(),
     }
 
@@ -485,6 +486,89 @@ def create_thesis():
         return redirect(url_for("admin.theses"))
     except Exception as e:
         flash(f"Error creating thesis: {e}")
+        return redirect(request.referrer)
+
+
+@admin.route("/admin/grant_supervisor_role", methods=["POST"])
+@login_required
+def grant_supervisor_role():
+    """
+    This route handles granting supervisor role to a researcher.
+    """
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
+
+    researcher_id = request.form.get("researcher_id")
+    
+    if not researcher_id:
+        flash("Researcher ID is required")
+        return redirect(request.referrer)
+
+    researcher = User_mgmt.query.get(researcher_id)
+    if not researcher or researcher.user_type != "researcher":
+        flash("Researcher not found or invalid user type")
+        return redirect(request.referrer)
+
+    # Check if already has supervisor role
+    existing_role = Supervisor_Role.query.filter_by(
+        researcher_id=researcher_id, active=True
+    ).first()
+    
+    if existing_role:
+        flash("This researcher already has supervisor privileges")
+        return redirect(request.referrer)
+
+    try:
+        supervisor_role = Supervisor_Role(
+            researcher_id=researcher_id,
+            granted_by=current_user.id,
+            granted_at=int(time.time()),
+            active=True
+        )
+        db.session.add(supervisor_role)
+        db.session.commit()
+
+        flash(f"Supervisor role granted to {researcher.name} {researcher.surname}")
+        return redirect(request.referrer)
+    except Exception as e:
+        flash(f"Error granting supervisor role: {e}")
+        return redirect(request.referrer)
+
+
+@admin.route("/admin/revoke_supervisor_role", methods=["POST"]) 
+@login_required
+def revoke_supervisor_role():
+    """
+    This route handles revoking supervisor role from a researcher.
+    """
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
+
+    researcher_id = request.form.get("researcher_id")
+    
+    if not researcher_id:
+        flash("Researcher ID is required")
+        return redirect(request.referrer)
+
+    try:
+        supervisor_role = Supervisor_Role.query.filter_by(
+            researcher_id=researcher_id, active=True
+        ).first()
+        
+        if supervisor_role:
+            supervisor_role.active = False
+            db.session.commit()
+            
+            researcher = User_mgmt.query.get(researcher_id)
+            flash(f"Supervisor role revoked from {researcher.name} {researcher.surname}")
+        else:
+            flash("No active supervisor role found for this researcher")
+        
+        return redirect(request.referrer)
+    except Exception as e:
+        flash(f"Error revoking supervisor role: {e}")
         return redirect(request.referrer)
 
 
