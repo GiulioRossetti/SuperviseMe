@@ -382,42 +382,7 @@ def supervisor_dashboard():
     )
 
 
-@researcher.route("/researcher/supervisor/theses")
-@login_required
-def supervisor_theses():
-    """
-    Supervised theses management within researcher context
-    """
-    privilege_check = check_privileges(current_user.username, role="researcher")
-    if privilege_check is not True:
-        return privilege_check
-    
-    # Check if user has supervisor privileges
-    if not user_has_supervisor_role(current_user):
-        flash("You don't have supervisor privileges")
-        return redirect(url_for("researcher.dashboard"))
-
-    # Get theses supervised by this researcher
-    supervised_theses = db.session.execute(
-        select(Thesis, User_mgmt)
-        .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)
-        .outerjoin(User_mgmt, Thesis.author_id == User_mgmt.id)
-        .where(Thesis_Supervisor.supervisor_id == current_user.id)
-    ).all()
-
-    # Get available theses (not assigned to students)
-    available_theses = Thesis.query.filter(Thesis.author_id.is_(None)).all()
-
-    return render_template(
-        "researcher/supervisor_theses.html",
-        current_user=current_user,
-        supervised_theses=supervised_theses,
-        available_theses=available_theses,
-        has_supervisor_role=True,
-        datetime=datetime,
-        dt=datetime.fromtimestamp,
-        str=str
-    )
+# First supervisor_theses function removed - duplicate will be kept
 
 
 @researcher.route("/researcher/supervisor/students")
