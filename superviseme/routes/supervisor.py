@@ -556,16 +556,33 @@ def update_thesis():
     This route handles updating an existing thesis. It retrieves the necessary data from the form,
     updates the Thesis object, and saves it to the database.
     """
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
+
     thesis_id = request.form.get("thesis_id")
     title = request.form.get("title")
     description = request.form.get("description")
+    level = request.form.get("level")
 
-    thesis = Thesis.query.get_or_404(thesis_id)
+    # Verify supervisor has access to this thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        supervisor_id=current_user.id,
+        thesis_id=thesis_id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("Thesis not found or not accessible")
+        return redirect(url_for('supervisor.theses_data'))
+
+    thesis = thesis_supervisor.thesis
     thesis.title = title
     thesis.description = description
+    thesis.level = level
     db.session.commit()
-
-    return theses_data()
+    
+    flash("Thesis updated successfully")
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
 
 
 @supervisor.route("/supervisor/delete_thesis/<int:thesis_id>")
