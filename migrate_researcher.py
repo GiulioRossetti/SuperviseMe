@@ -367,8 +367,8 @@ def migrate_database():
                         author_id INTEGER NOT NULL,
                         title VARCHAR(200) NOT NULL,
                         content TEXT NOT NULL,
-                        meeting_date INTEGER NOT NULL,
                         created_at INTEGER NOT NULL,
+                        updated_at INTEGER NOT NULL,
                         FOREIGN KEY (project_id) REFERENCES research_project(id),
                         FOREIGN KEY (author_id) REFERENCES user_mgmt(id)
                     );
@@ -381,8 +381,8 @@ def migrate_database():
                         author_id INTEGER NOT NULL,
                         title VARCHAR(200) NOT NULL,
                         content TEXT NOT NULL,
-                        meeting_date INTEGER NOT NULL,
                         created_at INTEGER NOT NULL,
+                        updated_at INTEGER NOT NULL,
                         FOREIGN KEY (project_id) REFERENCES research_project(id),
                         FOREIGN KEY (author_id) REFERENCES user_mgmt(id)
                     );
