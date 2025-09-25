@@ -70,66 +70,76 @@
                                                     <tr>
                                                         <td><strong>{{ thesis.title }}</strong></td>
                                                         <td>
-                                                            {% if thesis.author_id %}
-                                                                Assigned (ID: {{ thesis.author_id }})
+                                                            {% if thesis.author %}
+                                                                {{ thesis.author.name }} {{ thesis.author.surname }}
+                                                                <br><small class="text-muted">{{ thesis.author.email }}</small>
                                                             {% else %}
-                                                                <em class="text-muted">Not assigned</em>
+                                                                <span class="text-warning">Not assigned</span>
                                                             {% endif %}
                                                         </td>
                                                         <td>
-                                                            <span class="badge badge-info">{{ thesis.level or 'Not specified' }}</span>
-                                                        </td>
-                                                        <td>{{ dt(thesis.created_at).strftime('%Y-%m-%d') }}</td>
-                                                        <td>
-                                                            {% if thesis.author_id %}
-                                                                <span class="badge badge-success">Assigned</span>
+                                                            {% if thesis.level %}
+                                                                <span class="badge badge-info">{{ thesis.level|title }}</span>
                                                             {% else %}
-                                                                <span class="badge badge-warning">Available</span>
+                                                                <span class="badge badge-secondary">Not specified</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>{{ dt(thesis.created_at).strftime('%b %d, %Y') if thesis.created_at else 'Unknown' }}</td>
+                                                        <td>
+                                                            {% if thesis.frozen %}
+                                                                <span class="badge badge-danger">Frozen</span>
+                                                            {% else %}
+                                                                <span class="badge badge-success">Active</span>
                                                             {% endif %}
                                                         </td>
                                                         <td>
-                                                            <div class="btn-group" role="group">
-                                                                <a href="{{ url_for('researcher.supervisor_thesis_detail', thesis_id=thesis.id) }}" 
-                                                                   class="btn btn-primary btn-sm">
-                                                                    <i class="fas fa-eye"></i> View
-                                                                </a>
-                                                                <button class="btn btn-warning btn-sm" 
-                                                                        data-toggle="modal" 
-                                                                        data-target="#editThesisModal{{ thesis.id }}">
-                                                                    <i class="fas fa-edit"></i> Edit
+                                                            <div class="dropdown">
+                                                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                                                                    Actions
                                                                 </button>
-                                                                {% if not thesis.author_id %}
-                                                                <button class="btn btn-success btn-sm" 
-                                                                        data-toggle="modal" 
-                                                                        data-target="#assignThesisModal{{ thesis.id }}">
-                                                                    <i class="fas fa-user-plus"></i> Assign
-                                                                </button>
-                                                                {% else %}
-                                                                <form method="POST" action="{{ url_for('researcher.unassign_thesis', thesis_id=thesis.id) }}" style="display: inline;">
-                                                                    <button type="submit" class="btn btn-secondary btn-sm" 
-                                                                            onclick="return confirm('Are you sure you want to unassign this thesis?')">
-                                                                        <i class="fas fa-user-minus"></i> Unassign
-                                                                    </button>
-                                                                </form>
-                                                                {% endif %}
-                                                                <form method="POST" action="{{ url_for('researcher.delete_thesis', thesis_id=thesis.id) }}" style="display: inline;">
-                                                                    <button type="submit" class="btn btn-danger btn-sm" 
-                                                                            onclick="return confirm('Are you sure you want to delete this thesis? This action cannot be undone.')">
+                                                                <div class="dropdown-menu">
+                                                                    <a class="dropdown-item" href="{{ url_for('researcher.supervisor_thesis_detail', thesis_id=thesis.id) }}">
+                                                                        <i class="fas fa-eye"></i> View Details
+                                                                    </a>
+                                                                    <a class="dropdown-item" href="#" data-toggle="modal" data-target="#editThesisModal{{ thesis.id }}">
+                                                                        <i class="fas fa-edit"></i> Edit Thesis
+                                                                    </a>
+                                                                    <div class="dropdown-divider"></div>
+                                                                    {% if not thesis.author %}
+                                                                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#assignStudentModal{{ thesis.id }}">
+                                                                            <i class="fas fa-user-plus text-success"></i> Assign Student
+                                                                        </a>
+                                                                    {% else %}
+                                                                        <a class="dropdown-item" href="#" onclick="unassignStudent({{ thesis.id }})">
+                                                                            <i class="fas fa-user-minus text-warning"></i> Unassign Student
+                                                                        </a>
+                                                                    {% endif %}
+                                                                    <div class="dropdown-divider"></div>
+                                                                    {% if thesis.frozen %}
+                                                                        <a class="dropdown-item" href="#" onclick="unfreezeThesis({{ thesis.id }})">
+                                                                            <i class="fas fa-unlock text-success"></i> Unfreeze
+                                                                        </a>
+                                                                    {% else %}
+                                                                        <a class="dropdown-item" href="#" onclick="freezeThesis({{ thesis.id }})">
+                                                                            <i class="fas fa-lock text-warning"></i> Freeze
+                                                                        </a>
+                                                                    {% endif %}
+                                                                    <div class="dropdown-divider"></div>
+                                                                    <a class="dropdown-item text-danger" href="#" onclick="deleteThesis({{ thesis.id }})">
                                                                         <i class="fas fa-trash"></i> Delete
-                                                                    </button>
-                                                                </form>
+                                                                    </a>
+                                                                </div>
                                                             </div>
                                                         </td>
                                                     </tr>
                                                     {% endfor %}
-                                                </tbody>
+                                            </table>
                                             </table>
                                         </div>
                                     {% else %}
-                                        <div class="text-center py-4">
+                                        <div class="text-center">
                                             <i class="fas fa-book fa-3x text-gray-300 mb-3"></i>
-                                            <p class="text-center text-muted">No supervised theses found.</p>
-                                            <small class="text-muted">Create your first thesis to get started.</small>
+                                            <p class="text-gray-500">No theses found. Create your first thesis to get started.</p>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -242,13 +252,13 @@
         </div>
     </div>
 
-    {% if not thesis.author_id %}
-    <!-- Assign Thesis Modal -->
-    <div class="modal fade" id="assignThesisModal{{ thesis.id }}" tabindex="-1" role="dialog">
+    <!-- Assign Student Modal -->
+    {% if not thesis.author %}
+    <div class="modal fade" id="assignStudentModal{{ thesis.id }}" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Assign Thesis to Student</h5>
+                    <h5 class="modal-title">Assign Student to Thesis</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -260,13 +270,15 @@
                             <label for="student_id">Select Student:</label>
                             <select class="form-control" name="student_id" required>
                                 <option value="">Choose a student...</option>
-                                <!-- Students would be populated from available students -->
+                                {% for student in available_students %}
+                                <option value="{{ student.id }}">{{ student.name }} {{ student.surname }} ({{ student.email }})</option>
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Assign Thesis</button>
+                        <button type="submit" class="btn btn-primary">Assign Student</button>
                     </div>
                 </form>
             </div>
@@ -277,14 +289,66 @@
     {% endfor %}
     {% endif %}
 
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
     <!-- Logout Modal-->
     {% include 'admin/components/logout_modal.html' %}
 
-
     <script>
-    $(document).ready(function() {
-        $('#dataTable').DataTable();
-    });
+        window.moment = moment;
+        
+        $(document).ready(function() {
+            $('#dataTable').DataTable();
+        });
+        
+        function freezeThesis(thesisId) {
+            if (confirm('Are you sure you want to freeze this thesis? Students will not be able to make changes.')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ url_for("researcher.freeze_thesis") }}';
+                
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'thesis_id';
+                input.value = thesisId;
+                form.appendChild(input);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        function unfreezeThesis(thesisId) {
+            if (confirm('Are you sure you want to unfreeze this thesis?')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ url_for("researcher.unfreeze_thesis") }}';
+                
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'thesis_id';
+                input.value = thesisId;
+                form.appendChild(input);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+        
+        function deleteThesis(thesisId) {
+            if (confirm('Are you sure you want to delete this thesis? This action cannot be undone.')) {
+                window.location.href = '{{ url_for("researcher.delete_thesis", thesis_id=0) }}'.replace('0', thesisId);
+            }
+        }
+        
+        function unassignStudent(thesisId) {
+            if (confirm('Are you sure you want to unassign the student from this thesis?')) {
+                window.location.href = '{{ url_for("researcher.unassign_thesis", thesis_id=0) }}'.replace('0', thesisId);
+            }
+        }
     </script>
 
 </body>
