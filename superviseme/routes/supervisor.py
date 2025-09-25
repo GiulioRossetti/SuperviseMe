@@ -1551,6 +1551,122 @@ def edit_hypothesis(hypothesis_id):
     return redirect(url_for('supervisor.thesis_detail', thesis_id=hypothesis.thesis_id))
 
 
+@supervisor.route("/supervisor/delete_objective/<int:objective_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_objective(objective_id):
+    """
+    Allow supervisors to delete objectives from supervised theses
+    """
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Verify supervisor has access to this objective
+    objective = Thesis_Objective.query.join(Thesis_Supervisor).filter(
+        Thesis_Objective.id == objective_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if not objective:
+        flash("Objective not found or not accessible")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    thesis_id = objective.thesis_id
+    db.session.delete(objective)
+    db.session.commit()
+    flash("Objective deleted successfully")
+    
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+
+
+@supervisor.route("/supervisor/delete_hypothesis/<int:hypothesis_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_hypothesis(hypothesis_id):
+    """
+    Allow supervisors to delete hypotheses from supervised theses
+    """
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Verify supervisor has access to this hypothesis
+    hypothesis = Thesis_Hypothesis.query.join(Thesis_Supervisor).filter(
+        Thesis_Hypothesis.id == hypothesis_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if not hypothesis:
+        flash("Hypothesis not found or not accessible")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    thesis_id = hypothesis.thesis_id
+    db.session.delete(hypothesis)
+    db.session.commit()
+    flash("Hypothesis deleted successfully")
+    
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+
+
+@supervisor.route("/supervisor/edit_resource/<int:resource_id>", methods=["POST"])
+@login_required
+def edit_resource(resource_id):
+    """
+    Allow supervisors to edit resources in supervised theses
+    """
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Verify supervisor has access to this resource
+    resource = Resource.query.join(Thesis_Supervisor).filter(
+        Resource.id == resource_id,
+        Thesis_Supervisor.thesis_id == Resource.thesis_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if not resource:
+        flash("Resource not found or not accessible")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    resource.resource_type = request.form.get("resource_type", resource.resource_type)
+    resource.resource_url = request.form.get("resource_url", resource.resource_url)
+    resource.description = request.form.get("description", resource.description)
+    
+    db.session.commit()
+    flash("Resource updated successfully")
+    
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=resource.thesis_id))
+
+
+@supervisor.route("/supervisor/delete_resource/<int:resource_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_resource(resource_id):
+    """
+    Allow supervisors to delete resources from supervised theses
+    """
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Verify supervisor has access to this resource
+    resource = Resource.query.join(Thesis_Supervisor).filter(
+        Resource.id == resource_id,
+        Thesis_Supervisor.thesis_id == Resource.thesis_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if not resource:
+        flash("Resource not found or not accessible")
+        return redirect(url_for('supervisor.dashboard'))
+    
+    thesis_id = resource.thesis_id
+    db.session.delete(resource)
+    db.session.commit()
+    flash("Resource deleted successfully")
+    
+    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+
+
 # Meeting Notes routes for supervisors
 @supervisor.route("/supervisor/add_meeting_note", methods=["POST"])
 @login_required
