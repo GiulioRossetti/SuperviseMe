@@ -56,6 +56,8 @@ def login_post():
         return redirect(url_for("admin.dashboard"))
     elif user.user_type == "supervisor":
         return redirect(url_for("supervisor.dashboard"))
+    elif user.user_type == "researcher":
+        return redirect(url_for("researcher.dashboard"))
     else:
         return redirect(url_for("student.dashboard"))
 

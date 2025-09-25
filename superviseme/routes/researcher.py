@@ -324,5 +324,7 @@ def project_detail(project_id):
         project=project,
         collaborators=collaborator_users,
         has_supervisor_role=user_has_supervisor_role(current_user),
-        is_owner=(project.researcher_id == current_user.id)
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
     )
