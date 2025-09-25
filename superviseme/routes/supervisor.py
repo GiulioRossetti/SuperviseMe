@@ -1465,7 +1465,9 @@ def edit_objective(objective_id):
         return privilege_check
     
     # Verify supervisor has access to this objective
-    objective = Thesis_Objective.query.join(Thesis_Supervisor).filter(
+    objective = Thesis_Objective.query.join(
+        Thesis_Supervisor, Thesis_Objective.thesis_id == Thesis_Supervisor.thesis_id
+    ).filter(
         Thesis_Objective.id == objective_id,
         Thesis_Supervisor.supervisor_id == current_user.id
     ).first()
@@ -1533,7 +1535,9 @@ def edit_hypothesis(hypothesis_id):
         return privilege_check
     
     # Verify supervisor has access to this hypothesis
-    hypothesis = Thesis_Hypothesis.query.join(Thesis_Supervisor).filter(
+    hypothesis = Thesis_Hypothesis.query.join(
+        Thesis_Supervisor, Thesis_Hypothesis.thesis_id == Thesis_Supervisor.thesis_id
+    ).filter(
         Thesis_Hypothesis.id == hypothesis_id,
         Thesis_Supervisor.supervisor_id == current_user.id
     ).first()
@@ -1562,7 +1566,9 @@ def delete_objective(objective_id):
         return privilege_check
     
     # Verify supervisor has access to this objective
-    objective = Thesis_Objective.query.join(Thesis_Supervisor).filter(
+    objective = Thesis_Objective.query.join(
+        Thesis_Supervisor, Thesis_Objective.thesis_id == Thesis_Supervisor.thesis_id
+    ).filter(
         Thesis_Objective.id == objective_id,
         Thesis_Supervisor.supervisor_id == current_user.id
     ).first()
@@ -1590,7 +1596,9 @@ def delete_hypothesis(hypothesis_id):
         return privilege_check
     
     # Verify supervisor has access to this hypothesis
-    hypothesis = Thesis_Hypothesis.query.join(Thesis_Supervisor).filter(
+    hypothesis = Thesis_Hypothesis.query.join(
+        Thesis_Supervisor, Thesis_Hypothesis.thesis_id == Thesis_Supervisor.thesis_id
+    ).filter(
         Thesis_Hypothesis.id == hypothesis_id,
         Thesis_Supervisor.supervisor_id == current_user.id
     ).first()
@@ -1618,9 +1626,10 @@ def edit_resource(resource_id):
         return privilege_check
     
     # Verify supervisor has access to this resource
-    resource = Resource.query.join(Thesis_Supervisor).filter(
+    resource = Resource.query.join(
+        Thesis_Supervisor, Resource.thesis_id == Thesis_Supervisor.thesis_id
+    ).filter(
         Resource.id == resource_id,
-        Thesis_Supervisor.thesis_id == Resource.thesis_id,
         Thesis_Supervisor.supervisor_id == current_user.id
     ).first()
     
@@ -1649,9 +1658,10 @@ def delete_resource(resource_id):
         return privilege_check
     
     # Verify supervisor has access to this resource
-    resource = Resource.query.join(Thesis_Supervisor).filter(
+    resource = Resource.query.join(
+        Thesis_Supervisor, Resource.thesis_id == Thesis_Supervisor.thesis_id
+    ).filter(
         Resource.id == resource_id,
-        Thesis_Supervisor.thesis_id == Resource.thesis_id,
         Thesis_Supervisor.supervisor_id == current_user.id
     ).first()
     
