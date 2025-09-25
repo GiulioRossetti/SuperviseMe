@@ -437,6 +437,37 @@ def add_resource():
     return redirect(url_for('student.thesis_data'))
 
 
+@student.route("/student/edit_resource", methods=["POST"])
+@login_required
+def edit_resource():
+    """
+    This route handles editing a resource. It retrieves the necessary data from the form,
+    updates the resource in the database, and commits the changes.
+    """
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
+    
+    resource_id = request.form.get("resource_id")
+    resource_type = request.form.get("resource_type")
+    resource_url = request.form.get("resource_url")
+    description = request.form.get("description")
+    
+    # Verify the resource belongs to a thesis owned by the current student
+    resource = Resource.query.join(Thesis).filter(
+        Resource.id == resource_id,
+        Thesis.author_id == current_user.id
+    ).first()
+    
+    if resource:
+        resource.resource_type = resource_type
+        resource.resource_url = resource_url
+        resource.description = description
+        db.session.commit()
+
+    return redirect(url_for('student.thesis_data'))
+
+
 @student.route("/student/delete_resource/<int:resource_id>")
 @login_required
 def delete_resource(resource_id):
@@ -495,6 +526,35 @@ def add_objective():
     return redirect(url_for('student.thesis_data'))
 
 
+@student.route("/student/edit_objective", methods=["POST"])
+@login_required
+def edit_objective():
+    """
+    This route handles editing an objective. It retrieves the necessary data from the form,
+    updates the objective in the database, and commits the changes.
+    """
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
+    
+    objective_id = request.form.get("objective_id")
+    title = request.form.get("title")
+    description = request.form.get("description")
+    
+    # Verify the objective belongs to the current student
+    objective = Thesis_Objective.query.filter_by(
+        id=objective_id,
+        author_id=current_user.id
+    ).first()
+    
+    if objective and not objective.frozen:
+        objective.title = title
+        objective.description = description
+        db.session.commit()
+
+    return redirect(url_for('student.thesis_data'))
+
+
 @student.route("/student/delete_objective/<int:objective_id>")
 @login_required
 def delete_objective(objective_id):
@@ -549,6 +609,35 @@ def add_hypothesis():
 
     db.session.add(new_hypothesis)
     db.session.commit()
+
+    return redirect(url_for('student.thesis_data'))
+
+
+@student.route("/student/edit_hypothesis", methods=["POST"])
+@login_required
+def edit_hypothesis():
+    """
+    This route handles editing a hypothesis. It retrieves the necessary data from the form,
+    updates the hypothesis in the database, and commits the changes.
+    """
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
+    
+    hypothesis_id = request.form.get("hypothesis_id")
+    title = request.form.get("title")
+    description = request.form.get("description")
+    
+    # Verify the hypothesis belongs to the current student
+    hypothesis = Thesis_Hypothesis.query.filter_by(
+        id=hypothesis_id,
+        author_id=current_user.id
+    ).first()
+    
+    if hypothesis and not hypothesis.frozen:
+        hypothesis.title = title
+        hypothesis.description = description
+        db.session.commit()
 
     return redirect(url_for('student.thesis_data'))
 
