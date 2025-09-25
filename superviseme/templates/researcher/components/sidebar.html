@@ -1,4 +1,4 @@
-<ul class="navbar-nav bg-gradient-success sidebar sidebar-dark accordion" id="accordionSidebar">
+<ul class="navbar-nav bg-gradient-info sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('researcher.dashboard') }}">
@@ -45,7 +45,7 @@
 
             <!-- Nav Item - Supervisor Dashboard -->
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('supervisor.dashboard') }}">
+                <a class="nav-link" href="{{ url_for('researcher.supervisor_dashboard') }}">
                     <i class="fas fa-fw fa-user-tie"></i>
                     <span>Supervisor Dashboard</span>
                 </a>
@@ -53,7 +53,7 @@
 
             <!-- Nav Item - Theses -->
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('supervisor.theses_data') }}">
+                <a class="nav-link" href="{{ url_for('researcher.supervisor_theses') }}">
                     <i class="fas fa-fw fa-book"></i>
                     <span>Supervised Theses</span>
                 </a>
@@ -61,7 +61,7 @@
 
             <!-- Nav Item - Students -->
             <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('supervisor.supervisee_data') }}">
+                <a class="nav-link" href="{{ url_for('researcher.supervisor_students') }}">
                     <i class="fas fa-fw fa-user-graduate"></i>
                     <span>My Students</span>
                 </a>

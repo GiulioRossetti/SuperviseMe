@@ -328,3 +328,128 @@ def project_detail(project_id):
         datetime=datetime,
         dt=datetime.fromtimestamp
     )
+
+
+@researcher.route("/researcher/supervisor/dashboard")
+@login_required
+def supervisor_dashboard():
+    """
+    Supervisor dashboard functionality within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    # Get supervisor statistics (replicating supervisor dashboard logic)
+    user_counts = {
+        "students": db.session.execute(
+                    select(func.count())
+                    .select_from(User_mgmt)
+                    .join(Thesis, Thesis.author_id == User_mgmt.id)
+                    .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)
+                    .where(Thesis_Supervisor.supervisor_id == current_user.id)
+                ).scalar_one()
+    }
+
+    # count all theses by their status
+    thesis_counts = {
+        "total": Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).count(),
+    }
+
+    # Get theses for this supervisor
+    supervised_theses = db.session.execute(
+        select(Thesis, User_mgmt)
+        .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)
+        .outerjoin(User_mgmt, Thesis.author_id == User_mgmt.id)
+        .where(Thesis_Supervisor.supervisor_id == current_user.id)
+    ).all()
+
+    return render_template(
+        "researcher/supervisor_dashboard.html",
+        current_user=current_user,
+        user_counts=user_counts,
+        thesis_counts=thesis_counts,
+        supervised_theses=supervised_theses,
+        has_supervisor_role=True,
+        datetime=datetime,
+        dt=datetime.fromtimestamp,
+        str=str
+    )
+
+
+@researcher.route("/researcher/supervisor/theses")
+@login_required
+def supervisor_theses():
+    """
+    Supervised theses management within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    # Get theses supervised by this researcher
+    supervised_theses = db.session.execute(
+        select(Thesis, User_mgmt)
+        .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)
+        .outerjoin(User_mgmt, Thesis.author_id == User_mgmt.id)
+        .where(Thesis_Supervisor.supervisor_id == current_user.id)
+    ).all()
+
+    # Get available theses (not assigned to students)
+    available_theses = Thesis.query.filter(Thesis.author_id.is_(None)).all()
+
+    return render_template(
+        "researcher/supervisor_theses.html",
+        current_user=current_user,
+        supervised_theses=supervised_theses,
+        available_theses=available_theses,
+        has_supervisor_role=True,
+        datetime=datetime,
+        dt=datetime.fromtimestamp,
+        str=str
+    )
+
+
+@researcher.route("/researcher/supervisor/students")
+@login_required
+def supervisor_students():
+    """
+    Student management within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    # Get students supervised by this researcher
+    supervised_students = db.session.execute(
+        select(User_mgmt, Thesis)
+        .join(Thesis, Thesis.author_id == User_mgmt.id)
+        .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)
+        .where(Thesis_Supervisor.supervisor_id == current_user.id)
+        .where(User_mgmt.user_type == "student")
+    ).all()
+
+    return render_template(
+        "researcher/supervisor_students.html",
+        current_user=current_user,
+        supervised_students=supervised_students,
+        has_supervisor_role=True,
+        datetime=datetime,
+        dt=datetime.fromtimestamp,
+        str=str
+    )
