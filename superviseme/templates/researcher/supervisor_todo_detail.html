@@ -1,0 +1,214 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'researcher/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Todo Detail: {{ todo.title }}</h1>
+                        <div>
+                            <a href="{{ url_for('researcher.supervisor_dashboard') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Todo Info Row -->
+                    <div class="row">
+                        <div class="col-xl-8 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-info">Todo Information</h6>
+                                </div>
+                                <div class="card-body">
+                                    <h4 class="text-info">{{ todo.title }}</h4>
+                                    <p class="text-gray-700">{{ todo.description or "No description provided" }}</p>
+                                    
+                                    <div class="row mt-4">
+                                        <div class="col-md-3">
+                                            <strong>Status:</strong>
+                                            <span class="badge {% if todo.status == 'completed' %}badge-success{% elif todo.status == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">
+                                                {{ todo.status|title }}
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Priority:</strong>
+                                            <span class="badge {% if todo.priority == 'high' %}badge-danger{% elif todo.priority == 'medium' %}badge-warning{% else %}badge-secondary{% endif %}">
+                                                {{ todo.priority|title }}
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Due Date:</strong>
+                                            <span class="text-gray-700">
+                                                {% if todo.due_date %}
+                                                    {{ dt(todo.due_date).strftime('%Y-%m-%d') }}
+                                                {% else %}
+                                                    No due date
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <strong>Created:</strong>
+                                            <span class="text-gray-700">{{ dt(todo.created_at).strftime('%Y-%m-%d %H:%M') }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <strong>Assigned To:</strong>
+                                            {% if todo.assigned_to %}
+                                                <span class="text-gray-700">{{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}</span>
+                                            {% else %}
+                                                <span class="text-muted">Not assigned</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Created By:</strong>
+                                            <span class="text-gray-700">{{ todo.author.name }} {{ todo.author.surname }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sidebar -->
+                        <div class="col-xl-4 col-lg-5">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-info">Quick Actions</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <a href="{{ url_for('researcher.supervisor_thesis_detail', thesis_id=todo.thesis_id) }}" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i> View Thesis
+                                        </a>
+                                        {% if todo.assigned_to %}
+                                        <a href="#" class="btn btn-outline-info btn-sm">
+                                            <i class="fas fa-user"></i> View Student Profile
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Todo Stats -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-info">Todo Statistics</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row no-gutters">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase">
+                                                Referenced Updates
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ referenced_updates|length }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-list fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Referenced Updates -->
+                    {% if referenced_updates %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-info">Referenced Updates</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" id="updatesTable" width="100%" cellspacing="0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Title</th>
+                                                    <th>Content</th>
+                                                    <th>Created</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for update in referenced_updates %}
+                                                <tr>
+                                                    <td>{{ update.title }}</td>
+                                                    <td>{{ update.content[:100] }}{% if update.content|length > 100 %}...{% endif %}</td>
+                                                    <td>{{ dt(update.created_at).strftime('%Y-%m-%d %H:%M') }}</td>
+                                                    <td>
+                                                        <a href="#" class="btn btn-sm btn-info">
+                                                            <i class="fas fa-eye"></i> View
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- JavaScript -->
+    {% include 'admin/components/js.html' %}
+
+    <!-- DataTables -->
+    <script>
+    $(document).ready(function() {
+        $('#updatesTable').DataTable({
+            "pageLength": 10,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true
+        });
+    });
+    </script>
+
+</body>
+</html>

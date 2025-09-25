@@ -1,0 +1,344 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'researcher/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Search Results</h1>
+                        <a href="{{ url_for('researcher.supervisor_dashboard') }}" class="d-none d-sm-inline-block btn btn-sm btn-info shadow-sm">
+                            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Dashboard
+                        </a>
+                    </div>
+
+                    <!-- Search Term Display -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <strong>Search results for:</strong> "{{ search_term }}"
+                                {% if not theses and not supervisees %}
+                                <br><small class="text-muted">No results found. Try a different search term.</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Theses Results -->
+                    {% if theses %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-info">Theses Found ({{ theses|length }})</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" id="thesesTable" width="100%" cellspacing="0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Title</th>
+                                                    <th>Level</th>
+                                                    <th>Student</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for thesis in theses %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="font-weight-bold">{{ thesis.title }}</div>
+                                                        <div class="small text-gray-600">{{ thesis.description[:100] }}{% if thesis.description|length > 100 %}...{% endif %}</div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge badge-info">{{ thesis.level or 'Not specified' }}</span>
+                                                    </td>
+                                                    <td>
+                                                        {% if thesis.author %}
+                                                            {{ thesis.author.name }} {{ thesis.author.surname }}
+                                                            <br><small class="text-muted">{{ thesis.author.email }}</small>
+                                                        {% else %}
+                                                            <span class="text-muted">Not assigned</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if thesis.status %}
+                                                            {% set latest_status = thesis.status[-1] %}
+                                                            <span class="badge 
+                                                                {% if latest_status.status == 'completed' %}badge-success
+                                                                {% elif latest_status.status == 'in_progress' %}badge-warning
+                                                                {% elif latest_status.status == 'suspended' %}badge-danger
+                                                                {% else %}badge-secondary{% endif %}">
+                                                                {{ latest_status.status|replace('_', ' ')|title }}
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="badge badge-secondary">Unknown</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-info btn-sm dropdown-toggle" type="button" 
+                                                                    data-toggle="dropdown">
+                                                                <i class="fas fa-cog"></i>
+                                                            </button>
+                                                            <div class="dropdown-menu">
+                                                                <a class="dropdown-item" href="{{ url_for('researcher.supervisor_thesis_detail', thesis_id=thesis.id) }}">
+                                                                    <i class="fas fa-eye"></i> View Details
+                                                                </a>
+                                                                <a class="dropdown-item" href="#" onclick="editThesis({{ thesis.id }}, '{{ thesis.title }}', '{{ thesis.description|replace('\n', '\\n')|replace('\'', '\\\'') }}', '{{ thesis.level }}')">
+                                                                    <i class="fas fa-edit"></i> Edit
+                                                                </a>
+                                                                {% if thesis.author %}
+                                                                <a class="dropdown-item" href="#" onclick="unassignThesis({{ thesis.id }})">
+                                                                    <i class="fas fa-user-times"></i> Unassign Student
+                                                                </a>
+                                                                {% else %}
+                                                                <a class="dropdown-item" href="#" onclick="assignThesis({{ thesis.id }})">
+                                                                    <i class="fas fa-user-plus"></i> Assign Student
+                                                                </a>
+                                                                {% endif %}
+                                                                <div class="dropdown-divider"></div>
+                                                                <a class="dropdown-item text-danger" href="#" onclick="deleteThesis({{ thesis.id }}, '{{ thesis.title }}')">
+                                                                    <i class="fas fa-trash"></i> Delete
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Supervisees Results -->
+                    {% if supervisees %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-info">Students Found ({{ supervisees|length }})</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" id="studentsTable" width="100%" cellspacing="0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Email</th>
+                                                    <th>Username</th>
+                                                    <th>Degree Program</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for student in supervisees %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="font-weight-bold">{{ student.name }} {{ student.surname }}</div>
+                                                        <div class="small text-gray-600">{{ student.gender or 'Not specified' }}</div>
+                                                    </td>
+                                                    <td>{{ student.email }}</td>
+                                                    <td>{{ student.username }}</td>
+                                                    <td>
+                                                        <span class="badge badge-info">{{ student.cdl or 'Not specified' }}</span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-info btn-sm dropdown-toggle" type="button" 
+                                                                    data-toggle="dropdown">
+                                                                <i class="fas fa-cog"></i>
+                                                            </button>
+                                                            <div class="dropdown-menu">
+                                                                <a class="dropdown-item" href="#" onclick="viewStudent({{ student.id }})">
+                                                                    <i class="fas fa-eye"></i> View Profile
+                                                                </a>
+                                                                <a class="dropdown-item" href="#" onclick="editStudent({{ student.id }}, '{{ student.name }}', '{{ student.surname }}', '{{ student.email }}', '{{ student.username }}', '{{ student.cdl }}', '{{ student.gender }}', '{{ student.nationality }}')">
+                                                                    <i class="fas fa-edit"></i> Edit
+                                                                </a>
+                                                                <div class="dropdown-divider"></div>
+                                                                <a class="dropdown-item text-danger" href="#" onclick="deleteStudent({{ student.id }}, '{{ student.name }} {{ student.surname }}')">
+                                                                    <i class="fas fa-trash"></i> Delete
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- New Search -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-info">New Search</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form method="POST" action="{{ url_for('researcher.supervisor_search') }}">
+                                        <div class="row">
+                                            <div class="col-md-10">
+                                                <input type="text" name="search_term" class="form-control" 
+                                                       placeholder="Search theses or students..." required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="submit" class="btn btn-info btn-block">
+                                                    <i class="fas fa-search"></i> Search
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- JavaScript -->
+    {% include 'admin/components/js.html' %}
+
+    <!-- DataTables -->
+    <script>
+    $(document).ready(function() {
+        $('#thesesTable').DataTable({
+            "pageLength": 10,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true
+        });
+        
+        $('#studentsTable').DataTable({
+            "pageLength": 10,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true
+        });
+    });
+
+    // JavaScript functions for CRUD operations
+    function editThesis(id, title, description, level) {
+        // Implementation would match the existing edit functionality
+        console.log('Edit thesis:', id);
+    }
+
+    function deleteThesis(id, title) {
+        if (confirm(`Are you sure you want to delete the thesis "${title}"?`)) {
+            fetch(`/researcher/supervisor/delete_thesis/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error deleting thesis');
+                }
+            });
+        }
+    }
+
+    function assignThesis(id) {
+        // Implementation would match the existing assign functionality
+        console.log('Assign thesis:', id);
+    }
+
+    function unassignThesis(id) {
+        if (confirm('Are you sure you want to unassign this student from the thesis?')) {
+            fetch(`/researcher/supervisor/unassign_thesis/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error unassigning thesis');
+                }
+            });
+        }
+    }
+
+    function viewStudent(id) {
+        // Implementation for viewing student profile
+        console.log('View student:', id);
+    }
+
+    function editStudent(id, name, surname, email, username, cdl, gender, nationality) {
+        // Implementation would match the existing edit functionality
+        console.log('Edit student:', id);
+    }
+
+    function deleteStudent(id, name) {
+        if (confirm(`Are you sure you want to delete the student "${name}"?`)) {
+            fetch(`/researcher/supervisor/delete_student/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error deleting student');
+                }
+            });
+        }
+    }
+    </script>
+
+</body>
+</html>

@@ -896,3 +896,142 @@ def unassign_thesis(thesis_id):
         flash(f"Error unassigning thesis: {e}")
     
     return redirect(url_for("researcher.supervisor_theses"))
+
+
+@researcher.route("/researcher/supervisor/todo/<int:todo_id>")
+@login_required
+def supervisor_todo_detail(todo_id):
+    """
+    Display todo detail with linked updates and references within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if researcher has supervisor privileges
+    supervisor_role = Supervisor_Role.query.filter_by(researcher_id=current_user.id).first()
+    if not supervisor_role:
+        flash("You need supervisor privileges to access this feature.")
+        return redirect(url_for("researcher.dashboard"))
+    
+    # Verify supervisor has access to this todo
+    todo = Todo.query.join(Thesis, Todo.thesis_id == Thesis.id)\
+                    .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)\
+                    .filter(Todo.id == todo_id, Thesis_Supervisor.supervisor_id == current_user.id)\
+                    .first()
+    
+    if not todo:
+        flash("Todo not found or you don't have permission to view it.")
+        return redirect(url_for("researcher.supervisor_dashboard"))
+    
+    # Get referenced updates
+    from superviseme.models import Todo_Reference
+    referenced_updates = db.session.query(Thesis_Update).join(Todo_Reference).filter(
+        Todo_Reference.todo_id == todo_id
+    ).order_by(Thesis_Update.created_at.desc()).all()
+    
+    return render_template("researcher/supervisor_todo_detail.html", todo=todo, 
+                           referenced_updates=referenced_updates, 
+                           dt=datetime.fromtimestamp)
+
+
+@researcher.route("/researcher/supervisor/meeting_note/<int:note_id>")
+@login_required
+def supervisor_meeting_note_detail(note_id):
+    """
+    Display detailed view of a meeting note with full CRUD capabilities within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if researcher has supervisor privileges
+    supervisor_role = Supervisor_Role.query.filter_by(researcher_id=current_user.id).first()
+    if not supervisor_role:
+        flash("You need supervisor privileges to access this feature.")
+        return redirect(url_for("researcher.dashboard"))
+    
+    # Verify supervisor has access to this meeting note
+    meeting_note = MeetingNote.query.join(Thesis, MeetingNote.thesis_id == Thesis.id)\
+                                   .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)\
+                                   .filter(MeetingNote.id == note_id, Thesis_Supervisor.supervisor_id == current_user.id)\
+                                   .first()
+    
+    if not meeting_note:
+        flash("Meeting note not found or you don't have permission to view it.")
+        return redirect(url_for("researcher.supervisor_dashboard"))
+    
+    thesis = meeting_note.thesis
+    
+    # Get todos for this thesis for reference dropdown
+    todos = Todo.query.filter_by(thesis_id=thesis.id).order_by(Todo.created_at.desc()).all()
+    
+    return render_template("researcher/supervisor_meeting_note_detail.html", 
+                         meeting_note=meeting_note, 
+                         thesis=thesis,
+                         todos=todos,
+                         dt=datetime.fromtimestamp)
+
+
+@researcher.route("/researcher/supervisor/search", methods=["POST"])
+@login_required
+def supervisor_search():
+    """
+    Handle searching for theses or supervisees within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if researcher has supervisor privileges
+    supervisor_role = Supervisor_Role.query.filter_by(researcher_id=current_user.id).first()
+    if not supervisor_role:
+        flash("You need supervisor privileges to access this feature.")
+        return redirect(url_for("researcher.dashboard"))
+    
+    search_term = request.form.get("search_term", "").strip()
+
+    # Validate search term
+    if not search_term:
+        flash("Please enter a search term.", "warning")
+        return redirect(url_for('researcher.supervisor_dashboard'))
+
+    # Search for theses supervised by current user
+    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
+    supervised_thesis_ids = [ts.thesis_id for ts in thesis_supervisors]
+    
+    theses = []
+    supervisees = []
+    
+    if search_term:
+        # Search for supervised theses
+        theses = Thesis.query.filter(
+            and_(
+                Thesis.id.in_(supervised_thesis_ids),
+                or_(
+                    Thesis.title.ilike(f"%{search_term}%"),
+                    Thesis.description.ilike(f"%{search_term}%"),
+                    Thesis.level.ilike(f"%{search_term}%")
+                )
+            )
+        ).all()
+
+        # Search for supervisees (students with supervised theses)
+        supervised_student_ids = [thesis.author_id for thesis in Thesis.query.filter(Thesis.id.in_(supervised_thesis_ids)).all() if thesis.author_id]
+        supervisees = User_mgmt.query.filter(
+            and_(
+                User_mgmt.id.in_(supervised_student_ids),
+                or_(
+                    User_mgmt.name.ilike(f"%{search_term}%"),
+                    User_mgmt.surname.ilike(f"%{search_term}%"),
+                    User_mgmt.username.ilike(f"%{search_term}%"),
+                    User_mgmt.email.ilike(f"%{search_term}%")
+                )
+            )
+        ).all()
+
+    return render_template("researcher/supervisor_search_results.html", 
+                         theses=theses, 
+                         supervisees=supervisees,
+                         search_term=search_term,
+                         user_type="researcher")
