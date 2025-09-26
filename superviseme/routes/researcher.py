@@ -623,6 +623,43 @@ def post_update():
     return redirect(url_for('researcher.supervisor_thesis_detail', thesis_id=thesis_id))
 
 
+@researcher.route("/researcher/supervisor/modify_update", methods=["POST"])
+@login_required
+def modify_update():
+    """
+    This route handles modifying an update. It retrieves the necessary data from the form,
+    updates the content of the update in the database, and redirects to the thesis detail page.
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+    
+    update_id = request.form.get("update_id")
+    new_content = request.form.get("new_content")
+
+    # Verify the update belongs to a thesis supervised by the current user
+    update = Thesis_Update.query.join(Thesis_Supervisor).filter(
+        Thesis_Update.id == update_id,
+        Thesis_Update.update_type == "supervisor_update",
+        Thesis_Update.author_id == current_user.id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+    
+    if update:
+        update.content = new_content
+        db.session.commit()
+        flash("Update modified successfully")
+        return redirect(url_for('researcher.supervisor_thesis_detail', thesis_id=update.thesis_id))
+
+    flash("Update not found or you don't have permission to modify it")
+    return redirect(url_for('researcher.supervisor_theses'))
+
+
 @researcher.route("/researcher/supervisor/create_thesis", methods=["POST"])
 @login_required
 def create_thesis():
