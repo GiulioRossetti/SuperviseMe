@@ -122,6 +122,7 @@
                                                     <select class="form-control" id="user_type" name="user_type">
                                                         <option value="admin" {% if user.user_type == 'admin' %}selected{% endif %}>Admin</option>
                                                         <option value="supervisor" {% if user.user_type == 'supervisor' %}selected{% endif %}>Supervisor</option>
+                                                        <option value="researcher" {% if user.user_type == 'researcher' %}selected{% endif %}>Researcher</option>
                                                         <option value="student" {% if user.user_type == 'student' %}selected{% endif %}>Student</option>
                                                     </select>
                                                 </div>
