@@ -1695,3 +1695,654 @@ def change_project_status(project_id):
         flash(f"Error updating status: {e}")
 
     return redirect(url_for("researcher.project_detail", project_id=project_id))
+
+
+# Missing route: delete_project_resource
+@researcher.route("/researcher/delete_project_resource/<int:resource_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_project_resource(resource_id):
+    """
+    Delete a project resource
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    resource = ResearchProject_Resource.query.get(resource_id)
+    if not resource:
+        flash("Resource not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = ResearchProject.query.get(resource.project_id)
+    if not project:
+        flash("Project not found")
+        return redirect(url_for("researcher.projects"))
+
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to delete this resource")
+        return redirect(url_for("researcher.projects"))
+
+    try:
+        db.session.delete(resource)
+        db.session.commit()
+        flash("Resource deleted successfully")
+    except Exception as e:
+        flash(f"Error deleting resource: {e}")
+
+    return redirect(url_for("researcher.project_resources", project_id=project.id))
+
+
+# Missing routes: freeze_thesis and unfreeze_thesis
+@researcher.route("/researcher/freeze_thesis", methods=["POST"])
+@login_required
+def freeze_thesis():
+    """
+    Freeze a thesis (researcher acting as supervisor)
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    thesis_id = request.form.get("thesis_id")
+    if not thesis_id:
+        flash("Thesis ID is required")
+        return redirect(url_for("researcher.supervisor_theses"))
+
+    # Verify supervisor relationship with thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id, 
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("You don't have permission to freeze this thesis")
+        return redirect(url_for("researcher.supervisor_theses"))
+
+    try:
+        thesis = Thesis.query.get(thesis_id)
+        if thesis:
+            thesis.frozen = True
+            db.session.commit()
+            flash("Thesis frozen successfully")
+    except Exception as e:
+        flash(f"Error freezing thesis: {e}")
+    
+    return redirect(url_for("researcher.supervisor_theses"))
+
+
+@researcher.route("/researcher/unfreeze_thesis", methods=["POST"])
+@login_required
+def unfreeze_thesis():
+    """
+    Unfreeze a thesis (researcher acting as supervisor)
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    thesis_id = request.form.get("thesis_id")
+    if not thesis_id:
+        flash("Thesis ID is required")
+        return redirect(url_for("researcher.supervisor_theses"))
+
+    # Verify supervisor relationship with thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id, 
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("You don't have permission to unfreeze this thesis")
+        return redirect(url_for("researcher.supervisor_theses"))
+
+    try:
+        thesis = Thesis.query.get(thesis_id)
+        if thesis:
+            thesis.frozen = False
+            db.session.commit()
+            flash("Thesis unfrozen successfully")
+    except Exception as e:
+        flash(f"Error unfreezing thesis: {e}")
+    
+    return redirect(url_for("researcher.supervisor_theses"))
+
+
+# Additional CRUD operations for project resources
+@researcher.route("/researcher/edit_project_resource/<int:resource_id>", methods=["POST"])
+@login_required
+def edit_project_resource(resource_id):
+    """
+    Edit a project resource
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    resource = ResearchProject_Resource.query.get(resource_id)
+    if not resource:
+        flash("Resource not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = ResearchProject.query.get(resource.project_id)
+    if not project:
+        flash("Project not found")
+        return redirect(url_for("researcher.projects"))
+
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to edit this resource")
+        return redirect(url_for("researcher.projects"))
+
+    resource_type = request.form.get("resource_type")
+    resource_url = request.form.get("resource_url")
+    description = request.form.get("description")
+
+    if not resource_type or not resource_url:
+        flash("Resource type and URL are required")
+        return redirect(url_for("researcher.project_resources", project_id=project.id))
+
+    try:
+        resource.resource_type = resource_type
+        resource.resource_url = resource_url
+        resource.description = description
+        db.session.commit()
+        flash("Resource updated successfully")
+    except Exception as e:
+        flash(f"Error updating resource: {e}")
+
+    return redirect(url_for("researcher.project_resources", project_id=project.id))
+
+
+# CRUD operations for project todos
+@researcher.route("/researcher/edit_project_todo/<int:todo_id>", methods=["POST"])
+@login_required
+def edit_project_todo(todo_id):
+    """
+    Edit a project todo
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    todo = ResearchProject_Todo.query.get(todo_id)
+    if not todo:
+        flash("Todo not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = ResearchProject.query.get(todo.project_id)
+    if not project:
+        flash("Project not found")
+        return redirect(url_for("researcher.projects"))
+
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to edit this todo")
+        return redirect(url_for("researcher.projects"))
+
+    title = request.form.get("title")
+    description = request.form.get("description")
+    priority = request.form.get("priority", "medium")
+
+    if not title:
+        flash("Title is required")
+        return redirect(url_for("researcher.project_todos", project_id=project.id))
+
+    try:
+        todo.title = title
+        todo.description = description
+        todo.priority = priority
+        todo.updated_at = int(time.time())
+        db.session.commit()
+        flash("Todo updated successfully")
+    except Exception as e:
+        flash(f"Error updating todo: {e}")
+
+    return redirect(url_for("researcher.project_todos", project_id=project.id))
+
+
+@researcher.route("/researcher/delete_project_todo/<int:todo_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_project_todo(todo_id):
+    """
+    Delete a project todo
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    todo = ResearchProject_Todo.query.get(todo_id)
+    if not todo:
+        flash("Todo not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = ResearchProject.query.get(todo.project_id)
+    if not project:
+        flash("Project not found")
+        return redirect(url_for("researcher.projects"))
+
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to delete this todo")
+        return redirect(url_for("researcher.projects"))
+
+    try:
+        db.session.delete(todo)
+        db.session.commit()
+        flash("Todo deleted successfully")
+    except Exception as e:
+        flash(f"Error deleting todo: {e}")
+
+    return redirect(url_for("researcher.project_todos", project_id=project.id))
+
+
+# CRUD operations for project objectives
+@researcher.route("/researcher/edit_project_objective/<int:objective_id>", methods=["POST"])
+@login_required
+def edit_project_objective(objective_id):
+    """
+    Edit a project objective
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    objective = ResearchProject_Objective.query.get(objective_id)
+    if not objective:
+        flash("Objective not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = ResearchProject.query.get(objective.project_id)
+    if not project:
+        flash("Project not found")
+        return redirect(url_for("researcher.projects"))
+
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to edit this objective")
+        return redirect(url_for("researcher.projects"))
+
+    title = request.form.get("title")
+    description = request.form.get("description")
+
+    if not title:
+        flash("Title is required")
+        return redirect(url_for("researcher.project_objectives", project_id=project.id))
+
+    try:
+        objective.title = title
+        objective.description = description
+        db.session.commit()
+        flash("Objective updated successfully")
+    except Exception as e:
+        flash(f"Error updating objective: {e}")
+
+    return redirect(url_for("researcher.project_objectives", project_id=project.id))
+
+
+@researcher.route("/researcher/delete_project_objective/<int:objective_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_project_objective(objective_id):
+    """
+    Delete a project objective
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    objective = ResearchProject_Objective.query.get(objective_id)
+    if not objective:
+        flash("Objective not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = ResearchProject.query.get(objective.project_id)
+    if not project:
+        flash("Project not found")
+        return redirect(url_for("researcher.projects"))
+
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to delete this objective")
+        return redirect(url_for("researcher.projects"))
+
+    try:
+        db.session.delete(objective)
+        db.session.commit()
+        flash("Objective deleted successfully")
+    except Exception as e:
+        flash(f"Error deleting objective: {e}")
+
+    return redirect(url_for("researcher.project_objectives", project_id=project.id))
+
+
+# CRUD operations for project hypotheses
+@researcher.route("/researcher/edit_project_hypothesis/<int:hypothesis_id>", methods=["POST"])
+@login_required
+def edit_project_hypothesis(hypothesis_id):
+    """
+    Edit a project hypothesis
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    hypothesis = ResearchProject_Hypothesis.query.get(hypothesis_id)
+    if not hypothesis:
+        flash("Hypothesis not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = ResearchProject.query.get(hypothesis.project_id)
+    if not project:
+        flash("Project not found")
+        return redirect(url_for("researcher.projects"))
+
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to edit this hypothesis")
+        return redirect(url_for("researcher.projects"))
+
+    title = request.form.get("title")
+    description = request.form.get("description")
+
+    if not title:
+        flash("Title is required")
+        return redirect(url_for("researcher.project_hypotheses", project_id=project.id))
+
+    try:
+        hypothesis.title = title
+        hypothesis.description = description
+        db.session.commit()
+        flash("Hypothesis updated successfully")
+    except Exception as e:
+        flash(f"Error updating hypothesis: {e}")
+
+    return redirect(url_for("researcher.project_hypotheses", project_id=project.id))
+
+
+@researcher.route("/researcher/delete_project_hypothesis/<int:hypothesis_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_project_hypothesis(hypothesis_id):
+    """
+    Delete a project hypothesis
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    hypothesis = ResearchProject_Hypothesis.query.get(hypothesis_id)
+    if not hypothesis:
+        flash("Hypothesis not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = ResearchProject.query.get(hypothesis.project_id)
+    if not project:
+        flash("Project not found")
+        return redirect(url_for("researcher.projects"))
+
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to delete this hypothesis")
+        return redirect(url_for("researcher.projects"))
+
+    try:
+        db.session.delete(hypothesis)
+        db.session.commit()
+        flash("Hypothesis deleted successfully")
+    except Exception as e:
+        flash(f"Error deleting hypothesis: {e}")
+
+    return redirect(url_for("researcher.project_hypotheses", project_id=project.id))
+
+
+# CRUD operations for project meeting notes
+@researcher.route("/researcher/edit_project_meeting_note/<int:note_id>", methods=["POST"])
+@login_required
+def edit_project_meeting_note(note_id):
+    """
+    Edit a project meeting note
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    note = ResearchProject_MeetingNote.query.get(note_id)
+    if not note:
+        flash("Meeting note not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = ResearchProject.query.get(note.project_id)
+    if not project:
+        flash("Project not found")
+        return redirect(url_for("researcher.projects"))
+
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to edit this meeting note")
+        return redirect(url_for("researcher.projects"))
+
+    title = request.form.get("title")
+    content = request.form.get("content")
+
+    if not title or not content:
+        flash("Title and content are required")
+        return redirect(url_for("researcher.project_meeting_notes", project_id=project.id))
+
+    try:
+        note.title = title
+        note.content = content
+        note.updated_at = int(time.time())
+        db.session.commit()
+        flash("Meeting note updated successfully")
+    except Exception as e:
+        flash(f"Error updating meeting note: {e}")
+
+    return redirect(url_for("researcher.project_meeting_notes", project_id=project.id))
+
+
+@researcher.route("/researcher/delete_project_meeting_note/<int:note_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_project_meeting_note(note_id):
+    """
+    Delete a project meeting note
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    note = ResearchProject_MeetingNote.query.get(note_id)
+    if not note:
+        flash("Meeting note not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = ResearchProject.query.get(note.project_id)
+    if not project:
+        flash("Project not found")
+        return redirect(url_for("researcher.projects"))
+
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to delete this meeting note")
+        return redirect(url_for("researcher.projects"))
+
+    try:
+        db.session.delete(note)
+        db.session.commit()
+        flash("Meeting note deleted successfully")
+    except Exception as e:
+        flash(f"Error deleting meeting note: {e}")
+
+    return redirect(url_for("researcher.project_meeting_notes", project_id=project.id))
+
+
+# CRUD operations for project updates
+@researcher.route("/researcher/edit_project_update/<int:update_id>", methods=["POST"])
+@login_required
+def edit_project_update(update_id):
+    """
+    Edit a project update
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    update = ResearchProject_Update.query.get(update_id)
+    if not update:
+        flash("Update not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = ResearchProject.query.get(update.project_id)
+    if not project:
+        flash("Project not found")
+        return redirect(url_for("researcher.projects"))
+
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to edit this update")
+        return redirect(url_for("researcher.projects"))
+
+    update_type = request.form.get("update_type")
+    content = request.form.get("content")
+
+    if not update_type or not content:
+        flash("Update type and content are required")
+        return redirect(url_for("researcher.project_updates", project_id=project.id))
+
+    try:
+        update.update_type = update_type
+        update.content = content
+        update.updated_at = int(time.time())
+        db.session.commit()
+        flash("Update edited successfully")
+    except Exception as e:
+        flash(f"Error editing update: {e}")
+
+    return redirect(url_for("researcher.project_updates", project_id=project.id))
+
+
+@researcher.route("/researcher/delete_project_update/<int:update_id>", methods=["POST", "DELETE"])
+@login_required
+def delete_project_update(update_id):
+    """
+    Delete a project update
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    update = ResearchProject_Update.query.get(update_id)
+    if not update:
+        flash("Update not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = ResearchProject.query.get(update.project_id)
+    if not project:
+        flash("Project not found")
+        return redirect(url_for("researcher.projects"))
+
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to delete this update")
+        return redirect(url_for("researcher.projects"))
+
+    try:
+        db.session.delete(update)
+        db.session.commit()
+        flash("Update deleted successfully")
+    except Exception as e:
+        flash(f"Error deleting update: {e}")
+
+    return redirect(url_for("researcher.project_updates", project_id=project.id))

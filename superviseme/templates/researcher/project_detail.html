@@ -81,40 +81,127 @@
 
                             <!-- Project Statistics -->
                             <div class="card shadow mb-4">
-                                <div class="card-header py-3">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
                                     <h6 class="m-0 font-weight-bold text-primary">Project Statistics</h6>
+                                    <small class="text-muted">Real-time overview</small>
                                 </div>
                                 <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-3 text-center">
-                                            <h4 class="text-info">{{ updates_count }}</h4>
-                                            <p class="text-xs">Updates</p>
+                                    <!-- Primary Stats Row -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <div class="card border-left-info shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                                Updates</div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ updates_count }}</div>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="col-md-3 text-center">
-                                            <h4 class="text-warning">{{ todos_count }}</h4>
-                                            <p class="text-xs">Todos</p>
-                                        </div>
-                                        <div class="col-md-3 text-center">
-                                            <h4 class="text-success">{{ completed_todos_count }}</h4>
-                                            <p class="text-xs">Completed</p>
-                                        </div>
-                                        <div class="col-md-3 text-center">
-                                            <h4 class="text-secondary">{{ resources_count }}</h4>
-                                            <p class="text-xs">Resources</p>
+                                        <div class="col-md-6">
+                                            <div class="card border-left-warning shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                                Task Progress</div>
+                                                            <div class="row no-gutters align-items-center">
+                                                                <div class="col-auto">
+                                                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                                        {% if todos_count > 0 %}
+                                                                            {{ "%.0f"|format((completed_todos_count / todos_count) * 100) }}%
+                                                                        {% else %}
+                                                                            0%
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <div class="progress progress-sm mr-2">
+                                                                        <div class="progress-bar bg-warning" role="progressbar"
+                                                                             style="width: {% if todos_count > 0 %}{{ (completed_todos_count / todos_count) * 100 }}%{% else %}0%{% endif %}"
+                                                                             aria-valuenow="{% if todos_count > 0 %}{{ (completed_todos_count / todos_count) * 100 }}{% else %}0{% endif %}" 
+                                                                             aria-valuemin="0" aria-valuemax="100"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <small class="text-muted">{{ completed_todos_count }} of {{ todos_count }} tasks completed</small>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-tasks fa-2x text-gray-300"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="row mt-3">
-                                        <div class="col-md-4 text-center">
-                                            <h4 class="text-primary">{{ objectives_count }}</h4>
-                                            <p class="text-xs">Objectives</p>
+                                    
+                                    <!-- Secondary Stats Row -->
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="card border-left-success shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Resources</div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resources_count }}</div>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-file-alt fa-2x text-gray-300"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="col-md-4 text-center">
-                                            <h4 class="text-info">{{ hypotheses_count }}</h4>
-                                            <p class="text-xs">Hypotheses</p>
+                                        <div class="col-md-3">
+                                            <div class="card border-left-primary shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Objectives</div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ objectives_count }}</div>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-bullseye fa-2x text-gray-300"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="col-md-4 text-center">
-                                            <h4 class="text-dark">{{ meeting_notes_count }}</h4>
-                                            <p class="text-xs">Meeting Notes</p>
+                                        <div class="col-md-3">
+                                            <div class="card border-left-info shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Hypotheses</div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ hypotheses_count }}</div>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-lightbulb fa-2x text-gray-300"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card border-left-secondary shadow h-100 py-2">
+                                                <div class="card-body">
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col mr-2">
+                                                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Meeting Notes</div>
+                                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ meeting_notes_count }}</div>
+                                                        </div>
+                                                        <div class="col-auto">
+                                                            <i class="fas fa-clipboard fa-2x text-gray-300"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
