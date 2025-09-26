@@ -57,6 +57,9 @@
                                                             <i class="fas fa-ellipsis-v"></i>
                                                         </button>
                                                         <div class="dropdown-menu">
+                                                            <a href="{{ url_for('researcher.project_todo_detail', todo_id=todo.id) }}" class="dropdown-item">
+                                                                <i class="fas fa-eye text-primary"></i> View Details
+                                                            </a>
                                                             {% if todo.status != 'completed' %}
                                                             <form method="POST" action="{{ url_for('researcher.complete_project_todo', todo_id=todo.id) }}" style="display: inline;">
                                                                 <button type="submit" class="dropdown-item">

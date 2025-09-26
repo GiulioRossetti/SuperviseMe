@@ -500,7 +500,7 @@
                                                     </td>
                                                     <td>
                                                         <div class="meeting-note-content">
-                                                            {{ note.content|safe }}
+                                                            {{ note.content|markdown_with_todos('supervisor')|safe }}
                                                         </div>
                                                         <!-- Todo References -->
                                                         {% if note.todo_references %}

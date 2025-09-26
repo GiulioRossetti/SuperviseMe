@@ -428,7 +428,7 @@ def supervisor_students():
         flash("You don't have supervisor privileges")
         return redirect(url_for("researcher.dashboard"))
 
-    # Get students supervised by this researcher
+    # Get students supervised by this researcher (with and without thesis assignments)
     supervised_students = db.session.execute(
         select(User_mgmt, Thesis)
         .join(Thesis, Thesis.author_id == User_mgmt.id)
@@ -436,11 +436,23 @@ def supervisor_students():
         .where(Thesis_Supervisor.supervisor_id == current_user.id)
         .where(User_mgmt.user_type == "student")
     ).all()
+    
+    # Also get students without thesis assignments that were created by this researcher
+    # For now, we'll show all students created recently as a temporary solution
+    # In a real implementation, you'd want to track who created each student
+    unassigned_students = User_mgmt.query.filter_by(user_type="student").all()
+    
+    # Filter out students who already have thesis assignments
+    assigned_student_ids = {student.id for student, thesis in supervised_students}
+    unassigned_students = [student for student in unassigned_students if student.id not in assigned_student_ids]
+    
+    # Combine both lists - create tuples with None for thesis for unassigned students
+    all_students = list(supervised_students) + [(student, None) for student in unassigned_students]
 
     return render_template(
         "researcher/supervisor_students.html",
         current_user=current_user,
-        supervised_students=supervised_students,
+        supervised_students=all_students,
         has_supervisor_role=True,
         datetime=datetime,
         dt=datetime.fromtimestamp,
@@ -467,10 +479,19 @@ def supervisor_theses():
     thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
     theses = [ts.thesis for ts in thesis_supervisors]
 
+    # Get all available students for assignment dropdown (students without active thesis assignments)
+    available_students = User_mgmt.query.filter(
+        User_mgmt.user_type == "student",
+        ~User_mgmt.id.in_(
+            db.session.query(Thesis.author_id).filter(Thesis.author_id.isnot(None))
+        )
+    ).all()
+
     return render_template(
         "researcher/supervisor_theses.html",
         current_user=current_user,
         theses=theses,
+        available_students=available_students,
         has_supervisor_role=True,
         datetime=datetime,
         dt=datetime.fromtimestamp,
@@ -514,8 +535,23 @@ def supervisor_thesis_detail(thesis_id):
     updates = Thesis_Update.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Update.created_at.desc()).all()
     todos = Todo.query.filter_by(thesis_id=thesis_id).order_by(Todo.created_at.desc()).all()
     resources = Resource.query.filter_by(thesis_id=thesis_id).all()
-    objectives = Thesis_Objective.query.filter_by(thesis_id=thesis_id).all()
-    hypotheses = Thesis_Hypothesis.query.filter_by(thesis_id=thesis_id).all()
+    objectives = Thesis_Objective.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Objective.created_at.desc()).all()
+    hypotheses = Thesis_Hypothesis.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Hypothesis.created_at.desc()).all()
+    
+    # Get supervisors and tags
+    supervisors = Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).all()
+    thesis_tags = Thesis_Tag.query.filter_by(thesis_id=thesis_id).all()
+    
+    # Get available students for assignment (only students without active thesis assignments)
+    available_students = User_mgmt.query.filter(
+        User_mgmt.user_type == "student",
+        ~User_mgmt.id.in_(
+            db.session.query(Thesis.author_id).filter(Thesis.author_id.isnot(None))
+        )
+    ).all()
+    
+    # Get meeting notes for this thesis
+    meeting_notes = MeetingNote.query.filter_by(thesis_id=thesis_id).order_by(MeetingNote.created_at.desc()).all()
 
     return render_template(
         "researcher/supervisor_thesis_detail.html",
@@ -527,11 +563,64 @@ def supervisor_thesis_detail(thesis_id):
         resources=resources,
         objectives=objectives,
         hypotheses=hypotheses,
+        supervisors=supervisors,
+        thesis_tags=thesis_tags,
+        available_students=available_students,
+        meeting_notes=meeting_notes,
         has_supervisor_role=True,
         datetime=datetime,
         dt=datetime.fromtimestamp,
         str=str
     )
+
+
+@researcher.route("/researcher/supervisor/post_update", methods=["POST"])
+@login_required
+def post_update():
+    """
+    This route handles posting updates to a thesis. It retrieves the necessary data from the form,
+    creates a new Update object, and saves it to the database.
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    thesis_id = request.form.get("thesis_id")
+    content = request.form.get("content")
+
+    # Verify researcher has access to this thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("You don't have permission to update this thesis")
+        return redirect(url_for('researcher.supervisor_theses'))
+
+    new_update = Thesis_Update(
+        thesis_id=thesis_id,
+        author_id=current_user.id,
+        content=content,
+        update_type="supervisor_update",
+        created_at=int(time.time())
+    )
+
+    db.session.add(new_update)
+    db.session.commit()
+
+    # Parse and create todo references
+    from superviseme.utils.todo_parser import parse_todo_references, create_todo_references
+    todo_refs = parse_todo_references(content)
+    if todo_refs:
+        create_todo_references(new_update.id, todo_refs)
+
+    # Create notification for student
+    from superviseme.utils.notifications import create_supervisor_feedback_notification
+    create_supervisor_feedback_notification(thesis_id, current_user.id, content)
+
+    flash("Update posted successfully")
+    return redirect(url_for('researcher.supervisor_thesis_detail', thesis_id=thesis_id))
 
 
 @researcher.route("/researcher/supervisor/create_thesis", methods=["POST"])
@@ -2297,7 +2386,6 @@ def edit_project_update(update_id):
     try:
         update.update_type = update_type
         update.content = content
-        update.updated_at = int(time.time())
         db.session.commit()
         flash("Update edited successfully")
     except Exception as e:
@@ -2346,3 +2434,166 @@ def delete_project_update(update_id):
         flash(f"Error deleting update: {e}")
 
     return redirect(url_for("researcher.project_updates", project_id=project.id))
+
+
+# ==============================================================================
+# DETAIL ROUTES WITH CRUD FUNCTIONALITY FOR MEETING NOTES, TODOS, AND UPDATES
+# ==============================================================================
+
+@researcher.route("/researcher/project_meeting_note/<int:note_id>")
+@login_required
+def project_meeting_note_detail(note_id):
+    """
+    Display detailed view of a research project meeting note with full CRUD capabilities
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    # Get the meeting note
+    meeting_note = ResearchProject_MeetingNote.query.get(note_id)
+    if not meeting_note:
+        flash("Meeting note not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = meeting_note.project
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to view this meeting note")
+        return redirect(url_for("researcher.projects"))
+
+    # Get project todos for reference dropdown
+    todos = ResearchProject_Todo.query.filter_by(project_id=project.id).order_by(ResearchProject_Todo.created_at.desc()).all()
+
+    return render_template(
+        "researcher/project_meeting_note_detail.html",
+        current_user=current_user,
+        meeting_note=meeting_note,
+        project=project,
+        todos=todos,
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
+    )
+
+
+@researcher.route("/researcher/project_todo/<int:todo_id>")
+@login_required
+def project_todo_detail(todo_id):
+    """
+    Display detailed view of a research project todo with full CRUD capabilities
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    # Get the todo
+    todo = ResearchProject_Todo.query.get(todo_id)
+    if not todo:
+        flash("Todo not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = todo.project
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to view this todo")
+        return redirect(url_for("researcher.projects"))
+
+    # Get all collaborators for assignment dropdown
+    collaborators = ResearchProject_Collaborator.query.filter_by(project_id=project.id).all()
+    collaborator_users = [project.researcher]  # Include project owner
+    for collab in collaborators:
+        user = User_mgmt.query.get(collab.collaborator_id)
+        if user:
+            collaborator_users.append(user)
+
+    # Get referenced updates (if any todo reference system exists)
+    referenced_updates = []
+    try:
+        referenced_updates = db.session.query(ResearchProject_Update)\
+            .join(ResearchProject_TodoReference)\
+            .filter(ResearchProject_TodoReference.todo_id == todo_id)\
+            .order_by(ResearchProject_Update.created_at.desc()).all()
+    except:
+        pass  # In case TodoReference relationship doesn't exist yet
+
+    return render_template(
+        "researcher/project_todo_detail.html",
+        current_user=current_user,
+        todo=todo,
+        project=project,
+        collaborator_users=collaborator_users,
+        referenced_updates=referenced_updates,
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
+    )
+
+
+@researcher.route("/researcher/project_update/<int:update_id>")
+@login_required
+def project_update_detail(update_id):
+    """
+    Display detailed view of a research project update with full CRUD capabilities
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    # Get the update
+    update = ResearchProject_Update.query.get(update_id)
+    if not update:
+        flash("Update not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = update.project
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to view this update")
+        return redirect(url_for("researcher.projects"))
+
+    # Get project todos for reference
+    todos = ResearchProject_Todo.query.filter_by(project_id=project.id).order_by(ResearchProject_Todo.created_at.desc()).all()
+
+    # Get referenced todos (if any todo reference system exists)
+    referenced_todos = []
+    try:
+        referenced_todos = db.session.query(ResearchProject_Todo)\
+            .join(ResearchProject_TodoReference)\
+            .filter(ResearchProject_TodoReference.update_id == update_id)\
+            .order_by(ResearchProject_Todo.created_at.desc()).all()
+    except:
+        pass  # In case TodoReference relationship doesn't exist yet
+
+    return render_template(
+        "researcher/project_update_detail.html",
+        current_user=current_user,
+        update=update,
+        project=project,
+        todos=todos,
+        referenced_todos=referenced_todos,
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
+    )

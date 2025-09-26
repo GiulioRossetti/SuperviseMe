@@ -197,7 +197,9 @@
                             <label for="student_id">Assign to Student (Optional):</label>
                             <select class="form-control" name="student_id">
                                 <option value="">Leave unassigned</option>
-                                <!-- Students would be populated from available students -->
+                                {% for student in available_students %}
+                                <option value="{{ student.id }}">{{ student.name }} {{ student.surname }} ({{ student.email }})</option>
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
@@ -346,7 +348,12 @@
         
         function unassignStudent(thesisId) {
             if (confirm('Are you sure you want to unassign the student from this thesis?')) {
-                window.location.href = '{{ url_for("researcher.unassign_thesis", thesis_id=0) }}'.replace('0', thesisId);
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ url_for("researcher.unassign_thesis", thesis_id=0) }}'.replace('0', thesisId);
+                
+                document.body.appendChild(form);
+                form.submit();
             }
         }
     </script>
