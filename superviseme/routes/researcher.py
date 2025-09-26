@@ -479,10 +479,19 @@ def supervisor_theses():
     thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
     theses = [ts.thesis for ts in thesis_supervisors]
 
+    # Get all available students for assignment dropdown (students without active thesis assignments)
+    available_students = User_mgmt.query.filter(
+        User_mgmt.user_type == "student",
+        ~User_mgmt.id.in_(
+            db.session.query(Thesis.author_id).filter(Thesis.author_id.isnot(None))
+        )
+    ).all()
+
     return render_template(
         "researcher/supervisor_theses.html",
         current_user=current_user,
         theses=theses,
+        available_students=available_students,
         has_supervisor_role=True,
         datetime=datetime,
         dt=datetime.fromtimestamp,
@@ -526,8 +535,23 @@ def supervisor_thesis_detail(thesis_id):
     updates = Thesis_Update.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Update.created_at.desc()).all()
     todos = Todo.query.filter_by(thesis_id=thesis_id).order_by(Todo.created_at.desc()).all()
     resources = Resource.query.filter_by(thesis_id=thesis_id).all()
-    objectives = Thesis_Objective.query.filter_by(thesis_id=thesis_id).all()
-    hypotheses = Thesis_Hypothesis.query.filter_by(thesis_id=thesis_id).all()
+    objectives = Thesis_Objective.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Objective.created_at.desc()).all()
+    hypotheses = Thesis_Hypothesis.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Hypothesis.created_at.desc()).all()
+    
+    # Get supervisors and tags
+    supervisors = Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).all()
+    thesis_tags = Thesis_Tag.query.filter_by(thesis_id=thesis_id).all()
+    
+    # Get available students for assignment (only students without active thesis assignments)
+    available_students = User_mgmt.query.filter(
+        User_mgmt.user_type == "student",
+        ~User_mgmt.id.in_(
+            db.session.query(Thesis.author_id).filter(Thesis.author_id.isnot(None))
+        )
+    ).all()
+    
+    # Get meeting notes for this thesis
+    meeting_notes = MeetingNote.query.filter_by(thesis_id=thesis_id).order_by(MeetingNote.created_at.desc()).all()
 
     return render_template(
         "researcher/supervisor_thesis_detail.html",
@@ -539,6 +563,10 @@ def supervisor_thesis_detail(thesis_id):
         resources=resources,
         objectives=objectives,
         hypotheses=hypotheses,
+        supervisors=supervisors,
+        thesis_tags=thesis_tags,
+        available_students=available_students,
+        meeting_notes=meeting_notes,
         has_supervisor_role=True,
         datetime=datetime,
         dt=datetime.fromtimestamp,
