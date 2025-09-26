@@ -148,15 +148,16 @@ def create_postgresql_db(app):
     admin_engine.dispose()
 
 
-def create_app(db_type="sqlite"):
+def create_app(db_type="sqlite", skip_user_init=False):
     app = Flask(__name__, static_url_path="/static")
 
     # Copy databases if missing (keep your existing logic)
     if not os.path.exists(f"{BASE_DIR}{os.sep}db{os.sep}dashboard.db"):
-        shutil.copyfile(
-            f"{BASE_DIR}{os.sep}..{os.sep}data_schema{os.sep}database_dashboard.db",
-            f"{BASE_DIR}{os.sep}db{os.sep}dashboard.db",
-        )
+        if os.path.exists(f"{BASE_DIR}{os.sep}..{os.sep}data_schema{os.sep}database_dashboard.db"):
+            shutil.copyfile(
+                f"{BASE_DIR}{os.sep}..{os.sep}data_schema{os.sep}database_dashboard.db",
+                f"{BASE_DIR}{os.sep}db{os.sep}dashboard.db",
+            )
 
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "4323432nldsf")
     
@@ -193,25 +194,30 @@ def create_app(db_type="sqlite"):
     from .models import User_mgmt
 
     # insert the admin user if it doesn't exist
-    with app.app_context():
-        #db.create_all()  # Create tables if they don't exist
+    if not skip_user_init:
+        with app.app_context():
+            #db.create_all()  # Create tables if they don't exist
 
-        # Check if the admin user exists
-        admin_user = User_mgmt.query.filter_by(username="admin").first()
-        if not admin_user:
-            hashed_pw = generate_password_hash("test", method="pbkdf2:sha256")
-            new_admin = User_mgmt(
-                username="admin",
-                name="Dr.",
-                surname="God",
-                email="admin@supervise.me",
-                password=hashed_pw,
-                user_type="admin",
-                joined_on=int(time.time()),
+            # Check if the admin user exists (only if tables exist)
+            try:
+                admin_user = User_mgmt.query.filter_by(username="admin").first()
+                if not admin_user:
+                    hashed_pw = generate_password_hash("test", method="pbkdf2:sha256")
+                    new_admin = User_mgmt(
+                        username="admin",
+                        name="Dr.",
+                        surname="God",
+                        email="admin@supervise.me",
+                        password=hashed_pw,
+                        user_type="admin",
+                        joined_on=int(time.time()),
 
-            )
-            db.session.add(new_admin)
-            db.session.commit()
+                    )
+                    db.session.add(new_admin)
+                    db.session.commit()
+            except Exception as e:
+                # Database tables don't exist yet, that's okay during initialization
+                print(f"Note: Database tables not found during app creation: {e}")
 
     @login_manager.user_loader
     def load_user(user_id):
