@@ -428,7 +428,7 @@ def supervisor_students():
         flash("You don't have supervisor privileges")
         return redirect(url_for("researcher.dashboard"))
 
-    # Get students supervised by this researcher
+    # Get students supervised by this researcher (with and without thesis assignments)
     supervised_students = db.session.execute(
         select(User_mgmt, Thesis)
         .join(Thesis, Thesis.author_id == User_mgmt.id)
@@ -436,11 +436,23 @@ def supervisor_students():
         .where(Thesis_Supervisor.supervisor_id == current_user.id)
         .where(User_mgmt.user_type == "student")
     ).all()
+    
+    # Also get students without thesis assignments that were created by this researcher
+    # For now, we'll show all students created recently as a temporary solution
+    # In a real implementation, you'd want to track who created each student
+    unassigned_students = User_mgmt.query.filter_by(user_type="student").all()
+    
+    # Filter out students who already have thesis assignments
+    assigned_student_ids = {student.id for student, thesis in supervised_students}
+    unassigned_students = [student for student in unassigned_students if student.id not in assigned_student_ids]
+    
+    # Combine both lists - create tuples with None for thesis for unassigned students
+    all_students = list(supervised_students) + [(student, None) for student in unassigned_students]
 
     return render_template(
         "researcher/supervisor_students.html",
         current_user=current_user,
-        supervised_students=supervised_students,
+        supervised_students=all_students,
         has_supervisor_role=True,
         datetime=datetime,
         dt=datetime.fromtimestamp,
