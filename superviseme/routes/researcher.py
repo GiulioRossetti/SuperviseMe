@@ -2346,3 +2346,166 @@ def delete_project_update(update_id):
         flash(f"Error deleting update: {e}")
 
     return redirect(url_for("researcher.project_updates", project_id=project.id))
+
+
+# ==============================================================================
+# DETAIL ROUTES WITH CRUD FUNCTIONALITY FOR MEETING NOTES, TODOS, AND UPDATES
+# ==============================================================================
+
+@researcher.route("/researcher/project_meeting_note/<int:note_id>")
+@login_required
+def project_meeting_note_detail(note_id):
+    """
+    Display detailed view of a research project meeting note with full CRUD capabilities
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    # Get the meeting note
+    meeting_note = ResearchProject_MeetingNote.query.get(note_id)
+    if not meeting_note:
+        flash("Meeting note not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = meeting_note.project
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to view this meeting note")
+        return redirect(url_for("researcher.projects"))
+
+    # Get project todos for reference dropdown
+    todos = ResearchProject_Todo.query.filter_by(project_id=project.id).order_by(ResearchProject_Todo.created_at.desc()).all()
+
+    return render_template(
+        "researcher/project_meeting_note_detail.html",
+        current_user=current_user,
+        meeting_note=meeting_note,
+        project=project,
+        todos=todos,
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
+    )
+
+
+@researcher.route("/researcher/project_todo/<int:todo_id>")
+@login_required
+def project_todo_detail(todo_id):
+    """
+    Display detailed view of a research project todo with full CRUD capabilities
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    # Get the todo
+    todo = ResearchProject_Todo.query.get(todo_id)
+    if not todo:
+        flash("Todo not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = todo.project
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to view this todo")
+        return redirect(url_for("researcher.projects"))
+
+    # Get all collaborators for assignment dropdown
+    collaborators = ResearchProject_Collaborator.query.filter_by(project_id=project.id).all()
+    collaborator_users = [project.researcher]  # Include project owner
+    for collab in collaborators:
+        user = User_mgmt.query.get(collab.collaborator_id)
+        if user:
+            collaborator_users.append(user)
+
+    # Get referenced updates (if any todo reference system exists)
+    referenced_updates = []
+    try:
+        referenced_updates = db.session.query(ResearchProject_Update)\
+            .join(ResearchProject_TodoReference)\
+            .filter(ResearchProject_TodoReference.todo_id == todo_id)\
+            .order_by(ResearchProject_Update.created_at.desc()).all()
+    except:
+        pass  # In case TodoReference relationship doesn't exist yet
+
+    return render_template(
+        "researcher/project_todo_detail.html",
+        current_user=current_user,
+        todo=todo,
+        project=project,
+        collaborator_users=collaborator_users,
+        referenced_updates=referenced_updates,
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
+    )
+
+
+@researcher.route("/researcher/project_update/<int:update_id>")
+@login_required
+def project_update_detail(update_id):
+    """
+    Display detailed view of a research project update with full CRUD capabilities
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    # Get the update
+    update = ResearchProject_Update.query.get(update_id)
+    if not update:
+        flash("Update not found")
+        return redirect(url_for("researcher.projects"))
+
+    # Check if user has access to the project
+    project = update.project
+    has_access = project.researcher_id == current_user.id
+    if not has_access:
+        collaboration = ResearchProject_Collaborator.query.filter_by(
+            project_id=project.id, collaborator_id=current_user.id
+        ).first()
+        has_access = collaboration is not None
+
+    if not has_access:
+        flash("You don't have permission to view this update")
+        return redirect(url_for("researcher.projects"))
+
+    # Get project todos for reference
+    todos = ResearchProject_Todo.query.filter_by(project_id=project.id).order_by(ResearchProject_Todo.created_at.desc()).all()
+
+    # Get referenced todos (if any todo reference system exists)
+    referenced_todos = []
+    try:
+        referenced_todos = db.session.query(ResearchProject_Todo)\
+            .join(ResearchProject_TodoReference)\
+            .filter(ResearchProject_TodoReference.update_id == update_id)\
+            .order_by(ResearchProject_Todo.created_at.desc()).all()
+    except:
+        pass  # In case TodoReference relationship doesn't exist yet
+
+    return render_template(
+        "researcher/project_update_detail.html",
+        current_user=current_user,
+        update=update,
+        project=project,
+        todos=todos,
+        referenced_todos=referenced_todos,
+        is_owner=(project.researcher_id == current_user.id),
+        datetime=datetime,
+        dt=datetime.fromtimestamp
+    )
