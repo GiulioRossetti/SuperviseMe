@@ -48,7 +48,7 @@
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
                                             <h6 class="card-title mb-1">{{ note.title }}</h6>
-                                            <small class="text-muted">{{ dt(note.meeting_date).strftime('%B %d, %Y') }}</small>
+                                            <small class="text-muted">{{ dt(note.created_at).strftime('%B %d, %Y') }}</small>
                                         </div>
                                         {% if note.participants %}
                                         <p class="text-sm text-muted mb-2">
