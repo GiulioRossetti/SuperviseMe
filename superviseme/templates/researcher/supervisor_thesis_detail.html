@@ -216,7 +216,12 @@
                                                 {% endif %}
                                             </div>
                                             <div class="flex-grow-1">
-                                                <h6 class="mb-0">{{ todo.title }}</h6>
+                                                <h6 class="mb-0">
+                                                    <a href="{{ url_for('researcher.supervisor_todo_detail', todo_id=todo.id) }}" 
+                                                       class="text-decoration-none">
+                                                        {{ todo.title }}
+                                                    </a>
+                                                </h6>
                                                 <small class="text-muted">{{ todo.priority|title }}</small>
                                             </div>
                                         </div>
@@ -298,6 +303,20 @@
                                                 </div>
                                             </div>
                                             <p class="mb-2">{{ update.content }}</p>
+                                            
+                                            <!-- Todo References -->
+                                            {% if update.todo_references %}
+                                            <div class="mt-2 mb-2">
+                                                <small class="text-muted">Referenced Todos:</small>
+                                                {% for ref in update.todo_references %}
+                                                <a href="{{ url_for('researcher.supervisor_todo_detail', todo_id=ref.todo.id) }}"
+                                                   class="badge badge-primary ml-1" title="{{ ref.todo.title }}">
+                                                    <i class="fas fa-tasks"></i> {{ ref.todo.title[:20] }}{% if ref.todo.title|length > 20 %}...{% endif %}
+                                                </a>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                            
                                             <small class="text-muted">
                                                 {{ dt(update.created_at).strftime('%B %d, %Y at %I:%M %p') }}
                                                 {% if update.author %}
@@ -462,8 +481,27 @@
                                         {% for note in meeting_notes %}
                                         <div class="d-flex justify-content-between align-items-start mb-3 p-3 border-left-dark">
                                             <div class="flex-grow-1">
-                                                <h6 class="mb-1">{{ note.title }}</h6>
+                                                <h6 class="mb-1">
+                                                    <a href="{{ url_for('researcher.supervisor_meeting_note_detail', note_id=note.id) }}" 
+                                                       class="text-decoration-none">
+                                                        {{ note.title }}
+                                                    </a>
+                                                </h6>
                                                 <p class="mb-1">{{ note.content[:200] }}{% if note.content|length > 200 %}...{% endif %}</p>
+                                                
+                                                <!-- Todo References -->
+                                                {% if note.todo_references %}
+                                                <div class="mt-2 mb-2">
+                                                    <small class="text-muted">Referenced Todos:</small>
+                                                    {% for ref in note.todo_references %}
+                                                    <a href="{{ url_for('researcher.supervisor_todo_detail', todo_id=ref.todo.id) }}" 
+                                                       class="badge badge-primary ml-1" title="{{ ref.todo.title }}">
+                                                        <i class="fas fa-tasks"></i> {{ ref.todo.title[:15] }}{% if ref.todo.title|length > 15 %}...{% endif %}
+                                                    </a>
+                                                    {% endfor %}
+                                                </div>
+                                                {% endif %}
+                                                
                                                 <small class="text-muted">
                                                     {{ dt(note.created_at).strftime('%B %d, %Y') }}
                                                     {% if note.author %}
@@ -476,6 +514,9 @@
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </button>
                                                 <div class="dropdown-menu">
+                                                    <a class="dropdown-item" href="{{ url_for('researcher.supervisor_meeting_note_detail', note_id=note.id) }}">
+                                                        <i class="fas fa-eye"></i> View Details
+                                                    </a>
                                                     <a class="dropdown-item" href="#" onclick="editMeetingNote({{ note.id }}, '{{ note.title }}', '{{ note.content|replace('\n', '\\n')|replace('\'', '\\\'') }}')">
                                                         <i class="fas fa-edit"></i> Edit
                                                     </a>
