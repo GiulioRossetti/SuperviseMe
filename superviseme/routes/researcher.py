@@ -574,6 +574,55 @@ def supervisor_thesis_detail(thesis_id):
     )
 
 
+@researcher.route("/researcher/supervisor/post_update", methods=["POST"])
+@login_required
+def post_update():
+    """
+    This route handles posting updates to a thesis. It retrieves the necessary data from the form,
+    creates a new Update object, and saves it to the database.
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    thesis_id = request.form.get("thesis_id")
+    content = request.form.get("content")
+
+    # Verify researcher has access to this thesis
+    thesis_supervisor = Thesis_Supervisor.query.filter_by(
+        thesis_id=thesis_id,
+        supervisor_id=current_user.id
+    ).first()
+    
+    if not thesis_supervisor:
+        flash("You don't have permission to update this thesis")
+        return redirect(url_for('researcher.supervisor_theses'))
+
+    new_update = Thesis_Update(
+        thesis_id=thesis_id,
+        author_id=current_user.id,
+        content=content,
+        update_type="supervisor_update",
+        created_at=int(time.time())
+    )
+
+    db.session.add(new_update)
+    db.session.commit()
+
+    # Parse and create todo references
+    from superviseme.utils.todo_parser import parse_todo_references, create_todo_references
+    todo_refs = parse_todo_references(content)
+    if todo_refs:
+        create_todo_references(new_update.id, todo_refs)
+
+    # Create notification for student
+    from superviseme.utils.notifications import create_supervisor_feedback_notification
+    create_supervisor_feedback_notification(thesis_id, current_user.id, content)
+
+    flash("Update posted successfully")
+    return redirect(url_for('researcher.supervisor_thesis_detail', thesis_id=thesis_id))
+
+
 @researcher.route("/researcher/supervisor/create_thesis", methods=["POST"])
 @login_required
 def create_thesis():
