@@ -216,3 +216,7 @@ __marimo__/
 # Cookie files and temporary testing artifacts
 cookies.txt
 *cookies.txt
+
+# Database backups
+*.db.backup_*
+superviseme/db/*.backup_*
