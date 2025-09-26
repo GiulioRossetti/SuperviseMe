@@ -2297,7 +2297,6 @@ def edit_project_update(update_id):
     try:
         update.update_type = update_type
         update.content = content
-        update.updated_at = int(time.time())
         db.session.commit()
         flash("Update edited successfully")
     except Exception as e:

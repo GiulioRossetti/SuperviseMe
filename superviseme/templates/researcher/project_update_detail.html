@@ -69,12 +69,6 @@
                                         <div class="col-sm-3"><strong>Created:</strong></div>
                                         <div class="col-sm-9">{{ dt(update.created_at).strftime('%B %d, %Y at %I:%M %p') }}</div>
                                     </div>
-                                    {% if update.updated_at and update.updated_at != update.created_at %}
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3"><strong>Updated:</strong></div>
-                                        <div class="col-sm-9">{{ dt(update.updated_at).strftime('%B %d, %Y at %I:%M %p') }}</div>
-                                    </div>
-                                    {% endif %}
                                     <hr>
                                     <h6><strong>Update Content:</strong></h6>
                                     <div class="mt-3">

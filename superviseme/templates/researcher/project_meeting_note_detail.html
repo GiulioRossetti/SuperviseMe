@@ -53,14 +53,14 @@
                                     <h6 class="m-0 font-weight-bold text-primary">Meeting Details</h6>
                                 </div>
                                 <div class="card-body">
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3"><strong>Meeting Date:</strong></div>
-                                        <div class="col-sm-9">{{ dt(meeting_note.meeting_date).strftime('%B %d, %Y') }}</div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-4"><strong>Created:</strong></div>
+                                        <div class="col-sm-8">{{ dt(meeting_note.created_at).strftime('%B %d, %Y at %I:%M %p') if meeting_note.created_at else 'Unknown' }}</div>
                                     </div>
-                                    {% if meeting_note.participants %}
-                                    <div class="row mb-3">
-                                        <div class="col-sm-3"><strong>Participants:</strong></div>
-                                        <div class="col-sm-9">{{ meeting_note.participants }}</div>
+                                    {% if meeting_note.updated_at != meeting_note.created_at %}
+                                    <div class="row mb-2">
+                                        <div class="col-sm-4"><strong>Updated:</strong></div>
+                                        <div class="col-sm-8">{{ dt(meeting_note.updated_at).strftime('%B %d, %Y at %I:%M %p') if meeting_note.updated_at else 'Unknown' }}</div>
                                     </div>
                                     {% endif %}
                                     <div class="row mb-3">
@@ -122,22 +122,6 @@
                                             <label>Meeting Title</label>
                                             <input type="text" name="title" class="form-control" required 
                                                    value="{{ meeting_note.title }}">
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Meeting Date</label>
-                                                    <input type="date" name="meeting_date" class="form-control" required
-                                                           value="{{ dt(meeting_note.meeting_date).strftime('%Y-%m-%d') }}">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Participants</label>
-                                                    <input type="text" name="participants" class="form-control" 
-                                                           value="{{ meeting_note.participants or '' }}">
-                                                </div>
-                                            </div>
                                         </div>
                                         <div class="form-group">
                                             <label>Meeting Content</label>
