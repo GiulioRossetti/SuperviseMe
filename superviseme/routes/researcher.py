@@ -1704,11 +1704,118 @@ def supervisor_meeting_note_detail(note_id):
     # Get todos for this thesis for reference dropdown
     todos = Todo.query.filter_by(thesis_id=thesis.id).order_by(Todo.created_at.desc()).all()
     
+    # Get existing references for this meeting note
+    references = MeetingNoteReference.query.filter_by(meeting_note_id=note_id).all()
+    
     return render_template("researcher/supervisor_meeting_note_detail.html", 
                          meeting_note=meeting_note, 
                          thesis=thesis,
                          todos=todos,
+                         references=references,
                          dt=datetime.fromtimestamp)
+
+
+@researcher.route("/researcher/supervisor/add_meeting_note_reference", methods=["POST"])
+@login_required
+def add_meeting_note_reference():
+    """
+    Add a todo reference to a meeting note within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+    
+    note_id = request.form.get("note_id") or request.view_args.get("note_id")
+    todo_id = request.form.get("todo_id")
+    
+    if not note_id or not todo_id:
+        flash("Missing required parameters")
+        return redirect(url_for("researcher.supervisor_theses"))
+    
+    # Verify supervisor has access to this meeting note
+    meeting_note = MeetingNote.query.join(Thesis, MeetingNote.thesis_id == Thesis.id)\
+                                   .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)\
+                                   .filter(MeetingNote.id == note_id, 
+                                          Thesis_Supervisor.supervisor_id == current_user.id)\
+                                   .first()
+    
+    if not meeting_note:
+        flash("Meeting note not found or you don't have permission to modify it")
+        return redirect(url_for("researcher.supervisor_theses"))
+    
+    # Verify the todo belongs to the same thesis
+    todo = Todo.query.filter_by(id=todo_id, thesis_id=meeting_note.thesis_id).first()
+    if not todo:
+        flash("Todo not found or doesn't belong to this thesis")
+        return redirect(url_for("researcher.supervisor_meeting_note_detail", note_id=note_id))
+    
+    # Check if reference already exists
+    existing_ref = MeetingNoteReference.query.filter_by(
+        meeting_note_id=note_id, 
+        todo_id=todo_id
+    ).first()
+    
+    if existing_ref:
+        flash("This todo is already referenced in this meeting note")
+    else:
+        # Create new reference
+        new_reference = MeetingNoteReference(
+            meeting_note_id=note_id,
+            todo_id=todo_id,
+            created_at=int(time.time())
+        )
+        db.session.add(new_reference)
+        db.session.commit()
+        flash("Todo reference added successfully")
+    
+    return redirect(url_for("researcher.supervisor_meeting_note_detail", note_id=note_id))
+
+
+@researcher.route("/researcher/supervisor/remove_meeting_note_reference/<int:note_id>/<int:reference_id>", methods=["POST"])
+@login_required
+def remove_meeting_note_reference(note_id, reference_id):
+    """
+    Remove a todo reference from a meeting note within researcher context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    
+    # Check if user has supervisor privileges
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+    
+    # Verify supervisor has access to this meeting note
+    meeting_note = MeetingNote.query.join(Thesis, MeetingNote.thesis_id == Thesis.id)\
+                                   .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)\
+                                   .filter(MeetingNote.id == note_id, 
+                                          Thesis_Supervisor.supervisor_id == current_user.id)\
+                                   .first()
+    
+    if not meeting_note:
+        flash("Meeting note not found or you don't have permission to modify it")
+        return redirect(url_for("researcher.supervisor_theses"))
+    
+    # Find and remove the reference
+    reference = MeetingNoteReference.query.filter_by(
+        id=reference_id, 
+        meeting_note_id=note_id
+    ).first()
+    
+    if reference:
+        db.session.delete(reference)
+        db.session.commit()
+        flash("Todo reference removed successfully")
+    else:
+        flash("Reference not found")
+    
+    return redirect(url_for("researcher.supervisor_meeting_note_detail", note_id=note_id))
 
 
 @researcher.route("/researcher/supervisor/search", methods=["POST"])
