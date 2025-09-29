@@ -796,7 +796,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form method="POST" action="{{ url_for('researcher.edit_meeting_note') }}" id="editMeetingNoteForm">
+                <form method="POST" action="#" id="editMeetingNoteForm">
                     <div class="modal-body">
                         <input type="hidden" name="note_id" id="editMeetingNoteId">
                         <div class="form-group">
@@ -858,7 +858,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form method="POST" action="{{ url_for('researcher.edit_objective') }}" id="editObjectiveForm">
+                <form method="POST" action="#" id="editObjectiveForm">
                     <div class="modal-body">
                         <input type="hidden" name="objective_id" id="editObjectiveId">
                         <div class="form-group">
@@ -920,7 +920,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form method="POST" action="{{ url_for('researcher.edit_hypothesis') }}" id="editHypothesisForm">
+                <form method="POST" action="#" id="editHypothesisForm">
                     <div class="modal-body">
                         <input type="hidden" name="hypothesis_id" id="editHypothesisId">
                         <div class="form-group">
@@ -1053,6 +1053,8 @@
             $('#editObjectiveId').val(objectiveId);
             $('#editObjectiveTitle').val(title);
             $('#editObjectiveDescription').val(description);
+            // Update form action with the correct objective ID
+            $('#editObjectiveForm').attr('action', '{{ url_for("researcher.edit_objective", objective_id="OBJECTIVE_ID") }}'.replace('OBJECTIVE_ID', objectiveId));
             $('#editObjectiveModal').modal('show');
         }
 
@@ -1060,6 +1062,8 @@
             $('#editHypothesisId').val(hypothesisId);
             $('#editHypothesisTitle').val(title);
             $('#editHypothesisDescription').val(description);
+            // Update form action with the correct hypothesis ID
+            $('#editHypothesisForm').attr('action', '{{ url_for("researcher.edit_hypothesis", hypothesis_id="HYPOTHESIS_ID") }}'.replace('HYPOTHESIS_ID', hypothesisId));
             $('#editHypothesisModal').modal('show');
         }
 
@@ -1067,6 +1071,8 @@
             $('#editMeetingNoteId').val(noteId);
             $('#editMeetingNoteTitle').val(title);
             $('#editMeetingNoteContent').val(content);
+            // Update form action with the correct note ID
+            $('#editMeetingNoteForm').attr('action', '{{ url_for("researcher.edit_meeting_note", note_id="NOTE_ID") }}'.replace('NOTE_ID', noteId));
             $('#editMeetingNoteModal').modal('show');
         }
     </script>
