@@ -1053,8 +1053,8 @@
             $('#editObjectiveId').val(objectiveId);
             $('#editObjectiveTitle').val(title);
             $('#editObjectiveDescription').val(description);
-            // Update form action with the correct objective ID
-            $('#editObjectiveForm').attr('action', '{{ url_for("researcher.edit_objective", objective_id="OBJECTIVE_ID") }}'.replace('OBJECTIVE_ID', objectiveId));
+            // Build URL dynamically with the correct objective ID
+            $('#editObjectiveForm').attr('action', '/researcher/supervisor/edit_objective/' + objectiveId);
             $('#editObjectiveModal').modal('show');
         }
 
@@ -1062,8 +1062,8 @@
             $('#editHypothesisId').val(hypothesisId);
             $('#editHypothesisTitle').val(title);
             $('#editHypothesisDescription').val(description);
-            // Update form action with the correct hypothesis ID
-            $('#editHypothesisForm').attr('action', '{{ url_for("researcher.edit_hypothesis", hypothesis_id="HYPOTHESIS_ID") }}'.replace('HYPOTHESIS_ID', hypothesisId));
+            // Build URL dynamically with the correct hypothesis ID
+            $('#editHypothesisForm').attr('action', '/researcher/supervisor/edit_hypothesis/' + hypothesisId);
             $('#editHypothesisModal').modal('show');
         }
 
@@ -1071,8 +1071,8 @@
             $('#editMeetingNoteId').val(noteId);
             $('#editMeetingNoteTitle').val(title);
             $('#editMeetingNoteContent').val(content);
-            // Update form action with the correct note ID
-            $('#editMeetingNoteForm').attr('action', '{{ url_for("researcher.edit_meeting_note", note_id="NOTE_ID") }}'.replace('NOTE_ID', noteId));
+            // Build URL dynamically with the correct note ID
+            $('#editMeetingNoteForm').attr('action', '/researcher/supervisor/edit_meeting_note/' + noteId);
             $('#editMeetingNoteModal').modal('show');
         }
     </script>
