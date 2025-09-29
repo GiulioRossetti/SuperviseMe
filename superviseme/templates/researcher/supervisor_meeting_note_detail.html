@@ -55,14 +55,14 @@
                             </div>
 
                             <!-- Meeting Note References -->
-                            {% if meeting_note.references %}
+                            {% if references %}
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
                                     <h6 class="m-0 font-weight-bold text-info">Referenced Todos</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
-                                        {% for reference in meeting_note.references %}
+                                        {% for reference in references %}
                                         <div class="col-md-6 mb-3">
                                             <div class="card border-left-info">
                                                 <div class="card-body py-2">
@@ -85,6 +85,13 @@
                                                             <a href="{{ url_for('researcher.supervisor_todo_detail', todo_id=reference.todo.id) }}" class="btn btn-sm btn-info">
                                                                 <i class="fas fa-eye"></i>
                                                             </a>
+                                                            <form method="POST" action="{{ url_for('researcher.remove_meeting_note_reference', note_id=meeting_note.id, reference_id=reference.id) }}" 
+                                                                  style="display: inline;"
+                                                                  onsubmit="return confirm('Remove this todo reference?');">
+                                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                                    <i class="fas fa-times"></i>
+                                                                </button>
+                                                            </form>
                                                         </div>
                                                     </div>
                                                 </div>
