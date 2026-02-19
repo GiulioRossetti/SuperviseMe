@@ -1,11 +1,16 @@
 import os
+import sys
 import pytest
 import tempfile
 import shutil
-from superviseme import create_app, db
-from superviseme.models import User_mgmt
 from werkzeug.security import generate_password_hash
 import time
+
+# Ensure project root is in sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from superviseme import create_app, db
+from superviseme.models import User_mgmt
 
 @pytest.fixture
 def app():
