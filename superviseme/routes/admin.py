@@ -312,13 +312,28 @@ def user_detail(user_id):
                          datetime=datetime.datetime)
 
 
-@admin.route("/admin/users_data")
+@admin.route("/admin/users_data", methods=["GET", "POST"])
 @login_required
 def users_data():
     privilege_check = check_privileges(current_user.username, role="admin")
     if privilege_check is not True:
         return privilege_check
     
+    if request.method == "POST":
+        data = request.get_json()
+        user_id = data.get("id")
+        if user_id:
+            user = User_mgmt.query.get_or_404(user_id)
+
+            if "name" in data: user.name = data["name"]
+            if "surname" in data: user.surname = data["surname"]
+            if "gender" in data: user.gender = data["gender"]
+            if "user_type" in data: user.user_type = data["user_type"]
+            if "is_enabled" in data: user.is_enabled = bool(data["is_enabled"])
+
+            db.session.commit()
+            return {"status": "success"}, 200
+
     query = User_mgmt.query
 
     # search filter
@@ -357,7 +372,7 @@ def users_data():
     res = query.all()
 
     return {
-        "data": [{"id": pop.id, "name": pop.name, "surname": pop.surname, "gender": pop.gender, "user_type": pop.user_type} for pop in res],
+        "data": [{"id": pop.id, "name": pop.name, "surname": pop.surname, "gender": pop.gender, "user_type": pop.user_type, "is_enabled": pop.is_enabled, "google_id": pop.google_id} for pop in res],
         "total": total,
     }
 

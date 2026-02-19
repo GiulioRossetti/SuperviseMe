@@ -49,6 +49,7 @@
                                                     <th>Surname</th>
                                                     <th>Gender</th>
                                                     <th>Role</th>
+                                                    <th>Status</th>
                                                     <th>Actions</th>
                                                 </tr>
                                             </thead>
@@ -115,6 +116,14 @@ function renderFallbackTable(usersData) {
       <td>${user.gender || ''}</td>
       <td><span class="badge badge-primary">${user.user_type}</span></td>
       <td>
+        <span class="badge ${user.is_enabled ? 'badge-success' : 'badge-warning'}">
+          ${user.is_enabled ? 'Enabled' : 'Disabled'}
+        </span>
+        <button class="btn btn-sm btn-link toggle-status" data-id="${user.id}" data-enabled="${user.is_enabled}">
+          ${user.is_enabled ? 'Disable' : 'Enable'}
+        </button>
+      </td>
+      <td>
         <div style="display: flex; gap: 8px; justify-content: center;">
           <a href="/admin/user/${user.id}" class="btn btn-success btn-sm">Details</a>
           <button class="btn btn-danger btn-sm delete-button" data-id="${user.id}">Delete</button>
@@ -137,6 +146,34 @@ function handleDelete(userId) {
     })
     .catch(err => {
       alert('Error deleting user.');
+      console.error(err);
+    });
+  }
+}
+
+// Function to handle status toggle
+function handleToggleStatus(userId, currentStatus) {
+  const newStatus = !currentStatus;
+  const action = newStatus ? 'enable' : 'disable';
+
+  if (confirm(`Are you sure you want to ${action} this user?`)) {
+    fetch('/admin/users_data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: userId,
+        is_enabled: newStatus
+      }),
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Failed to update status');
+      return response.json();
+    })
+    .then(data => {
+        location.reload(); // Refresh to see changes
+    })
+    .catch(err => {
+      alert('Error updating user status.');
       console.error(err);
     });
   }
@@ -165,6 +202,22 @@ try {
           { id: 'surname', name: 'Surname', attributes: editableCellAttributes },
           {id: "gender", name: 'Gender', attributes: editableCellAttributes},
           { id: 'user_type', name: 'Role', attributes: editableCellAttributes },
+          {
+            id: 'is_enabled',
+            name: 'Status',
+            formatter: (cell, row) => {
+              const isEnabled = cell;
+              const id = row.cells[0].data;
+              return gridjs.html(`
+                <span class="badge ${isEnabled ? 'badge-success' : 'badge-warning'}">
+                  ${isEnabled ? 'Enabled' : 'Disabled'}
+                </span>
+                <button class="btn btn-sm btn-link toggle-status" data-id="${id}" data-enabled="${isEnabled}">
+                  ${isEnabled ? 'Disable' : 'Enable'}
+                </button>
+              `);
+            }
+          },
         {
           id: 'actions',
           name: 'Actions',
@@ -260,12 +313,16 @@ try {
       }
     });
 
-    // Handle delete button clicks
+    // Handle delete and toggle button clicks
     tableDiv.addEventListener('click', function (event) {
       const target = event.target;
       if (target.classList.contains('delete-button')) {
         const id = target.getAttribute('data-id');
         handleDelete(id);
+      } else if (target.classList.contains('toggle-status')) {
+        const id = target.getAttribute('data-id');
+        const enabled = target.getAttribute('data-enabled') === 'true';
+        handleToggleStatus(id, enabled);
       }
     });
     
@@ -299,12 +356,16 @@ try {
     renderFallbackTable(data.data);
   });
   
-  // Handle delete button clicks
+  // Handle delete and toggle button clicks
   fallbackDiv.addEventListener('click', function (event) {
     const target = event.target;
     if (target.classList.contains('delete-button')) {
       const id = target.getAttribute('data-id');
       handleDelete(id);
+    } else if (target.classList.contains('toggle-status')) {
+        const id = target.getAttribute('data-id');
+        const enabled = target.getAttribute('data-enabled') === 'true';
+        handleToggleStatus(id, enabled);
     }
   });
 }
