@@ -2,6 +2,7 @@
 Activity tracking utilities for SuperviseMe application
 """
 from flask_login import current_user
+from sqlalchemy.orm import joinedload
 from superviseme import db
 import time
 import logging
@@ -46,7 +47,9 @@ def get_inactive_students(supervisor_id, weeks_threshold=2):
     inactive_students = []
     
     # Get all thesis supervisors for this supervisor
-    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=supervisor_id).all()
+    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=supervisor_id)\
+        .options(joinedload(Thesis_Supervisor.thesis).joinedload(Thesis.author))\
+        .all()
     
     for ts in thesis_supervisors:
         if ts.thesis and ts.thesis.author and ts.thesis.author.user_type == 'student':
@@ -86,7 +89,9 @@ def get_weekly_activity_summary(supervisor_id):
     one_week_ago = int(time.time()) - (7 * 24 * 60 * 60)
     
     students_activity = []
-    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=supervisor_id).all()
+    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=supervisor_id)\
+        .options(joinedload(Thesis_Supervisor.thesis).joinedload(Thesis.author))\
+        .all()
     
     for ts in thesis_supervisors:
         if ts.thesis and ts.thesis.author and ts.thesis.author.user_type == 'student':
