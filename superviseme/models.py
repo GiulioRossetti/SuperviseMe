@@ -16,6 +16,10 @@ class User_mgmt(UserMixin, db.Model):
     joined_on = db.Column(db.Integer, nullable=False)
     gender = db.Column(db.String(10), default=None)
     nationality = db.Column(db.String(15), default=None)
+    is_enabled = db.Column(db.Boolean, default=True, nullable=False)
+    google_id = db.Column(db.String(100), unique=True, nullable=True)
+    orcid_id = db.Column(db.String(20), unique=True, nullable=True)
+    profile_pic = db.Column(db.String(255), nullable=True)
     last_activity = db.Column(db.Integer, nullable=True)  # Track last activity timestamp
     last_activity_location = db.Column(db.String(100), nullable=True)  # Track where they were last active
     

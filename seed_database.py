@@ -52,7 +52,8 @@ def seed_database():
             email='admin@supervise.me',
             password=generate_password_hash(admin_password, method='pbkdf2:sha256'),
             user_type='admin',
-            joined_on=int(time.time())
+            joined_on=int(time.time()),
+            is_enabled=True
         )
         db.session.add(admin_user)
         db.session.commit()
@@ -102,7 +103,8 @@ def seed_database():
                 cdl=sup_data['cdl'],
                 gender=sup_data['gender'],
                 nationality=sup_data['nationality'],
-                joined_on=int(time.time())
+                joined_on=int(time.time()),
+                is_enabled=True
             )
             supervisors.append(supervisor)
             db.session.add(supervisor)
@@ -170,7 +172,8 @@ def seed_database():
                 cdl=std_data['cdl'],
                 gender=std_data['gender'],
                 nationality=std_data['nationality'],
-                joined_on=int(time.time())
+                joined_on=int(time.time()),
+                is_enabled=True
             )
             students.append(student)
             db.session.add(student)
@@ -335,7 +338,8 @@ def seed_database():
                 cdl=researcher_data['cdl'],
                 gender=researcher_data['gender'],
                 nationality=researcher_data['nationality'],
-                joined_on=int(time.time())
+                joined_on=int(time.time()),
+                is_enabled=True
             )
             researchers.append(researcher)
             db.session.add(researcher)

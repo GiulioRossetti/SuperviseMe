@@ -7,6 +7,7 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_migrate import Migrate
+from authlib.integrations.flask_client import OAuth
 from sqlalchemy import MetaData
 from werkzeug.security import generate_password_hash
 from sqlalchemy import create_engine, text
@@ -31,6 +32,7 @@ login_manager.login_view = "auth.login"
 mail = Mail()
 csrf = CSRFProtect()
 migrate = Migrate()
+oauth = OAuth()
 
 INSECURE_SECRET_KEY_VALUES = {
     "",
@@ -211,6 +213,27 @@ def create_app(db_type="sqlite", skip_user_init=False):
     login_manager.init_app(app)
     mail.init_app(app)
     csrf.init_app(app)
+    oauth.init_app(app)
+
+    # Configure Google OAuth
+    oauth.register(
+        name='google',
+        client_id=os.getenv("GOOGLE_CLIENT_ID"),
+        client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs={'scope': 'openid email profile'}
+    )
+
+    # Configure ORCID OAuth
+    oauth.register(
+        name='orcid',
+        client_id=os.getenv("ORCID_CLIENT_ID"),
+        client_secret=os.getenv("ORCID_CLIENT_SECRET"),
+        access_token_url='https://orcid.org/oauth/token',
+        authorize_url='https://orcid.org/oauth/authorize',
+        api_base_url='https://pub.orcid.org/v3.0/',
+        client_kwargs={'scope': '/authenticate'}
+    )
 
     from .models import User_mgmt
 

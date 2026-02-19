@@ -220,13 +220,17 @@ def log_security_event(event_type, details=None, user_id=None):
     })
 
 # Example usage of security logging
-def log_login_attempt(username, success, ip_address=None):
+def log_login_attempt(username, success, ip_address=None, details=None):
     """Log login attempts"""
-    log_security_event('login_attempt', {
+    payload = {
         'username': username,
         'success': success,
         'ip_address': ip_address or (request.remote_addr if request else None)
-    })
+    }
+    if details:
+        payload['details'] = details
+
+    log_security_event('login_attempt', payload)
 
 def log_logout(username, user_id=None):
     """Log logout events"""
