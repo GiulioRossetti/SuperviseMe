@@ -224,6 +224,17 @@ def create_app(db_type="sqlite", skip_user_init=False):
         client_kwargs={'scope': 'openid email profile'}
     )
 
+    # Configure ORCID OAuth
+    oauth.register(
+        name='orcid',
+        client_id=os.getenv("ORCID_CLIENT_ID"),
+        client_secret=os.getenv("ORCID_CLIENT_SECRET"),
+        access_token_url='https://orcid.org/oauth/token',
+        authorize_url='https://orcid.org/oauth/authorize',
+        api_base_url='https://pub.orcid.org/v3.0/',
+        client_kwargs={'scope': '/authenticate'}
+    )
+
     from .models import User_mgmt
 
     # insert the admin user if it doesn't exist

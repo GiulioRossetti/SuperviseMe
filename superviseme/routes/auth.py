@@ -161,3 +161,87 @@ def google_callback():
             return redirect(url_for("researcher.dashboard"))
         else:
             return redirect(url_for("student.dashboard"))
+
+
+@auth.route('/login/orcid')
+def orcid_login():
+    redirect_uri = url_for('auth.orcid_callback', _external=True)
+    return oauth.orcid.authorize_redirect(redirect_uri)
+
+
+@auth.route('/login/orcid/callback')
+def orcid_callback():
+    try:
+        token = oauth.orcid.authorize_access_token()
+        # ORCID returns orcid, name, scope in the token response
+        orcid_id = token.get('orcid')
+        name = token.get('name', '')
+        # ORCID doesn't provide email in the default /authenticate scope
+    except Exception as e:
+        flash(f"Error logging in with ORCID: {e}")
+        return redirect(url_for("auth.login"))
+
+    if not orcid_id:
+        flash("Could not retrieve ORCID iD.")
+        return redirect(url_for("auth.login"))
+
+    # Try to find user by orcid_id
+    user = User_mgmt.query.filter_by(orcid_id=orcid_id).first()
+
+    if not user:
+        # Create new user
+        import secrets
+        password = secrets.token_urlsafe(16)
+
+        # Generate a placeholder email since ORCID doesn't provide one
+        # Use a domain that indicates it's a placeholder
+        email = f"{orcid_id}@orcid.placeholder.local"
+
+        # Check if username exists
+        # Use ORCID iD as base for username
+        username = f"orcid_{orcid_id}"
+
+        # Split name if possible
+        given_name = name
+        family_name = ""
+        if " " in name:
+            parts = name.split(" ", 1)
+            given_name = parts[0]
+            family_name = parts[1]
+
+        new_user = User_mgmt(
+            email=email,
+            username=username,
+            name=given_name[:15], # Limit to 15 chars as per model
+            surname=family_name[:15],
+            password=generate_password_hash(password, method="pbkdf2:sha256"),
+            user_type="student", # Default to student
+            joined_on=int(time.time()),
+            orcid_id=orcid_id,
+            is_enabled=False # Disabled by default
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        flash("Account created via ORCID. Please update your email after admin approval.")
+        return redirect(url_for("auth.login"))
+
+    else:
+        # Check if enabled
+        if not user.is_enabled:
+            log_login_attempt(user.username, False, request.remote_addr, details="User disabled (ORCID Login)")
+            flash("Your account is pending approval. Please wait for an admin to enable it.")
+            return redirect(url_for("auth.login"))
+
+        # Log in
+        log_login_attempt(user.username, True, request.remote_addr, details="ORCID Login")
+        login_user(user, remember=True)
+
+        # Redirect based on role
+        if user.user_type == "admin":
+            return redirect(url_for("admin.dashboard"))
+        elif user.user_type == "supervisor":
+            return redirect(url_for("supervisor.dashboard"))
+        elif user.user_type == "researcher":
+            return redirect(url_for("researcher.dashboard"))
+        else:
+            return redirect(url_for("student.dashboard"))

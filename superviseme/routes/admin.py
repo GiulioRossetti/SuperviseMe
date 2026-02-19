@@ -372,7 +372,7 @@ def users_data():
     res = query.all()
 
     return {
-        "data": [{"id": pop.id, "name": pop.name, "surname": pop.surname, "gender": pop.gender, "user_type": pop.user_type, "is_enabled": pop.is_enabled, "google_id": pop.google_id} for pop in res],
+        "data": [{"id": pop.id, "name": pop.name, "surname": pop.surname, "gender": pop.gender, "user_type": pop.user_type, "is_enabled": pop.is_enabled, "google_id": pop.google_id, "orcid_id": pop.orcid_id} for pop in res],
         "total": total,
     }
 

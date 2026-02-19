@@ -50,6 +50,7 @@
                                                     <th>Gender</th>
                                                     <th>Role</th>
                                                     <th>Status</th>
+                                                    <th>ID</th>
                                                     <th>Actions</th>
                                                 </tr>
                                             </thead>
@@ -122,6 +123,10 @@ function renderFallbackTable(usersData) {
         <button class="btn btn-sm btn-link toggle-status" data-id="${user.id}" data-enabled="${user.is_enabled}">
           ${user.is_enabled ? 'Disable' : 'Enable'}
         </button>
+      </td>
+      <td>
+          ${user.google_id ? '<i class="fab fa-google" title="Google User"></i>' : ''}
+          ${user.orcid_id ? '<i class="fab fa-orcid" title="ORCID User"></i>' : ''}
       </td>
       <td>
         <div style="display: flex; gap: 8px; justify-content: center;">
@@ -198,6 +203,8 @@ try {
     new gridjs.Grid({
       columns: [
           { id: 'id', hidden: true },
+          { id: 'google_id', hidden: true },
+          { id: 'orcid_id', hidden: true },
           { id: 'name', name: 'Name', attributes: editableCellAttributes },
           { id: 'surname', name: 'Surname', attributes: editableCellAttributes },
           {id: "gender", name: 'Gender', attributes: editableCellAttributes},
@@ -216,6 +223,17 @@ try {
                   ${isEnabled ? 'Disable' : 'Enable'}
                 </button>
               `);
+            }
+          },
+          {
+            name: 'ID',
+            formatter: (cell, row) => {
+               const googleId = row.cells[1].data;
+               const orcidId = row.cells[2].data;
+               let html = '';
+               if (googleId) html += '<i class="fab fa-google" title="Google User" style="margin-right: 5px;"></i>';
+               if (orcidId) html += '<i class="fab fa-orcid" title="ORCID User" style="margin-right: 5px;"></i>';
+               return gridjs.html(html);
             }
           },
         {
