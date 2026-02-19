@@ -222,3 +222,4 @@ nginx/ssl/*.key
 nginx/ssl/*.crt
 *.db.backup_*
 superviseme/db/*.backup_*
+superviseme/db/dashboard.db
