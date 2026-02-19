@@ -359,7 +359,7 @@
 
 
                                         {% for update in updates %}
-                                            {% if update.update_type == 'student_update' %}
+                                            {% if update.update_type in ['student_update', 'supervisor_update'] %}
                                                 <div class="update-item mb-4 p-3 {% if update.update_type == 'student_update' %}bg-light{% else %}bg-white{% endif %} border rounded">
                                                     <div class="d-flex justify-content-between align-items-start">
                                                         <div class="update-info">
