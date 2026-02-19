@@ -1,0 +1,40 @@
+site_name: SuperviseMe Documentation
+site_url: https://giuliorossetti.github.io/SuperviseMe/
+site_description: Documentation for SuperviseMe project.
+site_author: Giulio Rossetti
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - toc.integrate
+  palette:
+    - scheme: default
+      primary: teal
+      accent: purple
+    - scheme: slate
+      primary: teal
+      accent: lime
+      toggle:
+        icon: material/brightness-4
+        name: Switch to dark mode
+
+nav:
+  - Home: index.md
+  - Configuration: configuration.md
+  - Social Logins: social_login.md
+  - Telegram Setup: telegram_setup.md
+  - Docker Deployment: docker_deployment.md
+  - Deployment Runbook: deployment_runbook.md
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true

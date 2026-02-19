@@ -2,6 +2,8 @@
 
 A comprehensive web application for thesis supervision and research project management in academic environments. SuperviseMe streamlines the process of thesis supervision by providing dedicated dashboards for administrators, supervisors, researchers, and students, along with robust user management and project tracking capabilities.
 
+📘 **[Read the Full Documentation](https://giuliorossetti.github.io/SuperviseMe/)**
+
 ## 🎯 Project Overview
 
 SuperviseMe is a Flask-based web application designed to facilitate thesis supervision and research collaboration in universities and academic institutions. The platform provides role-based access control with distinct interfaces for administrators, supervisors, researchers, and students, each tailored to their specific needs and responsibilities.
