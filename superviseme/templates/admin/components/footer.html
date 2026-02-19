@@ -43,6 +43,48 @@
 
     <!-- Page level custom scripts -->
     <script>
+        (function () {
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            if (!csrfMeta) return;
+            const csrfToken = csrfMeta.getAttribute("content");
+
+            // Ensure every POST/PUT/PATCH/DELETE form includes CSRF token.
+            const forms = document.querySelectorAll("form");
+            forms.forEach((form) => {
+                const method = (form.getAttribute("method") || "GET").toUpperCase();
+                if (!["POST", "PUT", "PATCH", "DELETE"].includes(method)) return;
+                if (form.querySelector('input[name="csrf_token"]')) return;
+                const tokenInput = document.createElement("input");
+                tokenInput.type = "hidden";
+                tokenInput.name = "csrf_token";
+                tokenInput.value = csrfToken;
+                form.appendChild(tokenInput);
+            });
+
+            // Add CSRF header to same-origin mutating fetch requests.
+            const originalFetch = window.fetch;
+            window.fetch = function (input, init) {
+                const requestInit = init ? { ...init } : {};
+                const method = ((requestInit.method || "GET") + "").toUpperCase();
+                const shouldProtect = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+                if (!shouldProtect) return originalFetch(input, requestInit);
+
+                const requestUrl = typeof input === "string" ? input : (input && input.url) || "";
+                const isAbsolute = /^https?:\/\//i.test(requestUrl);
+                const isSameOrigin = !isAbsolute || requestUrl.startsWith(window.location.origin);
+
+                if (isSameOrigin) {
+                    const headers = new Headers(requestInit.headers || {});
+                    if (!headers.has("X-CSRFToken")) {
+                        headers.set("X-CSRFToken", csrfToken);
+                    }
+                    requestInit.headers = headers;
+                }
+
+                return originalFetch(input, requestInit);
+            };
+        })();
+
         $(document).ready(function() {
             $('#dataTable').DataTable();
             $('#dataTable1').DataTable();

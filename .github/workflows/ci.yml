@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    env:
+      FLASK_ENV: development
+      SECRET_KEY: ci-secret-key
+      ADMIN_BOOTSTRAP_PASSWORD: ci-bootstrap-password
+      ENABLE_SCHEDULER: "false"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest ruff
+
+      - name: Lint (runtime-safety rules)
+        run: |
+          ruff check --select E9,F63,F7,F82 superviseme scripts test_app_functionality.py recreate_database.py seed_database.py
+
+      - name: Python compile checks
+        run: |
+          python -m py_compile superviseme/__init__.py superviseme/routes/*.py superviseme/utils/*.py
+
+      - name: Schema alignment check
+        run: |
+          python scripts/check_schema_alignment.py --db data_schema/database_dashboard.db --strict
+
+      - name: Tests
+        run: |
+          pytest -q
+

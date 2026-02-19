@@ -1,0 +1,1447 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'researcher/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ thesis.title }}</h1>
+                        <div>
+                            {% if thesis.frozen %}
+                                <button class="btn btn-warning" onclick="unfreezeThesis({{ thesis.id }})">
+                                    <i class="fas fa-unlock"></i> Unfreeze
+                                </button>
+                            {% else %}
+                                <button class="btn btn-outline-warning" onclick="freezeThesis({{ thesis.id }})">
+                                    <i class="fas fa-lock"></i> Freeze
+                                </button>
+                            {% endif %}
+                            <a href="{{ url_for('researcher.supervisor_theses') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Theses
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Thesis Info Row -->
+                    <div class="row">
+                        <div class="col-xl-8 col-lg-7">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="m-0 font-weight-bold text-primary">Thesis Information</h6>
+                                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editThesisModal">
+                                        <i class="fas fa-edit"></i> Edit Thesis
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-gray-700">{{ thesis.description }}</p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Level:</strong> {{ thesis.level|title if thesis.level else 'Not specified' }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Created:</strong> {{ dt(thesis.created_at).strftime('%B %d, %Y') if thesis.created_at else 'Unknown' }}
+                                        </div>
+                                    </div>
+                                    {% if author %}
+                                    <div class="mt-3">
+                                        <strong>Student:</strong> {{ author.name }} {{ author.surname }}
+                                        <br><small class="text-muted">{{ author.email }}</small>
+                                        <div class="mt-2">
+                                            <form method="POST" action="{{ url_for('researcher.unassign_thesis', thesis_id=thesis.id) }}" style="display: inline;">
+                                                <button type="submit" class="btn btn-warning btn-sm" 
+                                                        onclick="return confirm('Are you sure you want to unassign this student from the thesis?')">
+                                                    <i class="fas fa-user-times"></i> Unassign Student
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div class="mt-3">
+                                        <span class="badge badge-warning">No student assigned</span>
+                                        {% if available_students %}
+                                        <div class="mt-3">
+                                            <strong>Assign Student:</strong>
+                                            <form method="POST" action="{{ url_for('researcher.assign_thesis') }}" class="mt-2">
+                                                <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                                                <div class="form-row">
+                                                    <div class="col-md-8">
+                                                        <select name="student_id" class="form-control form-control-sm" required>
+                                                            <option value="">Select a student...</option>
+                                                            {% for student in available_students %}
+                                                            <option value="{{ student.id }}">{{ student.name }} {{ student.surname }} ({{ student.email }})</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <button type="submit" class="btn btn-success btn-sm">
+                                                            <i class="fas fa-user-plus"></i> Assign
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        {% else %}
+                                        <div class="mt-2">
+                                            <small class="text-muted">No available students (all students have active thesis assignments)</small>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if thesis_tags %}
+                                    <div class="mt-3">
+                                        <strong>Tags:</strong>
+                                        {% for tag in thesis_tags %}
+                                            <span class="badge badge-secondary mr-1">{{ tag.tag }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="col-xl-4 col-lg-5">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Statistics</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center mb-3">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Total Updates</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ updates|length }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-edit fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+
+                                    <div class="row no-gutters align-items-center mb-3">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Student Updates</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {{ updates|selectattr('update_type', 'equalto', 'student_update')|list|length }}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-user fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Resources</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resources|length }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-folder fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Management Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Thesis Status</h6>
+                                    <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#setStatusModal">
+                                        <i class="fas fa-edit"></i> Set Status
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    {% if thesis.status %}
+                                        {% set latest_status = thesis.status[-1] %}
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge badge-lg 
+                                                    {% if latest_status.status == 'approved' %}badge-success
+                                                    {% elif latest_status.status == 'needs-revision' %}badge-warning
+                                                    {% elif latest_status.status == 'in-progress' %}badge-info
+                                                    {% elif latest_status.status == 'suspended' %}badge-danger
+                                                    {% else %}badge-secondary{% endif %}">
+                                                    {{ latest_status.status|title }}
+                                                </span>
+                                                <small class="text-muted ml-2">
+                                                    Updated: {{ dt(latest_status.updated_at).strftime('%B %d, %Y at %I:%M %p') if latest_status.updated_at else 'Unknown' }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Status History -->
+                                        {% if thesis.status|length > 1 %}
+                                        <div class="mt-3">
+                                            <h6 class="text-muted">Status History:</h6>
+                                            {% for status in thesis.status[:-1]|reverse %}
+                                            <div class="border-left border-secondary pl-3 mb-2">
+                                                <span class="badge badge-secondary">{{ status.status|title }}</span>
+                                                <small class="text-muted ml-2">{{ dt(status.updated_at).strftime('%B %d, %Y') if status.updated_at else 'Unknown' }}</small>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="text-muted">No status set yet. Use the "Set Status" button to assign an advancement status.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Objectives Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Student Objectives</h6>
+                                    <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addObjectiveModal">
+                                        <i class="fas fa-plus"></i> Add Objective
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    {% if objectives %}
+                                        {% for objective in objectives %}
+                                        <div class="card mb-3 {% if objective.frozen %}border-warning{% endif %}">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="font-weight-bold">{{ objective.title }}</h6>
+                                                    <div class="d-flex align-items-center">
+                                                        {% if objective.frozen %}
+                                                            <span class="badge badge-warning mr-2">Frozen</span>
+                                                             <form method="POST" action="{{ url_for('researcher.supervisor_unfreeze_objective', objective_id=objective.id) }}" class="d-inline">
+                                                                <button type="submit" class="btn btn-sm btn-outline-success" 
+                                                                        onclick="return confirm('Unfreeze this objective?')">
+                                                                    <i class="fas fa-unlock"></i>
+                                                                </button>
+                                                            </form>
+                                                        {% else %}
+                                                            <button class="btn btn-sm btn-outline-primary mr-2" 
+                                                                    onclick="editObjective({{ objective.id }}, '{{ objective.title|e }}', '{{ objective.description|e }}')">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <form method="POST" action="{{ url_for('researcher.delete_objective', objective_id=objective.id) }}" class="d-inline mr-2">
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                                        onclick="return confirm('Are you sure you want to delete this objective?')">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </form>
+                                                            <form method="POST" action="{{ url_for('researcher.supervisor_freeze_objective', objective_id=objective.id) }}" class="d-inline">
+                                                                <button type="submit" class="btn btn-sm btn-outline-warning"
+                                                                        onclick="return confirm('Freeze this objective?')">
+                                                                    <i class="fas fa-lock"></i>
+                                                                </button>
+                                                            </form>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <p class="text-gray-700">{{ objective.description }}</p>
+                                                <small class="text-muted">
+                                                    Created: {{ dt(objective.created_at).strftime('%B %d, %Y at %I:%M %p') if objective.created_at else 'Unknown' }}
+                                                    {% if objective.author %}by {{ objective.author.name }} {{ objective.author.surname }}{% endif %}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-bullseye fa-2x text-gray-300 mb-3"></i>
+                                            <p class="text-muted">No objectives defined yet. <a href="#" data-toggle="modal" data-target="#addObjectiveModal">Add the first objective!</a></p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hypotheses Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Student Hypotheses</h6>
+                                    <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addHypothesisModal">
+                                        <i class="fas fa-plus"></i> Add Hypothesis
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    {% if hypotheses %}
+                                        {% for hypothesis in hypotheses %}
+                                        <div class="card mb-3 {% if hypothesis.frozen %}border-warning{% endif %}">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="font-weight-bold">{{ hypothesis.title }}</h6>
+                                                    <div class="d-flex align-items-center">
+                                                        {% if hypothesis.frozen %}
+                                                            <span class="badge badge-warning mr-2">Frozen</span>
+                                                            <form method="POST" action="{{ url_for('researcher.supervisor_unfreeze_hypothesis', hypothesis_id=hypothesis.id) }}" class="d-inline">
+                                                                <button type="submit" class="btn btn-sm btn-outline-success"
+                                                                        onclick="return confirm('Unfreeze this hypothesis?')">
+                                                                    <i class="fas fa-unlock"></i>
+                                                                </button>
+                                                            </form>
+                                                        {% else %}
+                                                            <button class="btn btn-sm btn-outline-primary mr-2" 
+                                                                    onclick="editHypothesis({{ hypothesis.id }}, '{{ hypothesis.title|e }}', '{{ hypothesis.description|e }}')">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <form method="POST" action="{{ url_for('researcher.delete_hypothesis', hypothesis_id=hypothesis.id) }}" class="d-inline mr-2">
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                                        onclick="return confirm('Are you sure you want to delete this hypothesis?')">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </form>
+                                                            <form method="POST" action="{{ url_for('researcher.supervisor_freeze_hypothesis', hypothesis_id=hypothesis.id) }}" class="d-inline">
+                                                                <button type="submit" class="btn btn-sm btn-outline-warning"
+                                                                        onclick="return confirm('Freeze this hypothesis?')">
+                                                                    <i class="fas fa-lock"></i>
+                                                                </button>
+                                                            </form>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <p class="text-gray-700">{{ hypothesis.description }}</p>
+                                                <small class="text-muted">
+                                                    Created: {{ dt(hypothesis.created_at).strftime('%B %d, %Y at %I:%M %p') if hypothesis.created_at else 'Unknown' }}
+                                                    {% if hypothesis.author %}by {{ hypothesis.author.name }} {{ hypothesis.author.surname }}{% endif %}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-lightbulb fa-2x text-gray-300 mb-3"></i>
+                                            <p class="text-muted">No hypotheses defined yet. <a href="#" data-toggle="modal" data-target="#addHypothesisModal">Add the first hypothesis!</a></p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Updates Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Updates & Feedback</h6>
+                                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addFeedbackModal">
+                                        <i class="fas fa-plus"></i> Add Feedback
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    {% if updates %}
+
+
+                                        {% for update in updates %}
+                                            {% if update.update_type == 'student_update' %}
+                                                <div class="update-item mb-4 p-3 {% if update.update_type == 'student_update' %}bg-light{% else %}bg-white{% endif %} border rounded">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div class="update-info">
+                                                            <div class="d-flex align-items-center mb-2">
+                                                                {% if update.update_type == 'student_update' %}
+                                                                    <i class="fas fa-user text-primary mr-2"></i>
+                                                                    <strong class="text-primary">{{ author.name if author else 'Student' }}</strong>
+                                                                {% elif update.update_type == 'supervisor_update' %}
+                                                                    <i class="fas fa-user-tie text-info mr-2"></i>
+                                                                    <strong class="text-info">You (Supervisor)</strong>
+                                                                {% elif update.update_type == 'supervisor_comment' %}
+                                                                    <i class="fas fa-comment text-warning mr-2"></i>
+                                                                    <strong class="text-warning">You (Comment)</strong>
+                                                                {% endif %}
+                                                                <small class="text-gray-500 ml-2">
+                                                                    {{ dt(update.created_at).strftime('%B %d, %Y at %I:%M %p') if update.created_at else 'Unknown time' }}
+                                                                </small>
+                                                            </div>
+                                                            <div class="update-content">
+                                                                {% set formatted_content = update.content|replace('\n', '<br>') %}
+                                                                {{ formatted_content|format_todo_links('supervisor')|safe }}
+                                                            </div>
+
+                                                            <!-- Todo References -->
+                                                            {% if update.todo_references %}
+                                                            <div class="mt-2">
+                                                                <small class="text-muted">Referenced Todos:</small>
+                                                                {% for ref in update.todo_references %}
+                                                                <a href="{{ url_for('researcher.supervisor_todo_detail', todo_id=ref.todo.id) }}"
+                                                                   class="badge badge-primary ml-1" title="{{ ref.todo.title }}">
+                                                                    <i class="fas fa-tasks"></i> {{ ref.todo.title[:20] }}{% if ref.todo.title|length > 20 %}...{% endif %}
+                                                                </a>
+                                                                {% endfor %}
+                                                            </div>
+                                                            {% endif %}
+
+                                                            <!-- Display existing tags -->
+                                                            {% if update.tags %}
+                                                            <div class="mt-2">
+                                                                {% for tag in update.tags %}
+                                                                <span class="badge badge-info mr-1">{{ tag.tag }}</span>
+                                                                {% endfor %}
+                                                            </div>
+                                                            {% endif %}
+                                                        </div>
+
+                                                        <div class="update-actions">
+                                                            {% if update.update_type == 'supervisor_update' and update.author_id == current_user.id %}
+                                                            <div class="dropdown">
+                                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown">
+                                                                    <i class="fas fa-ellipsis-v"></i>
+                                                                </button>
+                                                                <div class="dropdown-menu">
+                                                                    <a class="dropdown-item" href="#" onclick="editUpdate({{ update.id }}, '{{ update.content|e }}')">
+                                                                        <i class="fas fa-edit"></i> Edit
+                                                                    </a>
+                                                                    <a class="dropdown-item text-danger" href="{{ url_for('researcher.supervisor_delete_update', update_id=update.id) }}"
+                                                                       onclick="return confirm('Are you sure you want to delete this update?')">
+                                                                        <i class="fas fa-trash"></i> Delete
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            {% elif update.update_type == 'student_update' %}
+                                                            <div class="btn-group-vertical">
+                                                                <button class="btn btn-sm btn-outline-primary" onclick="commentOnUpdate({{ update.id }})">
+                                                                    <i class="fas fa-comment"></i> Comment
+                                                                </button>
+                                                                <button class="btn btn-sm btn-outline-secondary" onclick="tagUpdate({{ update.id }})">
+                                                                    <i class="fas fa-tag"></i> Tag
+                                                                </button>
+                                                            </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Display child comments for student updates -->
+                                                    {% if update.update_type == 'student_update' %}
+                                                        {% set child_comments = updates|selectattr('parent_id', 'equalto', update.id)|list %}
+                                                        {% if child_comments %}
+                                                        <div class="mt-3 ml-4 border-left border-warning pl-3">
+                                                            <h6 class="text-warning">Comments:</h6>
+                                                            {% for comment in child_comments %}
+                                                            <div class="bg-light p-2 rounded mb-2">
+                                                                <strong class="text-warning">You:</strong>
+                                                                <small class="text-muted">{{ dt(comment.created_at).strftime('%B %d, %Y at %I:%M %p') if comment.created_at else 'Unknown' }}</small>
+                                                                <div class="mt-1">{{ comment.content|replace('\n', '<br>')|safe }}</div>
+                                                            </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                        {% endif %}
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+
+                                    {% else %}
+                                        <p class="text-gray-500 text-center">No updates yet.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Notes Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Meeting Notes</h6>
+                                    <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addMeetingNoteModal">
+                                        <i class="fas fa-plus"></i> Add Meeting Note
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    {% if meeting_notes %}
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered" id="meetingNotesTable">
+                                            <thead>
+                                                <tr>
+                                                    <th width="25%">Title</th>
+                                                    <th width="35%">Content</th>
+                                                    <th width="15%">Author</th>
+                                                    <th width="10%">Created</th>
+                                                    <th width="10%">Updated</th>
+                                                    <th width="5%">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for note in meeting_notes %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>
+                                                            <a href="{{ url_for('researcher.supervisor_meeting_note_detail', note_id=note.id) }}" 
+                                                               class="text-decoration-none">
+                                                                {{ note.title }}
+                                                            </a>
+                                                        </strong>
+                                                    </td>
+                                                    <td>
+                                                        <div class="meeting-note-content">
+                                                            {{ note.content|safe }}
+                                                        </div>
+                                                        <!-- Todo References -->
+                                                        {% if note.todo_references %}
+                                                        <div class="mt-2">
+                                                            <small class="text-muted">Referenced Todos:</small>
+                                                            {% for ref in note.todo_references %}
+                                                            <a href="{{ url_for('researcher.supervisor_todo_detail', todo_id=ref.todo.id) }}" 
+                                                               class="badge badge-primary ml-1" title="{{ ref.todo.title }}">
+                                                                <i class="fas fa-tasks"></i> {{ ref.todo.title[:15] }}{% if ref.todo.title|length > 15 %}...{% endif %}
+                                                            </a>
+                                                            {% endfor %}
+                                                        </div>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <small class="text-muted">
+                                                            {% if note.author %}
+                                                                {{ note.author.name }} {{ note.author.surname }}
+                                                                {% if note.author.user_type == 'supervisor' %}
+                                                                    <i class="fas fa-chalkboard-teacher text-primary" title="Supervisor"></i>
+                                                                {% else %}
+                                                                    <i class="fas fa-user-graduate text-success" title="Student"></i>
+                                                                {% endif %}
+                                                            {% else %}
+                                                                Unknown
+                                                            {% endif %}
+                                                        </small>
+                                                    </td>
+                                                    <td>
+                                                        <small class="text-muted">{{ dt(note.created_at).strftime('%m/%d/%Y') if note.created_at else 'Unknown' }}</small>
+                                                    </td>
+                                                    <td>
+                                                        <small class="text-muted">
+                                                            {% if note.updated_at != note.created_at %}
+                                                                {{ dt(note.updated_at).strftime('%m/%d/%Y') if note.updated_at else 'Unknown' }}
+                                                            {% else %}
+                                                                -
+                                                            {% endif %}
+                                                        </small>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group" role="group">
+                                                            <a href="{{ url_for('researcher.supervisor_meeting_note_detail', note_id=note.id) }}" 
+                                                               class="btn btn-outline-info btn-sm" title="View Details">
+                                                                <i class="fas fa-eye"></i>
+                                                            </a>
+                                                            <button class="btn btn-outline-primary btn-sm" 
+                                                                    onclick="editMeetingNote({{ note.id }}, '{{ note.title }}', '{{ note.content|replace('\n', '\\n')|replace('\'', '\\\'') }}')"
+                                                                    title="Edit">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <form method="POST" action="{{ url_for('researcher.delete_meeting_note', note_id=note.id) }}" 
+                                                                  style="display: inline;"
+                                                                  onsubmit="return confirm('Are you sure you want to delete this meeting note?');">
+                                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-sticky-note fa-2x text-gray-300 mb-3"></i>
+                                        <p class="text-muted">No meeting notes yet. <a href="#" data-toggle="modal" data-target="#addMeetingNoteModal">Add your first meeting note!</a></p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ToDo Section -->
+                    {% if todos %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Student ToDo List</h6>
+                                    <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addTodoModal">
+                                        <i class="fas fa-plus"></i> Add ToDo
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th width="5%">Status</th>
+                                                    <th width="30%">Task</th>
+                                                    <th width="25%">Description</th>
+                                                    <th width="10%">Priority</th>
+                                                    <th width="15%">Due Date</th>
+                                                    <th width="15%">Created By</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for todo in todos %}
+                                                <tr class="{% if todo.status == 'completed' %}table-success{% elif todo.status == 'cancelled' %}table-danger{% endif %}">
+                                                    <td class="text-center">
+                                                        {% if todo.status == 'completed' %}
+                                                            <i class="fas fa-check-circle text-success" title="Completed"></i>
+                                                        {% elif todo.status == 'cancelled' %}
+                                                            <i class="fas fa-times-circle text-danger" title="Cancelled"></i>
+                                                        {% else %}
+                                                            <i class="fas fa-clock text-warning" title="Pending"></i>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td><strong>{{ todo.title }}</strong></td>
+                                                    <td>{{ todo.description or 'No description' }}</td>
+                                                    <td>
+                                                        <span class="badge badge-{% if todo.priority == 'high' %}danger{% elif todo.priority == 'medium' %}warning{% else %}secondary{% endif %}">
+                                                            {{ todo.priority|title }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        {% if todo.due_date %}
+                                                            {{ dt(todo.due_date).strftime('%Y-%m-%d') }}
+                                                        {% else %}
+                                                            <span class="text-muted">No due date</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if todo.author %}
+                                                            {{ todo.author.name }} {{ todo.author.surname }}
+                                                        {% else %}
+                                                            <span class="text-muted">Unknown</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Resources Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Resources</h6>
+                                    <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addResourceModal">
+                                        <i class="fas fa-plus"></i> Add Resource
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    {% if resources %}
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Type</th>
+                                                        <th>Link/URL</th>
+                                                        <th>Description</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for resource in resources %}
+                                                    <tr>
+                                                        <td><span class="badge badge-secondary">{{ resource.resource_type|title }}</span></td>
+                                                        <td><a href="{{ resource.resource_url }}" target="_blank" class="text-primary">{{ resource.resource_url }}</a></td>
+                                                        <td>{{ resource.description or 'No description' }}</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-primary mr-1" 
+                                                                    onclick="editResource({{ resource.id }}, '{{ resource.resource_type|e }}', '{{ resource.resource_url|e }}', '{{ resource.description|e }}')">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <form method="POST" action="{{ url_for('researcher.supervisor_delete_resource', resource_id=resource.id) }}" class="d-inline">
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                                        onclick="return confirm('Are you sure you want to delete this resource?')">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-folder fa-2x text-gray-300 mb-3"></i>
+                                            <p class="text-muted">No resources added yet. <a href="#" data-toggle="modal" data-target="#addResourceModal">Add the first resource!</a></p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Add Feedback Modal -->
+    <div class="modal fade" id="addFeedbackModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Supervisor Feedback</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.post_update') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                        <div class="form-group">
+                            <label for="content">Feedback Content:</label>
+                            <textarea class="form-control" name="content" rows="5" required placeholder="Provide feedback to the student..."></textarea>
+                            <small class="form-text text-muted">
+                                <strong>Todo References:</strong> Use @todo:ID or #todo-ID to reference todos. 
+                                {% if todos %}Available todos: 
+                                {% for todo in todos[:3] %}@todo:{{ todo.id }} ({{ todo.title[:20] }}{% if todo.title|length > 20 %}...{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
+                                {% if todos|length > 3 %}... and {{ todos|length - 3 }} more{% endif %}
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% if todos %}
+                        <div class="form-group">
+                            <label>Quick Todo Reference:</label>
+                            <div class="btn-group-toggle" data-toggle="buttons">
+                                {% for todo in todos %}
+                                <label class="btn btn-outline-secondary btn-sm mr-1 mb-1" onclick="insertTodoReference({{ todo.id }}, '{{ todo.title }}')">
+                                    <input type="checkbox"> @todo:{{ todo.id }}
+                                    <br><small>{{ todo.title[:30] }}{% if todo.title|length > 30 %}...{% endif %}</small>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <small class="form-text text-muted">Click buttons above to insert todo references into your feedback.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Feedback</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Update Modal -->
+    <div class="modal fade" id="editUpdateModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Feedback</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.modify_update') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="update_id" id="edit_update_id">
+                        <div class="form-group">
+                            <label for="new_content">Feedback Content:</label>
+                            <textarea class="form-control" name="new_content" id="edit_update_content" rows="5" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comment on Update Modal -->
+    <div class="modal fade" id="commentModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Comment</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.comment_on_update') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="update_id" id="comment_update_id">
+                        <div class="form-group">
+                            <label for="comment">Your Comment:</label>
+                            <textarea class="form-control" name="comment" rows="4" required placeholder="Add your feedback or comment on this update..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Comment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tag Update Modal -->
+    <div class="modal fade" id="tagModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tag Update</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.tag_update') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="update_id" id="tag_update_id">
+                        <div class="form-group">
+                            <label for="tag">Tag:</label>
+                            <input type="text" class="form-control" name="tag" required placeholder="Enter a tag (e.g., 'needs-revision', 'excellent', 'clarify')">
+                            <small class="form-text text-muted">Use short, descriptive tags to categorize updates.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Tag</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Set Status Modal -->
+    <div class="modal fade" id="setStatusModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Set Thesis Status</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.set_thesis_status') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                        <div class="form-group">
+                            <label for="status">Advancement Status:</label>
+                            <select class="form-control" name="status" required>
+                                <option value="in-progress">In Progress</option>
+                                <option value="needs-revision">Needs Revision</option>
+                                <option value="approved">Approved</option>
+                                <option value="suspended">Suspended</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                            <small class="form-text text-muted">Set the current advancement status of this thesis.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-info">Set Status</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Todo Modal -->
+    <div class="modal fade" id="addTodoModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New ToDo</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.add_todo') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                        <div class="form-group">
+                            <label for="title">Task Title:</label>
+                            <input type="text" class="form-control" name="title" required placeholder="Brief description of the task">
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Task Description:</label>
+                            <textarea class="form-control" name="description" rows="3" placeholder="Detailed description of what needs to be done..."></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="priority">Priority:</label>
+                                    <select class="form-control" name="priority">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="due_date">Due Date (optional):</label>
+                                    <input type="date" class="form-control" name="due_date">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="assigned_to_id">Assign to:</label>
+                            <select class="form-control" name="assigned_to_id">
+                                <option value="">Select assignee (optional)</option>
+                                {% if author %}
+                                    <option value="{{ author.id }}">{{ author.name }} {{ author.surname }} (Student)</option>
+                                {% endif %}
+                                <option value="{{ current_user.id }}">{{ current_user.name }} {{ current_user.surname }} (You - Supervisor)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add ToDo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <script>
+        // Status management functions
+        function freezeThesis(thesisId) {
+            if (confirm('Are you sure you want to freeze this thesis? This will prevent further updates.')) {
+                const formData = new URLSearchParams();
+                formData.append('thesis_id', thesisId);
+                fetch('{{ url_for("researcher.freeze_thesis") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString()
+                })
+                .then(() => location.reload())
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+            }
+        }
+        
+        function unfreezeThesis(thesisId) {
+            if (confirm('Are you sure you want to unfreeze this thesis?')) {
+                const formData = new URLSearchParams();
+                formData.append('thesis_id', thesisId);
+                fetch('{{ url_for("researcher.unfreeze_thesis") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString()
+                })
+                .then(() => location.reload())
+                .catch(error => {
+                    alert('Error: ' + error.message);
+                });
+            }
+        }
+
+        function editUpdate(updateId, content) {
+            $('#edit_update_id').val(updateId);
+            $('#edit_update_content').val(content);
+            $('#editUpdateModal').modal('show');
+        }
+
+        function commentOnUpdate(updateId) {
+            $('#comment_update_id').val(updateId);
+            $('#commentModal').modal('show');
+        }
+
+        function tagUpdate(updateId) {
+            $('#tag_update_id').val(updateId);
+            $('#tagModal').modal('show');
+        }
+
+        function addTag(updateId) {
+            $('#tag_update_id').val(updateId);
+            $('#addTagModal').modal('show');
+        }
+
+        function insertTodoReference(todoId, todoTitle) {
+            const textarea = document.querySelector('textarea[name="content"]');
+            const reference = `@todo:${todoId}`;
+            const currentPos = textarea.selectionStart;
+            const textBefore = textarea.value.substring(0, currentPos);
+            const textAfter = textarea.value.substring(textarea.selectionEnd);
+            
+            // Add space before if needed
+            const spaceBefore = (textBefore.length > 0 && !textBefore.endsWith(' ') && !textBefore.endsWith('\n')) ? ' ' : '';
+            const spaceAfter = ' ';
+            
+            textarea.value = textBefore + spaceBefore + reference + spaceAfter + textAfter;
+            textarea.focus();
+            
+            // Set cursor after the reference
+            const newPos = currentPos + spaceBefore.length + reference.length + spaceAfter.length;
+            textarea.setSelectionRange(newPos, newPos);
+        }
+    </script>
+
+    <!-- Meeting Notes Modals -->
+    <!-- Add Meeting Note Modal -->
+    <div class="modal fade" id="addMeetingNoteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Meeting Note</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.add_meeting_note') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                        <div class="form-group">
+                            <label for="meetingNoteTitle">Meeting Title:</label>
+                            <input type="text" class="form-control" name="title" id="meetingNoteTitle" required 
+                                   placeholder="e.g., Weekly Meeting - Progress Review">
+                        </div>
+                        <div class="form-group">
+                            <label for="meetingNoteContent">Meeting Notes:</label>
+                            <textarea class="form-control" name="content" id="meetingNoteContent" rows="8" required 
+                                      placeholder="Write your meeting notes using markdown. You can reference todos using @todo:ID syntax."></textarea>
+                            <small class="form-text text-muted">
+                                <strong>Markdown supported:</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
+                                <strong>Todo References:</strong> Use @todo:ID to reference todos. 
+                                {% if todos %}Available todos: 
+                                {% for todo in todos[:3] %}@todo:{{ todo.id }} ({{ todo.title[:20] }}{% if todo.title|length > 20 %}...{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
+                                {% if todos|length > 3 %}... and {{ todos|length - 3 }} more{% endif %}
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% if todos %}
+                        <div class="form-group">
+                            <label>Quick Todo Reference:</label>
+                            <div class="btn-group-toggle" data-toggle="buttons">
+                                {% for todo in todos %}
+                                <label class="btn btn-outline-secondary btn-sm mr-1 mb-1" onclick="insertTodoReference({{ todo.id }}, '{{ todo.title }}', 'meetingNoteContent')">
+                                    <input type="checkbox"> @todo:{{ todo.id }}
+                                    <br><small>{{ todo.title[:30] }}{% if todo.title|length > 30 %}...{% endif %}</small>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <small class="form-text text-muted">Click buttons above to insert todo references into your meeting notes.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Meeting Note</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Meeting Note Modal -->
+    <div class="modal fade" id="editMeetingNoteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Meeting Note</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" id="editMeetingNoteForm">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="editMeetingNoteTitle">Meeting Title:</label>
+                            <input type="text" class="form-control" name="title" id="editMeetingNoteTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editMeetingNoteContent">Meeting Notes:</label>
+                            <textarea class="form-control" name="content" id="editMeetingNoteContent" rows="8" required></textarea>
+                            <small class="form-text text-muted">
+                                <strong>Markdown supported:</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
+                                <strong>Todo References:</strong> Use @todo:ID to reference todos.
+                            </small>
+                        </div>
+                        {% if todos %}
+                        <div class="form-group">
+                            <label>Quick Todo Reference:</label>
+                            <div class="btn-group-toggle" data-toggle="buttons">
+                                {% for todo in todos %}
+                                <label class="btn btn-outline-secondary btn-sm mr-1 mb-1" onclick="insertTodoReference({{ todo.id }}, '{{ todo.title }}', 'editMeetingNoteContent')">
+                                    <input type="checkbox"> @todo:{{ todo.id }}
+                                    <br><small>{{ todo.title[:30] }}{% if todo.title|length > 30 %}...{% endif %}</small>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Meeting Note</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize DataTable for meeting notes with sorting and filtering
+        $(document).ready(function() {
+            $('#meetingNotesTable').DataTable({
+                "order": [[ 3, "desc" ]], // Sort by created date descending
+                "pageLength": 10,
+                "responsive": true,
+                "language": {
+                    "emptyTable": "No meeting notes found"
+                }
+            });
+        });
+
+        function editMeetingNote(noteId, title, content) {
+            $('#editMeetingNoteTitle').val(title);
+            $('#editMeetingNoteContent').val(content);
+            $('#editMeetingNoteForm').attr('action', '{{ url_for("researcher.edit_meeting_note", note_id=0) }}'.replace('0', noteId));
+            $('#editMeetingNoteModal').modal('show');
+        }
+        
+        function insertTodoReference(todoId, todoTitle, targetTextareaId) {
+            const textarea = document.getElementById(targetTextareaId);
+            const reference = `@todo:${todoId}`;
+            
+            // Get current cursor position
+            const currentPos = textarea.selectionStart;
+            const textBefore = textarea.value.substring(0, currentPos);
+            const textAfter = textarea.value.substring(textarea.selectionEnd);
+            
+            // Add space before if needed
+            const spaceBefore = (textBefore.length > 0 && !textBefore.endsWith(' ') && !textBefore.endsWith('\n')) ? ' ' : '';
+            const spaceAfter = ' ';
+            
+            textarea.value = textBefore + spaceBefore + reference + spaceAfter + textAfter;
+            textarea.focus();
+            
+            // Set cursor after the reference
+            const newPos = currentPos + spaceBefore.length + reference.length + spaceAfter.length;
+            textarea.setSelectionRange(newPos, newPos);
+        }
+    </script>
+
+    <!-- Add Objective Modal -->
+    <div class="modal fade" id="addObjectiveModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Objective</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.add_objective') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                        <div class="form-group">
+                            <label for="objectiveTitle">Objective Title:</label>
+                            <input type="text" class="form-control" name="title" id="objectiveTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="objectiveDescription">Description:</label>
+                            <textarea class="form-control" name="description" id="objectiveDescription" rows="4" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Objective</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Objective Modal -->
+    <div class="modal fade" id="editObjectiveModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Objective</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" id="editObjectiveForm">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="editObjectiveTitle">Objective Title:</label>
+                            <input type="text" class="form-control" name="title" id="editObjectiveTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editObjectiveDescription">Description:</label>
+                            <textarea class="form-control" name="description" id="editObjectiveDescription" rows="4" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Objective</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Hypothesis Modal -->
+    <div class="modal fade" id="addHypothesisModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Hypothesis</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.add_hypothesis') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                        <div class="form-group">
+                            <label for="hypothesisTitle">Hypothesis Title:</label>
+                            <input type="text" class="form-control" name="title" id="hypothesisTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="hypothesisDescription">Description:</label>
+                            <textarea class="form-control" name="description" id="hypothesisDescription" rows="4" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Hypothesis</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Hypothesis Modal -->
+    <div class="modal fade" id="editHypothesisModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Hypothesis</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" id="editHypothesisForm">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="editHypothesisTitle">Hypothesis Title:</label>
+                            <input type="text" class="form-control" name="title" id="editHypothesisTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editHypothesisDescription">Description:</label>
+                            <textarea class="form-control" name="description" id="editHypothesisDescription" rows="4" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Hypothesis</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Resource Modal -->
+    <div class="modal fade" id="addResourceModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Resource</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.supervisor_add_resource') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                        <div class="form-group">
+                            <label for="resourceType">Resource Type:</label>
+                            <select class="form-control" name="resource_type" id="resourceType" required>
+                                <option value="">Select type...</option>
+                                <option value="document">Document</option>
+                                <option value="link">Link</option>
+                                <option value="book">Book</option>
+                                <option value="paper">Paper</option>
+                                <option value="video">Video</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="resourceUrl">URL/Link:</label>
+                            <input type="url" class="form-control" name="resource_url" id="resourceUrl" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="resourceDescription">Description:</label>
+                            <textarea class="form-control" name="description" id="resourceDescription" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Resource</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Resource Modal -->
+    <div class="modal fade" id="editResourceModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Resource</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" id="editResourceForm">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="editResourceType">Resource Type:</label>
+                            <select class="form-control" name="resource_type" id="editResourceType" required>
+                                <option value="document">Document</option>
+                                <option value="link">Link</option>
+                                <option value="book">Book</option>
+                                <option value="paper">Paper</option>
+                                <option value="video">Video</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="editResourceUrl">URL/Link:</label>
+                            <input type="url" class="form-control" name="resource_url" id="editResourceUrl" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editResourceDescription">Description:</label>
+                            <textarea class="form-control" name="description" id="editResourceDescription" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Resource</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Thesis Modal -->
+    <div class="modal fade" id="editThesisModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Thesis Information</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.update_thesis') }}">
+                    <div class="modal-body">
+                        <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
+                        <div class="form-group">
+                            <label for="thesisTitle">Thesis Title:</label>
+                            <input type="text" class="form-control" name="title" id="thesisTitle" value="{{ thesis.title }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="thesisDescription">Description:</label>
+                            <textarea class="form-control" name="description" id="thesisDescription" rows="4" required>{{ thesis.description }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="thesisLevel">Level:</label>
+                            <select class="form-control" name="level" id="thesisLevel">
+                                <option value="">Select level...</option>
+                                <option value="bachelor" {% if thesis.level == 'bachelor' %}selected{% endif %}>Bachelor</option>
+                                <option value="master" {% if thesis.level == 'master' %}selected{% endif %}>Master</option>
+                                <option value="phd" {% if thesis.level == 'phd' %}selected{% endif %}>PhD</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Thesis</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function editObjective(objectiveId, title, description) {
+            $('#editObjectiveTitle').val(title);
+            $('#editObjectiveDescription').val(description);
+            $('#editObjectiveForm').attr('action', '{{ url_for("researcher.edit_objective", objective_id=0) }}'.replace('0', objectiveId));
+            $('#editObjectiveModal').modal('show');
+        }
+
+        function editHypothesis(hypothesisId, title, description) {
+            $('#editHypothesisTitle').val(title);
+            $('#editHypothesisDescription').val(description);
+            $('#editHypothesisForm').attr('action', '{{ url_for("researcher.edit_hypothesis", hypothesis_id=0) }}'.replace('0', hypothesisId));
+            $('#editHypothesisModal').modal('show');
+        }
+
+        function editResource(resourceId, type, url, description) {
+            $('#editResourceType').val(type);
+            $('#editResourceUrl').val(url);
+            $('#editResourceDescription').val(description);
+            $('#editResourceForm').attr('action', '{{ url_for("researcher.edit_resource", resource_id=0) }}'.replace('0', resourceId));
+            $('#editResourceModal').modal('show');
+        }
+    </script>
+
+</body>
+
+</html>

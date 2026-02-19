@@ -9,11 +9,27 @@ from superviseme.models import *
 from superviseme.utils.miscellanea import check_privileges
 from superviseme.utils.task_scheduler import trigger_weekly_reports_now, get_scheduler_status
 from superviseme.utils.weekly_notifications import preview_weekly_supervisor_report
+from superviseme.utils.thesis_management import delete_thesis_with_dependencies
+from superviseme.utils.logging_config import log_security_event
 from superviseme import db
 import datetime
 import time
 
 admin = Blueprint("admin", __name__)
+
+
+def _audit_admin_action(action, target_type, target_id=None, status="success", details=None):
+    log_security_event(
+        "admin_high_risk_action",
+        details={
+            "action": action,
+            "target_type": target_type,
+            "target_id": target_id,
+            "status": status,
+            "details": details or {},
+        },
+        user_id=current_user.id if current_user.is_authenticated else None,
+    )
 
 
 @admin.route("/admin/dashboard")
@@ -31,6 +47,7 @@ def dashboard():
     user_counts = {
         "students": User_mgmt.query.filter_by(user_type="student").count(),
         "supervisors": User_mgmt.query.filter_by(user_type="supervisor").count(),
+        "researchers": User_mgmt.query.filter_by(user_type="researcher").count(),
         "admins": User_mgmt.query.filter_by(user_type="admin").count(),
     }
 
@@ -137,7 +154,7 @@ def create_user():
     return dashboard()
 
 
-@admin.route("/admin/delete_user/<int:uid>", methods=["GET", "DELETE"])
+@admin.route("/admin/delete_user/<int:uid>", methods=["DELETE"])
 @login_required
 def delete_user(uid):
     """
@@ -149,6 +166,8 @@ def delete_user(uid):
         return privilege_check
     user = User_mgmt.query.filter_by(id=uid).first()
     if user:
+        deleted_username = user.username
+        deleted_user_type = user.user_type
         # Delete related thesis data if user is a student
         if user.user_type == "student":
             # Remove thesis assignments
@@ -161,13 +180,23 @@ def delete_user(uid):
         db.session.delete(user)
         db.session.commit()
         flash("User deleted successfully")
+        _audit_admin_action(
+            action="delete_user",
+            target_type="user",
+            target_id=uid,
+            status="success",
+            details={"username": deleted_username, "user_type": deleted_user_type},
+        )
     else:
         flash("User not found")
+        _audit_admin_action(
+            action="delete_user",
+            target_type="user",
+            target_id=uid,
+            status="not_found",
+        )
 
-    if request.method == "DELETE":
-        return {"status": "success"}, 200
-    
-    return redirect(request.referrer)
+    return {"status": "success"}, 200
 
 
 @admin.route("/admin/update_user", methods=["POST"])
@@ -224,19 +253,32 @@ def update_user():
 @login_required
 def reset_user_password(user_id):
     """
-    This route handles resetting a user's password to a default value.
+    This route handles resetting a user's password to an admin-provided value.
     """
     privilege_check = check_privileges(current_user.username, role="admin")
     if privilege_check is not True:
         return privilege_check
     
     user = User_mgmt.query.get_or_404(user_id)
-    default_password = "password123"  # Default password
-    user.password = generate_password_hash(default_password, method="pbkdf2:sha256")
+    payload = request.get_json(silent=True) or {}
+    new_password = request.form.get("new_password") or payload.get("new_password")
+    if not new_password or len(new_password) < 12:
+        return {
+            "status": "error",
+            "message": "new_password is required and must be at least 12 characters long.",
+        }, 400
+
+    user.password = generate_password_hash(new_password, method="pbkdf2:sha256")
     
     db.session.commit()
+    _audit_admin_action(
+        action="reset_user_password",
+        target_type="user",
+        target_id=user_id,
+        status="success",
+    )
     
-    return {"status": "success", "message": f"Password reset to '{default_password}'"}, 200
+    return {"status": "success", "message": "Password reset successfully."}, 200
 
 
 @admin.route("/admin/user/<int:user_id>")
@@ -488,6 +530,89 @@ def create_thesis():
         return redirect(request.referrer)
 
 
+@admin.route("/admin/grant_supervisor_role", methods=["POST"])
+@login_required
+def grant_supervisor_role():
+    """
+    This route handles granting supervisor role to a researcher.
+    """
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
+
+    researcher_id = request.form.get("researcher_id")
+    
+    if not researcher_id:
+        flash("Researcher ID is required")
+        return redirect(request.referrer)
+
+    researcher = User_mgmt.query.get(researcher_id)
+    if not researcher or researcher.user_type != "researcher":
+        flash("Researcher not found or invalid user type")
+        return redirect(request.referrer)
+
+    # Check if already has supervisor role
+    existing_role = Supervisor_Role.query.filter_by(
+        researcher_id=researcher_id, active=True
+    ).first()
+    
+    if existing_role:
+        flash("This researcher already has supervisor privileges")
+        return redirect(request.referrer)
+
+    try:
+        supervisor_role = Supervisor_Role(
+            researcher_id=researcher_id,
+            granted_by=current_user.id,
+            granted_at=int(time.time()),
+            active=True
+        )
+        db.session.add(supervisor_role)
+        db.session.commit()
+
+        flash(f"Supervisor role granted to {researcher.name} {researcher.surname}")
+        return redirect(request.referrer)
+    except Exception as e:
+        flash(f"Error granting supervisor role: {e}")
+        return redirect(request.referrer)
+
+
+@admin.route("/admin/revoke_supervisor_role", methods=["POST"]) 
+@login_required
+def revoke_supervisor_role():
+    """
+    This route handles revoking supervisor role from a researcher.
+    """
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
+
+    researcher_id = request.form.get("researcher_id")
+    
+    if not researcher_id:
+        flash("Researcher ID is required")
+        return redirect(request.referrer)
+
+    try:
+        supervisor_role = Supervisor_Role.query.filter_by(
+            researcher_id=researcher_id, active=True
+        ).first()
+        
+        if supervisor_role:
+            supervisor_role.active = False
+            db.session.commit()
+            
+            researcher = User_mgmt.query.get(researcher_id)
+            flash(f"Supervisor role revoked from {researcher.name} {researcher.surname}")
+        else:
+            flash("No active supervisor role found for this researcher")
+        
+        return redirect(request.referrer)
+    except Exception as e:
+        flash(f"Error revoking supervisor role: {e}")
+        return redirect(request.referrer)
+
+
 @admin.route("/admin/update_thesis", methods=["POST"])
 @login_required
 def update_thesis():
@@ -533,18 +658,24 @@ def delete_thesis(thesis_id):
     if privilege_check is not True:
         return privilege_check
     
-    thesis = Thesis.query.get_or_404(thesis_id)
-    
-    # Delete related records first
-    Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).delete()
-    Thesis_Status.query.filter_by(thesis_id=thesis_id).delete()
-    Thesis_Tag.query.filter_by(thesis_id=thesis_id).delete()
-    Thesis_Update.query.filter_by(thesis_id=thesis_id).delete()
-    Resource.query.filter_by(thesis_id=thesis_id).delete()
-    
-    db.session.delete(thesis)
+    success, error = delete_thesis_with_dependencies(thesis_id)
+    if not success:
+        _audit_admin_action(
+            action="delete_thesis",
+            target_type="thesis",
+            target_id=thesis_id,
+            status="failed",
+            details={"error": error},
+        )
+        return {"status": "error", "message": error or "Unable to delete thesis"}, 400
+
     db.session.commit()
-    
+    _audit_admin_action(
+        action="delete_thesis",
+        target_type="thesis",
+        target_id=thesis_id,
+        status="success",
+    )
     return {"status": "success"}, 200
 
 
@@ -1334,7 +1465,7 @@ def search():
         # If no search term, redirect back to dashboard with message
         from flask import flash, redirect, url_for
         flash("Please enter a search term.", "warning")
-        return redirect(url_for('admin.admin_dashboard'))
+        return redirect(url_for('admin.dashboard'))
     
     # Search for users
     users = []
@@ -1399,7 +1530,7 @@ def telegram_config():
     
     if request.method == "POST":
         try:
-            data = request.get_json()
+            data = request.get_json(silent=True) or {}
             
             # Get or create Telegram bot config
             config = TelegramBotConfig.query.filter_by(is_active=True).first()
@@ -1407,9 +1538,7 @@ def telegram_config():
                 config = TelegramBotConfig(
                     bot_token="",
                     bot_username="",
-                    notification_types="[]",
-                    created_at=int(time.time()),
-                    updated_at=int(time.time())
+                    notification_types="[]"
                 )
                 db.session.add(config)
             
@@ -1420,7 +1549,6 @@ def telegram_config():
             config.is_active = data.get("is_active", True)
             config.notification_types = data.get("notification_types", "[]")
             config.frequency_settings = data.get("frequency_settings", "{}")
-            config.updated_at = int(time.time())
             
             db.session.commit()
             
@@ -1496,4 +1624,3 @@ def get_telegram_notification_types():
         return jsonify({"success": True, "types": types})
     except Exception as e:
         return jsonify({"success": False, "message": f"Error getting notification types: {str(e)}"}), 500
-

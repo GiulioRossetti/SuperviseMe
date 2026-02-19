@@ -122,6 +122,7 @@
                                                     <select class="form-control" id="user_type" name="user_type">
                                                         <option value="admin" {% if user.user_type == 'admin' %}selected{% endif %}>Admin</option>
                                                         <option value="supervisor" {% if user.user_type == 'supervisor' %}selected{% endif %}>Supervisor</option>
+                                                        <option value="researcher" {% if user.user_type == 'researcher' %}selected{% endif %}>Researcher</option>
                                                         <option value="student" {% if user.user_type == 'student' %}selected{% endif %}>Student</option>
                                                     </select>
                                                 </div>
@@ -265,20 +266,35 @@
 
     <script>
         function resetPassword(userId) {
-            if (confirm('Are you sure you want to reset this user\'s password?')) {
-                fetch(`/admin/reset_user_password/${userId}`, {
-                    method: 'POST',
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to reset password');
-                    alert('Password reset successfully');
-                    location.reload();
-                })
-                .catch(err => {
-                    alert('Error resetting password.');
-                    console.error(err);
-                });
+            const newPassword = prompt('Enter a new password for this user (minimum 12 characters):');
+            if (newPassword === null) {
+                return;
             }
+
+            if (newPassword.length < 12) {
+                alert('Password must be at least 12 characters long.');
+                return;
+            }
+
+            fetch(`/admin/reset_user_password/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ new_password: newPassword })
+            })
+            .then(async response => {
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(payload.message || 'Failed to reset password');
+                }
+                alert(payload.message || 'Password reset successfully.');
+                location.reload();
+            })
+            .catch(err => {
+                alert(`Error resetting password: ${err.message}`);
+                console.error(err);
+            });
         }
 
         function deleteUser(userId) {

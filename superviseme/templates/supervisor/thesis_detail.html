@@ -416,10 +416,11 @@
                                                                     <a class="dropdown-item" href="#" onclick="editUpdate({{ update.id }}, '{{ update.content|e }}')">
                                                                         <i class="fas fa-edit"></i> Edit
                                                                     </a>
-                                                                    <a class="dropdown-item text-danger" href="{{ url_for('supervisor.delete_update', update_id=update.id) }}"
-                                                                       onclick="return confirm('Are you sure you want to delete this update?')">
-                                                                        <i class="fas fa-trash"></i> Delete
-                                                                    </a>
+                                                                    <form method="POST" action="{{ url_for('supervisor.delete_update', update_id=update.id) }}" onsubmit="return confirm('Are you sure you want to delete this update?');">
+                                                                        <button type="submit" class="dropdown-item text-danger">
+                                                                            <i class="fas fa-trash"></i> Delete
+                                                                        </button>
+                                                                    </form>
                                                                 </div>
                                                             </div>
                                                             {% elif update.update_type == 'student_update' %}
@@ -500,7 +501,7 @@
                                                     </td>
                                                     <td>
                                                         <div class="meeting-note-content">
-                                                            {{ note.content|markdown_with_todos('supervisor')|safe }}
+                                                            {{ note.content|safe }}
                                                         </div>
                                                         <!-- Todo References -->
                                                         {% if note.todo_references %}
@@ -952,20 +953,16 @@
         // Status management functions
         function freezeThesis(thesisId) {
             if (confirm('Are you sure you want to freeze this thesis? This will prevent further updates.')) {
-                fetch(`/supervisor/freeze_thesis/${thesisId}`, {
+                const formData = new URLSearchParams();
+                formData.append('thesis_id', thesisId);
+                fetch('{{ url_for("supervisor.freeze_thesis") }}', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                    }
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString()
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Error freezing thesis: ' + (data.error || 'Unknown error'));
-                    }
-                })
+                .then(() => location.reload())
                 .catch(error => {
                     alert('Error: ' + error.message);
                 });
@@ -974,20 +971,16 @@
         
         function unfreezeThesis(thesisId) {
             if (confirm('Are you sure you want to unfreeze this thesis?')) {
-                fetch(`/supervisor/unfreeze_thesis/${thesisId}`, {
+                const formData = new URLSearchParams();
+                formData.append('thesis_id', thesisId);
+                fetch('{{ url_for("supervisor.unfreeze_thesis") }}', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                    }
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString()
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Error unfreezing thesis: ' + (data.error || 'Unknown error'));
-                    }
-                })
+                .then(() => location.reload())
                 .catch(error => {
                     alert('Error: ' + error.message);
                 });

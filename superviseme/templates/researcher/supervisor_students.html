@@ -1,0 +1,620 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        {% include 'researcher/components/sidebar.html' %}
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                {% include 'admin/components/topbar.html' %}
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">My Students</h1>
+                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createStudentModal">
+                            <i class="fas fa-plus"></i> Create Student
+                        </button>
+                    </div>
+
+                    <!-- Content Row -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Current Supervised Students</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if supervisees %}
+                                        <div class="row">
+                                            {% for supervisee_info in supervisees %}
+                                            <div class="col-lg-6 col-xl-4 mb-4">
+                                                <div class="card border-left-{% if supervisee_info.is_inactive %}warning{% else %}primary{% endif %} shadow h-100 py-2">
+                                                    <div class="card-body">
+                                                        <div class="row no-gutters align-items-center">
+                                                            <div class="col mr-2">
+                                                                <div class="text-xs font-weight-bold {% if supervisee_info.is_inactive %}text-warning{% else %}text-primary{% endif %} text-uppercase mb-1">
+                                                                    Student{% if supervisee_info.is_inactive %} - INACTIVE{% endif %}
+                                                                </div>
+                                                                <div class="h6 mb-0 font-weight-bold text-gray-800">
+                                                                    {{ supervisee_info.student.name }} {{ supervisee_info.student.surname }}
+                                                                </div>
+                                                                <div class="text-xs text-gray-500 mb-2">
+                                                                    {{ supervisee_info.student.email }}
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <strong>Thesis:</strong> {{ supervisee_info.thesis.title }}
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <span class="badge badge-info">{{ supervisee_info.thesis.level|title if supervisee_info.thesis.level else 'No Level' }}</span>
+                                                                    {% if supervisee_info.thesis.frozen %}
+                                                                        <span class="badge badge-danger">Frozen</span>
+                                                                    {% else %}
+                                                                        <span class="badge badge-success">Active</span>
+                                                                    {% endif %}
+                                                                </div>
+                                                                
+                                                                <!-- Activity Status -->
+                                                                <div class="mb-2">
+                                                                    {% if supervisee_info.is_inactive %}
+                                                                        <div class="alert alert-warning py-2 mb-2" style="font-size: 0.85em;">
+                                                                            <i class="fas fa-exclamation-triangle"></i>
+                                                                            {% if supervisee_info.days_inactive == 'Unknown' or supervisee_info.days_inactive is none %}
+                                                                                <strong>Not yet logged</strong>
+                                                                            {% else %}
+                                                                                <strong>Inactive for {{ supervisee_info.days_inactive }} days</strong>
+                                                                            {% endif %}
+                                                                            {% if supervisee_info.last_activity_location %}
+                                                                                <br><small>Last seen: {{ supervisee_info.last_activity_location }}</small>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    {% else %}
+                                                                        <div class="alert alert-success py-2 mb-2" style="font-size: 0.85em;">
+                                                                            <i class="fas fa-check-circle"></i>
+                                                                            <strong>Active</strong>
+                                                                            {% if supervisee_info.last_activity_location %}
+                                                                                <br><small>Last seen: {{ supervisee_info.last_activity_location }}</small>
+                                                                            {% endif %}
+                                                                            {% if supervisee_info.days_inactive is not none and supervisee_info.days_inactive != 'Unknown' %}
+                                                                                {% if supervisee_info.days_inactive == 0 %}
+                                                                                    <br><small>Last online: Today</small>
+                                                                                {% elif supervisee_info.days_inactive == 1 %}
+                                                                                    <br><small>Last online: Yesterday</small>
+                                                                                {% else %}
+                                                                                    <br><small>Last online: {{ supervisee_info.days_inactive }} days ago</small>
+                                                                                {% endif %}
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    {% endif %}
+                                                                </div>
+                                                                
+                                                                <div class="mt-3">
+                                                                    <a href="{{ url_for('researcher.supervisor_thesis_detail', thesis_id=supervisee_info.thesis.id) }}" class="btn btn-primary btn-sm">
+                                                                        <i class="fas fa-eye"></i> View Thesis
+                                                                    </a>
+                                                                    <a href="mailto:{{ supervisee_info.student.email }}" class="btn btn-outline-secondary btn-sm">
+                                                                        <i class="fas fa-envelope"></i> Email
+                                                                    </a>
+                                                                    <button type="button" class="btn btn-info btn-sm" 
+                                                                            data-toggle="modal" 
+                                                                            data-target="#editStudentModal"
+                                                                            data-student-id="{{ supervisee_info.student.id }}"
+                                                                            data-student-name="{{ supervisee_info.student.name }}"
+                                                                            data-student-surname="{{ supervisee_info.student.surname }}"
+                                                                            data-student-email="{{ supervisee_info.student.email }}"
+                                                                            data-student-cdl="{{ supervisee_info.student.cdl }}"
+                                                                            data-student-gender="{{ supervisee_info.student.gender }}"
+                                                                            data-student-nationality="{{ supervisee_info.student.nationality }}"
+                                                                            data-edit-url="{{ url_for('researcher.edit_student', student_id=supervisee_info.student.id) }}">
+                                                                        <i class="fas fa-edit"></i> Edit
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-danger btn-sm"
+                                                                            data-toggle="modal" 
+                                                                            data-target="#deleteStudentModal"
+                                                                            data-student-id="{{ supervisee_info.student.id }}"
+                                                                            data-student-name="{{ supervisee_info.student.name }}"
+                                                                            data-student-surname="{{ supervisee_info.student.surname }}"
+                                                                            data-delete-url="{{ url_for('researcher.delete_student', student_id=supervisee_info.student.id) }}">
+                                                                        <i class="fas fa-trash"></i> Delete
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-auto">
+                                                                {% if supervisee_info.is_inactive %}
+                                                                    <i class="fas fa-user-slash fa-2x text-warning"></i>
+                                                                {% else %}
+                                                                    <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center">
+                                            <i class="fas fa-user-graduate fa-3x text-gray-300 mb-3"></i>
+                                            <p class="text-gray-500">No students assigned yet. Students will appear here when they are assigned to your theses.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Past Students Section -->
+                    {% if past_supervisees %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Past Students (Archived/Frozen Theses)</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Student</th>
+                                                    <th>Email</th>
+                                                    <th>Thesis Title</th>
+                                                    <th>Level</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for supervisee_info in past_supervisees %}
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ supervisee_info.student.name }} {{ supervisee_info.student.surname }}</strong>
+                                                        {% if supervisee_info.is_inactive %}
+                                                            {% if supervisee_info.days_inactive == 'Unknown' or supervisee_info.days_inactive is none %}
+                                                                <br><small class="text-warning">
+                                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                                    Not yet logged
+                                                                </small>
+                                                            {% else %}
+                                                                <br><small class="text-warning">
+                                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                                    Inactive for {{ supervisee_info.days_inactive }} days
+                                                                </small>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ supervisee_info.student.email }}</td>
+                                                    <td>{{ supervisee_info.thesis.title }}</td>
+                                                    <td>
+                                                        <span class="badge badge-info">
+                                                            {{ supervisee_info.thesis.level|title if supervisee_info.thesis.level else 'No Level' }}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge badge-danger">Archived</span>
+                                                        {% if supervisee_info.thesis.frozen %}
+                                                            <span class="badge badge-secondary">Frozen</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <a href="{{ url_for('researcher.supervisor_thesis_detail', thesis_id=supervisee_info.thesis.id) }}" 
+                                                           class="btn btn-primary btn-sm">
+                                                            <i class="fas fa-eye"></i> View
+                                                        </a>
+                                                        <a href="mailto:{{ supervisee_info.student.email }}" 
+                                                           class="btn btn-outline-secondary btn-sm">
+                                                            <i class="fas fa-envelope"></i> Email
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Statistics Row -->
+                    {% if supervisees %}
+                    <div class="row">
+                        <!-- <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                Active Students</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ supervisees|length }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> -->
+
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-success shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                Active Students</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {{ supervisees|selectattr('is_inactive', 'equalto', false)|list|length }}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Inactive Students</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {{ supervisees|selectattr('is_inactive', 'equalto', true)|list|length }}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-user-slash fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Active Theses</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {{ supervisees|selectattr('thesis.frozen', 'equalto', false)|list|length }}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-info shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                Bachelor Students</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {{ supervisees|selectattr('thesis.level', 'equalto', 'bachelor')|list|length }}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-graduation-cap fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            <div class="card border-left-warning shadow h-100 py-2">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Master Students</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                                {{ supervisees|selectattr('thesis.level', 'equalto', 'master')|list|length }}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            {% include 'admin/components/footer.html' %}
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Create Student Modal -->
+    <div class="modal fade" id="createStudentModal" tabindex="-1" role="dialog" aria-labelledby="createStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createStudentModalLabel">Create New Student</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.create_student') }}">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="name">First Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="surname">Last Name</label>
+                                    <input type="text" class="form-control" id="surname" name="surname" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="username">Username</label>
+                                    <input type="text" class="form-control" id="username" name="username" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="cdl">Course of Study</label>
+                                    <input type="text" class="form-control" id="cdl" name="cdl">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="gender">Gender</label>
+                                    <select class="form-control" id="gender" name="gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nationality">Nationality</label>
+                                    <input type="text" class="form-control" id="nationality" name="nationality">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="password">Password</label>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="password2">Confirm Password</label>
+                                    <input type="password" class="form-control" id="password2" name="password2" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Student</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Student Modal -->
+    <div class="modal fade" id="editStudentModal" tabindex="-1" role="dialog" aria-labelledby="editStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editStudentModalLabel">Edit Student</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" id="editStudentForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_name">First Name</label>
+                                    <input type="text" class="form-control" id="edit_name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_surname">Last Name</label>
+                                    <input type="text" class="form-control" id="edit_surname" name="surname" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="edit_email">Email</label>
+                                    <input type="email" class="form-control" id="edit_email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_cdl">Course of Study</label>
+                                    <input type="text" class="form-control" id="edit_cdl" name="cdl">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_gender">Gender</label>
+                                    <select class="form-control" id="edit_gender" name="gender">
+                                        <option value="">Select Gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_nationality">Nationality</label>
+                                    <input type="text" class="form-control" id="edit_nationality" name="nationality">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_password">New Password (leave blank to keep current)</label>
+                                    <input type="password" class="form-control" id="edit_password" name="password">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="edit_password2">Confirm New Password</label>
+                                    <input type="password" class="form-control" id="edit_password2" name="password2">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Update Student</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Student Modal -->
+    <div class="modal fade" id="deleteStudentModal" tabindex="-1" role="dialog" aria-labelledby="deleteStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteStudentModalLabel">Delete Student</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete student <strong><span id="deleteStudentName"></span></strong>?</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Warning:</strong> This action cannot be undone. Students with active thesis assignments cannot be deleted.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <form method="POST" id="deleteStudentForm" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Delete Student</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Modal-->
+    {% include 'admin/components/logout_modal.html' %}
+
+    <!-- JavaScript for modal functionality -->
+    <script>
+        // Edit Student Modal
+        $('#editStudentModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var studentId = button.data('student-id');
+            var studentName = button.data('student-name');
+            var studentSurname = button.data('student-surname');
+            var studentEmail = button.data('student-email');
+            var studentCdl = button.data('student-cdl');
+            var studentGender = button.data('student-gender');
+            var studentNationality = button.data('student-nationality');
+            var editUrl = button.data('edit-url');
+            
+            var modal = $(this);
+            modal.find('#edit_name').val(studentName);
+            modal.find('#edit_surname').val(studentSurname);
+            modal.find('#edit_email').val(studentEmail);
+            modal.find('#edit_cdl').val(studentCdl);
+            modal.find('#edit_gender').val(studentGender);
+            modal.find('#edit_nationality').val(studentNationality);
+            modal.find('#editStudentForm').attr('action', editUrl);
+        });
+
+        // Delete Student Modal
+        $('#deleteStudentModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var studentId = button.data('student-id');
+            var studentName = button.data('student-name');
+            var studentSurname = button.data('student-surname');
+            var deleteUrl = button.data('delete-url');
+            
+            var modal = $(this);
+            modal.find('#deleteStudentName').text(studentName + ' ' + studentSurname);
+            modal.find('#deleteStudentForm').attr('action', deleteUrl);
+        });
+    </script>
+
+
+</body>
+
+</html>

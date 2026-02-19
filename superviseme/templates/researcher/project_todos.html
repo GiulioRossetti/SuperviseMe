@@ -1,0 +1,202 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'researcher/components/sidebar.html' %}
+
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+
+                <div class="container-fluid">
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ project.title }} - Todos</h1>
+                        <div>
+                            <a href="{{ url_for('researcher.project_detail', project_id=project.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Project
+                            </a>
+                            <button class="btn btn-warning" data-toggle="modal" data-target="#addTodoModal">
+                                <i class="fas fa-plus"></i> Add Todo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Todos List -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Project Todos</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if todos %}
+                                <div class="row">
+                                    {% for todo in todos %}
+                                    <div class="col-lg-6 mb-4">
+                                        <div class="card border-left-{{ 'success' if todo.status == 'completed' else 'warning' }}">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title mb-1 {% if todo.status == 'completed' %}text-success{% endif %}">
+                                                        {{ todo.title }}
+                                                    </h6>
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown">
+                                                            <i class="fas fa-ellipsis-v"></i>
+                                                        </button>
+                                                        <div class="dropdown-menu">
+                                                            <a href="{{ url_for('researcher.project_todo_detail', todo_id=todo.id) }}" class="dropdown-item">
+                                                                <i class="fas fa-eye text-primary"></i> View Details
+                                                            </a>
+                                                            {% if todo.status != 'completed' %}
+                                                            <form method="POST" action="{{ url_for('researcher.complete_project_todo', todo_id=todo.id) }}" style="display: inline;">
+                                                                <button type="submit" class="dropdown-item">
+                                                                    <i class="fas fa-check text-success"></i> Mark Complete
+                                                                </button>
+                                                            </form>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <span class="badge badge-{{ 'success' if todo.status == 'completed' else 'warning' }}">
+                                                        {{ todo.status|title }}
+                                                    </span>
+                                                    <span class="badge badge-{{ 'danger' if todo.priority == 'high' else 'info' if todo.priority == 'medium' else 'secondary' }}">
+                                                        {{ todo.priority|title }} Priority
+                                                    </span>
+                                                </div>
+                                                {% if todo.description %}
+                                                <p class="card-text small text-muted">{{ todo.description }}</p>
+                                                {% endif %}
+                                                <div class="row text-sm">
+                                                    <div class="col-sm-6">
+                                                        <small class="text-muted">
+                                                            <strong>Created:</strong><br>
+                                                            {{ dt(todo.created_at).strftime('%m/%d/%Y') }}
+                                                        </small>
+                                                    </div>
+                                                    <div class="col-sm-6">
+                                                        {% if todo.due_date %}
+                                                        <small class="text-muted">
+                                                            <strong>Due:</strong><br>
+                                                            {{ dt(todo.due_date).strftime('%m/%d/%Y') }}
+                                                        </small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                {% if todo.assigned_to %}
+                                                <div class="mt-2">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-user"></i> Assigned to: {{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}
+                                                    </small>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-tasks fa-3x text-gray-300 mb-3"></i>
+                                    <h5 class="text-gray-500">No todos yet</h5>
+                                    <p class="text-muted">Add todos to track tasks and goals for this project</p>
+                                    <button class="btn btn-warning" data-toggle="modal" data-target="#addTodoModal">
+                                        <i class="fas fa-plus"></i> Add First Todo
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Add Todo Modal -->
+                    <div class="modal fade" id="addTodoModal" tabindex="-1" role="dialog">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Add Project Todo</h5>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <form method="POST" action="{{ url_for('researcher.add_project_todo', project_id=project.id) }}">
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label>Title</label>
+                                            <input type="text" name="title" class="form-control" required 
+                                                   placeholder="What needs to be done?">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Description</label>
+                                            <textarea name="description" class="form-control" rows="4" 
+                                                      placeholder="Additional details about this task..."></textarea>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Priority</label>
+                                                    <select name="priority" class="form-control">
+                                                        <option value="low">Low</option>
+                                                        <option value="medium" selected>Medium</option>
+                                                        <option value="high">High</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Due Date</label>
+                                                    <input type="date" name="due_date" class="form-control">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Assign To</label>
+                                            <select name="assigned_to_id" class="form-control">
+                                                <option value="">No assignment</option>
+                                                {% for user in collaborator_users %}
+                                                <option value="{{ user.id }}">
+                                                    {{ user.name }} {{ user.surname }}
+                                                    {% if user.id == project.researcher_id %}(Principal Researcher){% endif %}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-warning">Add Todo</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+
+
+</body>
+</html>
