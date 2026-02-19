@@ -6,7 +6,7 @@ and create links between updates/feedback and todos.
 """
 import re
 import time
-from superviseme.models import Todo, Todo_Reference, Thesis_Update, MeetingNoteReference
+from superviseme.models import Todo, Todo_Reference, MeetingNoteReference
 from superviseme import db
 
 
@@ -39,28 +39,53 @@ def parse_todo_references(text):
     return list(set(todo_refs))  # Remove duplicates
 
 
-def create_todo_references(update_id, todo_ids):
+def _create_generic_todo_references(model_class, parent_id_field, parent_id, todo_ids):
     """
-    Create Todo_Reference entries for the given update and todo IDs
+    Generic function to create todo references for different models
     """
     current_time = int(time.time())
-    
-    # Remove existing references for this update
-    Todo_Reference.query.filter_by(update_id=update_id).delete()
-    
+
+    # Remove existing references for this parent
+    model_class.query.filter_by(**{parent_id_field: parent_id}).delete()
+
     # Create new references
     for todo_id in todo_ids:
         # Verify todo exists
         todo = Todo.query.get(todo_id)
         if todo:
-            reference = Todo_Reference(
-                update_id=update_id,
-                todo_id=todo_id,
-                created_at=current_time
-            )
+            reference_data = {
+                parent_id_field: parent_id,
+                'todo_id': todo_id,
+                'created_at': current_time
+            }
+            reference = model_class(**reference_data)
             db.session.add(reference)
-    
+
     db.session.commit()
+
+
+def _get_generic_todo_references_summary(model_class, parent_id_field, parent_id):
+    """
+    Generic function to get summary of todo references for different models
+    """
+    references = model_class.query.filter_by(**{parent_id_field: parent_id}).all()
+    todos = []
+    for ref in references:
+        if ref.todo:
+            todos.append({
+                'id': ref.todo.id,
+                'title': ref.todo.title,
+                'status': ref.todo.status,
+                'priority': ref.todo.priority
+            })
+    return todos
+
+
+def create_todo_references(update_id, todo_ids):
+    """
+    Create Todo_Reference entries for the given update and todo IDs
+    """
+    _create_generic_todo_references(Todo_Reference, 'update_id', update_id, todo_ids)
 
 
 def format_text_with_todo_links(text, base_url="/supervisor/"):
@@ -85,7 +110,7 @@ def format_text_with_todo_links(text, base_url="/supervisor/"):
                 return f'<a href="{base_url}todo/{todo_id}" class="todo-reference badge badge-primary" title="{todo.title}">@todo:{todo_id}</a>'
             else:
                 return f'<span class="todo-reference-invalid badge badge-secondary">@todo:{todo_id}</span>'
-        except:
+        except Exception:
             return match.group(0)
     
     def replace_hash_todo_ref(match):
@@ -96,7 +121,7 @@ def format_text_with_todo_links(text, base_url="/supervisor/"):
                 return f'<a href="{base_url}todo/{todo_id}" class="todo-reference badge badge-primary" title="{todo.title}">#todo-{todo_id}</a>'
             else:
                 return f'<span class="todo-reference-invalid badge badge-secondary">#todo-{todo_id}</span>'
-        except:
+        except Exception:
             return match.group(0)
     
     # Replace @todo:ID patterns
@@ -119,55 +144,18 @@ def get_todo_references_summary(update_id):
     """
     Get summary of todo references for an update
     """
-    references = Todo_Reference.query.filter_by(update_id=update_id).all()
-    todos = []
-    for ref in references:
-        if ref.todo:
-            todos.append({
-                'id': ref.todo.id,
-                'title': ref.todo.title,
-                'status': ref.todo.status,
-                'priority': ref.todo.priority
-            })
-    return todos
+    return _get_generic_todo_references_summary(Todo_Reference, 'update_id', update_id)
 
 
 def create_meeting_note_todo_references(meeting_note_id, todo_ids):
     """
     Create MeetingNoteReference entries for the given meeting note and todo IDs
     """
-    current_time = int(time.time())
-    
-    # Remove existing references for this meeting note
-    MeetingNoteReference.query.filter_by(meeting_note_id=meeting_note_id).delete()
-    
-    # Create new references
-    for todo_id in todo_ids:
-        # Verify todo exists
-        todo = Todo.query.get(todo_id)
-        if todo:
-            reference = MeetingNoteReference(
-                meeting_note_id=meeting_note_id,
-                todo_id=todo_id,
-                created_at=current_time
-            )
-            db.session.add(reference)
-    
-    db.session.commit()
+    _create_generic_todo_references(MeetingNoteReference, 'meeting_note_id', meeting_note_id, todo_ids)
 
 
 def get_meeting_note_todo_references_summary(meeting_note_id):
     """
     Get summary of todo references for a meeting note
     """
-    references = MeetingNoteReference.query.filter_by(meeting_note_id=meeting_note_id).all()
-    todos = []
-    for ref in references:
-        if ref.todo:
-            todos.append({
-                'id': ref.todo.id,
-                'title': ref.todo.title,
-                'status': ref.todo.status,
-                'priority': ref.todo.priority
-            })
-    return todos
+    return _get_generic_todo_references_summary(MeetingNoteReference, 'meeting_note_id', meeting_note_id)
