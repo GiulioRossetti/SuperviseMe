@@ -154,8 +154,14 @@ def create_default_admin():
         print("Admin user already exists, skipping creation")
         return
     
+    bootstrap_password = os.getenv("ADMIN_BOOTSTRAP_PASSWORD", "")
+    if not bootstrap_password:
+        raise RuntimeError(
+            "ADMIN_BOOTSTRAP_PASSWORD must be set to create the bootstrap admin user."
+        )
+
     # Create admin user
-    hashed_pw = generate_password_hash("test", method="pbkdf2:sha256")
+    hashed_pw = generate_password_hash(bootstrap_password, method="pbkdf2:sha256")
     admin_user = User_mgmt(
         username="admin",
         name="System",

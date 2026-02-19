@@ -218,5 +218,7 @@ cookies.txt
 *cookies.txt
 
 # Database backups
+nginx/ssl/*.key
+nginx/ssl/*.crt
 *.db.backup_*
 superviseme/db/*.backup_*

@@ -138,12 +138,22 @@ cd SuperviseMe
 pip install -r requirements.txt
 ```
 
-3. **Initialize the database with sample data**
+3. **(Optional) Configure seed passwords**
+```bash
+export ADMIN_BOOTSTRAP_PASSWORD=change-me-admin
+export SEED_DEFAULT_PASSWORD=change-me-seed
+# Or set role-specific values:
+# export SEED_SUPERVISOR_PASSWORD=...
+# export SEED_STUDENT_PASSWORD=...
+# export SEED_RESEARCHER_PASSWORD=...
+```
+
+4. **Initialize the database with sample data**
 ```bash
 python seed_database.py
 ```
 
-4. **Run database migrations (for existing installations)**
+5. **Run database migrations (for existing installations)**
 ```bash
 # If upgrading from a previous version, run migrations to add new features
 python migrate_database.py      # For activity tracking
@@ -151,17 +161,17 @@ python migrate_telegram.py      # For Telegram notifications (NEW!)
 python migrate_researcher.py    # For researcher role and research projects (NEW!)
 ```
 
-5. **Configure Telegram notifications (optional)**
+6. **Configure Telegram notifications (optional)**
    - See [TELEGRAM_SETUP.md](TELEGRAM_SETUP.md) for detailed setup instructions
    - Create a Telegram bot via @BotFather
    - Configure bot settings in the admin panel
 
-6. **Start the application**
+7. **Start the application**
 ```bash
 python superviseme.py
 ```
 
-6. **Access the application**
+8. **Access the application**
 Open your web browser and navigate to `http://localhost:8080`
 
 ### 🐳 Docker Setup (Recommended)
@@ -185,15 +195,21 @@ For a complete production-ready setup with database persistence, SSL, and mail s
    ```
    Edit `.env` and customize the values, especially:
    - `SECRET_KEY`: Use a strong, unique secret key
+   - `ADMIN_BOOTSTRAP_PASSWORD`: Set a strong admin bootstrap password
    - `PG_PASSWORD`: Set a secure database password
 
-3. **Start the application**:
+3. **Provide TLS files for Nginx**:
+   - Place certificate and key files in `nginx/ssl/`:
+     - `superviseme.crt`
+     - `superviseme.key`
+
+4. **Start the application**:
    ```bash
    docker-compose up -d
    ```
 
-4. **Access the application**:
-   - Main application: https://localhost (accept self-signed certificate)
+5. **Access the application**:
+   - Main application: https://localhost
    - Mail server UI: http://localhost:8025
 
 #### Docker Architecture
@@ -269,36 +285,45 @@ The application comes pre-configured with sample data for immediate testing and 
 
 ### 🔑 Test Login Credentials
 
+Password values depend on your environment configuration:
+- `ADMIN_BOOTSTRAP_PASSWORD` for admin bootstrap user
+- `SEED_SUPERVISOR_PASSWORD` / `SEED_STUDENT_PASSWORD` / `SEED_RESEARCHER_PASSWORD`
+- If role-specific seed password is not set, `SEED_DEFAULT_PASSWORD` is used
+- If none are set, seed script falls back to `test` (development fallback only)
+
 #### Administrator Account
 - **Email**: `admin@supervise.me`
-- **Password**: `test`
+- **Password**: value from `ADMIN_BOOTSTRAP_PASSWORD`
 - **Role**: System Administrator
 - **Access**: Full system access, user management, system statistics
 
 #### Supervisor Accounts
-- **Email**: `j.smith@university.edu` | **Password**: `supervisor123`
-- **Email**: `e.johnson@university.edu` | **Password**: `supervisor123`  
-- **Email**: `m.garcia@university.edu` | **Password**: `supervisor123`
+- **Email**: `j.smith@university.edu`
+- **Email**: `e.johnson@university.edu`  
+- **Email**: `m.garcia@university.edu`
+- **Password**: `SEED_SUPERVISOR_PASSWORD` (or `SEED_DEFAULT_PASSWORD`)
 - **Role**: Thesis Supervisors
 - **Access**: Student supervision, thesis management, resource sharing
 
 #### Researcher Accounts (NEW!)
-- **Email**: `alice.johnson@university.edu` | **Password**: `researcher123`
+- **Email**: `alice.johnson@university.edu`
   - **Special Role**: Also has supervisor privileges
   - **Access**: Research project management + thesis supervision
-- **Email**: `bob.williams@university.edu` | **Password**: `researcher123`
+- **Email**: `bob.williams@university.edu`
   - **Role**: Researcher only
   - **Access**: Research project management and collaboration
-- **Email**: `maria.rodriguez@university.edu` | **Password**: `researcher123`
+- **Email**: `maria.rodriguez@university.edu`
   - **Special Role**: Also has supervisor privileges
   - **Access**: Research project management + thesis supervision
+- **Password**: `SEED_RESEARCHER_PASSWORD` (or `SEED_DEFAULT_PASSWORD`)
 
 #### Student Accounts
-- **Email**: `alice.doe@student.university.edu` | **Password**: `student123`
-- **Email**: `bob.wilson@student.university.edu` | **Password**: `student123`
-- **Email**: `carol.brown@student.university.edu` | **Password**: `student123`
-- **Email**: `david.miller@student.university.edu` | **Password**: `student123`
-- **Email**: `eva.clark@student.university.edu` | **Password**: `student123`
+- **Email**: `alice.doe@student.university.edu`
+- **Email**: `bob.wilson@student.university.edu`
+- **Email**: `carol.brown@student.university.edu`
+- **Email**: `david.miller@student.university.edu`
+- **Email**: `eva.clark@student.university.edu`
+- **Password**: `SEED_STUDENT_PASSWORD` (or `SEED_DEFAULT_PASSWORD`)
 - **Role**: Students
 - **Access**: Personal dashboard, thesis tracking, progress updates
 
@@ -459,6 +484,15 @@ python seed_database.py
 # - Set up proper foreign key constraints
 ```
 
+### Local Quality Gates
+```bash
+# Run lint + compile + schema alignment + tests
+make ci
+
+# Run smoke checks against a local server process
+make smoke
+```
+
 ### Migration Scripts
 For existing installations, run these migration scripts in order:
 ```bash
@@ -491,6 +525,9 @@ The application includes several API endpoints for data access:
 ```bash
 export FLASK_ENV=production
 export SECRET_KEY=your-secret-key-here
+export ADMIN_BOOTSTRAP_PASSWORD=your-bootstrap-password
+export ENABLE_SCHEDULER=false
+export SKIP_DB_SEED=true
 
 # Database Configuration
 export PG_USER=your_db_user
@@ -508,6 +545,18 @@ export MAIL_USERNAME=your-email@gmail.com
 export MAIL_PASSWORD=your-app-password
 export MAIL_DEFAULT_SENDER=your-email@gmail.com
 ```
+
+### Deployment Operations
+- Use `ENABLE_SCHEDULER=true` in exactly one scheduler worker/service only.
+- Keep all web replicas on `ENABLE_SCHEDULER=false`.
+- Follow the full operational checklist in `/DEPLOYMENT_RUNBOOK.md`.
+
+### CI Quality Gates
+CI runs on push and pull request with:
+- `ruff` runtime-safety lint rules
+- Python compile checks
+- Schema alignment verification (`scripts/check_schema_alignment.py`)
+- Automated tests (`pytest`)
 
 ### WSGI Configuration
 For production deployment with gunicorn or similar WSGI servers:
@@ -541,7 +590,11 @@ SuperviseMe/
 │   └── utils/                  # Utility functions and helpers
 ├── data_schema/                # Database schema and initialization
 ├── seed_database.py            # Sample data generation script (enhanced with researchers)
+├── scripts/
+│   └── check_schema_alignment.py # Schema vs models consistency check
+├── Makefile                    # Local CI/smoke command shortcuts
 ├── migrate_researcher.py       # Migration script for researcher functionality (NEW!)
+├── DEPLOYMENT_RUNBOOK.md       # Production rollout/rollback/smoke procedures
 ├── superviseme.py              # Application entry point
 ├── requirements.txt            # Python dependencies
 └── README.md                   # This documentation

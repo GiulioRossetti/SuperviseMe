@@ -6,6 +6,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="">
     <meta name="author" content="">
 
@@ -45,7 +46,8 @@
                                         <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                                     </div>
 
-                                    <form class="user" method="POST" action="/login">
+                                    <form class="user" method="POST" action="{{ url_for('auth.login_post') }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         {% with messages = get_flashed_messages() %}
                                             {% if messages %}
                                             <div class="notification is-danger">

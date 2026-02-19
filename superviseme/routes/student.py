@@ -230,7 +230,7 @@ def post_comment():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/student/delete_update/<int:update_id>")
+@student.route("/student/delete_update/<int:update_id>", methods=["POST"])
 @login_required
 def delete_update(update_id):
     """
@@ -255,7 +255,7 @@ def delete_update(update_id):
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/student/delete_comment/<int:comment_id>")
+@student.route("/student/delete_comment/<int:comment_id>", methods=["POST"])
 @login_required
 def delete_comment(comment_id):
     """
@@ -468,7 +468,7 @@ def edit_resource():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/student/delete_resource/<int:resource_id>")
+@student.route("/student/delete_resource/<int:resource_id>", methods=["POST"])
 @login_required
 def delete_resource(resource_id):
     """
@@ -555,7 +555,7 @@ def edit_objective():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/student/delete_objective/<int:objective_id>")
+@student.route("/student/delete_objective/<int:objective_id>", methods=["POST"])
 @login_required
 def delete_objective(objective_id):
     """
@@ -642,7 +642,7 @@ def edit_hypothesis():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/student/delete_hypothesis/<int:hypothesis_id>")
+@student.route("/student/delete_hypothesis/<int:hypothesis_id>", methods=["POST"])
 @login_required
 def delete_hypothesis(hypothesis_id):
     """
@@ -716,7 +716,7 @@ def add_todo():
     return redirect(url_for('student.thesis_data'))
 
 
-@student.route("/student/toggle_todo/<int:todo_id>")
+@student.route("/student/toggle_todo/<int:todo_id>", methods=["POST"])
 @login_required
 def toggle_todo(todo_id):
     """
@@ -764,7 +764,7 @@ def search():
         # If no search term, redirect back to dashboard with message
         from flask import flash, redirect, url_for
         flash("Please enter a search term.", "warning")
-        return redirect(url_for('student.student_dashboard'))
+        return redirect(url_for('student.dashboard'))
     
     # Get student's thesis
     thesis = Thesis.query.filter_by(author_id=current_user.id).first()
@@ -791,8 +791,9 @@ def search():
             and_(
                 Resource.thesis_id == thesis.id,
                 or_(
-                    Resource.name.ilike(f"%{search_term}%"),
-                    Resource.url.ilike(f"%{search_term}%")
+                    Resource.description.ilike(f"%{search_term}%"),
+                    Resource.resource_url.ilike(f"%{search_term}%"),
+                    Resource.resource_type.ilike(f"%{search_term}%")
                 )
             )
         ).all()
@@ -849,7 +850,7 @@ def todo_detail(todo_id):
                            dt=datetime.fromtimestamp)
 
 
-@student.route("/student/delete_todo/<int:todo_id>")
+@student.route("/student/delete_todo/<int:todo_id>", methods=["POST"])
 @login_required
 def delete_todo(todo_id):
     """

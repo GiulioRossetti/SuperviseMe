@@ -594,7 +594,7 @@
             modal.find('#edit_cdl').val(studentCdl);
             modal.find('#edit_gender').val(studentGender);
             modal.find('#edit_nationality').val(studentNationality);
-            modal.find('#editStudentForm').attr('action', '/edit_student/' + studentId);
+            modal.find('#editStudentForm').attr('action', '{{ url_for("supervisor.edit_student", student_id=0) }}'.replace('0', studentId));
         });
 
         // Delete Student Modal
@@ -606,7 +606,7 @@
             
             var modal = $(this);
             modal.find('#deleteStudentName').text(studentName + ' ' + studentSurname);
-            modal.find('#deleteStudentForm').attr('action', '/delete_student/' + studentId);
+            modal.find('#deleteStudentForm').attr('action', '{{ url_for("supervisor.delete_student", student_id=0) }}'.replace('0', studentId));
         });
     </script>
 

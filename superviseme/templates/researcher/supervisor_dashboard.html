@@ -24,117 +24,230 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Supervisor Dashboard</h1>
+                        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
                     </div>
-
-                    <!-- Flash Messages -->
-                    {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert alert-info alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
 
                     <!-- Content Row -->
                     <div class="row">
 
-                        <!-- Students Card -->
+                        <!-- Earnings (Monthly) Card Example -->
                         <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card border-left-info shadow h-100 py-2">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                Supervised Students</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ user_counts.students }}</div>
+                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Students
+                                            </div>
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col-auto">
+                                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ user_counts['students'] }}</div>
+                                                </div>
+
+                                            </div>
                                         </div>
                                         <div class="col-auto">
-                                            <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Theses Card -->
+                        <!-- Pending Requests Card Example -->
                         <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card border-left-warning shadow h-100 py-2">
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                Supervised Theses</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ thesis_counts.total }}</div>
+                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                Theses</div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800"> {{ thesis_counts['total'] }}</div>
                                         </div>
                                         <div class="col-auto">
-                                            <i class="fas fa-book fa-2x text-gray-300"></i>
+                                            <i class="fas fa-comments fa-2x text-gray-300"></i>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content Row -->
+
+                    <div class="row">
+                        <div class="col-xl-12 col-lg-16">
+                            <div class="card mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Assigned Theses</h6>
+                                 </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Student</th>
+                                                <th>Thesis</th>
+                                                <th>CdL</th>
+                                                <th>Degree</th>
+                                                <th>Created</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                        {% for t in theses_by_supervisor %}
+                                            <tr>
+                                                <td>{{ t['student'].name }} {{ t['student'].surname }}</td>
+                                                <td>{{ t['thesis'].title }}</td>
+                                                <td>{{ t['student'].cdl }}</td>
+                                                <td>{{ t['thesis'].level }}</td>
+                                                <td>{{ str(dt(t['thesis'].created_at))[:10] }}</td>
+                                            </tr>
+
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
                                 </div>
                             </div>
                         </div>
 
                     </div>
 
-                    <!-- Supervised Theses Table -->
                     <div class="row">
-                        <div class="col-12">
-                            <div class="card shadow mb-4">
+                        <div class="col-xl-12 col-lg-16">
+                            <div class="card mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Supervised Theses</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">Available Theses</h6>
+                                 </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                    <table class="table table-bordered" id="dataTable1" width="100%" cellspacing="0">
+                                        <thead>
+                                            <tr>
+                                                <th>Thesis</th>
+                                                <th>Description</th>
+                                                <th>Degree</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            {% for t in available_theses %}
+                                            <tr>
+                                                <td>{{ t.title }}</td>
+                                                <td>{{ t.description }}</td>
+                                                <td>{{ t.level }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Todo List Section -->
+                    <div class="row">
+                        <div class="col-xl-12 col-lg-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">Shared Todo Lists</h6>
+                                    {% if theses_by_supervisor %}
+                                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addTodoModal">
+                                        <i class="fas fa-plus fa-sm text-white-50"></i> Add Todo
+                                    </button>
+                                    {% endif %}
                                 </div>
                                 <div class="card-body">
-                                    {% if supervised_theses %}
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered" width="100%" cellspacing="0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Title</th>
-                                                        <th>Student</th>
-                                                        <th>Level</th>
-                                                        <th>Created</th>
-                                                        <th>Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {% for thesis, student in supervised_theses %}
-                                                    <tr>
-                                                        <td><strong>{{ thesis.title }}</strong></td>
-                                                        <td>
-                                                            {% if student %}
-                                                                {{ student.name }} {{ student.surname }}
-                                                            {% else %}
-                                                                <em class="text-muted">Not assigned</em>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td>
-                                                            <span class="badge badge-info">{{ thesis.level or 'Not specified' }}</span>
-                                                        </td>
-                                                        <td>{{ dt(thesis.created_at).strftime('%Y-%m-%d') }}</td>
-                                                        <td>
-                                                            <a href="{{ url_for('researcher.supervisor_theses') }}" class="btn btn-primary btn-sm">
-                                                                View
+                                    {% if todos %}
+                                        <div class="row">
+                                            {% for todo in todos %}
+                                            <div class="col-md-6 col-lg-4 mb-3">
+                                                <div class="card border-left-{% if todo.priority == 'high' %}danger{% elif todo.priority == 'medium' %}warning{% else %}info{% endif %} h-100">
+                                                    <div class="card-body">
+                                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                                            <a href="{{ url_for('researcher.supervisor_todo_detail', todo_id=todo.id) }}" class="text-decoration-none">
+                                                                <h6 class="font-weight-bold text-gray-900 {% if todo.status == 'completed' %}text-decoration-line-through{% endif %}">
+                                                                    {{ todo.title }}
+                                                                </h6>
                                                             </a>
-                                                        </td>
-                                                    </tr>
-                                                    {% endfor %}
-                                                </tbody>
-                                            </table>
+                                                            <div class="dropdown no-arrow">
+                                                                <a class="dropdown-toggle" href="#" role="button" id="todoDropdown{{ todo.id }}" data-toggle="dropdown">
+                                                                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                                                </a>
+                                                                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in">
+                                                                    <form method="POST" action="{{ url_for('researcher.supervisor_toggle_todo', todo_id=todo.id) }}">
+                                                                        <button type="submit" class="dropdown-item">
+                                                                        {% if todo.status == 'pending' %}
+                                                                            <i class="fas fa-check fa-sm fa-fw mr-2 text-success"></i> Mark Complete
+                                                                        {% else %}
+                                                                            <i class="fas fa-undo fa-sm fa-fw mr-2 text-info"></i> Mark Pending
+                                                                        {% endif %}
+                                                                        </button>
+                                                                    </form>
+                                                                    <form method="POST" action="{{ url_for('researcher.supervisor_delete_todo', todo_id=todo.id) }}" onsubmit="return confirm('Are you sure you want to delete this todo?');">
+                                                                        <button type="submit" class="dropdown-item text-danger">
+                                                                        <i class="fas fa-trash fa-sm fa-fw mr-2 text-gray-400"></i> Delete
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {% if todo.description %}
+                                                        <p class="text-gray-700 small mb-2">{{ todo.description }}</p>
+                                                        {% endif %}
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <div>
+                                                                <span class="badge badge-{% if todo.priority == 'high' %}danger{% elif todo.priority == 'medium' %}warning{% else %}info{% endif %} badge-pill">
+                                                                    {{ todo.priority|title }}
+                                                                </span>
+                                                                {% if todo.status == 'completed' %}
+                                                                <span class="badge badge-success badge-pill ml-1">
+                                                                    <i class="fas fa-check"></i> Done
+                                                                </span>
+                                                                {% endif %}
+                                                            </div>
+                                                            {% if todo.due_date %}
+                                                            <small class="text-muted">
+                                                                Due: {{ dt(todo.due_date).strftime('%m/%d/%Y') }}
+                                                            </small>
+                                                            {% endif %}
+                                                        </div>
+                                                        {% if todo.assigned_to %}
+                                                        <div class="mb-2">
+                                                            <small class="text-info">
+                                                                <i class="fas fa-user fa-sm mr-1"></i>
+                                                                Assigned: {{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}
+                                                            </small>
+                                                        </div>
+                                                        {% endif %}
+                                                        {% if students_info.get(todo.thesis_id) %}
+                                                        <div>
+                                                            <small class="text-secondary">
+                                                                <i class="fas fa-book fa-sm mr-1"></i>
+                                                                Student: {{ students_info.get(todo.thesis_id).name }} {{ students_info.get(todo.thesis_id).surname }}
+                                                            </small>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
                                         </div>
                                     {% else %}
-                                        <p class="text-center text-muted">No supervised theses found.</p>
+                                        <div class="text-center py-4">
+                                            <i class="fas fa-clipboard-list fa-3x text-gray-300 mb-3"></i>
+                                            <h5 class="text-gray-500">No shared todos yet</h5>
+                                            <p class="text-gray-400">Create todos to collaborate with your students!</p>
+                                        </div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Content Row -->
                 </div>
                 <!-- /.container-fluid -->
 
@@ -151,8 +264,103 @@
     </div>
     <!-- End of Page Wrapper -->
 
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
     <!-- Logout Modal-->
-    {% include 'admin/components/logout_modal.html' %}
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" href="login.html">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Todo Modal -->
+    {% if theses_by_supervisor %}
+    <div class="modal fade" id="addTodoModal" tabindex="-1" role="dialog" aria-labelledby="addTodoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addTodoModalLabel">Add New Todo</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST" action="{{ url_for('researcher.add_todo') }}">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="thesis_id">Thesis *</label>
+                            <select class="form-control" name="thesis_id" required>
+                                <option value="">Select thesis...</option>
+                                {% for thesis_info in theses_by_supervisor %}
+                                    {% if thesis_info.thesis %}
+                                    <option value="{{ thesis_info.thesis.id }}">
+                                        {{ thesis_info.thesis.title }} - {{ thesis_info.student.name }} {{ thesis_info.student.surname }}
+                                    </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="title">Title *</label>
+                            <input type="text" class="form-control" name="title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="priority">Priority</label>
+                                <select class="form-control" name="priority">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="due_date">Due Date</label>
+                                <input type="date" class="form-control" name="due_date">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="assigned_to_id">Assign To</label>
+                            <select class="form-control" name="assigned_to_id">
+                                <option value="">Assign to...</option>
+                                <option value="{{ current_user.id }}">Myself</option>
+                                {% for thesis_info in theses_by_supervisor %}
+                                    {% if thesis_info.student %}
+                                    <option value="{{ thesis_info.student.id }}">{{ thesis_info.student.name }} {{ thesis_info.student.surname }} (Student)</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Todo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
 
 </body>
 

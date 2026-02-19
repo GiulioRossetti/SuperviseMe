@@ -224,7 +224,18 @@
         
         function deleteThesis(thesisId) {
             if (confirm('Are you sure you want to delete this thesis? This action cannot be undone.')) {
-                window.location.href = '{{ url_for("researcher.delete_thesis", thesis_id=0) }}'.replace('0', thesisId);
+                fetch('{{ url_for("researcher.delete_thesis", thesis_id=0) }}'.replace('0', thesisId), {
+                    method: 'DELETE'
+                })
+                .then(async response => {
+                    const payload = await response.json().catch(() => ({}));
+                    if (!response.ok) throw new Error(payload.message || 'Failed to delete thesis');
+                    location.reload();
+                })
+                .catch(err => {
+                    alert(`Error deleting thesis: ${err.message}`);
+                    console.error(err);
+                });
             }
         }
     </script>
