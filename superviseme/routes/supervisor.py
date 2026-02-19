@@ -64,7 +64,7 @@ def dashboard():
         ).scalars().all()
 
     # Get todos for supervised theses
-    supervised_thesis_ids = [ts.thesis_id for ts in theses]
+    supervised_thesis_ids = [ts.thesis_id for ts in thesis_supervisors]
     todos = []
     students_info = {}
     if supervised_thesis_ids:

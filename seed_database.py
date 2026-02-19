@@ -39,10 +39,24 @@ def seed_database():
         Thesis_Supervisor.query.delete()
         Thesis_Status.query.delete()
         Thesis.query.delete()
-        # Keep admin user but remove others for fresh start
-        User_mgmt.query.filter(User_mgmt.username != 'admin').delete()
+        User_mgmt.query.delete()
         db.session.commit()
-        
+
+        # Create admin user
+        print("Creating admin user...")
+        admin_password = resolve_seed_password("ADMIN_BOOTSTRAP_PASSWORD")
+        admin_user = User_mgmt(
+            username='admin',
+            name='Dr.',
+            surname='God',
+            email='admin@supervise.me',
+            password=generate_password_hash(admin_password, method='pbkdf2:sha256'),
+            user_type='admin',
+            joined_on=int(time.time())
+        )
+        db.session.add(admin_user)
+        db.session.commit()
+
         # Create sample supervisors
         print("Creating supervisors...")
         supervisor_password = resolve_seed_password("SEED_SUPERVISOR_PASSWORD")
@@ -412,8 +426,8 @@ def seed_database():
         print("Granting supervisor roles...")
         # Make Dr. Alice and Dr. Maria supervisors (Dr. Bob remains researcher-only)
         supervisor_grants = [
-            {'researcher': researchers[0], 'granted_by_id': 1},  # Dr. Alice
-            {'researcher': researchers[2], 'granted_by_id': 1}   # Dr. Maria
+            {'researcher': researchers[0], 'granted_by_id': admin_user.id},  # Dr. Alice
+            {'researcher': researchers[2], 'granted_by_id': admin_user.id}   # Dr. Maria
         ]
         
         for grant in supervisor_grants:
