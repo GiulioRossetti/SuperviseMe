@@ -22,7 +22,7 @@ schema:
 	python scripts/check_schema_alignment.py --db data_schema/database_dashboard.db --strict
 
 migrate:
-	FLASK_APP=superviseme.py SQLALCHEMY_DATABASE_URI="sqlite:////tmp/superviseme_ci_migrate.db" flask db upgrade
+	FLASK_APP=superviseme.py FLASK_SKIP_USER_INIT=true SQLALCHEMY_DATABASE_URI="sqlite:////tmp/superviseme_ci_migrate.db" flask db upgrade
 
 test:
 	pytest -q
