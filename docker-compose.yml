@@ -29,6 +29,8 @@ services:
     environment:
       - FLASK_ENV=${FLASK_ENV:-production}
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - ENABLE_SCHEDULER=${ENABLE_SCHEDULER:-false}
+      - SKIP_DB_SEED=${SKIP_DB_SEED:-true}
       - PG_USER=${PG_USER:-superviseme_user}
       - PG_PASSWORD=${PG_PASSWORD:-superviseme_password}
       - PG_HOST=postgres
@@ -62,11 +64,13 @@ services:
   nginx:
     image: nginx:alpine
     container_name: superviseme_nginx
+    entrypoint: ["/bin/sh", "/etc/nginx/verify-ssl-and-start.sh"]
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/verify-ssl-and-start.sh:/etc/nginx/verify-ssl-and-start.sh:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./superviseme/static:/var/www/static:ro
     depends_on:

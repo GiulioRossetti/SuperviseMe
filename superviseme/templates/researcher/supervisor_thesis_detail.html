@@ -952,20 +952,16 @@
         // Status management functions
         function freezeThesis(thesisId) {
             if (confirm('Are you sure you want to freeze this thesis? This will prevent further updates.')) {
-                fetch(`/supervisor/freeze_thesis/${thesisId}`, {
+                const formData = new URLSearchParams();
+                formData.append('thesis_id', thesisId);
+                fetch('{{ url_for("researcher.freeze_thesis") }}', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                    }
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString()
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Error freezing thesis: ' + (data.error || 'Unknown error'));
-                    }
-                })
+                .then(() => location.reload())
                 .catch(error => {
                     alert('Error: ' + error.message);
                 });
@@ -974,20 +970,16 @@
         
         function unfreezeThesis(thesisId) {
             if (confirm('Are you sure you want to unfreeze this thesis?')) {
-                fetch(`/supervisor/unfreeze_thesis/${thesisId}`, {
+                const formData = new URLSearchParams();
+                formData.append('thesis_id', thesisId);
+                fetch('{{ url_for("researcher.unfreeze_thesis") }}', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                    }
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData.toString()
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        location.reload();
-                    } else {
-                        alert('Error unfreezing thesis: ' + (data.error || 'Unknown error'));
-                    }
-                })
+                .then(() => location.reload())
                 .catch(error => {
                     alert('Error: ' + error.message);
                 });
@@ -1154,7 +1146,7 @@
         function editMeetingNote(noteId, title, content) {
             $('#editMeetingNoteTitle').val(title);
             $('#editMeetingNoteContent').val(content);
-            $('#editMeetingNoteForm').attr('action', '/supervisor/edit_meeting_note/' + noteId);
+            $('#editMeetingNoteForm').attr('action', '{{ url_for("researcher.edit_meeting_note", note_id=0) }}'.replace('0', noteId));
             $('#editMeetingNoteModal').modal('show');
         }
         
@@ -1430,14 +1422,14 @@
         function editObjective(objectiveId, title, description) {
             $('#editObjectiveTitle').val(title);
             $('#editObjectiveDescription').val(description);
-            $('#editObjectiveForm').attr('action', '/supervisor/edit_objective/' + objectiveId);
+            $('#editObjectiveForm').attr('action', '{{ url_for("researcher.edit_objective", objective_id=0) }}'.replace('0', objectiveId));
             $('#editObjectiveModal').modal('show');
         }
 
         function editHypothesis(hypothesisId, title, description) {
             $('#editHypothesisTitle').val(title);
             $('#editHypothesisDescription').val(description);
-            $('#editHypothesisForm').attr('action', '/supervisor/edit_hypothesis/' + hypothesisId);
+            $('#editHypothesisForm').attr('action', '{{ url_for("researcher.edit_hypothesis", hypothesis_id=0) }}'.replace('0', hypothesisId));
             $('#editHypothesisModal').modal('show');
         }
 
@@ -1445,7 +1437,7 @@
             $('#editResourceType').val(type);
             $('#editResourceUrl').val(url);
             $('#editResourceDescription').val(description);
-            $('#editResourceForm').attr('action', '/supervisor/edit_resource/' + resourceId);
+            $('#editResourceForm').attr('action', '{{ url_for("researcher.edit_resource", resource_id=0) }}'.replace('0', resourceId));
             $('#editResourceModal').modal('show');
         }
     </script>

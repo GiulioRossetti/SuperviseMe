@@ -174,11 +174,11 @@
                                                                 onclick="editObjective({{ objective.id }}, '{{ objective.title|e }}', '{{ objective.description|e }}')">
                                                             <i class="fas fa-edit"></i>
                                                         </button>
-                                                        <a href="{{ url_for('student.delete_objective', objective_id=objective.id) }}" 
-                                                           class="btn btn-sm btn-outline-danger"
-                                                           onclick="return confirm('Are you sure you want to delete this objective?')">
-                                                            <i class="fas fa-trash"></i>
-                                                        </a>
+                                                        <form method="POST" action="{{ url_for('student.delete_objective', objective_id=objective.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this objective?');">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
                                                         {% endif %}
                                                     </div>
                                                 </div>
@@ -223,11 +223,11 @@
                                                                 onclick="editHypothesis({{ hypothesis.id }}, '{{ hypothesis.title|e }}', '{{ hypothesis.description|e }}')">
                                                             <i class="fas fa-edit"></i>
                                                         </button>
-                                                        <a href="{{ url_for('student.delete_hypothesis', hypothesis_id=hypothesis.id) }}" 
-                                                           class="btn btn-sm btn-outline-danger"
-                                                           onclick="return confirm('Are you sure you want to delete this hypothesis?')">
-                                                            <i class="fas fa-trash"></i>
-                                                        </a>
+                                                        <form method="POST" action="{{ url_for('student.delete_hypothesis', hypothesis_id=hypothesis.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this hypothesis?');">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
                                                         {% endif %}
                                                     </div>
                                                 </div>
@@ -304,10 +304,11 @@
                                                                 <a class="dropdown-item" href="#" onclick="editUpdate({{ update.id }}, '{{ update.content|e }}')">
                                                                     <i class="fas fa-edit"></i> Edit
                                                                 </a>
-                                                                <a class="dropdown-item text-danger" href="{{ url_for('student.delete_update', update_id=update.id) }}" 
-                                                                   onclick="return confirm('Are you sure you want to delete this update?')">
-                                                                    <i class="fas fa-trash"></i> Delete
-                                                                </a>
+                                                                <form method="POST" action="{{ url_for('student.delete_update', update_id=update.id) }}" onsubmit="return confirm('Are you sure you want to delete this update?');">
+                                                                    <button type="submit" class="dropdown-item text-danger">
+                                                                        <i class="fas fa-trash"></i> Delete
+                                                                    </button>
+                                                                </form>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -543,21 +544,23 @@
                                                         </td>
                                                         <td>
                                                             {% if todo.status != 'completed' %}
-                                                                <a href="{{ url_for('student.toggle_todo', todo_id=todo.id) }}" 
-                                                                   class="btn btn-success btn-sm" title="Mark as completed">
-                                                                    <i class="fas fa-check"></i>
-                                                                </a>
+                                                                <form method="POST" action="{{ url_for('student.toggle_todo', todo_id=todo.id) }}" class="d-inline">
+                                                                    <button type="submit" class="btn btn-success btn-sm" title="Mark as completed">
+                                                                        <i class="fas fa-check"></i>
+                                                                    </button>
+                                                                </form>
                                                             {% else %}
-                                                                <a href="{{ url_for('student.toggle_todo', todo_id=todo.id) }}" 
-                                                                   class="btn btn-secondary btn-sm" title="Mark as pending">
-                                                                    <i class="fas fa-undo"></i>
-                                                                </a>
+                                                                <form method="POST" action="{{ url_for('student.toggle_todo', todo_id=todo.id) }}" class="d-inline">
+                                                                    <button type="submit" class="btn btn-secondary btn-sm" title="Mark as pending">
+                                                                        <i class="fas fa-undo"></i>
+                                                                    </button>
+                                                                </form>
                                                             {% endif %}
-                                                            <a href="{{ url_for('student.delete_todo', todo_id=todo.id) }}" 
-                                                               class="btn btn-danger btn-sm" title="Delete"
-                                                               onclick="return confirm('Are you sure you want to delete this todo?')">
-                                                                <i class="fas fa-trash"></i>
-                                                            </a>
+                                                            <form method="POST" action="{{ url_for('student.delete_todo', todo_id=todo.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this todo?');">
+                                                                <button type="submit" class="btn btn-danger btn-sm" title="Delete">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </form>
                                                         </td>
                                                     </tr>
                                                     {% endfor %}
@@ -608,11 +611,11 @@
                                                                     onclick="editResource({{ resource.id }}, '{{ resource.resource_type|e }}', '{{ resource.resource_url|e }}', '{{ resource.description|e }}')">
                                                                 <i class="fas fa-edit"></i>
                                                             </button>
-                                                            <a href="{{ url_for('student.delete_resource', resource_id=resource.id) }}" 
-                                                               class="btn btn-sm btn-outline-danger"
-                                                               onclick="return confirm('Are you sure you want to delete this resource?')">
-                                                                <i class="fas fa-trash"></i>
-                                                            </a>
+                                                            <form method="POST" action="{{ url_for('student.delete_resource', resource_id=resource.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this resource?');">
+                                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </form>
                                                         </td>
                                                     </tr>
                                                     {% endfor %}

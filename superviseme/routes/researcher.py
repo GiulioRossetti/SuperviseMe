@@ -2,6 +2,7 @@ from flask import Blueprint, request, render_template, abort, redirect, url_for,
 from flask_login import login_required, current_user
 from sqlalchemy import select, and_, func, or_
 from superviseme.utils.miscellanea import check_privileges, user_has_supervisor_role
+from superviseme.utils.thesis_management import delete_thesis_with_dependencies
 from superviseme.models import *
 from superviseme import db
 from datetime import datetime
@@ -754,13 +755,13 @@ def tag_update():
             for tag in tags.split(','):
                 tag = tag.strip()
                 if tag:
-                    new_tag = Update_Tag(
-                        update_id=update_id,
-                        author_id=current_user.id,
-                        tag=tag,
-                        created_at=int(time.time())
-                    )
-                    db.session.add(new_tag)
+                    existing_tag = Update_Tag.query.filter_by(update_id=update_id, tag=tag).first()
+                    if not existing_tag:
+                        new_tag = Update_Tag(
+                            update_id=update_id,
+                            tag=tag
+                        )
+                        db.session.add(new_tag)
         
         db.session.commit()
         flash("Tags added successfully")
@@ -870,6 +871,74 @@ def add_todo():
     flash("Todo added successfully")
     
     return redirect(url_for('researcher.supervisor_thesis_detail', thesis_id=thesis_id))
+
+
+@researcher.route("/researcher/supervisor/toggle_todo/<int:todo_id>", methods=["POST"])
+@login_required
+def supervisor_toggle_todo(todo_id):
+    """
+    Toggle todo completion status in researcher-supervisor context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    todo = Todo.query.join(Thesis, Todo.thesis_id == Thesis.id).join(
+        Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id
+    ).filter(
+        Todo.id == todo_id,
+        Thesis_Supervisor.supervisor_id == current_user.id
+    ).first()
+
+    if todo:
+        if todo.status == "pending":
+            todo.status = "completed"
+            todo.completed_at = int(time.time())
+        else:
+            todo.status = "pending"
+            todo.completed_at = None
+        todo.updated_at = int(time.time())
+        db.session.commit()
+        flash("Todo status updated")
+    else:
+        flash("Todo not found or not accessible")
+
+    return redirect(request.referrer or url_for("researcher.supervisor_dashboard"))
+
+
+@researcher.route("/researcher/supervisor/delete_todo/<int:todo_id>", methods=["POST"])
+@login_required
+def supervisor_delete_todo(todo_id):
+    """
+    Delete todo in researcher-supervisor context
+    """
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return redirect(url_for("researcher.dashboard"))
+
+    todo = Todo.query.join(Thesis, Todo.thesis_id == Thesis.id).join(
+        Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id
+    ).filter(
+        Todo.id == todo_id,
+        or_(Todo.author_id == current_user.id, Thesis_Supervisor.supervisor_id == current_user.id)
+    ).first()
+
+    if todo:
+        db.session.delete(todo)
+        db.session.commit()
+        flash("Todo deleted successfully")
+    else:
+        flash("Todo not found or not accessible")
+
+    return redirect(request.referrer or url_for("researcher.supervisor_dashboard"))
 
 
 @researcher.route("/researcher/supervisor/create_thesis", methods=["POST"])
@@ -1374,26 +1443,18 @@ def delete_thesis(thesis_id):
         flash("You don't have permission to delete this thesis")
         return redirect(url_for("researcher.supervisor_theses"))
 
-    try:
-        # Get thesis
-        thesis = Thesis.query.get(thesis_id)
-        if thesis:
-            # Delete related records first
-            Thesis_Status.query.filter_by(thesis_id=thesis_id).delete()
-            Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).delete()
-            Todo.query.filter_by(thesis_id=thesis_id).delete()
-            Resource.query.filter_by(thesis_id=thesis_id).delete()
-            Thesis_Objective.query.filter_by(thesis_id=thesis_id).delete()
-            Thesis_Hypothesis.query.filter_by(thesis_id=thesis_id).delete()
-            Thesis_Update.query.filter_by(thesis_id=thesis_id).delete()
-            
-            # Delete thesis
-            db.session.delete(thesis)
-            db.session.commit()
-            flash("Thesis deleted successfully")
-    except Exception as e:
-        flash(f"Error deleting thesis: {e}")
-    
+    success, error = delete_thesis_with_dependencies(thesis_id)
+    if not success:
+        if request.method == "DELETE":
+            return jsonify({"status": "error", "message": error or "Unable to delete thesis"}), 400
+        flash(f"Error deleting thesis: {error}")
+        return redirect(url_for("researcher.supervisor_theses"))
+
+    db.session.commit()
+    if request.method == "DELETE":
+        return jsonify({"status": "success"}), 200
+
+    flash("Thesis deleted successfully")
     return redirect(url_for("researcher.supervisor_theses"))
 
 
@@ -1537,23 +1598,18 @@ def delete_student(student_id):
         return redirect(url_for("researcher.supervisor_students"))
 
     try:
-        # Delete associated theses and relationships
         theses = Thesis.query.filter_by(author_id=student_id).all()
         for thesis in theses:
-            Thesis_Status.query.filter_by(thesis_id=thesis.id).delete()
-            Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).delete()
-            Todo.query.filter_by(thesis_id=thesis.id).delete()
-            Resource.query.filter_by(thesis_id=thesis.id).delete()
-            Thesis_Objective.query.filter_by(thesis_id=thesis.id).delete()
-            Thesis_Hypothesis.query.filter_by(thesis_id=thesis.id).delete()
-            Thesis_Update.query.filter_by(thesis_id=thesis.id).delete()
-            db.session.delete(thesis)
-        
-        # Delete student
+            success, error = delete_thesis_with_dependencies(thesis.id)
+            if not success:
+                flash(f"Error deleting thesis '{thesis.title}': {error}")
+                return redirect(url_for("researcher.supervisor_students"))
+
         db.session.delete(student)
         db.session.commit()
         flash("Student and associated data deleted successfully")
     except Exception as e:
+        db.session.rollback()
         flash(f"Error deleting student: {e}")
     
     return redirect(url_for("researcher.supervisor_students"))

@@ -9,6 +9,21 @@ from superviseme.models import User_mgmt, Thesis, Thesis_Status, Thesis_Supervis
 from werkzeug.security import generate_password_hash
 import time
 
+
+def resolve_seed_password(env_var):
+    password = os.getenv(env_var, "")
+    if password:
+        return password
+
+    shared_password = os.getenv("SEED_DEFAULT_PASSWORD", "")
+    if shared_password:
+        print(f"INFO: {env_var} not set. Using SEED_DEFAULT_PASSWORD.")
+        return shared_password
+
+    print(f"WARNING: {env_var} and SEED_DEFAULT_PASSWORD not set. Falling back to 'test'.")
+    return "test"
+
+
 def seed_database():
     """Populate database with sample data."""
     # Use postgresql for Docker environment, sqlite for local development
@@ -30,6 +45,7 @@ def seed_database():
         
         # Create sample supervisors
         print("Creating supervisors...")
+        supervisor_password = resolve_seed_password("SEED_SUPERVISOR_PASSWORD")
         supervisors_data = [
             {
                 'username': 'prof_smith', 
@@ -67,7 +83,7 @@ def seed_database():
                 name=sup_data['name'],
                 surname=sup_data['surname'],
                 email=sup_data['email'],
-                password=generate_password_hash('supervisor123', method='pbkdf2:sha256'),
+                password=generate_password_hash(supervisor_password, method='pbkdf2:sha256'),
                 user_type='supervisor',
                 cdl=sup_data['cdl'],
                 gender=sup_data['gender'],
@@ -79,6 +95,7 @@ def seed_database():
         
         # Create sample students
         print("Creating students...")
+        student_password = resolve_seed_password("SEED_STUDENT_PASSWORD")
         students_data = [
             {
                 'username': 'alice_doe',
@@ -134,7 +151,7 @@ def seed_database():
                 name=std_data['name'],
                 surname=std_data['surname'],
                 email=std_data['email'],
-                password=generate_password_hash('student123', method='pbkdf2:sha256'),
+                password=generate_password_hash(student_password, method='pbkdf2:sha256'),
                 user_type='student',
                 cdl=std_data['cdl'],
                 gender=std_data['gender'],
@@ -261,6 +278,7 @@ def seed_database():
         
         # Create researchers
         print("Creating researchers...")
+        researcher_password = resolve_seed_password("SEED_RESEARCHER_PASSWORD")
         researchers_data = [
             {
                 'username': 'dr_alice',
@@ -292,14 +310,13 @@ def seed_database():
         ]
         
         researchers = []
-        hashed_researcher_pw = generate_password_hash('researcher123', method='pbkdf2:sha256')
         for researcher_data in researchers_data:
             researcher = User_mgmt(
                 username=researcher_data['username'],
                 name=researcher_data['name'],
                 surname=researcher_data['surname'],
                 email=researcher_data['email'],
-                password=hashed_researcher_pw,
+                password=generate_password_hash(researcher_password, method='pbkdf2:sha256'),
                 user_type='researcher',
                 cdl=researcher_data['cdl'],
                 gender=researcher_data['gender'],
@@ -414,10 +431,10 @@ def seed_database():
         
         print("Database seeding completed successfully!")
         print(f"Created:")
-        print(f"  - 1 admin user (username: admin, password: test)")
-        print(f"  - {len(supervisors)} supervisors (password: supervisor123)")
-        print(f"  - {len(students)} students (password: student123)")
-        print(f"  - {len(researchers)} researchers (password: researcher123)")
+        print(f"  - 1 admin user (username: admin, password from ADMIN_BOOTSTRAP_PASSWORD)")
+        print(f"  - {len(supervisors)} supervisors (password from SEED_SUPERVISOR_PASSWORD/SEED_DEFAULT_PASSWORD)")
+        print(f"  - {len(students)} students (password from SEED_STUDENT_PASSWORD/SEED_DEFAULT_PASSWORD)")
+        print(f"  - {len(researchers)} researchers (password from SEED_RESEARCHER_PASSWORD/SEED_DEFAULT_PASSWORD)")
         print(f"  - {len(theses)} theses (5 assigned, 2 available)")
         print(f"  - {len(projects)} research projects")
         print(f"  - {len(collaborations)} research collaborations")

@@ -1,10 +1,13 @@
 import os
+import re
 import shutil
-from flask import Flask
+from flask import Flask, jsonify, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
+from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.security import generate_password_hash
+from sqlalchemy import create_engine, text
 import time
 import logging
 
@@ -16,6 +19,41 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 mail = Mail()
+csrf = CSRFProtect()
+
+INSECURE_SECRET_KEY_VALUES = {
+    "",
+    "4323432nldsf",
+    "change-this-secret-key-in-production-123456789",
+    "your-secret-key-change-in-production",
+}
+
+
+def _is_production_environment():
+    return os.getenv("FLASK_ENV", "production").lower() == "production"
+
+
+def _configure_secret_key(app):
+    secret_key = os.getenv("SECRET_KEY", "")
+    if _is_production_environment() and secret_key in INSECURE_SECRET_KEY_VALUES:
+        raise RuntimeError(
+            "In production, SECRET_KEY must be set to a strong non-default value."
+        )
+
+    if not secret_key:
+        secret_key = "dev-only-insecure-key"
+    app.config["SECRET_KEY"] = secret_key
+
+
+def _validate_postgres_dbname(dbname):
+    """
+    Keep dbname constrained to safe SQL identifier characters to avoid SQL injection
+    when used in CREATE DATABASE.
+    """
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", dbname or ""):
+        raise ValueError(
+            "PG_DBNAME must be a valid SQL identifier (letters, digits, underscore; cannot start with digit)."
+        )
 
 
 def create_postgresql_db(app):
@@ -24,128 +62,42 @@ def create_postgresql_db(app):
     host = os.getenv("PG_HOST", "localhost")
     port = os.getenv("PG_PORT", "5432")
     dbname = os.getenv("PG_DBNAME", "dashboard")
+    _validate_postgres_dbname(dbname)
 
-    app.config[
-        "SQLALCHEMY_DATABASE_URI"
-    ] = f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
 
     app.config["SQLALCHEMY_BINDS"] = {
         "db_admin": f"postgresql://{user}:{password}@{host}:{port}/{dbname}",
     }
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {}
 
-    # is postgresql installed and running?
+    admin_uri = f"postgresql://{user}:{password}@{host}:{port}/postgres"
+    created_db = False
+    admin_engine = create_engine(admin_uri)
     try:
-        from sqlalchemy import create_engine
+        # Confirm server availability and check target database existence.
+        with admin_engine.connect() as conn:
+            result = conn.execute(
+                text("SELECT 1 FROM pg_database WHERE datname = :dbname"),
+                {"dbname": dbname},
+            )
+            db_exists = result.scalar() is not None
 
-        engine = create_engine(
-            app.config["SQLALCHEMY_DATABASE_URI"].replace("dashboard", "postgres")
-        )
-        engine.connect()
+        if not db_exists:
+            with admin_engine.connect().execution_options(
+                isolation_level="AUTOCOMMIT"
+            ) as conn:
+                conn.execute(text(f'CREATE DATABASE "{dbname}"'))
+            created_db = True
     except Exception as e:
         raise RuntimeError(
-            "PostgreSQL is not installed or running. Please check your configuration."
+            "PostgreSQL is not installed/running or credentials are invalid."
         ) from e
+    finally:
+        admin_engine.dispose()
 
-    # does dbname exist? if not, create it and load schema
-    from sqlalchemy import create_engine
-    from sqlalchemy import text
-    from werkzeug.security import generate_password_hash
-
-    # Connect to a default admin DB (typically 'postgres') to check for existence of target DBs
-    admin_engine = create_engine(
-        f"postgresql://{user}:{password}@{host}:{port}/postgres"
-    )
-
-    # --- Check and create dashboard DB if needed ---
-    with admin_engine.connect() as conn:
-        result = conn.execute(
-            text(f"SELECT 1 FROM pg_database WHERE datname = '{dbname}'")
-        )
-        db_exists = result.scalar() is not None
-
-    if not db_exists:
-        # Create the database (requires AUTOCOMMIT mode)
-        with admin_engine.connect().execution_options(
-            isolation_level="AUTOCOMMIT"
-        ) as conn:
-            conn.execute(text(f"CREATE DATABASE {dbname}"))
-
-        # Connect to the new DB and load schema
-        dashboard_engine = create_engine(app.config["SQLALCHEMY_BINDS"]["db_admin"])
-        with dashboard_engine.connect() as db_conn:
-            # Load SQL schema
-            schema_sql = open(
-                f"{BASE_DIR}{os.sep}..{os.sep}data_schema{os.sep}postgre_dashboard.sql",
-                "r",
-            ).read()
-            db_conn.execute(text(schema_sql))
-
-            # Generate hashed password
-            hashed_pw = generate_password_hash("test", method="pbkdf2:sha256")
-
-            # Insert initial admin user
-            db_conn.execute(
-                text(
-                    """
-                     INSERT INTO user_mgmt (username, email, password, role)
-                     VALUES (:username, :email, :password, :role)
-                     """
-                ),
-                {
-                    "username": "admin",
-                    "email": "admin@ysocial.com",
-                    "password": hashed_pw,
-                    "role": "admin",
-                },
-            )
-
-        dashboard_engine.dispose()
-
-    # --- Check and create dummy DB if needed ---
-    with admin_engine.connect() as conn:
-        result = conn.execute(
-            text(f"SELECT 1 FROM pg_database WHERE datname = '{dbname}'")
-        )
-        dummy_exists = result.scalar() is not None
-
-    if not dummy_exists:
-        with admin_engine.connect().execution_options(
-            isolation_level="AUTOCOMMIT"
-        ) as conn:
-            conn.execute(text(f"CREATE DATABASE {dbname}"))
-
-        dummy_engine = create_engine(app.config["SQLALCHEMY_BINDS"]["db_exp"])
-        with dummy_engine.connect() as dummy_conn:
-            schema_sql = open(
-                f"{BASE_DIR}{os.sep}..{os.sep}data_schema{os.sep}postgre_server.sql",
-                "r",
-            ).read()
-            dummy_conn.execute(text(schema_sql))
-
-            # Generate hashed password
-            hashed_pw = generate_password_hash("test", method="pbkdf2:sha256")
-
-            # Insert initial admin user
-            stmt = text("""
-                        INSERT INTO user_mgmt (username, email, password, user_type, joined_on)
-                        VALUES (:username, :email, :password, :user_type, :joined_on)
-                        """)
-
-            dummy_conn.execute(
-                stmt,
-                {
-                    "username": "admin",
-                    "email": "admin@ysocial.com",
-                    "password": hashed_pw,
-                    "user_type": "admin",
-                    "joined_on": 0,
-                }
-            )
-
-        dummy_engine.dispose()
-
-    admin_engine.dispose()
+    app.config["POSTGRES_DB_CREATED"] = created_db
+    return created_db
 
 
 def create_app(db_type="sqlite", skip_user_init=False):
@@ -159,7 +111,7 @@ def create_app(db_type="sqlite", skip_user_init=False):
                 f"{BASE_DIR}{os.sep}db{os.sep}dashboard.db",
             )
 
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "4323432nldsf")
+    _configure_secret_key(app)
     
     # Mail configuration
     app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "localhost")
@@ -190,6 +142,7 @@ def create_app(db_type="sqlite", skip_user_init=False):
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
+    csrf.init_app(app)
 
     from .models import User_mgmt
 
@@ -202,19 +155,28 @@ def create_app(db_type="sqlite", skip_user_init=False):
             try:
                 admin_user = User_mgmt.query.filter_by(username="admin").first()
                 if not admin_user:
-                    hashed_pw = generate_password_hash("test", method="pbkdf2:sha256")
-                    new_admin = User_mgmt(
-                        username="admin",
-                        name="Dr.",
-                        surname="God",
-                        email="admin@supervise.me",
-                        password=hashed_pw,
-                        user_type="admin",
-                        joined_on=int(time.time()),
+                    bootstrap_password = os.getenv("ADMIN_BOOTSTRAP_PASSWORD", "")
+                    if not bootstrap_password:
+                        app.logger.warning(
+                            "Admin user missing but ADMIN_BOOTSTRAP_PASSWORD is not set; skipping bootstrap admin creation."
+                        )
+                        bootstrap_password = None
 
-                    )
-                    db.session.add(new_admin)
-                    db.session.commit()
+                    if bootstrap_password:
+                        hashed_pw = generate_password_hash(
+                            bootstrap_password, method="pbkdf2:sha256"
+                        )
+                        new_admin = User_mgmt(
+                            username="admin",
+                            name="Dr.",
+                            surname="God",
+                            email="admin@supervise.me",
+                            password=hashed_pw,
+                            user_type="admin",
+                            joined_on=int(time.time()),
+                        )
+                        db.session.add(new_admin)
+                        db.session.commit()
             except Exception as e:
                 # Database tables don't exist yet, that's okay during initialization
                 print(f"Note: Database tables not found during app creation: {e}")
@@ -250,14 +212,35 @@ def create_app(db_type="sqlite", skip_user_init=False):
     from superviseme.routes.errors import errors as errors_blueprint
     app.register_blueprint(errors_blueprint)
 
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(error):
+        """
+        Return JSON for API/fetch requests and an HTML error page for regular navigation.
+        """
+        wants_json = (
+            request.path.startswith("/api/")
+            or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or request.accept_mimetypes.best == "application/json"
+        )
+        if wants_json:
+            return jsonify({"status": "error", "message": "Invalid or missing CSRF token."}), 400
+        return render_template("errors/400.html", error=error), 400
+
     # Set up comprehensive logging
     from superviseme.utils.logging_config import setup_logging, log_request_response
     loggers = setup_logging(app)
     log_request_response(app, loggers)
 
-    # Initialize the task scheduler for background jobs
-    from superviseme.utils.task_scheduler import init_scheduler
-    init_scheduler(app)
+    # Initialize scheduler only when explicitly enabled, so it can run in a single worker/service.
+    enable_scheduler = os.getenv("ENABLE_SCHEDULER", "true").lower() == "true"
+    if enable_scheduler and not app.testing:
+        from superviseme.utils.task_scheduler import init_scheduler
+        init_scheduler(app)
+    else:
+        app.logger.info(
+            "Background scheduler disabled for this process",
+            extra={"event_type": "scheduler_disabled", "enable_scheduler": enable_scheduler},
+        )
 
     # Register template filters
     @app.template_filter('format_todo_links')
@@ -315,3 +298,6 @@ def create_app(db_type="sqlite", skip_user_init=False):
         return MomentWrapper(datetime.now())
 
     return app
+    if db_type == "postgresql" and app.config.get("POSTGRES_DB_CREATED"):
+        with app.app_context():
+            db.create_all()
