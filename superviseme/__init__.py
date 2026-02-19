@@ -365,7 +365,8 @@ def create_app(db_type="sqlite", skip_user_init=False):
         
         return MomentWrapper(datetime.now())
 
-    return app
     if db_type == "postgresql" and app.config.get("POSTGRES_DB_CREATED"):
         with app.app_context():
             db.create_all()
+
+    return app
