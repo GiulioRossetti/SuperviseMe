@@ -8,9 +8,9 @@ export SECRET_KEY
 export ADMIN_BOOTSTRAP_PASSWORD
 export ENABLE_SCHEDULER
 
-.PHONY: ci lint compile schema test smoke
+.PHONY: ci lint compile schema test smoke migrate
 
-ci: lint compile schema test
+ci: lint compile schema migrate test
 
 lint:
 	ruff check --select E9,F63,F7,F82 superviseme scripts test_app_functionality.py recreate_database.py seed_database.py
@@ -20,6 +20,9 @@ compile:
 
 schema:
 	python scripts/check_schema_alignment.py --db data_schema/database_dashboard.db --strict
+
+migrate:
+	FLASK_APP=superviseme.py FLASK_SKIP_USER_INIT=true SQLALCHEMY_DATABASE_URI="sqlite:////tmp/superviseme_ci_migrate.db" flask db upgrade
 
 test:
 	pytest -q

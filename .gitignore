@@ -222,4 +222,6 @@ nginx/ssl/*.key
 nginx/ssl/*.crt
 *.db.backup_*
 superviseme/db/*.backup_*
+
+# Runtime SQLite database (created on first run; not a versioned artifact)
 superviseme/db/dashboard.db

@@ -6,6 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect, CSRFError
+from flask_migrate import Migrate
+from sqlalchemy import MetaData
 from werkzeug.security import generate_password_hash
 from sqlalchemy import create_engine, text
 import time
@@ -15,11 +17,20 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 client_processes = {}
 
-db = SQLAlchemy()
+NAMING_CONVENTION = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+
+db = SQLAlchemy(metadata=MetaData(naming_convention=NAMING_CONVENTION))
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 mail = Mail()
 csrf = CSRFProtect()
+migrate = Migrate()
 
 INSECURE_SECRET_KEY_VALUES = {
     "",
@@ -100,8 +111,57 @@ def create_postgresql_db(app):
     return created_db
 
 
+def _stamp_sqlite_db_head(db_path):
+    """
+    Ensure a copied SQLite database has an alembic_version record at the
+    current head revision, so that 'flask db upgrade' is a no-op on a DB
+    that was bootstrapped from the data_schema copy rather than via migrations.
+    """
+    import sqlite3 as _sqlite3
+
+    _log = logging.getLogger(__name__)
+    migrations_dir = os.path.join(BASE_DIR, "..", "migrations")
+    head_revision = None
+    try:
+        from alembic.script import ScriptDirectory
+        from alembic.config import Config as AlembicConfig
+
+        cfg = AlembicConfig()
+        cfg.set_main_option("script_location", migrations_dir)
+        script = ScriptDirectory.from_config(cfg)
+        head_revision = script.get_current_head()
+    except ImportError:
+        _log.debug("alembic not available; skipping alembic_version stamp")
+    except Exception:
+        _log.warning("Could not determine Alembic head revision; skipping stamp", exc_info=True)
+
+    if not head_revision:
+        return
+
+    conn = _sqlite3.connect(db_path)
+    try:
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS alembic_version "
+            "(version_num VARCHAR(32) NOT NULL, "
+            "CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num))"
+        )
+        existing = conn.execute("SELECT version_num FROM alembic_version").fetchone()
+        if not existing:
+            conn.execute("INSERT INTO alembic_version VALUES (?)", (head_revision,))
+            conn.commit()
+    except Exception:
+        _log.warning("Failed to stamp alembic_version in bootstrapped DB %s", db_path, exc_info=True)
+    finally:
+        conn.close()
+
+
 def create_app(db_type="sqlite", skip_user_init=False):
     app = Flask(__name__, static_url_path="/static")
+
+    # When Flask-Migrate CLI (flask db ...) invokes the app factory it does not
+    # pass skip_user_init=True, so honour the env var as a secondary opt-out.
+    if os.getenv("FLASK_SKIP_USER_INIT", "").lower() in ("1", "true", "yes"):
+        skip_user_init = True
 
     # Copy databases if missing (keep your existing logic)
     if not os.path.exists(f"{BASE_DIR}{os.sep}db{os.sep}dashboard.db"):
@@ -110,6 +170,9 @@ def create_app(db_type="sqlite", skip_user_init=False):
                 f"{BASE_DIR}{os.sep}..{os.sep}data_schema{os.sep}database_dashboard.db",
                 f"{BASE_DIR}{os.sep}db{os.sep}dashboard.db",
             )
+            # Stamp the copied DB with the current Alembic head so that
+            # 'flask db upgrade' is a no-op on this bootstrapped database.
+            _stamp_sqlite_db_head(f"{BASE_DIR}{os.sep}db{os.sep}dashboard.db")
 
     _configure_secret_key(app)
     
@@ -123,9 +186,13 @@ def create_app(db_type="sqlite", skip_user_init=False):
     app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER", "noreply@superviseme.local")
 
     if db_type == "sqlite":
-        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{BASE_DIR}/db/dashboard.db"
+        sqlite_uri = os.getenv(
+            "SQLALCHEMY_DATABASE_URI",
+            f"sqlite:///{BASE_DIR}/db/dashboard.db",
+        )
+        app.config["SQLALCHEMY_DATABASE_URI"] = sqlite_uri
         app.config["SQLALCHEMY_BINDS"] = {
-            "db_admin": f"sqlite:///{BASE_DIR}/db/dashboard.db",
+            "db_admin": sqlite_uri,
        #     "db_exp": f"sqlite:///{BASE_DIR}/db/dummy.db",
         }
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
@@ -140,6 +207,7 @@ def create_app(db_type="sqlite", skip_user_init=False):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
+    migrate.init_app(app, db, render_as_batch=True)
     login_manager.init_app(app)
     mail.init_app(app)
     csrf.init_app(app)
