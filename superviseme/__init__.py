@@ -6,6 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect, CSRFError
+from flask_migrate import Migrate
+from sqlalchemy import MetaData
 from werkzeug.security import generate_password_hash
 from sqlalchemy import create_engine, text
 import time
@@ -15,11 +17,20 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 client_processes = {}
 
-db = SQLAlchemy()
+NAMING_CONVENTION = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+
+db = SQLAlchemy(metadata=MetaData(naming_convention=NAMING_CONVENTION))
 login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 mail = Mail()
 csrf = CSRFProtect()
+migrate = Migrate()
 
 INSECURE_SECRET_KEY_VALUES = {
     "",
@@ -123,9 +134,13 @@ def create_app(db_type="sqlite", skip_user_init=False):
     app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER", "noreply@superviseme.local")
 
     if db_type == "sqlite":
-        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{BASE_DIR}/db/dashboard.db"
+        sqlite_uri = os.getenv(
+            "SQLALCHEMY_DATABASE_URI",
+            f"sqlite:///{BASE_DIR}/db/dashboard.db",
+        )
+        app.config["SQLALCHEMY_DATABASE_URI"] = sqlite_uri
         app.config["SQLALCHEMY_BINDS"] = {
-            "db_admin": f"sqlite:///{BASE_DIR}/db/dashboard.db",
+            "db_admin": sqlite_uri,
        #     "db_exp": f"sqlite:///{BASE_DIR}/db/dummy.db",
         }
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
@@ -140,6 +155,7 @@ def create_app(db_type="sqlite", skip_user_init=False):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db.init_app(app)
+    migrate.init_app(app, db, render_as_batch=True)
     login_manager.init_app(app)
     mail.init_app(app)
     csrf.init_app(app)
