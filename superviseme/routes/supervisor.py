@@ -1,6 +1,7 @@
 from flask import Blueprint, request, render_template, abort, redirect, url_for, jsonify, flash
 from flask_login import login_required, current_user
 from sqlalchemy import select, and_, func, or_
+from sqlalchemy.orm import joinedload
 from superviseme.utils.miscellanea import check_privileges
 from superviseme.utils.activity_tracker import get_inactive_students
 from superviseme.utils.thesis_management import delete_thesis_with_dependencies
@@ -42,22 +43,18 @@ def dashboard():
 
     # for each supervisor get list of theses assigned to them along with the name of the student
 
-    theses = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
-    theses_by_supervisor = [
-                    {
-                        "thesis": Thesis.query.filter(Thesis.id == thesis.id, Thesis.author_id.isnot(None)).first(),
-                        "student": db.session.execute(
-                                    select(User_mgmt)
-                                    .join(Thesis, Thesis.author_id == User_mgmt.id)
-                                    .where(
-                                        and_(Thesis.id == thesis.id, Thesis.author_id.isnot(None))
-                                    )
-                                ).scalars().first()
-                    } for thesis in theses
+    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id)\
+        .options(joinedload(Thesis_Supervisor.thesis).joinedload(Thesis.author))\
+        .all()
 
-                ]
-    # filter out theses that have no student assigned
-    theses_by_supervisor =  [t for t in theses_by_supervisor if t["student"] is not None ]
+    theses_by_supervisor = [
+        {
+            "thesis": ts.thesis,
+            "student": ts.thesis.author
+        }
+        for ts in thesis_supervisors
+        if ts.thesis and ts.thesis.author
+    ]
 
     available_theses_by_supervisor = db.session.execute(
             select(Thesis)
@@ -99,7 +96,9 @@ def supervisee_data():
         return privilege_check
     
     # Get students through thesis supervision relationship
-    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
+    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id)\
+        .options(joinedload(Thesis_Supervisor.thesis).joinedload(Thesis.author))\
+        .all()
     active_supervisees = []
     past_supervisees = []
     
@@ -147,7 +146,9 @@ def theses_data():
         return privilege_check
     
     # Get theses through the supervisor relationship
-    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
+    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id)\
+        .options(joinedload(Thesis_Supervisor.thesis).joinedload(Thesis.author))\
+        .all()
     theses = [ts.thesis for ts in thesis_supervisors]
     return render_template("supervisor/theses.html", theses=theses, dt=datetime.fromtimestamp)
 
