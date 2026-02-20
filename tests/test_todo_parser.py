@@ -157,12 +157,12 @@ def test_format_text_invalid_todo(parser_module):
         assert '<span class="todo-reference-invalid' in formatted
         assert '@todo:999</span>' in formatted
 
-def test_format_text_empty():
+def test_format_text_empty(parser_module):
     """Test empty text handling"""
-    assert format_text_with_todo_links(None) is None
-    assert format_text_with_todo_links("") == ""
+    assert parser_module.format_text_with_todo_links(None) is None
+    assert parser_module.format_text_with_todo_links("") == ""
 
-def test_format_text_custom_base_url():
+def test_format_text_custom_base_url(parser_module):
     """Test custom base URL"""
     mock_todo = MagicMock()
     mock_todo.id = 1
@@ -172,10 +172,10 @@ def test_format_text_custom_base_url():
         MockTodo.query.get.return_value = mock_todo
 
         text = "Check @todo:1"
-        formatted = format_text_with_todo_links(text, base_url="/student/")
+        formatted = parser_module.format_text_with_todo_links(text, base_url="/student/")
         assert '<a href="/student/todo/1"' in formatted
 
-def test_format_text_exception_handling():
+def test_format_text_exception_handling(parser_module):
     """Test exception handling during replacement"""
     with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
         # Mock get to raise exception
@@ -183,19 +183,19 @@ def test_format_text_exception_handling():
 
         text = "Check @todo:1 and #todo-2"
         # Should return original text despite exception
-        assert format_text_with_todo_links(text) == text
+        assert parser_module.format_text_with_todo_links(text) == text
 
-def test_format_text_invalid_hash_todo():
+def test_format_text_invalid_hash_todo(parser_module):
     """Test invalid #todo-ID format"""
     with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
         MockTodo.query.get.return_value = None
 
         text = "Check #todo-999"
-        formatted = format_text_with_todo_links(text)
+        formatted = parser_module.format_text_with_todo_links(text)
         assert '<span class="todo-reference-invalid' in formatted
         assert '#todo-999</span>' in formatted
 
-def test_format_text_mixed_content():
+def test_format_text_mixed_content(parser_module):
     """Test mixed valid and invalid todos"""
     mock_todo = MagicMock()
     mock_todo.id = 1
@@ -210,7 +210,7 @@ def test_format_text_mixed_content():
         MockTodo.query.get.side_effect = side_effect
 
         text = "Review @todo:1 and @todo:999"
-        formatted = format_text_with_todo_links(text)
+        formatted = parser_module.format_text_with_todo_links(text)
 
         # Valid one should be a link
         assert '<a href="/supervisor/todo/1"' in formatted
