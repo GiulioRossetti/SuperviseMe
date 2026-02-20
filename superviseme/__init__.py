@@ -54,7 +54,7 @@ def _configure_secret_key(app):
         )
 
     if not secret_key:
-        secret_key = "dev-only-insecure-key"
+        raise RuntimeError("SECRET_KEY environment variable is not set")
     app.config["SECRET_KEY"] = secret_key
 
 
