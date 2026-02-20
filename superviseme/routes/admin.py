@@ -580,7 +580,9 @@ def grant_supervisor_role():
             researcher_id=researcher_id,
             granted_by=current_user.id,
             granted_at=int(time.time()),
-            active=True
+            active=True,
+            created_at=int(time.time()),
+            updated_at=int(time.time())
         )
         db.session.add(supervisor_role)
         db.session.commit()
