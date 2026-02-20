@@ -1,34 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="description" content="SuperviseMe Login">
+    <meta name="author" content="SuperviseMe Team">
 
-    <title>SuperviseMe</title>
+    <title>SuperviseMe - Login</title>
 
     <!-- Custom fonts for this template-->
     <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
 
     <!-- Custom styles for this template-->
     <link href="{{ url_for('static', filename='assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
 
+    <style>
+        body {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .bg-login-image {
+            background-color: #f8f9fc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .bg-login-image img {
+            max-width: 100%;
+            height: auto;
+            max-height: 300px;
+        }
+        .form-control-user {
+            border-radius: 2rem;
+            padding: 1.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        .btn-user {
+            border-radius: 2rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .btn-google {
+            background-color: #ea4335;
+            color: white;
+            border: none;
+        }
+        .btn-google:hover {
+            background-color: #d62516;
+            color: white;
+        }
+        .btn-orcid {
+            background-color: #A6CE39;
+            color: white;
+            border: none;
+        }
+        .btn-orcid:hover {
+            background-color: #8fb826;
+            color: white;
+        }
+        .custom-control-input:checked ~ .custom-control-label::before {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+        h1 {
+            color: #4e73df;
+            font-weight: 700;
+        }
+    </style>
 </head>
 
-<body class="bg-gradient-primary">
+<body>
 
     <div class="container">
 
         <!-- Outer Row -->
-        <div class="row justify-content-center">
+        <div class="row justify-content-center w-100">
 
             <div class="col-xl-10 col-lg-12 col-md-9">
 
@@ -36,57 +96,60 @@
                     <div class="card-body p-0">
                         <!-- Nested Row within Card Body -->
                         <div class="row">
-                            <div class="col-lg-6 d-none d-lg-block bg-login-image" style="justify-content: center; align-items: center;">
-                                <img src="{{ url_for('static', filename='assets/img/superviseme.png') }}" style="width:100%; height:100%;" />
-                                
+                            <div class="col-lg-6 d-none d-lg-flex bg-login-image">
+                                <img src="{{ url_for('static', filename='assets/img/superviseme.png') }}" alt="SuperviseMe Logo">
                             </div>
                             <div class="col-lg-6">
                                 <div class="p-5">
                                     <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
+                                        <h1 class="h4 mb-4">Welcome Back!</h1>
                                     </div>
 
                                     <form class="user" method="POST" action="{{ url_for('auth.login_post') }}">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         {% with messages = get_flashed_messages() %}
                                             {% if messages %}
-                                            <div class="notification is-danger">
+                                            <div class="alert alert-danger" role="alert">
                                                 {{ messages[0] }}
                                             </div>
                                             {% endif %}
                                         {% endwith %}
                                         <div class="form-group">
-
-
                                             <input type="email" class="form-control form-control-user"
-                                                id="exampleInputEmail" aria-describedby="emailHelp", name="email"
-                                                placeholder="Enter Email Address...">
+                                                id="exampleInputEmail" aria-describedby="emailHelp" name="email"
+                                                placeholder="Enter Email Address..." required>
                                         </div>
                                         <div class="form-group">
                                             <input type="password" class="form-control form-control-user"
-                                                id="exampleInputPassword" placeholder="Password", name="password">
+                                                id="exampleInputPassword" placeholder="Password" name="password" required>
                                         </div>
                                         <div class="form-group">
                                             <div class="custom-control custom-checkbox small">
-                                                <input type="checkbox" class="custom-control-input" id="remember", name="remember">
-                                                <label class="custom-control-label" for="customCheck">Remember
-                                                    Me</label>
+                                                <input type="checkbox" class="custom-control-input" id="remember" name="remember">
+                                                <label class="custom-control-label" for="remember">Remember Me</label>
                                             </div>
                                         </div>
                                         <button class="btn btn-primary btn-user btn-block">
                                             Login
                                         </button>
+
+                                        {% if google_enabled or orcid_enabled %}
                                         <hr>
+                                        {% endif %}
+
+                                        {% if google_enabled %}
                                         <a href="{{ url_for('auth.google_login') }}" class="btn btn-google btn-user btn-block">
                                             <i class="fab fa-google fa-fw"></i> Login with Google
                                         </a>
-                                        <a href="{{ url_for('auth.orcid_login') }}" class="btn btn-success btn-user btn-block" style="background-color: #A6CE39; border-color: #A6CE39; color: white;">
+                                        {% endif %}
+
+                                        {% if orcid_enabled %}
+                                        <a href="{{ url_for('auth.orcid_login') }}" class="btn btn-orcid btn-user btn-block">
                                             <i class="fab fa-orcid fa-fw"></i> Login with ORCID
                                         </a>
+                                        {% endif %}
 
                                     </form>
-
-
 
                                     <hr>
                                     <div class="text-center">
