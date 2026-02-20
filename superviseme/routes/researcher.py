@@ -445,9 +445,17 @@ def supervisor_students():
                 self.student = student
                 self.thesis = thesis
                 # Add activity tracking
-                self.is_inactive = False  # TODO: Implement actual activity tracking
-                self.days_inactive = 0
-                self.last_activity_location = "Dashboard"  # TODO: Implement actual tracking
+                current_time = int(time.time())
+
+                if student.last_activity:
+                    self.days_inactive = (current_time - student.last_activity) // (24 * 60 * 60)
+                    # Consider inactive if more than 14 days passed since last activity
+                    self.is_inactive = self.days_inactive > 14
+                    self.last_activity_location = student.last_activity_location
+                else:
+                    self.days_inactive = None
+                    self.is_inactive = True
+                    self.last_activity_location = None
         
         return SuperviseeInfo(student, thesis)
     
