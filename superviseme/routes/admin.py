@@ -703,8 +703,9 @@ def thesis_detail(thesis_id):
     
     thesis = Thesis.query.get_or_404(thesis_id)
     author = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
-    supervisors_rel = Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).all()
-    supervisors = [User_mgmt.query.get(rel.supervisor_id) for rel in supervisors_rel]
+    # Fix N+1 query: Fetch supervisors in a single query
+    supervisors = User_mgmt.query.join(Thesis_Supervisor, Thesis_Supervisor.supervisor_id == User_mgmt.id)\
+        .filter(Thesis_Supervisor.thesis_id == thesis_id).all()
     status_history = Thesis_Status.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Status.updated_at.desc()).all()
     tags = Thesis_Tag.query.filter_by(thesis_id=thesis_id).all()
     updates = Thesis_Update.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Update.created_at.desc()).all()
