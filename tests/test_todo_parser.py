@@ -23,6 +23,8 @@ sys.modules['flask_moment'] = mock_moment
 sys.modules['werkzeug'] = mock_werkzeug
 sys.modules['werkzeug.security'] = MagicMock()
 sys.modules['sqlalchemy'] = MagicMock()
+sys.modules['flask_migrate'] = MagicMock()
+sys.modules['authlib.integrations.flask_client'] = MagicMock()
 
 # Mock superviseme and its components
 mock_db = MagicMock()
