@@ -13,3 +13,4 @@ flask-moment
 Flask-Migrate>=4.0.0
 Authlib>=1.3.0
 requests>=2.31.0
+bleach>=6.0.0
