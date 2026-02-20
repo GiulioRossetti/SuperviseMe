@@ -66,6 +66,10 @@ def main():
     missing_tables = sorted(set(model_tables) - set(db_tables))
     extra_tables = sorted(set(db_tables) - set(model_tables))
 
+    # Ignore alembic_version if present
+    if "alembic_version" in extra_tables:
+        extra_tables.remove("alembic_version")
+
     missing_columns = []
     extra_columns = []
     for table, model_cols in model_tables.items():
