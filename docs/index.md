@@ -47,6 +47,7 @@ SuperviseMe is a Flask-based web application designed to facilitate thesis super
 - **Profile Management**: Update personal information and preferences
 
 ### 👨‍🎓 Student Features
+
 - **Personal Dashboard**: Overview of thesis status and recent activities
 - **Thesis Details**: View thesis description, requirements, and supervisor information
 - **Progress Tracking**: Submit updates and track thesis milestones
@@ -60,6 +61,7 @@ SuperviseMe includes comprehensive notification systems to keep users informed a
 ### 🔔 Telegram Notifications
 
 Real-time notifications delivered directly to your Telegram account:
+
 - **Instant Delivery**: Immediate notifications for urgent activities
 - **Customizable Types**: Choose which notifications to receive via Telegram
 - **Rich Formatting**: Formatted messages with emojis and action links
@@ -71,6 +73,7 @@ See [Telegram Setup](telegram_setup.md) for detailed instructions.
 ### 📧 Weekly Email System
 
 Automated weekly email reports for supervisors:
+
 - **Automated Schedule**: Weekly reports sent every Monday morning at 9:00 AM
 - **Activity Summary**: Detailed summary of all supervised students' weekly activities
 - **Inactive Student Alerts**: Highlighting of students inactive for more than 2 weeks
@@ -79,6 +82,7 @@ Automated weekly email reports for supervisors:
 ## 🏗️ Technical Architecture
 
 ### Backend Framework
+
 - **Flask**: Lightweight and flexible Python web framework
 - **Flask-SQLAlchemy**: ORM for database operations
 - **Flask-Login**: User session management and authentication
@@ -88,6 +92,7 @@ Automated weekly email reports for supervisors:
 - **Authlib**: OAuth integration for social logins
 
 ### Database Schema
+
 - **Users**: Administrators, supervisors, researchers, and students with role-based permissions
 - **Theses**: Thesis information, descriptions, and metadata
 - **Thesis-Supervisor Relationships**: Many-to-many relationships
@@ -97,6 +102,7 @@ Automated weekly email reports for supervisors:
 - **Activity Tracking**: User activity monitoring with timestamps and location tracking
 
 ### Frontend Technologies
+
 - **HTML5/CSS3**: Modern, semantic markup and responsive styling
 - **Bootstrap**: Responsive grid system and UI components
 - **JavaScript**: Interactive features and AJAX functionality
