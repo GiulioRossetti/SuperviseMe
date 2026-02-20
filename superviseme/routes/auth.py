@@ -221,6 +221,8 @@ def orcid_callback():
             user_type="student", # Default to student
             joined_on=int(time.time()),
             orcid_id=orcid_id,
+            orcid_access_token=token.get('access_token'),
+            orcid_refresh_token=token.get('refresh_token'),
             is_enabled=False # Disabled by default
         )
         db.session.add(new_user)
@@ -229,6 +231,12 @@ def orcid_callback():
         return redirect(url_for("auth.login"))
 
     else:
+        # Update tokens on login
+        user.orcid_access_token = token.get('access_token')
+        if token.get('refresh_token'):
+            user.orcid_refresh_token = token.get('refresh_token')
+        db.session.commit()
+
         # Check if enabled
         if not user.is_enabled:
             log_login_attempt(user.username, False, request.remote_addr, details="User disabled (ORCID Login)")

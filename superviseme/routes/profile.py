@@ -1,10 +1,13 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from superviseme.models import User_mgmt, Thesis, Thesis_Supervisor
+from superviseme.models import User_mgmt, Thesis, Thesis_Supervisor, OrcidActivity
 from superviseme import db
 import datetime
 import json
+from flask import make_response
+from superviseme.utils.orcid_client import fetch_orcid_activities
+from superviseme.utils.bibtex_generator import generate_bibtex
 
 profile = Blueprint("profile", __name__)
 
@@ -25,10 +28,14 @@ def profile_page():
         supervised_rels = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
         supervised_theses = [Thesis.query.get(rel.thesis_id) for rel in supervised_rels if Thesis.query.get(rel.thesis_id)]
     
+    # Get ORCID activities
+    orcid_activities = OrcidActivity.query.filter_by(user_id=current_user.id).order_by(OrcidActivity.publication_date.desc()).all()
+
     return render_template("/profile.html",
                          user=current_user,
                          authored_theses=authored_theses,
                          supervised_theses=supervised_theses,
+                         orcid_activities=orcid_activities,
                          datetime=datetime.datetime)
 
 
@@ -91,6 +98,60 @@ def change_password():
     
     flash("Password changed successfully", "success")
     return redirect(url_for("profile.profile_page"))
+
+
+@profile.route("/profile/orcid/sync", methods=["POST"])
+@login_required
+def sync_orcid():
+    """
+    Sync activities from ORCID.
+    """
+    if not current_user.orcid_id:
+        flash("Please link your ORCID account first.", "error")
+        return redirect(url_for("profile.profile_page"))
+
+    result = fetch_orcid_activities(current_user)
+
+    if result["success"]:
+        flash(result["message"], "success")
+    else:
+        flash(result["message"], "error")
+
+    return redirect(url_for("profile.profile_page"))
+
+
+@profile.route("/profile/orcid/export", methods=["POST"])
+@login_required
+def export_orcid_bibtex():
+    """
+    Export ORCID activities to BibTeX.
+    """
+    selected_ids = request.form.getlist("selected_activities")
+
+    if request.form.get("export_type") == "all":
+         activities = OrcidActivity.query.filter_by(user_id=current_user.id).order_by(OrcidActivity.publication_date.desc()).all()
+    elif selected_ids:
+        try:
+            ids = [int(x) for x in selected_ids]
+            activities = OrcidActivity.query.filter(OrcidActivity.id.in_(ids), OrcidActivity.user_id == current_user.id).all()
+        except ValueError:
+            flash("Invalid selection.", "error")
+            return redirect(url_for("profile.profile_page"))
+    else:
+        flash("Please select items to export.", "warning")
+        return redirect(url_for("profile.profile_page"))
+
+    if not activities:
+        flash("No publications to export.", "warning")
+        return redirect(url_for("profile.profile_page"))
+
+    bibtex_str = generate_bibtex(activities)
+
+    response = make_response(bibtex_str)
+    response.headers["Content-Disposition"] = "attachment; filename=publications.bib"
+    response.headers["Content-Type"] = "text/plain"
+
+    return response
 
 
 # Telegram Notification Configuration Routes
