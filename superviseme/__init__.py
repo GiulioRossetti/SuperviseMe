@@ -54,7 +54,7 @@ def _configure_secret_key(app):
         )
 
     if not secret_key:
-        secret_key = "dev-only-insecure-key"
+        raise RuntimeError("SECRET_KEY environment variable is not set")
     app.config["SECRET_KEY"] = secret_key
 
 
@@ -340,13 +340,30 @@ def create_app(db_type="sqlite", skip_user_init=False):
         base_url = f"/{user_type}/" if user_type else "/"
         return format_text_with_todo_links(text, base_url)
     
+    def _sanitize_html(html):
+        import bleach
+        # Allow standard markdown tags plus those used in todo references
+        allowed_tags = [
+            'a', 'abbr', 'acronym', 'b', 'blockquote', 'code', 'em', 'i', 'li', 'ol',
+            'strong', 'ul', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'pre', 'br',
+            'hr', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span'
+        ]
+
+        allowed_attrs = {
+            '*': ['class'],
+            'a': ['href', 'title'],
+            'img': ['src', 'alt', 'title'],
+        }
+        return bleach.clean(html, tags=allowed_tags, attributes=allowed_attrs, strip=True)
+
     @app.template_filter('markdown')
     def markdown_filter(text):
         """Convert markdown text to HTML"""
         if not text:
             return ""
         import markdown
-        return markdown.markdown(text, extensions=['nl2br', 'fenced_code'])
+        html = markdown.markdown(text, extensions=['nl2br', 'fenced_code'])
+        return _sanitize_html(html)
     
     @app.template_filter('markdown_with_todos')
     def markdown_with_todos_filter(text, user_type='supervisor'):
@@ -354,12 +371,21 @@ def create_app(db_type="sqlite", skip_user_init=False):
         if not text:
             return ""
         import markdown
+
         # First convert markdown to HTML
         html = markdown.markdown(text, extensions=['nl2br', 'fenced_code'])
+
+        # Sanitize HTML
+        clean_html = _sanitize_html(html)
+
         # Then process todo links
         from superviseme.utils.todo_parser import format_text_with_todo_links
         base_url = f"/{user_type}/" if user_type else "/"
-        return format_text_with_todo_links(html, base_url)
+        return format_text_with_todo_links(clean_html, base_url)
+
+    if db_type == "postgresql" and app.config.get("POSTGRES_DB_CREATED"):
+        with app.app_context():
+            db.create_all()
 
     # Register template globals
     @app.template_global()
@@ -387,9 +413,5 @@ def create_app(db_type="sqlite", skip_user_init=False):
                 return self.dt.strftime(python_format)
         
         return MomentWrapper(datetime.now())
-
-    if db_type == "postgresql" and app.config.get("POSTGRES_DB_CREATED"):
-        with app.app_context():
-            db.create_all()
 
     return app

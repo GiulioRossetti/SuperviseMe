@@ -6,6 +6,7 @@ from superviseme.models import User_mgmt
 from superviseme import db, oauth
 from superviseme.utils.logging_config import log_login_attempt, log_logout, log_privilege_escalation_attempt
 import time
+import os
 
 auth = Blueprint("auth", __name__)
 
@@ -24,7 +25,9 @@ def health():
 
 @auth.route("/login")
 def login():
-    return render_template("/login.html")
+    google_enabled = bool(os.getenv("GOOGLE_CLIENT_ID"))
+    orcid_enabled = bool(os.getenv("ORCID_CLIENT_ID"))
+    return render_template("/login.html", google_enabled=google_enabled, orcid_enabled=orcid_enabled)
 
 
 @auth.route("/login", methods=["POST"])

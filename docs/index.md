@@ -1,113 +1,49 @@
 # SuperviseMe
 
-SuperviseMe is a comprehensive web application for thesis supervision and research project management in academic environments. It streamlines the process of thesis supervision by providing dedicated dashboards for administrators, supervisors, researchers, and students, along with robust user management and project tracking capabilities.
+<p align="center">
+  <img src="assets/img/superviseme.png" alt="SuperviseMe Logo" width="300"/>
+</p>
 
-## 🎯 Project Overview
+Welcome to **SuperviseMe**, a comprehensive platform designed to streamline thesis supervision and research project management within academic institutions. By providing dedicated environments for administrators, supervisors, researchers, and students, SuperviseMe fosters collaboration and simplifies the complexities of academic research management.
 
-SuperviseMe is a Flask-based web application designed to facilitate thesis supervision and research collaboration in universities and academic institutions. The platform provides role-based access control with distinct interfaces for administrators, supervisors, researchers, and students, each tailored to their specific needs and responsibilities.
+## Project Overview
 
-## ✨ Key Features
+In the dynamic world of academia, managing thesis supervision and research projects can be a daunting task. SuperviseMe addresses this challenge by offering a centralized, Flask-based web application that caters to the distinct needs of all stakeholders. Whether you are an administrator overseeing the entire system, a supervisor guiding students, a researcher collaborating on projects, or a student working on your thesis, SuperviseMe provides the tools you need to succeed.
 
-### 🔐 Authentication & Authorization
-- **Secure Login System**: Email-based authentication with password hashing using PBKDF2-SHA256
-- **Role-Based Access Control**: Separate dashboards and permissions for admins, supervisors, researchers, and students
-- **Session Management**: Secure session handling with remember-me functionality
-- **Logout Protection**: Proper session cleanup and redirect handling
-- **Social Login**: Support for Google and ORCID login
+## Key Features
 
-### 👨‍💼 Administrator Features
-- **User Management**: Complete CRUD operations for all user types
-- **System Dashboard**: Real-time statistics showing user counts and thesis distribution
-- **Thesis Overview**: Comprehensive view of all assigned and available theses
-- **Research Project Monitoring**: Overview of research projects and collaborations
-- **Supervisor Role Management**: Grant and revoke supervisor privileges to researchers
-- **Email Notification Management**: Configure and manage weekly supervisor email reports
-- **Activity Monitoring**: Track user activity across the platform
-- **Scheduler Management**: Monitor and control background task scheduling
-- **Email Testing**: Preview and test weekly notification emails before sending
-- **Data Export**: JSON and CSV export capabilities for system data
-- **System Health Monitoring**: Built-in health checks and system diagnostics
+### Secure and Flexible Authentication
 
-### 🔬 Researcher Features
-- **Research Project Management**: Create, update, and delete research projects
-- **Collaboration System**: Invite other researchers as collaborators with different roles
-- **Project Dashboard**: Overview of personal research projects and statistics
-- **Dual Role Support**: Access supervisor functions when granted supervisor privileges
-- **Collaborative Workspace**: Share projects with team members and manage permissions
-- **Progress Tracking**: Monitor research project milestones and activities
+Security is paramount in SuperviseMe. We employ a robust email-based authentication system secured with PBKDF2-SHA256 password hashing. Recognizing the diversity of user preferences, we also support seamless social login integration with Google and ORCID, ensuring that access to your dashboard is both secure and convenient. Our role-based access control system ensures that every user—from administrators to students—sees exactly what they need to see, with appropriate permissions for their specific responsibilities.
 
-### 👨‍🏫 Supervisor Features
-- **Student Management**: View and manage supervised students with activity tracking
-- **Thesis Supervision**: Track thesis progress and provide feedback
-- **Resource Sharing**: Upload and manage thesis-related resources
-- **Progress Monitoring**: Track student updates and milestones
-- **Weekly Email Reports**: Automatic Monday morning activity summaries for all supervised students
-- **Activity Status Indicators**: Visual indicators for active/inactive students
-- **Inactive Student Alerts**: Clear highlighting of students inactive for more than 2 weeks
-- **Profile Management**: Update personal information and preferences
+### Empowering Administrators
 
-### 👨‍🎓 Student Features
+Administrators are the backbone of the SuperviseMe ecosystem. The platform equips them with a powerful dashboard to manage users, monitor system health, and oversee the distribution of theses. With tools for detailed activity monitoring, email notification configuration, and system-wide data export, administrators maintain full control over the platform's operation.
 
-- **Personal Dashboard**: Overview of thesis status and recent activities
-- **Thesis Details**: View thesis description, requirements, and supervisor information
-- **Progress Tracking**: Submit updates and track thesis milestones
-- **Resource Access**: Download supervisor-provided resources and materials
-- **Profile Management**: Update personal information and account settings
+### Supporting Supervisors
 
-## 📧 Notification System
+SuperviseMe transforms the supervision experience. Supervisors can easily track student progress, provide timely feedback, and share essential resources. The automated weekly email reports ensure that supervisors start their week with a clear summary of their students' activities, while visual indicators help identify students who may need extra support or engagement.
 
-SuperviseMe includes comprehensive notification systems to keep users informed about thesis activities and important updates.
+### Facilitating Research
 
-### 🔔 Telegram Notifications
+For researchers, SuperviseMe offers a collaborative workspace to manage projects and teams. Researchers can create projects, invite collaborators, and track milestones with ease. The platform supports dual roles, allowing researchers to also act as supervisors when needed, bridging the gap between personal research and academic mentorship.
 
-Real-time notifications delivered directly to your Telegram account:
+### Guiding Students
 
-- **Instant Delivery**: Immediate notifications for urgent activities
-- **Customizable Types**: Choose which notifications to receive via Telegram
-- **Rich Formatting**: Formatted messages with emojis and action links
-- **Secure Setup**: Verified user identification prevents impersonation
-- **Multi-Channel**: Works alongside email notifications
+Students benefit from a clear, organized dashboard that keeps their thesis journey on track. From viewing thesis requirements to submitting progress updates and accessing supervisor-provided materials, students have a central hub for all their academic responsibilities.
 
-See [Telegram Setup](telegram_setup.md) for detailed instructions.
+## Notification System
 
-### 📧 Weekly Email System
+Communication is key to successful supervision. SuperviseMe integrates a multi-channel notification system to keep everyone in the loop.
 
-Automated weekly email reports for supervisors:
+**Telegram Integration**: For urgent updates and real-time alerts, users can connect their Telegram accounts to receive instant notifications directly to their devices.
 
-- **Automated Schedule**: Weekly reports sent every Monday morning at 9:00 AM
-- **Activity Summary**: Detailed summary of all supervised students' weekly activities
-- **Inactive Student Alerts**: Highlighting of students inactive for more than 2 weeks
-- **Professional Templates**: Clean, easy-to-read email format with structured information
+**Weekly Insights**: Our automated email system delivers professional, structured reports every Monday morning, providing supervisors with a digest of student activities and highlighting any areas that require attention.
 
-## 🏗️ Technical Architecture
+## Technical Architecture
 
-### Backend Framework
+Built on a solid foundation of modern technologies, SuperviseMe leverages the power of **Flask** for a flexible backend, **SQLAlchemy** for robust database management, and **Bootstrap** for a responsive, user-friendly frontend. The system is designed for reliability and scalability, utilizing **Celery** or **APScheduler** for background tasks and supporting both SQLite and PostgreSQL databases to suit different deployment needs.
 
-- **Flask**: Lightweight and flexible Python web framework
-- **Flask-SQLAlchemy**: ORM for database operations
-- **Flask-Login**: User session management and authentication
-- **Flask-Mail**: Email functionality for weekly notifications
-- **APScheduler**: Background task scheduling for automated emails
-- **Werkzeug**: Password hashing and security utilities
-- **Authlib**: OAuth integration for social logins
+## License
 
-### Database Schema
-
-- **Users**: Administrators, supervisors, researchers, and students with role-based permissions
-- **Theses**: Thesis information, descriptions, and metadata
-- **Thesis-Supervisor Relationships**: Many-to-many relationships
-- **Thesis Status**: Current status tracking (Active, Completed, etc.)
-- **Research Projects**: Research project information
-- **Research Collaborations**: Many-to-many relationships between research projects and researchers
-- **Activity Tracking**: User activity monitoring with timestamps and location tracking
-
-### Frontend Technologies
-
-- **HTML5/CSS3**: Modern, semantic markup and responsive styling
-- **Bootstrap**: Responsive grid system and UI components
-- **JavaScript**: Interactive features and AJAX functionality
-- **Font Awesome**: Icon system for intuitive navigation
-
-## 📄 License
-
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](https://github.com/GiulioRossetti/SuperviseMe/blob/main/LICENSE) file for details.
+SuperviseMe is open-source software licensed under the [GNU General Public License v3.0](https://github.com/GiulioRossetti/SuperviseMe/blob/main/LICENSE).
