@@ -151,3 +151,64 @@ def test_format_text_invalid_todo():
         formatted = format_text_with_todo_links(text)
         assert '<span class="todo-reference-invalid' in formatted
         assert '@todo:999</span>' in formatted
+
+def test_format_text_empty():
+    """Test empty text handling"""
+    assert format_text_with_todo_links(None) is None
+    assert format_text_with_todo_links("") == ""
+
+def test_format_text_custom_base_url():
+    """Test custom base URL"""
+    mock_todo = MagicMock()
+    mock_todo.id = 1
+    mock_todo.title = "Test Todo"
+
+    with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
+        MockTodo.query.get.return_value = mock_todo
+
+        text = "Check @todo:1"
+        formatted = format_text_with_todo_links(text, base_url="/student/")
+        assert '<a href="/student/todo/1"' in formatted
+
+def test_format_text_exception_handling():
+    """Test exception handling during replacement"""
+    with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
+        # Mock get to raise exception
+        MockTodo.query.get.side_effect = Exception("Database error")
+
+        text = "Check @todo:1 and #todo-2"
+        # Should return original text despite exception
+        assert format_text_with_todo_links(text) == text
+
+def test_format_text_invalid_hash_todo():
+    """Test invalid #todo-ID format"""
+    with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
+        MockTodo.query.get.return_value = None
+
+        text = "Check #todo-999"
+        formatted = format_text_with_todo_links(text)
+        assert '<span class="todo-reference-invalid' in formatted
+        assert '#todo-999</span>' in formatted
+
+def test_format_text_mixed_content():
+    """Test mixed valid and invalid todos"""
+    mock_todo = MagicMock()
+    mock_todo.id = 1
+    mock_todo.title = "Valid Todo"
+
+    with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
+        def side_effect(todo_id):
+            if todo_id == 1:
+                return mock_todo
+            return None
+
+        MockTodo.query.get.side_effect = side_effect
+
+        text = "Review @todo:1 and @todo:999"
+        formatted = format_text_with_todo_links(text)
+
+        # Valid one should be a link
+        assert '<a href="/supervisor/todo/1"' in formatted
+        # Invalid one should be a span
+        assert '<span class="todo-reference-invalid' in formatted
+        assert '@todo:999</span>' in formatted

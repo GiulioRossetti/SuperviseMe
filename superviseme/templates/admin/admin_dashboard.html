@@ -172,8 +172,8 @@
                                         </thead>
 
                                         <tbody>
-                                        {% for l, theses in available_theses.items() %}
-                                            {% for t in theses %}
+                                        {% for l in supervisors %}
+                                            {% for t in available_theses %}
                                             <tr>
                                                 <td>{{ l.name }} {{ l.surname }}</td>
                                                 <td>{{ t['thesis'].title }}</td>
