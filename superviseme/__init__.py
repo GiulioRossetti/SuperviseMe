@@ -361,6 +361,10 @@ def create_app(db_type="sqlite", skip_user_init=False):
         base_url = f"/{user_type}/" if user_type else "/"
         return format_text_with_todo_links(html, base_url)
 
+    if db_type == "postgresql" and app.config.get("POSTGRES_DB_CREATED"):
+        with app.app_context():
+            db.create_all()
+
     # Register template globals
     @app.template_global()
     def moment():
@@ -387,9 +391,5 @@ def create_app(db_type="sqlite", skip_user_init=False):
                 return self.dt.strftime(python_format)
         
         return MomentWrapper(datetime.now())
-
-    if db_type == "postgresql" and app.config.get("POSTGRES_DB_CREATED"):
-        with app.app_context():
-            db.create_all()
 
     return app
