@@ -19,7 +19,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash
 
 # Add the parent directory to the path so we can import our modules
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from superviseme import create_app, db
 from superviseme.models import *  # Import all models

@@ -16,7 +16,7 @@ import argparse
 from datetime import datetime
 
 # Add the parent directory to the path so we can import our modules
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
 def get_table_info(db_path):

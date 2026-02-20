@@ -20,13 +20,13 @@ def run_command(cmd, cwd=None):
 
 def main():
     # Get the repository root
-    repo_root = "/home/runner/work/SuperviseMe/SuperviseMe"
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     
     print("Fixing database structure...")
     
     # Run seed_database.py to recreate complete database
     print("1. Running seed_database.py to recreate complete database...")
-    if not run_command("python seed_database.py", cwd=repo_root):
+    if not run_command("python scripts/seed_database.py", cwd=repo_root):
         print("Failed to run seed_database.py")
         return False
     

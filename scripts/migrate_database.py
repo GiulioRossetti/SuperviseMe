@@ -10,7 +10,7 @@ def migrate_database():
     Add new columns for activity tracking to existing database
     """
     # Get database path
-    db_path = os.path.join(os.path.dirname(__file__), 'superviseme', 'db', 'dashboard.db')
+    db_path = os.path.join(os.path.dirname(__file__), '..', 'superviseme', 'db', 'dashboard.db')
     
     if not os.path.exists(db_path):
         print(f"Database not found at {db_path}")

@@ -23,7 +23,7 @@ def get_db_engine():
     else:
         # SQLite local development
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        db_path = os.path.join(base_dir, "superviseme", "db", "dashboard.db")
+        db_path = os.path.join(base_dir, "..", "superviseme", "db", "dashboard.db")
         return create_engine(f"sqlite:///{db_path}")
 
 def migrate_database():

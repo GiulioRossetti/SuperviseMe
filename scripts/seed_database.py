@@ -4,6 +4,11 @@ Database seeding script for SuperviseMe application.
 Creates sample data for testing: admin, supervisors, students, and theses.
 """
 import os
+import sys
+
+# Add parent directory to path to import superviseme
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from superviseme import create_app, db
 from superviseme.models import User_mgmt, Thesis, Thesis_Status, Thesis_Supervisor, Thesis_Tag
 from werkzeug.security import generate_password_hash
