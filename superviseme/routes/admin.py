@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import select, and_, or_
@@ -81,16 +79,11 @@ def dashboard():
     }
 
     # for each supervisor get the list of available theses not assigned to students
-    available_theses_by_supervisor = defaultdict(list)
-    available_theses = Thesis.query.filter(Thesis.author_id.is_(None)).all()
-    for supervisor in supervisors:
-        available_theses_by_supervisor[supervisor].extend(
-            [{"thesis": thesis} for thesis in available_theses]
-        )
+    available_theses = [{"thesis": thesis} for thesis in Thesis.query.filter(Thesis.author_id.is_(None)).all()]
 
     return render_template("/admin/admin_dashboard.html", current_user=current_user,
                            user_counts=user_counts, thesis_counts=thesis_counts,
-                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses_by_supervisor, datetime=datetime, dt=datetime.datetime.fromtimestamp, str=str)
+                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses, supervisors=supervisors, datetime=datetime, dt=datetime.datetime.fromtimestamp, str=str)
 
 
 @admin.route("/admin/users")
@@ -301,8 +294,11 @@ def user_detail(user_id):
     # Get theses supervised by this user (if supervisor)
     supervised_theses = []
     if user.user_type == "supervisor":
-        supervised_rels = Thesis_Supervisor.query.filter_by(supervisor_id=user_id).all()
-        supervised_theses = [Thesis.query.get(rel.thesis_id) for rel in supervised_rels]
+        supervised_theses = (
+            Thesis.query.join(Thesis_Supervisor)
+            .filter(Thesis_Supervisor.supervisor_id == user_id)
+            .all()
+        )
     
     return render_template("/admin/user_detail.html",
                          current_user=current_user,
@@ -707,8 +703,9 @@ def thesis_detail(thesis_id):
     
     thesis = Thesis.query.get_or_404(thesis_id)
     author = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
-    supervisors_rel = Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).all()
-    supervisors = [User_mgmt.query.get(rel.supervisor_id) for rel in supervisors_rel]
+    # Fix N+1 query: Fetch supervisors in a single query
+    supervisors = User_mgmt.query.join(Thesis_Supervisor, Thesis_Supervisor.supervisor_id == User_mgmt.id)\
+        .filter(Thesis_Supervisor.thesis_id == thesis_id).all()
     status_history = Thesis_Status.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Status.updated_at.desc()).all()
     tags = Thesis_Tag.query.filter_by(thesis_id=thesis_id).all()
     updates = Thesis_Update.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Update.created_at.desc()).all()

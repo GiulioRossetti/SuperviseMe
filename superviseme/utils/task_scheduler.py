@@ -34,15 +34,6 @@ def init_scheduler(app):
             replace_existing=True
         )
         
-        # Schedule a daily cleanup job (optional - for maintenance)
-        scheduler.add_job(
-            func=daily_maintenance,
-            trigger=CronTrigger(hour=2, minute=0),  # Run at 2 AM daily
-            id='daily_maintenance',
-            name='Daily maintenance tasks',
-            replace_existing=True
-        )
-        
         # Store app context for use in scheduled jobs
         scheduler._app_context = app
         
@@ -71,21 +62,6 @@ def scheduled_weekly_reports():
                 logger.error(f"Error in scheduled weekly reports: {str(e)}")
     else:
         logger.error("App context not available for scheduled job")
-
-
-def daily_maintenance():
-    """
-    Daily maintenance tasks (placeholder for future enhancements)
-    """
-    if scheduler and hasattr(scheduler, '_app_context'):
-        with scheduler._app_context.app_context():
-            try:
-                logger.info("Running daily maintenance tasks")
-                # Add any daily maintenance tasks here in the future
-                # For example: cleaning old logs, updating statistics, etc.
-                
-            except Exception as e:
-                logger.error(f"Error in daily maintenance: {str(e)}")
 
 
 def shutdown_scheduler():

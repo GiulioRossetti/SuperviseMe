@@ -23,11 +23,13 @@ theme:
 
 nav:
   - Home: index.md
-  - Configuration: configuration.md
-  - Social Logins: social_login.md
-  - Telegram Setup: telegram_setup.md
-  - Docker Deployment: docker_deployment.md
-  - Deployment Runbook: deployment_runbook.md
+  - Setup:
+    - Configuration: configuration.md
+    - Social Logins: social_login.md
+    - Telegram Setup: telegram_setup.md
+  - Deployment:
+    - Docker: docker_deployment.md
+    - Runbook: deployment_runbook.md
 
 plugins:
   - search
