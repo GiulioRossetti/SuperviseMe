@@ -23,19 +23,20 @@ def upgrade():
     inspector = Inspector.from_engine(bind)
     columns = [c['name'] for c in inspector.get_columns('user_mgmt')]
 
-    if 'google_id' not in columns:
-        op.add_column('user_mgmt', sa.Column('google_id', sa.String(length=100), nullable=True))
-        op.create_unique_constraint(op.f('uq_user_mgmt_google_id'), 'user_mgmt', ['google_id'])
+    with op.batch_alter_table('user_mgmt', schema=None) as batch_op:
+        if 'google_id' not in columns:
+            batch_op.add_column(sa.Column('google_id', sa.String(length=100), nullable=True))
+            batch_op.create_unique_constraint(batch_op.f('uq_user_mgmt_google_id'), ['google_id'])
 
-    if 'orcid_id' not in columns:
-        op.add_column('user_mgmt', sa.Column('orcid_id', sa.String(length=20), nullable=True))
-        op.create_unique_constraint(op.f('uq_user_mgmt_orcid_id'), 'user_mgmt', ['orcid_id'])
+        if 'orcid_id' not in columns:
+            batch_op.add_column(sa.Column('orcid_id', sa.String(length=20), nullable=True))
+            batch_op.create_unique_constraint(batch_op.f('uq_user_mgmt_orcid_id'), ['orcid_id'])
 
-    if 'orcid_access_token' not in columns:
-        op.add_column('user_mgmt', sa.Column('orcid_access_token', sa.String(length=255), nullable=True))
+        if 'orcid_access_token' not in columns:
+            batch_op.add_column(sa.Column('orcid_access_token', sa.String(length=255), nullable=True))
 
-    if 'orcid_refresh_token' not in columns:
-        op.add_column('user_mgmt', sa.Column('orcid_refresh_token', sa.String(length=255), nullable=True))
+        if 'orcid_refresh_token' not in columns:
+            batch_op.add_column(sa.Column('orcid_refresh_token', sa.String(length=255), nullable=True))
 
     # Create OrcidActivity table
     tables = inspector.get_table_names()
@@ -59,18 +60,22 @@ def upgrade():
 
 def downgrade():
     op.drop_table('orcid_activity')
-    op.drop_column('user_mgmt', 'orcid_refresh_token')
-    op.drop_column('user_mgmt', 'orcid_access_token')
 
     # Only drop if they exist to avoid errors on downgrade
     bind = op.get_bind()
     inspector = Inspector.from_engine(bind)
     columns = [c['name'] for c in inspector.get_columns('user_mgmt')]
 
-    if 'orcid_id' in columns:
-        op.drop_constraint(op.f('uq_user_mgmt_orcid_id'), 'user_mgmt', type_='unique')
-        op.drop_column('user_mgmt', 'orcid_id')
+    with op.batch_alter_table('user_mgmt', schema=None) as batch_op:
+        if 'orcid_refresh_token' in columns:
+            batch_op.drop_column('orcid_refresh_token')
+        if 'orcid_access_token' in columns:
+            batch_op.drop_column('orcid_access_token')
 
-    if 'google_id' in columns:
-        op.drop_constraint(op.f('uq_user_mgmt_google_id'), 'user_mgmt', type_='unique')
-        op.drop_column('user_mgmt', 'google_id')
+        if 'orcid_id' in columns:
+            batch_op.drop_constraint(batch_op.f('uq_user_mgmt_orcid_id'), type_='unique')
+            batch_op.drop_column('orcid_id')
+
+        if 'google_id' in columns:
+            batch_op.drop_constraint(batch_op.f('uq_user_mgmt_google_id'), type_='unique')
+            batch_op.drop_column('google_id')

@@ -30,6 +30,8 @@ def upgrade():
         sa.Column('joined_on', sa.Integer(), nullable=False),
         sa.Column('gender', sa.String(length=10), nullable=True),
         sa.Column('nationality', sa.String(length=15), nullable=True),
+        sa.Column('is_enabled', sa.Boolean(), nullable=False),
+        sa.Column('profile_pic', sa.String(length=255), nullable=True),
         sa.Column('last_activity', sa.Integer(), nullable=True),
         sa.Column('last_activity_location', sa.String(length=100), nullable=True),
         sa.Column('telegram_user_id', sa.String(length=50), nullable=True),
