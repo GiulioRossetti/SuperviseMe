@@ -294,8 +294,11 @@ def user_detail(user_id):
     # Get theses supervised by this user (if supervisor)
     supervised_theses = []
     if user.user_type == "supervisor":
-        supervised_rels = Thesis_Supervisor.query.filter_by(supervisor_id=user_id).all()
-        supervised_theses = [Thesis.query.get(rel.thesis_id) for rel in supervised_rels]
+        supervised_theses = (
+            Thesis.query.join(Thesis_Supervisor)
+            .filter(Thesis_Supervisor.supervisor_id == user_id)
+            .all()
+        )
     
     return render_template("/admin/user_detail.html",
                          current_user=current_user,
