@@ -25,11 +25,20 @@ nav:
   - Home: index.md
   - Setup:
     - Configuration: configuration.md
+    - Database: database_setup.md
     - Social Logins: social_login.md
     - Telegram Setup: telegram_setup.md
+    - Telegram (Detailed): telegram_setup_detailed.md
   - Deployment:
     - Docker: docker_deployment.md
+    - Docker (Detailed): docker_readme.md
     - Runbook: deployment_runbook.md
+    - Runbook (Detailed): deployment_runbook_detailed.md
+    - Readiness Report: deployment_readiness_report.md
+  - Reference:
+    - Dropdown Verification: dropdown_verification.md
+    - Implementation Summary: implementation_summary.md
+    - UI Changes: ui_changes.md
 
 plugins:
   - search

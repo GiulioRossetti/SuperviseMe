@@ -76,7 +76,7 @@ Real-time notifications delivered directly to your Telegram account:
 - ⏰ Deadline reminders
 - 📈 Weekly activity summaries
 
-See [TELEGRAM_SETUP.md](TELEGRAM_SETUP.md) for detailed setup instructions.
+See [docs/telegram_setup_detailed.md](docs/telegram_setup_detailed.md) for detailed setup instructions.
 
 ### 📧 Weekly Email System
 
@@ -152,19 +152,19 @@ export SEED_DEFAULT_PASSWORD=change-me-seed
 
 4. **Initialize the database with sample data**
 ```bash
-python seed_database.py
+python scripts/seed_database.py
 ```
 
 5. **Run database migrations (for existing installations)**
 ```bash
 # If upgrading from a previous version, run migrations to add new features
-python migrate_database.py      # For activity tracking
-python migrate_telegram.py      # For Telegram notifications (NEW!)
-python migrate_researcher.py    # For researcher role and research projects (NEW!)
+python scripts/migrate_database.py      # For activity tracking
+python scripts/migrate_telegram.py      # For Telegram notifications (NEW!)
+python scripts/migrate_researcher.py    # For researcher role and research projects (NEW!)
 ```
 
 6. **Configure Telegram notifications (optional)**
-   - See [TELEGRAM_SETUP.md](TELEGRAM_SETUP.md) for detailed setup instructions
+   - See [docs/telegram_setup_detailed.md](docs/telegram_setup_detailed.md) for detailed setup instructions
    - Create a Telegram bot via @BotFather
    - Configure bot settings in the admin panel
 
@@ -246,7 +246,7 @@ Development features:
 - Volume: `app_data`
 - Purpose: Persistent storage for SQLite fallback and file uploads
 
-For detailed Docker setup instructions, see [DOCKER_README.md](DOCKER_README.md).
+For detailed Docker setup instructions, see [docs/docker_readme.md](docs/docker_readme.md).
 
 ### Advanced Configuration
 
@@ -374,7 +374,7 @@ The login page features a clean, modern design with:
 - Clear error messaging for failed login attempts
 
 ### 👨‍💼 Administrator Dashboard
-![Admin Dashboard with Researchers](admin-dashboard-with-researchers.png)
+![Admin Dashboard with Researchers](docs/assets/images/admin-dashboard-with-researchers.png)
 
 The administrator dashboard provides:
 - **System Statistics**: Real-time counts of admins, supervisors, researchers, students, and theses
@@ -383,7 +383,7 @@ The administrator dashboard provides:
 - **Navigation Menu**: Quick access to user management, thesis management, and system tools
 
 ### 👨‍💼 Administrator User Management
-![Admin Users with Researchers](admin-users-with-researchers.png)
+![Admin Users with Researchers](docs/assets/images/admin-users-with-researchers.png)
 
 The user management interface shows:
 - **Complete User List**: All users across different roles including researchers
@@ -475,7 +475,7 @@ Secure logout implementation:
 ### Database Management
 ```bash
 # Initialize fresh database with all sample data (including researchers)
-python seed_database.py
+python scripts/seed_database.py
 
 # The seed script will:
 # - Clear existing data
@@ -499,9 +499,9 @@ make smoke
 For existing installations, run these migration scripts in order:
 ```bash
 # Core system migrations
-python migrate_database.py      # For activity tracking
-python migrate_telegram.py      # For Telegram notifications
-python migrate_researcher.py    # For researcher role and research projects (NEW!)
+python scripts/migrate_database.py      # For activity tracking
+python scripts/migrate_telegram.py      # For Telegram notifications
+python scripts/migrate_researcher.py    # For researcher role and research projects (NEW!)
 
 # The researcher migration will:
 # - Add researcher user accounts
@@ -551,7 +551,7 @@ export MAIL_DEFAULT_SENDER=your-email@gmail.com
 ### Deployment Operations
 - Use `ENABLE_SCHEDULER=true` in exactly one scheduler worker/service only.
 - Keep all web replicas on `ENABLE_SCHEDULER=false`.
-- Follow the full operational checklist in `/DEPLOYMENT_RUNBOOK.md`.
+- Follow the full operational checklist in `docs/deployment_runbook_detailed.md`.
 
 ### CI Quality Gates
 CI runs on push and pull request with:
@@ -591,12 +591,13 @@ SuperviseMe/
 │   │   └── assets/             # Bootstrap and custom assets
 │   └── utils/                  # Utility functions and helpers
 ├── data_schema/                # Database schema and initialization
-├── seed_database.py            # Sample data generation script (enhanced with researchers)
 ├── scripts/
-│   └── check_schema_alignment.py # Schema vs models consistency check
+│   ├── seed_database.py        # Sample data generation script (enhanced with researchers)
+│   ├── check_schema_alignment.py # Schema vs models consistency check
+│   └── migrate_researcher.py   # Migration script for researcher functionality (NEW!)
+├── docs/                       # Documentation and Reference Materials
+│   └── deployment_runbook_detailed.md # Production rollout/rollback/smoke procedures
 ├── Makefile                    # Local CI/smoke command shortcuts
-├── migrate_researcher.py       # Migration script for researcher functionality (NEW!)
-├── DEPLOYMENT_RUNBOOK.md       # Production rollout/rollback/smoke procedures
 ├── superviseme.py              # Application entry point
 ├── requirements.txt            # Python dependencies
 └── README.md                   # This documentation

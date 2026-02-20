@@ -13,10 +13,10 @@ export ENABLE_SCHEDULER
 ci: lint compile schema migrate test
 
 lint:
-	ruff check --select E9,F63,F7,F82 superviseme scripts test_app_functionality.py recreate_database.py seed_database.py
+	ruff check --select E9,F63,F7,F82 superviseme scripts
 
 compile:
-	python -m py_compile superviseme/__init__.py superviseme/routes/*.py superviseme/utils/*.py scripts/check_schema_alignment.py
+	python -m py_compile superviseme/__init__.py superviseme/routes/*.py superviseme/utils/*.py scripts/*.py
 
 schema:
 	python scripts/check_schema_alignment.py --db data_schema/database_dashboard.db --strict
@@ -28,5 +28,4 @@ test:
 	pytest -q
 
 smoke:
-	python test_app_functionality.py
-
+	python scripts/test_app_functionality.py

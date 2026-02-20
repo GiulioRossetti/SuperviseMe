@@ -20,7 +20,7 @@ cd /app
 # Run database seeding
 if [ "${SKIP_DB_SEED}" != "true" ]; then
     echo "Running database seeding..."
-    python seed_database.py
+    python scripts/seed_database.py
 else
     echo "Skipping database seeding (SKIP_DB_SEED=true)"
 fi
