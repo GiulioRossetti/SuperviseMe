@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import select, and_, or_
@@ -81,16 +79,11 @@ def dashboard():
     }
 
     # for each supervisor get the list of available theses not assigned to students
-    available_theses_by_supervisor = defaultdict(list)
-    available_theses = Thesis.query.filter(Thesis.author_id.is_(None)).all()
-    for supervisor in supervisors:
-        available_theses_by_supervisor[supervisor].extend(
-            [{"thesis": thesis} for thesis in available_theses]
-        )
+    available_theses = [{"thesis": thesis} for thesis in Thesis.query.filter(Thesis.author_id.is_(None)).all()]
 
     return render_template("/admin/admin_dashboard.html", current_user=current_user,
                            user_counts=user_counts, thesis_counts=thesis_counts,
-                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses_by_supervisor, datetime=datetime, dt=datetime.datetime.fromtimestamp, str=str)
+                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses, supervisors=supervisors, datetime=datetime, dt=datetime.datetime.fromtimestamp, str=str)
 
 
 @admin.route("/admin/users")
