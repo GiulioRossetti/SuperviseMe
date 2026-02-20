@@ -444,18 +444,22 @@ def supervisor_students():
             def __init__(self, student, thesis):
                 self.student = student
                 self.thesis = thesis
-                # Add activity tracking
-                current_time = int(time.time())
+
+                # Activity tracking
+                # A student is considered inactive if they haven't been active for more than 2 weeks (14 days)
+                cutoff_time = int(time.time()) - (14 * 24 * 60 * 60)
+
+                self.is_inactive = (
+                    student.last_activity is None or
+                    student.last_activity < cutoff_time
+                )
 
                 if student.last_activity:
-                    self.days_inactive = (current_time - student.last_activity) // (24 * 60 * 60)
-                    # Consider inactive if more than 14 days passed since last activity
-                    self.is_inactive = self.days_inactive > 14
-                    self.last_activity_location = student.last_activity_location
+                    self.days_inactive = (int(time.time()) - student.last_activity) // (24 * 60 * 60)
                 else:
-                    self.days_inactive = None
-                    self.is_inactive = True
-                    self.last_activity_location = None
+                    self.days_inactive = "Unknown"
+
+                self.last_activity_location = student.last_activity_location or "Unknown"
         
         return SuperviseeInfo(student, thesis)
     
