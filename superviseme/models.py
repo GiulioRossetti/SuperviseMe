@@ -28,6 +28,10 @@ class User_mgmt(UserMixin, db.Model):
     telegram_enabled = db.Column(db.Boolean, default=False, nullable=False)  # Enable/disable Telegram notifications
     telegram_notification_types = db.Column(db.Text, nullable=True)  # JSON string of enabled notification types
 
+    # ORCID Integration
+    orcid_access_token = db.Column(db.String(255), nullable=True)
+    orcid_refresh_token = db.Column(db.String(255), nullable=True)
+
     thesis = db.relationship("Thesis", backref="author", lazy=True)
 
 
@@ -384,3 +388,19 @@ class ResearchProject_MeetingNoteReference(db.Model):
     
     meeting_note = db.relationship("ResearchProject_MeetingNote", backref="todo_references", lazy=True)
     todo = db.relationship("ResearchProject_Todo", backref="project_meeting_note_references", lazy=True)
+
+
+class OrcidActivity(db.Model):
+    __tablename__ = "orcid_activity"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    title = db.Column(db.String(500), nullable=False)
+    type = db.Column(db.String(50), nullable=False) # e.g. 'journal-article'
+    organization = db.Column(db.String(255), nullable=True) # e.g. University Name
+    publication_date = db.Column(db.String(20), nullable=True) # YYYY or YYYY-MM
+    url = db.Column(db.String(500), nullable=True)
+    external_ids = db.Column(db.Text, nullable=True) # JSON string
+    created_at = db.Column(db.Integer, nullable=False)
+    updated_at = db.Column(db.Integer, nullable=False)
+
+    user = db.relationship("User_mgmt", backref="orcid_activities", lazy=True)

@@ -202,6 +202,173 @@
                                 </div>
                             </div>
 
+                            <!-- ORCID Integration -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fab fa-orcid mr-2"></i>ORCID Publications
+                                    </h6>
+                                    <div class="dropdown no-arrow">
+                                        {% if user.orcid_id %}
+                                            <span class="badge badge-success mr-2">Connected: {{ user.orcid_id }}</span>
+                                        {% else %}
+                                            <span class="badge badge-secondary mr-2">Not Connected</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    {% if user.orcid_id %}
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <form action="/profile/orcid/sync" method="POST" style="display: inline;">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn btn-primary btn-sm">
+                                                        <i class="fas fa-sync"></i> Sync from ORCID
+                                                    </button>
+                                                </form>
+                                            </div>
+                                            <div class="col-md-6 text-right">
+                                                {% if orcid_activities %}
+                                                <div class="btn-group">
+                                                    <button type="button" class="btn btn-success btn-sm" onclick="submitExport('selected')">
+                                                        <i class="fas fa-file-export"></i> Export Selected
+                                                    </button>
+                                                    <button type="button" class="btn btn-secondary btn-sm" onclick="submitExport('all')">
+                                                        Export All
+                                                    </button>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        {% if orcid_activities %}
+                                            <form action="/profile/orcid/export" method="POST" id="orcidExportForm">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <input type="hidden" name="export_type" id="exportType" value="selected">
+
+                                                <ul class="nav nav-tabs mb-3" id="orcidTabs" role="tablist">
+                                                    <li class="nav-item">
+                                                        <a class="nav-link active" id="works-tab" data-toggle="tab" href="#works" role="tab">Works</a>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a class="nav-link" id="affiliations-tab" data-toggle="tab" href="#affiliations" role="tab">Affiliations</a>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a class="nav-link" id="funding-tab" data-toggle="tab" href="#funding" role="tab">Funding</a>
+                                                    </li>
+                                                </ul>
+
+                                                <div class="tab-content" id="orcidTabsContent">
+                                                    <!-- Works -->
+                                                    <div class="tab-pane fade show active" id="works" role="tabpanel">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-bordered table-sm" width="100%" cellspacing="0">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th style="width: 30px;"><input type="checkbox" id="selectAllWorks"></th>
+                                                                        <th>Year</th>
+                                                                        <th>Title</th>
+                                                                        <th>Type</th>
+                                                                        <th>Link</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {% for activity in orcid_activities if activity.type not in ['education', 'employment', 'funding'] %}
+                                                                        <tr>
+                                                                            <td><input type="checkbox" name="selected_activities" value="{{ activity.id }}" class="work-checkbox"></td>
+                                                                            <td>{{ activity.publication_date or 'n.d.' }}</td>
+                                                                            <td>{{ activity.title }}</td>
+                                                                            <td>{{ activity.type|replace('-', ' ')|title }}</td>
+                                                                            <td>
+                                                                                {% if activity.url %}
+                                                                                    <a href="{{ activity.url }}" target="_blank"><i class="fas fa-external-link-alt"></i></a>
+                                                                                {% endif %}
+                                                                            </td>
+                                                                        </tr>
+                                                                    {% endfor %}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Affiliations -->
+                                                    <div class="tab-pane fade" id="affiliations" role="tabpanel">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-bordered table-sm" width="100%" cellspacing="0">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th style="width: 30px;"><input type="checkbox" id="selectAllAffiliations"></th>
+                                                                        <th>Year</th>
+                                                                        <th>Role</th>
+                                                                        <th>Organization</th>
+                                                                        <th>Type</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {% for activity in orcid_activities if activity.type in ['education', 'employment'] %}
+                                                                        <tr>
+                                                                            <td><input type="checkbox" name="selected_activities" value="{{ activity.id }}" class="aff-checkbox"></td>
+                                                                            <td>{{ activity.publication_date or 'n.d.' }}</td>
+                                                                            <td>{{ activity.title }}</td>
+                                                                            <td>{{ activity.organization or '-' }}</td>
+                                                                            <td>{{ activity.type|title }}</td>
+                                                                        </tr>
+                                                                    {% endfor %}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Funding -->
+                                                    <div class="tab-pane fade" id="funding" role="tabpanel">
+                                                        <div class="table-responsive">
+                                                            <table class="table table-bordered table-sm" width="100%" cellspacing="0">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th style="width: 30px;"><input type="checkbox" id="selectAllFunding"></th>
+                                                                        <th>Year</th>
+                                                                        <th>Project</th>
+                                                                        <th>Agency</th>
+                                                                        <th>Link</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {% for activity in orcid_activities if activity.type == 'funding' %}
+                                                                        <tr>
+                                                                            <td><input type="checkbox" name="selected_activities" value="{{ activity.id }}" class="fund-checkbox"></td>
+                                                                            <td>{{ activity.publication_date or 'n.d.' }}</td>
+                                                                            <td>{{ activity.title }}</td>
+                                                                            <td>{{ activity.organization or '-' }}</td>
+                                                                            <td>
+                                                                                {% if activity.url %}
+                                                                                    <a href="{{ activity.url }}" target="_blank"><i class="fas fa-external-link-alt"></i></a>
+                                                                                {% endif %}
+                                                                            </td>
+                                                                        </tr>
+                                                                    {% endfor %}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        {% else %}
+                                            <div class="alert alert-info">
+                                                No publications found. Click "Sync from ORCID" to fetch your works.
+                                            </div>
+                                        {% endif %}
+
+                                    {% else %}
+                                        <div class="text-center py-4">
+                                            <p>Link your ORCID account to visualize your publications here.</p>
+                                            <p class="small text-muted mt-2">
+                                                To link your account, please log out and log back in using the "Login with ORCID" button.
+                                            </p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
                             <!-- Telegram Notifications -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
@@ -429,6 +596,11 @@
     {% endif %}
 
     <script>
+        function submitExport(type) {
+            document.getElementById('exportType').value = type;
+            document.getElementById('orcidExportForm').submit();
+        }
+
         // Telegram configuration data
         let telegramUserConfig = {};
         let availableNotificationTypes = {};
@@ -645,6 +817,19 @@
             document.getElementById('verify-telegram').addEventListener('click', verifyTelegramConnection);
             document.getElementById('test-telegram-notifications').addEventListener('click', testTelegramNotifications);
             document.getElementById('telegramNotificationSettings').addEventListener('submit', saveTelegramUserSettings);
+
+            // Bind ORCID Select All
+            function bindSelectAll(masterId, childClass) {
+                const master = document.getElementById(masterId);
+                if (master) {
+                    master.addEventListener('change', function() {
+                        document.querySelectorAll('.' + childClass).forEach(cb => cb.checked = this.checked);
+                    });
+                }
+            }
+            bindSelectAll('selectAllWorks', 'work-checkbox');
+            bindSelectAll('selectAllAffiliations', 'aff-checkbox');
+            bindSelectAll('selectAllFunding', 'fund-checkbox');
         });
     </script>
 

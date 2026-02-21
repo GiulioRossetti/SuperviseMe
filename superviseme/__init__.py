@@ -232,7 +232,7 @@ def create_app(db_type="sqlite", skip_user_init=False):
         access_token_url='https://orcid.org/oauth/token',
         authorize_url='https://orcid.org/oauth/authorize',
         api_base_url='https://pub.orcid.org/v3.0/',
-        client_kwargs={'scope': '/authenticate'}
+        client_kwargs={'scope': '/read-public'}
     )
 
     from .models import User_mgmt
