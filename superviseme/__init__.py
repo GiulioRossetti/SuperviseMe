@@ -114,6 +114,45 @@ def create_postgresql_db(app):
     return created_db
 
 
+def _run_db_upgrade(app):
+    """
+    Run any pending Alembic migrations so the live database schema always
+    matches the current model definitions.
+
+    Handles three scenarios:
+    1. Fresh database (no tables yet) – migrations create everything from scratch.
+    2. Existing database already tracked by Alembic – only pending revisions are applied.
+    3. Legacy database (tables exist but no alembic_version tracking) – stamped at
+       the baseline revision (0001) first, then upgraded to HEAD.
+    """
+    from flask_migrate import upgrade as flask_db_upgrade, stamp as flask_db_stamp
+    from sqlalchemy import inspect as sa_inspect
+
+    _log = logging.getLogger(__name__)
+
+    with app.app_context():
+        try:
+            inspector = sa_inspect(db.engine)
+            existing_tables = set(inspector.get_table_names())
+
+            # Legacy DB: tables present but Alembic has never tracked this DB.
+            # Stamp at the baseline revision so upgrade() only applies deltas.
+            if existing_tables and "alembic_version" not in existing_tables:
+                _log.info(
+                    "Untracked database detected; stamping at baseline revision '0001' "
+                    "before upgrading."
+                )
+                flask_db_stamp(revision="0001")
+
+            flask_db_upgrade()
+        except Exception:
+            _log.warning(
+                "Automatic database schema upgrade failed; the application may "
+                "not function correctly if the schema is out of date.",
+                exc_info=True,
+            )
+
+
 def _stamp_sqlite_db_head(db_path):
     """
     Ensure a copied SQLite database has an alembic_version record at the
@@ -236,6 +275,9 @@ def create_app(db_type="sqlite", skip_user_init=False):
         api_base_url='https://pub.orcid.org/v3.0/',
         client_kwargs={'scope': '/read-public'}
     )
+
+    # Ensure the database schema is up to date before any queries are made.
+    _run_db_upgrade(app)
 
     from .models import User_mgmt
 
@@ -385,9 +427,9 @@ def create_app(db_type="sqlite", skip_user_init=False):
         base_url = f"/{user_type}/" if user_type else "/"
         return format_text_with_todo_links(clean_html, base_url)
 
-    if db_type == "postgresql" and app.config.get("POSTGRES_DB_CREATED"):
-        with app.app_context():
-            db.create_all()
+    # db.create_all() for PostgreSQL is no longer needed: _run_db_upgrade()
+    # above already applied all migrations (including initial table creation)
+    # when the database was first created.
 
     # Register template globals
     @app.template_global()
