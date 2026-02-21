@@ -1,0 +1,855 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="SuperviseMe - your friendly thesis supervision dashboard.">
+      
+      
+        <meta name="author" content="Giulio Rossetti">
+      
+      
+        <link rel="canonical" href="https://giuliorossetti.github.io/SuperviseMe/deployment_readiness_report/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>SuperviseMe Deployment Readiness Report (Updated) - SuperviseMe</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#superviseme-deployment-readiness-report-updated" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="SuperviseMe" class="md-header__button md-logo" aria-label="SuperviseMe" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SuperviseMe
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              SuperviseMe Deployment Readiness Report (Updated)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="purple"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="lime"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../installation/" class="md-tabs__link">
+          
+  
+  
+  Setup
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../docker_deployment/" class="md-tabs__link">
+          
+  
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="SuperviseMe" class="md-nav__button md-logo" aria-label="SuperviseMe" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    SuperviseMe
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Setup
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation & First Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../social_login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Social Logins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../telegram_setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Telegram Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deployment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker_deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment_runbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="superviseme-deployment-readiness-report-updated">SuperviseMe Deployment Readiness Report (Updated)</h1>
+<p>Date: 2026-02-19<br />
+Scope: repository-wide technical readiness for production deployment</p>
+<h2 id="1-executive-summary">1. Executive Summary</h2>
+<p>Readiness has improved substantially. Core route integrity and destructive action safety are now in better shape, CSRF protection is active, scheduler role isolation is configurable, CI gates are in place, and schema alignment checks are automated.</p>
+<p>Current recommendation: <strong>not fully production-ready yet</strong> due to unresolved PostgreSQL initialization defects and limited automated coverage of business-critical workflows.</p>
+<h2 id="2-verified-progress-since-previous-assessment">2. Verified Progress Since Previous Assessment</h2>
+<h3 id="completed-improved">Completed / improved</h3>
+<ol>
+<li><strong>Route correctness and CRUD reliability</strong></li>
+<li>Previously broken endpoint references in templates were fixed.</li>
+<li>Destructive/toggle operations that were GET-based are now non-GET.</li>
+<li>Static audit confirms:</li>
+<li>destructive GET routes: <code>0</code></li>
+<li>
+<p>unresolved <code>url_for(...)</code> references: <code>0</code></p>
+</li>
+<li>
+<p><strong>Thesis deletion reliability</strong></p>
+</li>
+<li>Shared deletion utility now removes dependent records consistently.</li>
+<li>
+<p>Wired into admin/supervisor/researcher deletion flows.</p>
+</li>
+<li>
+<p><strong>Security hardening</strong></p>
+</li>
+<li>App-wide CSRF protection added and enforced.</li>
+<li>Shared templates now include CSRF token and auto-attach token for mutating forms/fetch requests.</li>
+<li>Verified behavior:</li>
+<li>
+<p>POST without CSRF token is rejected.</p>
+</li>
+<li>
+<p><strong>Scheduler isolation control</strong></p>
+</li>
+<li>Scheduler can be disabled per process using <code>ENABLE_SCHEDULER</code>.</li>
+<li>
+<p>Supports “single scheduler worker” deployment pattern.</p>
+</li>
+<li>
+<p><strong>Delivery quality gates</strong></p>
+</li>
+<li>CI workflow added (<code>.github/workflows/ci.yml</code>) with:</li>
+<li>runtime-safety lint</li>
+<li>compile checks</li>
+<li>schema/model alignment check</li>
+<li>test run</li>
+<li>Added <code>scripts/check_schema_alignment.py</code>.</li>
+<li>
+<p>Added local shortcuts via <code>Makefile</code> (<code>make ci</code>, <code>make smoke</code>).</p>
+</li>
+<li>
+<p><strong>Operational documentation</strong></p>
+</li>
+<li>Added <code>DEPLOYMENT_RUNBOOK.md</code> with preflight, rollout, smoke, rollback, backup/restore.</li>
+<li>Updated README and Docker docs for scheduler/seeding behavior and seed password controls.</li>
+</ol>
+<h2 id="3-current-findings-remaining-risks">3. Current Findings (Remaining Risks)</h2>
+<h3 id="high-severity">High Severity</h3>
+<ol>
+<li><strong>PostgreSQL initialization path is internally inconsistent and likely broken</strong></li>
+<li>File: <code>superviseme/__init__.py:46</code></li>
+<li>Issues:</li>
+<li>Uses string replacement on URI (<code>replace("dashboard", "postgres")</code>) instead of robust parsing.</li>
+<li>“Dummy DB” branch checks <code>datname = dbname</code> again rather than a distinct DB name.</li>
+<li>References <code>app.config["SQLALCHEMY_BINDS"]["db_exp"]</code> although <code>db_exp</code> is not configured.</li>
+<li>Loads <code>postgre_server.sql</code> in a path that appears disconnected from active runtime use.</li>
+<li>
+<p>Risk: first-time PostgreSQL provisioning may fail or behave unpredictably.</p>
+</li>
+<li>
+<p><strong>No formal migration framework</strong></p>
+</li>
+<li>Database changes are managed via ad-hoc scripts.</li>
+<li>Risk: schema drift and non-repeatable upgrades across environments.</li>
+</ol>
+<h3 id="medium-severity">Medium Severity</h3>
+<ol>
+<li><strong>Automated tests are still too shallow for release confidence</strong></li>
+<li>Current suite passes, but only two tests are present.</li>
+<li>
+<p>Missing regression coverage for role-critical CRUD + authorization flows.</p>
+</li>
+<li>
+<p><strong>Docker seeding remains script-driven and easy to misuse</strong></p>
+</li>
+<li>Improvement: compose default now sets <code>SKIP_DB_SEED=true</code>.</li>
+<li>
+<p>Remaining risk: manual env drift could re-enable seeding unexpectedly in production.</p>
+</li>
+<li>
+<p><strong>Legacy/unreferenced template backup files in tree</strong></p>
+</li>
+<li>Example: <code>superviseme/templates/researcher/supervisor_thesis_detail_old.html</code></li>
+<li>Risk: maintenance confusion and accidental usage.</li>
+</ol>
+<h2 id="4-quality-gate-status-current">4. Quality Gate Status (Current)</h2>
+<ul>
+<li>Lint (<code>ruff</code> runtime-safety set): pass  </li>
+<li>Compile checks: pass  </li>
+<li>Schema alignment check: pass  </li>
+<li>Tests (<code>pytest -q</code>): pass (<code>2 passed</code>)  </li>
+</ul>
+<h2 id="5-updated-roadmap">5. Updated Roadmap</h2>
+<h3 id="phase-5-immediate-correctness-1-3-days">Phase 5 (Immediate correctness, 1-3 days)</h3>
+<ol>
+<li>Replace <code>create_postgresql_db</code> with a single, deterministic PostgreSQL bootstrap path.</li>
+<li>Remove dead <code>db_exp</code> / dummy-db logic and unused SQL bootstrap branches.</li>
+<li>Add explicit integration test for PostgreSQL startup path.</li>
+</ol>
+<h3 id="phase-6-schema-governance-3-5-days">Phase 6 (Schema governance, 3-5 days)</h3>
+<ol>
+<li>Introduce Alembic migrations.</li>
+<li>Baseline current schema and convert migration scripts into ordered revisions.</li>
+<li>Enforce migration check in CI (upgrade on ephemeral DB).</li>
+</ol>
+<h3 id="phase-7-reliability-testing-4-7-days">Phase 7 (Reliability testing, 4-7 days)</h3>
+<ol>
+<li>Add end-to-end role workflow tests:</li>
+<li>admin user/thesis CRUD</li>
+<li>supervisor thesis lifecycle + todo/update operations</li>
+<li>researcher dual-role flows</li>
+<li>student thesis update/resource/todo operations</li>
+<li>Add authorization negative tests (cross-role and cross-ownership attempts).</li>
+</ol>
+<h3 id="phase-8-release-hardening-3-5-days">Phase 8 (Release hardening, 3-5 days)</h3>
+<ol>
+<li>Add staging smoke automation script aligned with <code>DEPLOYMENT_RUNBOOK.md</code>.</li>
+<li>Add backup/restore rehearsal procedure and evidence template.</li>
+<li>Remove legacy template backups and stale artifacts.</li>
+</ol>
+<h2 id="6-deployability-definition-revised">6. Deployability Definition (Revised)</h2>
+<p>Production deployment sign-off should require:</p>
+<ol>
+<li>PostgreSQL bootstrap path fixed and tested.</li>
+<li>Alembic migration workflow operational in CI/CD.</li>
+<li>Expanded automated workflow coverage for all core roles.</li>
+<li>Scheduler single-worker topology validated in staging.</li>
+<li>Runbook smoke + rollback rehearsal completed.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "toc.integrate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
