@@ -10,6 +10,7 @@ from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth
 from sqlalchemy import MetaData
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import create_engine, text
 import time
@@ -201,6 +202,13 @@ def create_app(db_type="sqlite", skip_user_init=False):
     load_dotenv(override=False)
     app = Flask(__name__, static_url_path="/static")
 
+    # Trust proxy headers from nginx so that url_for(_external=True) generates
+    # the correct scheme/host and session cookies are scoped correctly.
+    # Only enabled when USE_PROXY_FIX=true to avoid header-spoofing risk when
+    # the app is exposed directly without a trusted reverse proxy.
+    if os.getenv("USE_PROXY_FIX", "false").lower() in ("1", "true", "yes"):
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
     # When Flask-Migrate CLI (flask db ...) invokes the app factory it does not
     # pass skip_user_init=True, so honour the env var as a secondary opt-out.
     if os.getenv("FLASK_SKIP_USER_INIT", "").lower() in ("1", "true", "yes"):
@@ -218,6 +226,13 @@ def create_app(db_type="sqlite", skip_user_init=False):
             _stamp_sqlite_db_head(f"{BASE_DIR}{os.sep}db{os.sep}dashboard.db")
 
     _configure_secret_key(app)
+
+    # Ensure session cookies are sent during OAuth provider redirects (top-level
+    # cross-site navigations). Without an explicit SameSite=Lax Chrome 80+
+    # only forwards the cookie during a short grace period; after that the state
+    # stored in the session is gone, causing the "mismatching_state" CSRF error
+    # for both ORCID and Google OAuth (with or without a reverse proxy).
+    app.config.setdefault("SESSION_COOKIE_SAMESITE", "Lax")
     
     # Mail configuration
     app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "localhost")
