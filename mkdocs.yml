@@ -24,6 +24,7 @@ theme:
 nav:
   - Home: index.md
   - Setup:
+    - Installation & First Run: installation.md
     - Configuration: configuration.md
     - Database: database_setup.md
     - Social Logins: social_login.md

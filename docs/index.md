@@ -6,6 +6,13 @@
 
 Welcome to **SuperviseMe**, a comprehensive platform designed to streamline thesis supervision and research project management within academic institutions. By providing dedicated environments for administrators, supervisors, researchers, and students, SuperviseMe fosters collaboration and simplifies the complexities of academic research management.
 
+## Start Here
+
+If you are new to the project, begin with:
+
+1. [Installation and First Run](installation.md)
+2. [Configuration](configuration.md)
+
 ## Project Overview
 
 In the dynamic world of academia, managing thesis supervision and research projects can be a daunting task. SuperviseMe addresses this challenge by offering a centralized, Flask-based web application that caters to the distinct needs of all stakeholders. Whether you are an administrator overseeing the entire system, a supervisor guiding students, a researcher collaborating on projects, or a student working on your thesis, SuperviseMe provides the tools you need to succeed.
