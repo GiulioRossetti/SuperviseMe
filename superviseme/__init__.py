@@ -11,7 +11,7 @@ from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth
 from sqlalchemy import MetaData
 from werkzeug.middleware.proxy_fix import ProxyFix
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import create_engine, text
 import time
 import logging
@@ -113,6 +113,45 @@ def create_postgresql_db(app):
 
     app.config["POSTGRES_DB_CREATED"] = created_db
     return created_db
+
+
+def _run_db_upgrade(app):
+    """
+    Run any pending Alembic migrations so the live database schema always
+    matches the current model definitions.
+
+    Handles three scenarios:
+    1. Fresh database (no tables yet) – migrations create everything from scratch.
+    2. Existing database already tracked by Alembic – only pending revisions are applied.
+    3. Legacy database (tables exist but no alembic_version tracking) – stamped at
+       the baseline revision (0001) first, then upgraded to HEAD.
+    """
+    from flask_migrate import upgrade as flask_db_upgrade, stamp as flask_db_stamp
+    from sqlalchemy import inspect as sa_inspect
+
+    _log = logging.getLogger(__name__)
+
+    with app.app_context():
+        try:
+            inspector = sa_inspect(db.engine)
+            existing_tables = set(inspector.get_table_names())
+
+            # Legacy DB: tables present but Alembic has never tracked this DB.
+            # Stamp at the baseline revision so upgrade() only applies deltas.
+            if existing_tables and "alembic_version" not in existing_tables:
+                _log.info(
+                    "Untracked database detected; stamping at baseline revision '0001' "
+                    "before upgrading."
+                )
+                flask_db_stamp(revision="0001")
+
+            flask_db_upgrade()
+        except Exception:
+            _log.warning(
+                "Automatic database schema upgrade failed; the application may "
+                "not function correctly if the schema is out of date.",
+                exc_info=True,
+            )
 
 
 def _stamp_sqlite_db_head(db_path):
@@ -252,25 +291,25 @@ def create_app(db_type="sqlite", skip_user_init=False):
         client_kwargs={'scope': '/read-public'}
     )
 
+    # Ensure the database schema is up to date before any queries are made.
+    _run_db_upgrade(app)
+
     from .models import User_mgmt
 
-    # insert the admin user if it doesn't exist
+    # insert the admin user if it doesn't exist, or keep their password in sync
+    # with ADMIN_BOOTSTRAP_PASSWORD so that the value set in .env always works.
     if not skip_user_init:
         with app.app_context():
-            #db.create_all()  # Create tables if they don't exist
-
             # Check if the admin user exists (only if tables exist)
             try:
+                bootstrap_password = os.getenv("ADMIN_BOOTSTRAP_PASSWORD", "")
                 admin_user = User_mgmt.query.filter_by(username="admin").first()
                 if not admin_user:
-                    bootstrap_password = os.getenv("ADMIN_BOOTSTRAP_PASSWORD", "")
                     if not bootstrap_password:
                         app.logger.warning(
                             "Admin user missing but ADMIN_BOOTSTRAP_PASSWORD is not set; skipping bootstrap admin creation."
                         )
-                        bootstrap_password = None
-
-                    if bootstrap_password:
+                    else:
                         hashed_pw = generate_password_hash(
                             bootstrap_password, method="pbkdf2:sha256"
                         )
@@ -285,6 +324,20 @@ def create_app(db_type="sqlite", skip_user_init=False):
                         )
                         db.session.add(new_admin)
                         db.session.commit()
+                elif bootstrap_password and not check_password_hash(
+                    admin_user.password, bootstrap_password
+                ):
+                    # Admin exists but their stored password no longer matches the
+                    # configured ADMIN_BOOTSTRAP_PASSWORD – re-sync it so the value
+                    # in .env always allows login (useful after password rotations or
+                    # a fresh clone with an existing database).
+                    admin_user.password = generate_password_hash(
+                        bootstrap_password, method="pbkdf2:sha256"
+                    )
+                    db.session.commit()
+                    app.logger.info(
+                        "Admin password synchronised with ADMIN_BOOTSTRAP_PASSWORD."
+                    )
             except Exception as e:
                 # Database tables don't exist yet, that's okay during initialization
                 print(f"Note: Database tables not found during app creation: {e}")
@@ -400,9 +453,9 @@ def create_app(db_type="sqlite", skip_user_init=False):
         base_url = f"/{user_type}/" if user_type else "/"
         return format_text_with_todo_links(clean_html, base_url)
 
-    if db_type == "postgresql" and app.config.get("POSTGRES_DB_CREATED"):
-        with app.app_context():
-            db.create_all()
+    # db.create_all() for PostgreSQL is no longer needed: _run_db_upgrade()
+    # above already applied all migrations (including initial table creation)
+    # when the database was first created.
 
     # Register template globals
     @app.template_global()

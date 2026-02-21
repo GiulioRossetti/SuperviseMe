@@ -9,6 +9,12 @@ import sys
 # Add parent directory to path to import superviseme
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Load .env before any os.getenv() calls so that passwords and connection
+# settings defined in .env are honoured even when they are not already
+# present in the shell environment.
+from dotenv import load_dotenv
+load_dotenv()
+
 from superviseme import create_app, db
 from superviseme.models import User_mgmt, Thesis, Thesis_Status, Thesis_Supervisor, Thesis_Tag
 from werkzeug.security import generate_password_hash

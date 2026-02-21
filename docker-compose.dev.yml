@@ -8,6 +8,10 @@ services:
       - FLASK_ENV=development
       - DEBUG=true
       - SKIP_DB_SEED=false
+      - SEED_DEFAULT_PASSWORD=${SEED_DEFAULT_PASSWORD:-}
+      - SEED_SUPERVISOR_PASSWORD=${SEED_SUPERVISOR_PASSWORD:-}
+      - SEED_STUDENT_PASSWORD=${SEED_STUDENT_PASSWORD:-}
+      - SEED_RESEARCHER_PASSWORD=${SEED_RESEARCHER_PASSWORD:-}
     volumes:
       - .:/app
     ports:
