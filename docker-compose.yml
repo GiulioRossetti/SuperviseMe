@@ -31,6 +31,7 @@ services:
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
       - ENABLE_SCHEDULER=${ENABLE_SCHEDULER:-false}
       - SKIP_DB_SEED=${SKIP_DB_SEED:-true}
+      - USE_PROXY_FIX=${USE_PROXY_FIX:-true}
       - PG_USER=${PG_USER:-superviseme_user}
       - PG_PASSWORD=${PG_PASSWORD:-superviseme_password}
       - PG_HOST=postgres
