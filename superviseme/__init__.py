@@ -10,7 +10,7 @@ from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth
 from sqlalchemy import MetaData
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import create_engine, text
 import time
 import logging
@@ -281,23 +281,20 @@ def create_app(db_type="sqlite", skip_user_init=False):
 
     from .models import User_mgmt
 
-    # insert the admin user if it doesn't exist
+    # insert the admin user if it doesn't exist, or keep their password in sync
+    # with ADMIN_BOOTSTRAP_PASSWORD so that the value set in .env always works.
     if not skip_user_init:
         with app.app_context():
-            #db.create_all()  # Create tables if they don't exist
-
             # Check if the admin user exists (only if tables exist)
             try:
+                bootstrap_password = os.getenv("ADMIN_BOOTSTRAP_PASSWORD", "")
                 admin_user = User_mgmt.query.filter_by(username="admin").first()
                 if not admin_user:
-                    bootstrap_password = os.getenv("ADMIN_BOOTSTRAP_PASSWORD", "")
                     if not bootstrap_password:
                         app.logger.warning(
                             "Admin user missing but ADMIN_BOOTSTRAP_PASSWORD is not set; skipping bootstrap admin creation."
                         )
-                        bootstrap_password = None
-
-                    if bootstrap_password:
+                    else:
                         hashed_pw = generate_password_hash(
                             bootstrap_password, method="pbkdf2:sha256"
                         )
@@ -312,6 +309,20 @@ def create_app(db_type="sqlite", skip_user_init=False):
                         )
                         db.session.add(new_admin)
                         db.session.commit()
+                elif bootstrap_password and not check_password_hash(
+                    admin_user.password, bootstrap_password
+                ):
+                    # Admin exists but their stored password no longer matches the
+                    # configured ADMIN_BOOTSTRAP_PASSWORD – re-sync it so the value
+                    # in .env always allows login (useful after password rotations or
+                    # a fresh clone with an existing database).
+                    admin_user.password = generate_password_hash(
+                        bootstrap_password, method="pbkdf2:sha256"
+                    )
+                    db.session.commit()
+                    app.logger.info(
+                        "Admin password synchronised with ADMIN_BOOTSTRAP_PASSWORD."
+                    )
             except Exception as e:
                 # Database tables don't exist yet, that's okay during initialization
                 print(f"Note: Database tables not found during app creation: {e}")

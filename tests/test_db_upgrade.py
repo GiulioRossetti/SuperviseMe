@@ -11,6 +11,8 @@ import sqlite3
 import tempfile
 import pytest
 
+from superviseme import create_app
+
 
 @pytest.fixture()
 def app_env(tmp_path, monkeypatch):
@@ -49,12 +51,6 @@ def test_fresh_db_gets_all_columns(app_env):
     """A brand-new empty database should have all columns after startup."""
     db_file, _ = app_env
 
-    # Import here so env vars are picked up
-    import importlib
-    import superviseme
-    importlib.reload(superviseme)
-    from superviseme import create_app
-
     app = create_app(db_type="sqlite", skip_user_init=True)
 
     assert db_file.exists(), "Database file should be created"
@@ -67,14 +63,9 @@ def test_fresh_db_gets_all_columns(app_env):
 
 def test_idempotent_on_up_to_date_db(app_env):
     """Calling create_app twice on an up-to-date database should not fail."""
-    import importlib
-    import superviseme
-    importlib.reload(superviseme)
-    from superviseme import create_app
-
     create_app(db_type="sqlite", skip_user_init=True)
     # Second call should be a no-op (database already at HEAD)
-    app2 = create_app(db_type="sqlite", skip_user_init=True)
+    create_app(db_type="sqlite", skip_user_init=True)
 
     db_file, _ = app_env
     columns = _get_column_names(db_file, "user_mgmt")
@@ -116,11 +107,6 @@ def test_legacy_db_without_alembic_version_gets_orcid_columns(app_env, monkeypat
     # Confirm orcid columns are absent before the upgrade
     columns_before = _get_column_names(db_file, "user_mgmt")
     assert "orcid_access_token" not in columns_before
-
-    import importlib
-    import superviseme
-    importlib.reload(superviseme)
-    from superviseme import create_app
 
     create_app(db_type="sqlite", skip_user_init=True)
 

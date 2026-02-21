@@ -82,22 +82,15 @@ class TestSeedDatabase:
         monkeypatch.setenv("SEED_DEFAULT_PASSWORD", "default123")
 
         seed = _import_seed_module()
-
-        # Reload superviseme so it uses the tmp DB URI
-        for mod in list(sys.modules.keys()):
-            if mod.startswith("superviseme"):
-                del sys.modules[mod]
-
         seed.seed_database()
 
-        # Re-import db/models after seeding to query the seeded DB
-        from superviseme import create_app, db
-        from superviseme.models import User_mgmt
-
-        app = create_app(db_type="sqlite", skip_user_init=True)
-        with app.app_context():
-            users = User_mgmt.query.all()
-            types = [u.user_type for u in users]
+        # Verify data directly via sqlite3 to avoid Flask-SQLAlchemy session
+        # state that may have been left by previous tests in the suite.
+        import sqlite3
+        conn = sqlite3.connect(str(seed_env))
+        rows = conn.execute("SELECT user_type FROM user_mgmt").fetchall()
+        conn.close()
+        types = [r[0] for r in rows]
 
         assert "admin" in types
         assert types.count("supervisor") >= 3
@@ -110,10 +103,6 @@ class TestSeedDatabase:
         monkeypatch.setenv("SEED_DEFAULT_PASSWORD", "default123")
 
         seed = _import_seed_module()
-        for mod in list(sys.modules.keys()):
-            if mod.startswith("superviseme"):
-                del sys.modules[mod]
-
         seed.seed_database()
 
         from superviseme import create_app
@@ -134,10 +123,6 @@ class TestSeedDatabase:
         monkeypatch.delenv("SEED_DEFAULT_PASSWORD", raising=False)
 
         seed = _import_seed_module()
-        for mod in list(sys.modules.keys()):
-            if mod.startswith("superviseme"):
-                del sys.modules[mod]
-
         seed.seed_database()
 
         from superviseme import create_app
@@ -159,10 +144,6 @@ class TestSeedDatabase:
         monkeypatch.delenv("SEED_STUDENT_PASSWORD", raising=False)
 
         seed = _import_seed_module()
-        for mod in list(sys.modules.keys()):
-            if mod.startswith("superviseme"):
-                del sys.modules[mod]
-
         seed.seed_database()
 
         from superviseme import create_app
