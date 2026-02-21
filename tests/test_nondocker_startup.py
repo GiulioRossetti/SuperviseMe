@@ -79,6 +79,12 @@ class TestAdminPasswordSync:
             admin = User_mgmt.query.filter_by(username="admin").first()
             assert admin is None
 
+    def test_session_cookie_samesite_defaults_to_lax_for_oauth(self, app_env, monkeypatch):
+        """OAuth callback state requires a persistent session cookie across redirects."""
+        monkeypatch.setenv("ADMIN_BOOTSTRAP_PASSWORD", "initial_password")
+        app = self._create_app()
+        assert app.config.get("SESSION_COOKIE_SAMESITE") == "Lax"
+
 
 # ---------------------------------------------------------------------------
 # wsgi.py DB-type default

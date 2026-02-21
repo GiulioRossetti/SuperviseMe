@@ -56,6 +56,28 @@
                 </div>
             </li>
 
+            <hr class="sidebar-divider">
+
+            <div class="sidebar-heading">
+                Account
+            </div>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('profile.profile_page') }}">
+                    <i class="fas fa-fw fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </li>
+
+            {% if current_user.orcid_id %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('profile.orcid_publications') }}">
+                    <i class="fab fa-fw fa-orcid"></i>
+                    <span>ORCID Publications</span>
+                </a>
+            </li>
+            {% endif %}
+
 
 
             <!-- Divider -->

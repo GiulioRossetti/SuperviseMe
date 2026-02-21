@@ -10,6 +10,7 @@
                         class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search"
                         method="POST"
                         action="{% if current_user.user_type == 'admin' %}/admin/search{% elif current_user.user_type == 'supervisor' %}/supervisor/search{% elif current_user.user_type == 'researcher' %}/researcher/supervisor/search{% elif current_user.user_type == 'student' %}/student/search{% else %}#{% endif %}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="input-group">
                             <input type="text" class="form-control bg-light border-0 small" 
                                    placeholder="Search for..." 
@@ -40,6 +41,7 @@
                                 <form class="form-inline mr-auto w-100 navbar-search"
                                       method="POST"
                                       action="{% if current_user.user_type == 'admin' %}/admin/search{% elif current_user.user_type == 'supervisor' %}/supervisor/search{% elif current_user.user_type == 'researcher' %}/researcher/supervisor/search{% elif current_user.user_type == 'student' %}/student/search{% else %}#{% endif %}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <div class="input-group">
                                         <input type="text" class="form-control bg-light border-0 small"
                                             placeholder="Search for..." aria-label="Search"
@@ -105,10 +107,13 @@
                                     Profile
                                 </a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </a>
+                                <form method="POST" action="{{ url_for('auth.logout') }}" class="m-0 p-0">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Logout
+                                    </button>
+                                </form>
                             </div>
                         </li>
 

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app, session
 from flask_login import login_user, login_required, logout_user, login_manager, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
@@ -7,8 +7,21 @@ from superviseme import db, oauth
 from superviseme.utils.logging_config import log_login_attempt, log_logout, log_privilege_escalation_attempt
 import time
 import os
+from urllib.parse import urljoin
 
 auth = Blueprint("auth", __name__)
+
+
+def _oauth_redirect_uri(endpoint):
+    """
+    Build a stable external callback URI.
+    If BASE_URL is configured, always use it to avoid host/scheme drift behind proxies.
+    """
+    base_url = (current_app.config.get("BASE_URL") or "").strip()
+    callback_path = url_for(endpoint)
+    if base_url:
+        return urljoin(f"{base_url.rstrip('/')}/", callback_path.lstrip("/"))
+    return url_for(endpoint, _external=True)
 
 
 @auth.route("/")
@@ -71,7 +84,7 @@ def login_post():
         return redirect(url_for("student.dashboard"))
 
 
-@auth.route("/logout")
+@auth.route("/logout", methods=["POST"])
 @login_required
 def logout():
     # Log logout event before clearing user context
@@ -85,7 +98,7 @@ def logout():
 
 @auth.route('/login/google')
 def google_login():
-    redirect_uri = url_for('auth.google_callback', _external=True)
+    redirect_uri = _oauth_redirect_uri('auth.google_callback')
     return oauth.google.authorize_redirect(redirect_uri)
 
 
@@ -168,7 +181,7 @@ def google_callback():
 
 @auth.route('/login/orcid')
 def orcid_login():
-    redirect_uri = url_for('auth.orcid_callback', _external=True)
+    redirect_uri = _oauth_redirect_uri('auth.orcid_callback')
     return oauth.orcid.authorize_redirect(redirect_uri)
 
 
@@ -187,6 +200,33 @@ def orcid_callback():
     if not orcid_id:
         flash("Could not retrieve ORCID iD.")
         return redirect(url_for("auth.login"))
+
+    # Account linking flow (user started from /profile/orcid/connect)
+    link_user_id = session.pop("orcid_link_user_id", None)
+    link_next = session.pop("orcid_link_next", None)
+    if link_user_id:
+        linking_user = User_mgmt.query.get(link_user_id)
+        if not linking_user:
+            flash("Unable to link ORCID: user session expired. Please try again.", "error")
+            return redirect(url_for("auth.login"))
+
+        existing_owner = User_mgmt.query.filter_by(orcid_id=orcid_id).first()
+        if existing_owner and existing_owner.id != linking_user.id:
+            flash(
+                "This ORCID iD is already linked to another account.",
+                "error",
+            )
+            return redirect(url_for("profile.orcid_publications"))
+
+        linking_user.orcid_id = orcid_id
+        linking_user.orcid_access_token = token.get("access_token")
+        if token.get("refresh_token"):
+            linking_user.orcid_refresh_token = token.get("refresh_token")
+        db.session.commit()
+        flash("ORCID account linked successfully.", "success")
+        if link_next == "profile.orcid_publications":
+            return redirect(url_for("profile.orcid_publications"))
+        return redirect(url_for("profile.profile_page"))
 
     # Try to find user by orcid_id
     user = User_mgmt.query.filter_by(orcid_id=orcid_id).first()

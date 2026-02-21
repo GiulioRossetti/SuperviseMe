@@ -48,18 +48,44 @@
             if (!csrfMeta) return;
             const csrfToken = csrfMeta.getAttribute("content");
 
-            // Ensure every POST/PUT/PATCH/DELETE form includes CSRF token.
-            const forms = document.querySelectorAll("form");
-            forms.forEach((form) => {
+            const isMutatingMethod = (form) => {
                 const method = (form.getAttribute("method") || "GET").toUpperCase();
-                if (!["POST", "PUT", "PATCH", "DELETE"].includes(method)) return;
+                return ["POST", "PUT", "PATCH", "DELETE"].includes(method);
+            };
+
+            const ensureFormHasCsrf = (form) => {
+                if (!form || !isMutatingMethod(form)) return;
                 if (form.querySelector('input[name="csrf_token"]')) return;
                 const tokenInput = document.createElement("input");
                 tokenInput.type = "hidden";
                 tokenInput.name = "csrf_token";
                 tokenInput.value = csrfToken;
                 form.appendChild(tokenInput);
+            };
+
+            // Ensure existing forms have CSRF immediately.
+            document.querySelectorAll("form").forEach(ensureFormHasCsrf);
+
+            // Ensure forms added later (e.g., markup below footer include or dynamically inserted modals) also get CSRF.
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (!(node instanceof Element)) return;
+                        if (node.matches && node.matches("form")) {
+                            ensureFormHasCsrf(node);
+                        }
+                        if (node.querySelectorAll) {
+                            node.querySelectorAll("form").forEach(ensureFormHasCsrf);
+                        }
+                    });
+                });
             });
+            observer.observe(document.documentElement, { childList: true, subtree: true });
+
+            // Final safety net for forms submitted before observer catches up or created programmatically.
+            document.addEventListener("submit", (event) => {
+                ensureFormHasCsrf(event.target);
+            }, true);
 
             // Add CSRF header to same-origin mutating fetch requests.
             const originalFetch = window.fetch;

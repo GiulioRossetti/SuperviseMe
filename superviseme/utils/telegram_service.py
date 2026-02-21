@@ -23,27 +23,32 @@ class TelegramService:
     
     def __init__(self):
         self.bot = None
-        self._config = None
+        self._bot_token = None
     
     def _get_config(self) -> Optional[TelegramBotConfig]:
         """Get active Telegram bot configuration"""
-        if not self._config:
-            self._config = TelegramBotConfig.query.filter_by(is_active=True).first()
-        return self._config
+        # Query every time so admin-side config changes are reflected immediately.
+        return TelegramBotConfig.query.filter_by(is_active=True).first()
     
     def _get_bot(self) -> Optional[telebot.TeleBot]:
         """Get Telegram bot instance"""
         config = self._get_config()
         if not config:
+            self.bot = None
+            self._bot_token = None
             return None
         
-        if not self.bot:
+        # Recreate client if token changed or client isn't initialized.
+        if not self.bot or self._bot_token != config.bot_token:
             try:
                 self.bot = telebot.TeleBot(config.bot_token)
+                self._bot_token = config.bot_token
                 # Test bot connection
                 self.bot.get_me()
             except Exception as e:
                 logger.error(f"Failed to initialize Telegram bot: {e}")
+                self.bot = None
+                self._bot_token = None
                 return None
         
         return self.bot
@@ -105,8 +110,9 @@ class TelegramService:
             if not user.telegram_enabled or not user.telegram_user_id:
                 return {'success': False, 'message': 'Telegram notifications not enabled for user'}
             
-            # Check if user wants this type of notification
-            if user.telegram_notification_types:
+            # Check if user wants this type of notification.
+            # "test" notifications are always allowed so users can validate setup.
+            if notification_type != "test" and user.telegram_notification_types:
                 enabled_types = json.loads(user.telegram_notification_types)
                 if notification_type not in enabled_types:
                     return {'success': False, 'message': f'Notification type {notification_type} not enabled for user'}

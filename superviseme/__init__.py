@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+from urllib.parse import urlparse, unquote
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, render_template
 from flask_sqlalchemy import SQLAlchemy
@@ -198,6 +199,42 @@ def _stamp_sqlite_db_head(db_path):
         conn.close()
 
 
+def _sqlite_path_from_uri(sqlite_uri):
+    """Return filesystem path for a sqlite URI or None for non-file sqlite URIs."""
+    parsed = urlparse(sqlite_uri or "")
+    if parsed.scheme != "sqlite":
+        return None
+
+    raw_path = unquote(parsed.path or "")
+    # sqlite:///:memory:
+    if raw_path in (":memory:", "/:memory:"):
+        return None
+    return raw_path or None
+
+
+def _bootstrap_sqlite_db_if_missing(sqlite_uri):
+    """
+    Bootstrap a missing SQLite DB from data_schema snapshot without ever
+    overwriting an existing file.
+    """
+    target_path = _sqlite_path_from_uri(sqlite_uri)
+    if not target_path or os.path.exists(target_path):
+        return
+
+    source_path = (
+        f"{BASE_DIR}{os.sep}..{os.sep}data_schema{os.sep}database_dashboard.db"
+    )
+    if not os.path.exists(source_path):
+        return
+
+    target_dir = os.path.dirname(target_path)
+    if target_dir:
+        os.makedirs(target_dir, exist_ok=True)
+
+    shutil.copyfile(source_path, target_path)
+    _stamp_sqlite_db_head(target_path)
+
+
 def create_app(db_type="sqlite", skip_user_init=False):
     load_dotenv(override=False)
     app = Flask(__name__, static_url_path="/static")
@@ -214,25 +251,16 @@ def create_app(db_type="sqlite", skip_user_init=False):
     if os.getenv("FLASK_SKIP_USER_INIT", "").lower() in ("1", "true", "yes"):
         skip_user_init = True
 
-    # Copy databases if missing (keep your existing logic)
-    if not os.path.exists(f"{BASE_DIR}{os.sep}db{os.sep}dashboard.db"):
-        if os.path.exists(f"{BASE_DIR}{os.sep}..{os.sep}data_schema{os.sep}database_dashboard.db"):
-            shutil.copyfile(
-                f"{BASE_DIR}{os.sep}..{os.sep}data_schema{os.sep}database_dashboard.db",
-                f"{BASE_DIR}{os.sep}db{os.sep}dashboard.db",
-            )
-            # Stamp the copied DB with the current Alembic head so that
-            # 'flask db upgrade' is a no-op on this bootstrapped database.
-            _stamp_sqlite_db_head(f"{BASE_DIR}{os.sep}db{os.sep}dashboard.db")
-
     _configure_secret_key(app)
+    app.config["BASE_URL"] = (os.getenv("BASE_URL") or "").strip()
+    app.config["ORCID_SCOPE"] = (os.getenv("ORCID_SCOPE") or "/authenticate").strip()
 
     # Ensure session cookies are sent during OAuth provider redirects (top-level
-    # cross-site navigations). Without an explicit SameSite=Lax Chrome 80+
-    # only forwards the cookie during a short grace period; after that the state
-    # stored in the session is gone, causing the "mismatching_state" CSRF error
-    # for both ORCID and Google OAuth (with or without a reverse proxy).
-    app.config.setdefault("SESSION_COOKIE_SAMESITE", "Lax")
+    # cross-site navigations). Flask's config already contains
+    # SESSION_COOKIE_SAMESITE=None by default, so setdefault() is ineffective.
+    # Force Lax when unset so OAuth state survives the redirect callback.
+    if app.config.get("SESSION_COOKIE_SAMESITE") is None:
+        app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     
     # Mail configuration
     app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "localhost")
@@ -248,6 +276,8 @@ def create_app(db_type="sqlite", skip_user_init=False):
             "SQLALCHEMY_DATABASE_URI",
             f"sqlite:///{BASE_DIR}/db/dashboard.db",
         )
+        # Bootstrap only when missing; never overwrite an existing DB file.
+        _bootstrap_sqlite_db_if_missing(sqlite_uri)
         app.config["SQLALCHEMY_DATABASE_URI"] = sqlite_uri
         app.config["SQLALCHEMY_BINDS"] = {
             "db_admin": sqlite_uri,
@@ -288,7 +318,7 @@ def create_app(db_type="sqlite", skip_user_init=False):
         access_token_url='https://orcid.org/oauth/token',
         authorize_url='https://orcid.org/oauth/authorize',
         api_base_url='https://pub.orcid.org/v3.0/',
-        client_kwargs={'scope': '/read-public'}
+        client_kwargs={'scope': app.config["ORCID_SCOPE"]}
     )
 
     # Ensure the database schema is up to date before any queries are made.
@@ -386,6 +416,41 @@ def create_app(db_type="sqlite", skip_user_init=False):
         if wants_json:
             return jsonify({"status": "error", "message": "Invalid or missing CSRF token."}), 400
         return render_template("errors/400.html", error=error), 400
+
+    @app.before_request
+    def _warn_base_url_mismatch():
+        """
+        Warn once when configured BASE_URL origin differs from incoming origin.
+        This often breaks OAuth callback/session flows.
+        """
+        base_url = (app.config.get("BASE_URL") or "").strip()
+        if not base_url:
+            return
+        # Keep this check focused on auth/OAuth pages to avoid noisy logs.
+        if not request.path.startswith("/login"):
+            return
+
+        parsed = urlparse(base_url)
+        expected_scheme = parsed.scheme
+        expected_netloc = parsed.netloc
+        incoming_scheme = request.headers.get("X-Forwarded-Proto", request.scheme)
+        incoming_netloc = request.host
+
+        mismatch = (
+            not expected_scheme
+            or not expected_netloc
+            or expected_scheme != incoming_scheme
+            or expected_netloc != incoming_netloc
+        )
+        if mismatch and not app.config.get("_BASE_URL_MISMATCH_WARNED", False):
+            app.logger.warning(
+                "BASE_URL mismatch: configured '%s' but request origin is '%s://%s'. "
+                "OAuth login can fail unless they match exactly.",
+                base_url,
+                incoming_scheme,
+                incoming_netloc,
+            )
+            app.config["_BASE_URL_MISMATCH_WARNED"] = True
 
     # Set up comprehensive logging
     from superviseme.utils.logging_config import setup_logging, log_request_response

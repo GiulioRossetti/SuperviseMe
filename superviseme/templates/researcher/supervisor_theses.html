@@ -147,6 +147,7 @@
                     </button>
                 </div>
                 <form method="POST" action="{{ url_for('researcher.create_thesis') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="title">Thesis Title:</label>
@@ -194,6 +195,12 @@
                 form.method = 'POST';
                 form.action = '{{ url_for("researcher.freeze_thesis") }}';
                 
+                var csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = '{{ csrf_token() }}';
+                form.appendChild(csrfInput);
+
                 var input = document.createElement('input');
                 input.type = 'hidden';
                 input.name = 'thesis_id';
@@ -211,6 +218,12 @@
                 form.method = 'POST';
                 form.action = '{{ url_for("researcher.unfreeze_thesis") }}';
                 
+                var csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = '{{ csrf_token() }}';
+                form.appendChild(csrfInput);
+
                 var input = document.createElement('input');
                 input.type = 'hidden';
                 input.name = 'thesis_id';

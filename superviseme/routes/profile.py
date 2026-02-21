@@ -1,15 +1,35 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
+from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, current_app, session
 from flask_login import login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from superviseme.models import User_mgmt, Thesis, Thesis_Supervisor, OrcidActivity
-from superviseme import db
+from superviseme import db, oauth
 import datetime
 import json
 from flask import make_response
 from superviseme.utils.orcid_client import fetch_orcid_activities
 from superviseme.utils.bibtex_generator import generate_bibtex
+from superviseme.utils.miscellanea import user_has_supervisor_role
+from urllib.parse import urljoin
 
 profile = Blueprint("profile", __name__)
+
+
+def _dashboard_endpoint_for_user(user):
+    if user.user_type == "admin":
+        return "admin.dashboard"
+    if user.user_type == "supervisor":
+        return "supervisor.dashboard"
+    if user.user_type == "researcher":
+        return "researcher.dashboard"
+    return "student.dashboard"
+
+
+def _oauth_redirect_uri(endpoint):
+    base_url = (current_app.config.get("BASE_URL") or "").strip()
+    callback_path = url_for(endpoint)
+    if base_url:
+        return urljoin(f"{base_url.rstrip('/')}/", callback_path.lstrip("/"))
+    return url_for(endpoint, _external=True)
 
 
 @profile.route("/profile")
@@ -28,15 +48,46 @@ def profile_page():
         supervised_rels = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
         supervised_theses = [Thesis.query.get(rel.thesis_id) for rel in supervised_rels if Thesis.query.get(rel.thesis_id)]
     
-    # Get ORCID activities
-    orcid_activities = OrcidActivity.query.filter_by(user_id=current_user.id).order_by(OrcidActivity.publication_date.desc()).all()
-
     return render_template("/profile.html",
                          user=current_user,
                          authored_theses=authored_theses,
                          supervised_theses=supervised_theses,
-                         orcid_activities=orcid_activities,
+                         dashboard_endpoint=_dashboard_endpoint_for_user(current_user),
+                         has_supervisor_role=user_has_supervisor_role(current_user) if current_user.user_type == "researcher" else False,
                          datetime=datetime.datetime)
+
+
+@profile.route("/profile/orcid")
+@login_required
+def orcid_publications():
+    """
+    Dedicated page for ORCID publication management.
+    """
+    orcid_activities = (
+        OrcidActivity.query
+        .filter_by(user_id=current_user.id)
+        .order_by(OrcidActivity.publication_date.desc())
+        .all()
+    )
+    return render_template(
+        "/profile_orcid.html",
+        user=current_user,
+        orcid_activities=orcid_activities,
+        dashboard_endpoint=_dashboard_endpoint_for_user(current_user),
+        has_supervisor_role=user_has_supervisor_role(current_user) if current_user.user_type == "researcher" else False,
+    )
+
+
+@profile.route("/profile/orcid/connect")
+@login_required
+def connect_orcid():
+    """
+    Start OAuth flow to link ORCID to the currently authenticated account.
+    """
+    session["orcid_link_user_id"] = current_user.id
+    session["orcid_link_next"] = "profile.orcid_publications"
+    redirect_uri = _oauth_redirect_uri("auth.orcid_callback")
+    return oauth.orcid.authorize_redirect(redirect_uri)
 
 
 @profile.route("/profile/update", methods=["POST"])
@@ -108,7 +159,7 @@ def sync_orcid():
     """
     if not current_user.orcid_id:
         flash("Please link your ORCID account first.", "error")
-        return redirect(url_for("profile.profile_page"))
+        return redirect(url_for("profile.orcid_publications"))
 
     result = fetch_orcid_activities(current_user)
 
@@ -117,7 +168,7 @@ def sync_orcid():
     else:
         flash(result["message"], "error")
 
-    return redirect(url_for("profile.profile_page"))
+    return redirect(url_for("profile.orcid_publications"))
 
 
 @profile.route("/profile/orcid/export", methods=["POST"])
@@ -136,14 +187,14 @@ def export_orcid_bibtex():
             activities = OrcidActivity.query.filter(OrcidActivity.id.in_(ids), OrcidActivity.user_id == current_user.id).all()
         except ValueError:
             flash("Invalid selection.", "error")
-            return redirect(url_for("profile.profile_page"))
+            return redirect(url_for("profile.orcid_publications"))
     else:
         flash("Please select items to export.", "warning")
-        return redirect(url_for("profile.profile_page"))
+        return redirect(url_for("profile.orcid_publications"))
 
     if not activities:
         flash("No publications to export.", "warning")
-        return redirect(url_for("profile.profile_page"))
+        return redirect(url_for("profile.orcid_publications"))
 
     bibtex_str = generate_bibtex(activities)
 
@@ -224,6 +275,9 @@ def verify_telegram():
         
         from superviseme.utils.telegram_service import get_telegram_service
         service = get_telegram_service()
+        # Ensure latest admin config/token is used.
+        service.bot = None
+        service._bot_token = None
         result = service.verify_user_chat(telegram_user_id)
         
         if result["success"]:
@@ -253,16 +307,20 @@ def test_telegram():
                 "message": "Telegram notifications not configured"
             }), 400
         
-        from superviseme.utils.telegram_service import send_telegram_notification
-        
-        success = send_telegram_notification(
+        from superviseme.utils.telegram_service import get_telegram_service
+
+        service = get_telegram_service()
+        # Ensure latest admin config/token is used.
+        service.bot = None
+        service._bot_token = None
+        result = service.send_notification(
             current_user.id,
             "test",
             "Test Notification",
             "This is a test notification from SuperviseMe. If you received this, your Telegram notifications are working correctly!"
         )
         
-        if success:
+        if result.get("success"):
             return jsonify({
                 "success": True, 
                 "message": "Test notification sent successfully"
@@ -270,13 +328,45 @@ def test_telegram():
         else:
             return jsonify({
                 "success": False, 
-                "message": "Failed to send test notification. Please check your configuration."
+                "message": result.get("message", "Failed to send test notification. Please check your configuration.")
             }), 500
             
     except Exception as e:
         return jsonify({
             "success": False, 
             "message": f"Error sending test notification: {str(e)}"
+        }), 500
+
+
+@profile.route("/profile/telegram/bot-info")
+@login_required
+def telegram_bot_info():
+    """
+    Get current bot status/info for profile setup UI.
+    """
+    try:
+        from superviseme.utils.telegram_service import get_telegram_service
+
+        service = get_telegram_service()
+        # Ensure latest admin config/token is used.
+        service.bot = None
+        service._bot_token = None
+        info = service.get_bot_info()
+
+        if not info:
+            return jsonify({
+                "success": False,
+                "message": "Telegram bot is not configured or not reachable."
+            })
+
+        return jsonify({
+            "success": True,
+            "bot_info": info
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Error loading bot info: {str(e)}"
         }), 500
 
 

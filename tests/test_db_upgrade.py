@@ -121,3 +121,33 @@ def test_legacy_db_without_alembic_version_gets_orcid_columns(app_env, monkeypat
     # alembic_version table should now exist
     tables = _get_tables(db_file)
     assert "alembic_version" in tables
+
+
+def test_existing_sqlite_db_is_not_replaced_on_startup(app_env):
+    """
+    If the DB file already exists, startup must migrate in-place and never
+    replace it with a copied/seed DB.
+    """
+    db_file, _ = app_env
+
+    conn = sqlite3.connect(str(db_file))
+    conn.executescript("""
+        CREATE TABLE keep_me (
+            id INTEGER PRIMARY KEY,
+            note TEXT NOT NULL
+        );
+        INSERT INTO keep_me (note) VALUES ('original-data');
+    """)
+    conn.commit()
+    conn.close()
+
+    create_app(db_type="sqlite", skip_user_init=True)
+
+    conn = sqlite3.connect(str(db_file))
+    try:
+        row = conn.execute("SELECT note FROM keep_me WHERE id = 1").fetchone()
+    finally:
+        conn.close()
+
+    assert row is not None, "Existing DB data must be preserved on startup"
+    assert row[0] == "original-data", "Startup must not overwrite an existing DB file"

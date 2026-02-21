@@ -1437,7 +1437,7 @@
             $('#editResourceType').val(type);
             $('#editResourceUrl').val(url);
             $('#editResourceDescription').val(description);
-            $('#editResourceForm').attr('action', '{{ url_for("researcher.edit_resource", resource_id=0) }}'.replace('0', resourceId));
+            $('#editResourceForm').attr('action', '{{ url_for("researcher.edit_project_resource", resource_id=0) }}'.replace('0', resourceId));
             $('#editResourceModal').modal('show');
         }
     </script>

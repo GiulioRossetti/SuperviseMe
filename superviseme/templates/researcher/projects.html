@@ -167,6 +167,7 @@
                     </button>
                 </div>
                 <form method="POST" action="{{ url_for('researcher.create_project') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="title">Project Title:</label>
@@ -208,6 +209,7 @@
                     </button>
                 </div>
                 <form method="POST" action="{{ url_for('researcher.update_project') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="project_id" id="edit_project_id">
                     <div class="modal-body">
                         <div class="form-group">
