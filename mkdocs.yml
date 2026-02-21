@@ -1,6 +1,6 @@
-site_name: SuperviseMe Documentation
+site_name: SuperviseMe
 site_url: https://giuliorossetti.github.io/SuperviseMe/
-site_description: Documentation for SuperviseMe project.
+site_description: SuperviseMe - your friendly thesis supervision dashboard.
 site_author: Giulio Rossetti
 
 theme:
