@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -158,6 +159,7 @@ def _stamp_sqlite_db_head(db_path):
 
 
 def create_app(db_type="sqlite", skip_user_init=False):
+    load_dotenv(override=False)
     app = Flask(__name__, static_url_path="/static")
 
     # When Flask-Migrate CLI (flask db ...) invokes the app factory it does not
