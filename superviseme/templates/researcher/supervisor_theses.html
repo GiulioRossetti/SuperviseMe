@@ -158,6 +158,30 @@
                             <textarea class="form-control" name="description" rows="4" required placeholder="Provide a detailed description of the thesis..."></textarea>
                         </div>
                         <div class="form-group">
+                            <label for="short_description">Short Description:</label>
+                            <textarea class="form-control" name="short_description" rows="2" placeholder="Short summary for the public card"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="long_description">Long Description:</label>
+                            <textarea class="form-control" name="long_description" rows="4" placeholder="Extended public description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="topic">Topic:</label>
+                            <input type="text" class="form-control" name="topic" placeholder="e.g. Human-Computer Interaction">
+                        </div>
+                        <div class="form-group">
+                            <label for="prerequisites">Prerequisites:</label>
+                            <textarea class="form-control" name="prerequisites" rows="2" placeholder="Required skills/tools/courses"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="keywords">Keywords (comma separated):</label>
+                            <input type="text" class="form-control" name="keywords" placeholder="ux, user studies, prototyping">
+                        </div>
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="researcher_publish_create" name="is_public" value="1">
+                            <label class="form-check-label" for="researcher_publish_create">Publish publicly when thesis is unassigned</label>
+                        </div>
+                        <div class="form-group">
                             <label for="level">Level:</label>
                             <select class="form-control" name="level" required>
                                 <option value="">Select Level</option>

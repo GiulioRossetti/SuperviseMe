@@ -1,0 +1,74 @@
+{% include 'admin/components/header.html' %}
+<body id="page-top">
+<div id="wrapper">
+    {% include 'student/components/sidebar.html' %}
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+            {% include 'admin/components/topbar.html' %}
+            <div class="container-fluid">
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <h1 class="h3 mb-0 text-gray-800">My Expressed Interests</h1>
+                    <a href="{{ url_for('public.public_thesis_dashboard') }}" class="btn btn-sm btn-primary">Browse Public Theses</a>
+                </div>
+
+                {% if interests %}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Status & History</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th>Thesis</th>
+                                                    <th>Status</th>
+                                                    <th>Submitted</th>
+                                                    <th>Handled</th>
+                                                    <th>Handler</th>
+                                                    <th>Message</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for interest in interests %}
+                                                <tr>
+                                                    <td>
+                                                        <a href="{{ url_for('public.public_thesis_detail', thesis_id=interest.thesis.id) }}">{{ interest.thesis.title }}</a>
+                                                    </td>
+                                                    <td>
+                                                        {% if interest.status == 'pending' %}
+                                                            <span class="badge badge-warning">Pending</span>
+                                                        {% elif interest.status == 'accepted' %}
+                                                            <span class="badge badge-success">Accepted</span>
+                                                        {% elif interest.status == 'declined' %}
+                                                            <span class="badge badge-danger">Declined</span>
+                                                        {% else %}
+                                                            <span class="badge badge-secondary">{{ interest.status|title }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ dt(interest.created_at).strftime('%Y-%m-%d %H:%M') if interest.created_at else '-' }}</td>
+                                                    <td>{{ dt(interest.handled_at).strftime('%Y-%m-%d %H:%M') if interest.handled_at else '-' }}</td>
+                                                    <td>{{ (interest.handled_by.name ~ ' ' ~ interest.handled_by.surname) if interest.handled_by else '-' }}</td>
+                                                    <td>{{ interest.message or '-' }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">No interests expressed yet.</div>
+                {% endif %}
+            </div>
+        </div>
+        {% include 'admin/components/footer.html' %}
+    </div>
+</div>
+{% include 'admin/components/logout_modal.html' %}
+</body>
+</html>

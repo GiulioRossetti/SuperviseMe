@@ -49,6 +49,7 @@
                                                     <th>Surname</th>
                                                     <th>Gender</th>
                                                     <th>Role</th>
+                                                    <th>Researcher + Supervisor</th>
                                                     <th>Status</th>
                                                     <th>ID</th>
                                                     <th>Actions</th>
@@ -116,6 +117,13 @@ function renderFallbackTable(usersData) {
       <td>${user.surname || ''}</td>
       <td>${user.gender || ''}</td>
       <td><span class="badge badge-primary">${user.user_type}</span></td>
+      <td>
+        ${user.user_type === 'researcher'
+          ? (user.has_supervisor_privileges
+              ? '<span class="badge badge-success">Enabled</span>'
+              : '<span class="badge badge-secondary">No</span>')
+          : '<span class="text-muted">N/A</span>'}
+      </td>
       <td>
         <span class="badge ${user.is_enabled ? 'badge-success' : 'badge-warning'}">
           ${user.is_enabled ? 'Enabled' : 'Disabled'}
@@ -205,10 +213,28 @@ try {
           { id: 'id', hidden: true },
           { id: 'google_id', hidden: true },
           { id: 'orcid_id', hidden: true },
+          { id: 'has_supervisor_privileges', hidden: true },
           { id: 'name', name: 'Name', attributes: editableCellAttributes },
           { id: 'surname', name: 'Surname', attributes: editableCellAttributes },
           {id: "gender", name: 'Gender', attributes: editableCellAttributes},
           { id: 'user_type', name: 'Role', attributes: editableCellAttributes },
+          {
+            id: 'researcher_supervisor',
+            name: 'Researcher + Supervisor',
+            sort: false,
+            formatter: (cell, row) => {
+              const userType = row.cells[7].data;
+              const hasPrivileges = row.cells[3].data;
+              if (userType !== 'researcher') {
+                return gridjs.html('<span class="text-muted">N/A</span>');
+              }
+              return gridjs.html(
+                hasPrivileges
+                  ? '<span class="badge badge-success">Enabled</span>'
+                  : '<span class="badge badge-secondary">No</span>'
+              );
+            }
+          },
           {
             id: 'is_enabled',
             name: 'Status',
@@ -278,8 +304,11 @@ try {
         multiColumn: true,
         server: {
           url: (prev, columns) => {
-            const columnIds = ['id', 'name', 'surname', 'gender', 'user_type'];
-            const sort = columns.map(col => (col.direction === 1 ? '+' : '-') + columnIds[col.index]);
+            const columnIds = ['name', 'surname', 'gender', 'user_type'];
+            const sort = columns
+              .map(col => ({ ...col, field: columnIds[col.index] }))
+              .filter(col => !!col.field)
+              .map(col => (col.direction === 1 ? '+' : '-') + col.field);
             return updateUrl(prev, { sort });
           },
         },

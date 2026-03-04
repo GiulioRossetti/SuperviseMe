@@ -235,6 +235,27 @@
                                     <h6 class="m-0 font-weight-bold text-primary">Actions</h6>
                                 </div>
                                 <div class="card-body">
+                                    {% if user.user_type == "researcher" %}
+                                        {% if researcher_supervisor_role %}
+                                            <div class="alert alert-success py-2 small" role="alert">
+                                                Supervisor privileges are active for this researcher.
+                                            </div>
+                                            <form action="/admin/revoke_supervisor_role" method="POST" class="mb-2">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <input type="hidden" name="researcher_id" value="{{ user.id }}">
+                                                <button type="submit" class="btn btn-outline-warning btn-block">Revoke Supervisor Privileges</button>
+                                            </form>
+                                        {% else %}
+                                            <div class="alert alert-secondary py-2 small" role="alert">
+                                                This researcher currently has no supervisor privileges.
+                                            </div>
+                                            <form action="/admin/grant_supervisor_role" method="POST" class="mb-2">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <input type="hidden" name="researcher_id" value="{{ user.id }}">
+                                                <button type="submit" class="btn btn-outline-success btn-block">Grant Supervisor Privileges</button>
+                                            </form>
+                                        {% endif %}
+                                    {% endif %}
                                     <button class="btn btn-warning btn-block mb-2" onclick="resetPassword({{ user.id }})">Reset Password</button>
                                     <button class="btn btn-danger btn-block" onclick="deleteUser({{ user.id }})">Delete User</button>
                                 </div>

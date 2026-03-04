@@ -32,7 +32,12 @@ class User_mgmt(UserMixin, db.Model):
     orcid_access_token = db.Column(db.String(255), nullable=True)
     orcid_refresh_token = db.Column(db.String(255), nullable=True)
 
-    thesis = db.relationship("Thesis", backref="author", lazy=True)
+    thesis = db.relationship(
+        "Thesis",
+        foreign_keys="Thesis.author_id",
+        backref="author",
+        lazy=True,
+    )
 
 
 class Thesis(db.Model):
@@ -40,10 +45,17 @@ class Thesis(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
+    short_description = db.Column(db.Text, nullable=True)
+    long_description = db.Column(db.Text, nullable=True)
+    topic = db.Column(db.String(120), nullable=True)
+    prerequisites = db.Column(db.Text, nullable=True)
+    is_public = db.Column(db.Boolean, default=False, nullable=False)
+    publisher_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
     author_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
     frozen = db.Column(db.Boolean, default=False)
     level = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.Integer, nullable=False)
+    publisher = db.relationship("User_mgmt", foreign_keys=[publisher_id], backref="published_theses", lazy=True)
 
 
 class Thesis_Status(db.Model):
@@ -73,6 +85,22 @@ class Thesis_Tag(db.Model):
     thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False)
     tag = db.Column(db.String(50), nullable=False)
     thesis = db.relationship("Thesis", backref="tags", lazy=True)
+
+
+class Thesis_Interest(db.Model):
+    __tablename__ = "thesis_interest"
+    id = db.Column(db.Integer, primary_key=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    message = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), nullable=False, default="pending")
+    created_at = db.Column(db.Integer, nullable=False)
+    handled_at = db.Column(db.Integer, nullable=True)
+    handled_by_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
+
+    thesis = db.relationship("Thesis", backref="interests", lazy=True)
+    student = db.relationship("User_mgmt", foreign_keys=[student_id], backref="thesis_interests", lazy=True)
+    handled_by = db.relationship("User_mgmt", foreign_keys=[handled_by_id], backref="handled_thesis_interests", lazy=True)
 
 
 class Update_Tag(db.Model):

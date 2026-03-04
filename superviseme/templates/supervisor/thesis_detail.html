@@ -702,6 +702,45 @@
                         </div>
                     </div>
 
+                    <!-- Expressions of Interest -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Expressions of Interest</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if thesis.publisher_id != current_user.id %}
+                                        <p class="text-muted mb-0">Only the thesis publisher can handle expressions of interest.</p>
+                                    {% elif interests %}
+                                        {% for interest in interests %}
+                                            <div class="border rounded p-2 mb-2">
+                                                <div><strong>{{ interest.student.name }} {{ interest.student.surname }}</strong> ({{ interest.student.email }})</div>
+                                                {% if interest.message %}
+                                                    <div class="small text-muted mt-1">{{ interest.message }}</div>
+                                                {% endif %}
+                                                <div class="mt-2 d-flex">
+                                                    {% if not thesis.author_id %}
+                                                        <form method="POST" action="{{ url_for('supervisor.assign_thesis_interest', interest_id=interest.id) }}" class="mr-2">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-sm btn-success">Assign Thesis</button>
+                                                        </form>
+                                                    {% endif %}
+                                                    <form method="POST" action="{{ url_for('supervisor.delete_thesis_interest', interest_id=interest.id) }}">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Decline</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted mb-0">No expressions of interest yet.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
                 <!-- /.container-fluid -->
 
@@ -1399,6 +1438,30 @@
                         <div class="form-group">
                             <label for="thesisDescription">Description:</label>
                             <textarea class="form-control" name="description" id="thesisDescription" rows="4" required>{{ thesis.description }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="thesisShortDescription">Short Description:</label>
+                            <textarea class="form-control" name="short_description" id="thesisShortDescription" rows="2">{{ thesis.short_description or '' }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="thesisLongDescription">Long Description:</label>
+                            <textarea class="form-control" name="long_description" id="thesisLongDescription" rows="4">{{ thesis.long_description or '' }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="thesisTopic">Topic:</label>
+                            <input type="text" class="form-control" name="topic" id="thesisTopic" value="{{ thesis.topic or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="thesisPrerequisites">Prerequisites:</label>
+                            <textarea class="form-control" name="prerequisites" id="thesisPrerequisites" rows="3">{{ thesis.prerequisites or '' }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="thesisKeywords">Keywords (comma separated):</label>
+                            <input type="text" class="form-control" name="keywords" id="thesisKeywords" value="{{ thesis_tags|map(attribute='tag')|join(', ') }}">
+                        </div>
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="thesisIsPublic" name="is_public" value="1" {% if thesis.is_public %}checked{% endif %}>
+                            <label class="form-check-label" for="thesisIsPublic">Publish publicly when unassigned</label>
                         </div>
                         <div class="form-group">
                             <label for="thesisLevel">Level:</label>

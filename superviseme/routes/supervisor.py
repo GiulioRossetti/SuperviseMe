@@ -5,6 +5,16 @@ from sqlalchemy.orm import joinedload
 from superviseme.utils.miscellanea import check_privileges
 from superviseme.utils.activity_tracker import get_inactive_students
 from superviseme.utils.thesis_management import delete_thesis_with_dependencies
+from superviseme.utils.thesis_interest import (
+    accept_interest_and_close_others,
+    close_interests_after_direct_assignment,
+    decline_interest,
+)
+from superviseme.utils.thesis_public import (
+    normalize_thesis_descriptions,
+    parse_bool,
+    set_thesis_keywords,
+)
 from superviseme.models import *
 from superviseme import db
 from datetime import datetime
@@ -180,6 +190,9 @@ def thesis_detail(thesis_id):
     supervisors = Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).all()
     author = thesis.author
     thesis_tags = Thesis_Tag.query.filter_by(thesis_id=thesis_id).all()
+    interests = Thesis_Interest.query.filter_by(thesis_id=thesis_id, status="pending").order_by(
+        Thesis_Interest.created_at.desc()
+    ).all()
     resources = Resource.query.filter_by(thesis_id=thesis_id).all()
     
     # Get objectives and hypotheses
@@ -204,6 +217,7 @@ def thesis_detail(thesis_id):
                            supervisors=supervisors, author=author, objectives=objectives, 
                            hypotheses=hypotheses, thesis_tags=thesis_tags, resources=resources,
                            available_students=available_students, todos=todos, meeting_notes=meeting_notes,
+                           interests=interests,
                            dt=datetime.fromtimestamp)
 
 
@@ -623,11 +637,29 @@ def create_thesis():
     
     title = request.form.get("title")
     description = request.form.get("description")
+    short_description = request.form.get("short_description")
+    long_description = request.form.get("long_description")
+    topic = request.form.get("topic")
+    prerequisites = request.form.get("prerequisites")
+    is_public = parse_bool(request.form.get("is_public"))
+    keywords = request.form.get("keywords")
     level = request.form.get("level")
+
+    normalized_short, normalized_long, normalized_description = normalize_thesis_descriptions(
+        short_description=short_description,
+        long_description=long_description,
+        fallback_description=description,
+    )
 
     new_thesis = Thesis(
         title=title,
-        description=description,
+        description=normalized_description,
+        short_description=normalized_short,
+        long_description=normalized_long,
+        topic=(topic or "").strip() or None,
+        prerequisites=(prerequisites or "").strip() or None,
+        is_public=is_public,
+        publisher_id=current_user.id,
         level=level,
         created_at=int(time.time())
     )
@@ -643,6 +675,7 @@ def create_thesis():
     )
     
     db.session.add(thesis_supervisor)
+    set_thesis_keywords(db, Thesis_Tag, new_thesis.id, keywords)
     db.session.commit()
 
     return redirect(url_for('supervisor.theses_data'))
@@ -662,6 +695,12 @@ def update_thesis():
     thesis_id = request.form.get("thesis_id")
     title = request.form.get("title")
     description = request.form.get("description")
+    short_description = request.form.get("short_description")
+    long_description = request.form.get("long_description")
+    topic = request.form.get("topic")
+    prerequisites = request.form.get("prerequisites")
+    keywords = request.form.get("keywords")
+    is_public_value = request.form.get("is_public")
     level = request.form.get("level")
 
     # Verify supervisor has access to this thesis
@@ -676,8 +715,21 @@ def update_thesis():
 
     thesis = thesis_supervisor.thesis
     thesis.title = title
-    thesis.description = description
+    normalized_short, normalized_long, normalized_description = normalize_thesis_descriptions(
+        short_description=short_description if short_description is not None else thesis.short_description,
+        long_description=long_description if long_description is not None else thesis.long_description,
+        fallback_description=description if description is not None else thesis.description,
+    )
+    thesis.description = normalized_description
+    thesis.short_description = normalized_short
+    thesis.long_description = normalized_long
+    thesis.topic = (topic or "").strip() or None
+    thesis.prerequisites = (prerequisites or "").strip() or None
+    thesis.is_public = parse_bool(is_public_value)
+    if thesis.is_public and not thesis.publisher_id:
+        thesis.publisher_id = current_user.id
     thesis.level = level
+    set_thesis_keywords(db, Thesis_Tag, thesis.id, keywords)
     db.session.commit()
     
     flash("Thesis updated successfully")
@@ -1466,6 +1518,11 @@ def assign_thesis():
     
     # Assign thesis to student
     thesis.author_id = student_id
+    close_interests_after_direct_assignment(
+        thesis_id=thesis.id,
+        assigned_student_id=int(student_id),
+        handler_id=current_user.id,
+    )
     db.session.commit()
     flash(f"Thesis '{thesis.title}' assigned to {student.name} {student.surname}")
     
@@ -1504,6 +1561,77 @@ def unassign_thesis(thesis_id):
     flash(f"Thesis '{thesis.title}' unassigned from {student_name}")
     
     return redirect(url_for('supervisor.theses_data'))
+
+
+@supervisor.route("/supervisor/thesis_interest/assign/<int:interest_id>", methods=["POST"])
+@login_required
+def assign_thesis_interest(interest_id):
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
+
+    interest = Thesis_Interest.query.get_or_404(interest_id)
+    thesis = Thesis.query.get_or_404(interest.thesis_id)
+    if thesis.publisher_id != current_user.id:
+        flash("Only the thesis publisher can handle interests for this thesis.", "warning")
+        return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+    if interest.status != "pending":
+        flash("This interest request has already been handled.", "info")
+        return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+    if thesis.author_id:
+        flash("Thesis is already assigned.", "warning")
+        return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+
+    thesis.author_id = interest.student_id
+    db.session.add(
+        Thesis_Status(
+            thesis_id=thesis.id,
+            status="thesis accepted",
+            updated_at=int(time.time()),
+        )
+    )
+    accept_interest_and_close_others(
+        thesis_id=thesis.id,
+        accepted_interest_id=interest.id,
+        handler_id=current_user.id,
+    )
+    db.session.commit()
+
+    from superviseme.utils.notifications import create_notification
+
+    create_notification(
+        recipient_id=interest.student_id,
+        actor_id=current_user.id,
+        notification_type="thesis_status_change",
+        title=f"Thesis assigned: {thesis.title}",
+        message="Your interest was accepted and the thesis has been assigned to you.",
+        thesis_id=thesis.id,
+        action_url="/student/thesis",
+    )
+    flash("Interest accepted and thesis assigned.", "success")
+    return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+
+
+@supervisor.route("/supervisor/thesis_interest/delete/<int:interest_id>", methods=["POST"])
+@login_required
+def delete_thesis_interest(interest_id):
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
+
+    interest = Thesis_Interest.query.get_or_404(interest_id)
+    thesis = Thesis.query.get_or_404(interest.thesis_id)
+    if thesis.publisher_id != current_user.id:
+        flash("Only the thesis publisher can handle interests for this thesis.", "warning")
+        return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+    if interest.status != "pending":
+        flash("This interest request has already been handled.", "info")
+        return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+
+    decline_interest(interest, current_user.id)
+    db.session.commit()
+    flash("Expression of interest declined.", "info")
+    return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
 
 
 @supervisor.route("/supervisor/add_resource", methods=["POST"])

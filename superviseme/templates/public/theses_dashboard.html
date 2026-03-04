@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="Public available theses">
+    <meta name="author" content="SuperviseMe">
+    <title>SuperviseMe - Available Theses</title>
+
+    <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
+
+    <style>
+        .public-sidebar-link.active {
+            background-color: rgba(255,255,255,.16);
+            border-radius: .35rem;
+        }
+        .thesis-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: .75rem;
+        }
+        .thesis-card {
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+        }
+        .thesis-desc {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .chip {
+            display: inline-block;
+            margin: 0 .35rem .35rem 0;
+        }
+        @media (max-width: 1700px) { .thesis-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        @media (max-width: 1350px) { .thesis-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        @media (max-width: 992px) { .thesis-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 576px) { .thesis-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+
+<body id="page-top">
+<div id="wrapper">
+
+    {% if current_user.is_authenticated and current_user.user_type == 'student' %}
+        {% include 'student/components/sidebar.html' %}
+    {% else %}
+        <ul class="navbar-nav bg-gradient-success sidebar sidebar-dark accordion" id="accordionSidebar">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('public.public_thesis_dashboard') }}">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">SuperviseMe</div>
+            </a>
+
+            <hr class="sidebar-divider my-0">
+
+            <li class="nav-item active">
+                <a class="nav-link public-sidebar-link active" href="{{ url_for('public.public_thesis_dashboard') }}">
+                    <i class="fas fa-fw fa-book-open"></i>
+                    <span>Available Theses</span>
+                </a>
+            </li>
+
+            <hr class="sidebar-divider">
+
+            {% if current_user.is_authenticated %}
+                {% if current_user.user_type == 'admin' %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                {% elif current_user.user_type == 'supervisor' %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('supervisor.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                {% elif current_user.user_type == 'researcher' %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('researcher.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                {% endif %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('profile.profile_page') }}"><i class="fas fa-fw fa-user"></i><span>Profile</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="/notifications"><i class="fas fa-fw fa-bell"></i><span>Notifications</span></a></li>
+            {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-fw fa-sign-in-alt"></i><span>Sign in / Sign up</span></a></li>
+            {% endif %}
+
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+        </ul>
+    {% endif %}
+
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+            {% if current_user.is_authenticated %}
+                {% include 'admin/components/topbar.html' %}
+            {% else %}
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <span class="navbar-brand mb-0 h6 text-gray-700">Public Thesis Board</span>
+                </nav>
+            {% endif %}
+
+            <div class="container-fluid">
+
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <h1 class="h3 mb-0 text-gray-800">Available Thesis Opportunities</h1>
+                        <div class="small text-muted">Public catalog of currently unassigned theses.</div>
+                    </div>
+                </div>
+
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Search & Filters</h6>
+                    </div>
+                    <div class="card-body">
+                        <form method="GET">
+                            <div class="form-row">
+                                <div class="col-md-3 mb-2">
+                                    <input type="text" class="form-control" name="supervisor" placeholder="Supervisor" value="{{ filters.supervisor }}">
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <input type="text" class="form-control" name="topic" placeholder="Topic" value="{{ filters.topic }}">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <input type="text" class="form-control" name="keywords" placeholder="Keywords (comma separated)" value="{{ filters.keywords }}">
+                                </div>
+                                <div class="col-md-2 mb-2">
+                                    <button type="submit" class="btn btn-primary btn-block">Search</button>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-12">
+                                    <input type="text" class="form-control" name="q" placeholder="Free text in title, description, prerequisites, tags" value="{{ filters.q }}">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="mb-3 small text-muted">{{ theses|length }} result{{ '' if theses|length == 1 else 's' }}</div>
+
+                {% if theses %}
+                    <div class="thesis-grid">
+                        {% for thesis in theses %}
+                            <div class="card shadow thesis-card">
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="font-weight-bold text-gray-900 mb-2">{{ thesis.title }}</h5>
+                                    <div class="small text-muted mb-1"><strong>Topic:</strong> {{ thesis.topic or 'Not specified' }}</div>
+                                    <div class="small text-muted mb-2">
+                                        <strong>Supervisor:</strong>
+                                        {% set sup_list = supervisors_by_thesis.get(thesis.id, []) %}
+                                        {% if sup_list %}
+                                            {% for sup in sup_list %}
+                                                {{ sup.name }} {{ sup.surname }}{% if not loop.last %}, {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            Not specified
+                                        {% endif %}
+                                    </div>
+
+                                    <p class="text-gray-700 thesis-desc mb-2">{{ thesis.short_description or thesis.description }}</p>
+
+                                    <div class="mb-2">
+                                        {% set kw = tags_by_thesis.get(thesis.id, []) %}
+                                        {% if kw %}
+                                            {% for tag in kw %}
+                                                <span class="badge badge-info chip">{{ tag }}</span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="badge badge-secondary chip">No keywords</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mt-auto text-right">
+                                        <a href="{{ url_for('public.public_thesis_detail', thesis_id=thesis.id) }}" class="btn btn-sm btn-primary">
+                                            Open thesis details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="card shadow">
+                        <div class="card-body text-muted">No public available theses match your filters.</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
+</body>
+</html>

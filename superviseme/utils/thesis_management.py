@@ -14,6 +14,7 @@ from superviseme.models import (
     Thesis_Status,
     Thesis_Supervisor,
     Thesis_Tag,
+    Thesis_Interest,
     Thesis_Update,
     Todo,
     Todo_Reference,
@@ -74,6 +75,9 @@ def delete_thesis_with_dependencies(thesis_id):
             synchronize_session=False
         )
         Thesis_Tag.query.filter_by(thesis_id=thesis_id).delete(synchronize_session=False)
+        Thesis_Interest.query.filter_by(thesis_id=thesis_id).delete(
+            synchronize_session=False
+        )
         Resource.query.filter_by(thesis_id=thesis_id).delete(synchronize_session=False)
         Thesis_Objective.query.filter_by(thesis_id=thesis_id).delete(
             synchronize_session=False

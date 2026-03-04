@@ -399,6 +399,9 @@ def create_app(db_type="sqlite", skip_user_init=False):
     from superviseme.routes.notifications import notifications as notifications_blueprint
     app.register_blueprint(notifications_blueprint)
 
+    from superviseme.routes.public import public as public_blueprint
+    app.register_blueprint(public_blueprint)
+
     # Register error handlers
     from superviseme.routes.errors import errors as errors_blueprint
     app.register_blueprint(errors_blueprint)

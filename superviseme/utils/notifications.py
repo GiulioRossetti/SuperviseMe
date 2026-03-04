@@ -28,6 +28,7 @@ def get_user_role_url_prefix(user_id):
     role_prefixes = {
         'admin': '/admin/',
         'supervisor': '/supervisor/',
+        'researcher': '/researcher/supervisor/',
         'student': '/student/'
     }
     
@@ -58,6 +59,8 @@ def build_role_aware_url(recipient_id, path, thesis_id=None):
     elif path == 'thesis':
         if user.user_type == 'student':
             return f"{role_prefix}thesis"
+        elif user.user_type == 'researcher' and thesis_id:
+            return f"{role_prefix}thesis/{thesis_id}"
         elif user.user_type == 'supervisor' and thesis_id:
             return f"{role_prefix}thesis/{thesis_id}"
         elif user.user_type == 'admin' and thesis_id:
@@ -73,6 +76,66 @@ def build_role_aware_url(recipient_id, path, thesis_id=None):
             return f"{role_prefix}thesis#todos"
     
     return f"{role_prefix}{path}"
+
+
+def create_thesis_interest_notification(thesis_id, student_id, interest_message=""):
+    """
+    Notify thesis publisher/supervisors when a student expresses interest in a public thesis.
+    Sends in-app + Telegram (via create_notification) and email.
+    """
+    from superviseme.models import Thesis_Supervisor
+    from superviseme.utils.email_service import send_email
+
+    thesis = Thesis.query.get(thesis_id)
+    student = User_mgmt.query.get(student_id)
+    if not thesis or not student:
+        return
+
+    student_name = f"{student.name} {student.surname}".strip() or student.username
+    snippet = (interest_message or "").strip()
+    snippet = snippet[:180] + ("..." if len(snippet) > 180 else "")
+
+    title = f"New interest for thesis: {thesis.title}"
+    base_msg = f"{student_name} expressed interest in this thesis."
+    message = f"{base_msg} Message: {snippet}" if snippet else base_msg
+
+    recipient_ids = set()
+    if thesis.publisher_id:
+        recipient_ids.add(thesis.publisher_id)
+
+    # Fallback and coverage for theses lacking publisher attribution.
+    for rel in Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).all():
+        recipient_ids.add(rel.supervisor_id)
+
+    # Never notify the same student that just expressed interest.
+    recipient_ids.discard(student_id)
+
+    for recipient_id in recipient_ids:
+        action_url = build_role_aware_url(recipient_id, "thesis", thesis_id)
+        create_notification(
+            recipient_id=recipient_id,
+            actor_id=student_id,
+            notification_type="thesis_interest",
+            title=title,
+            message=message,
+            thesis_id=thesis_id,
+            action_url=action_url,
+        )
+
+        recipient = User_mgmt.query.get(recipient_id)
+        if recipient and recipient.email:
+            body = (
+                f"Hello {recipient.name or recipient.username},\n\n"
+                f"{student_name} expressed interest in the thesis '{thesis.title}'.\n"
+                f"{'Student message: ' + snippet + chr(10) if snippet else ''}\n"
+                f"Open SuperviseMe to review and handle this expression of interest.\n\n"
+                "SuperviseMe"
+            )
+            send_email(
+                subject=title,
+                recipients=[recipient.email],
+                text_body=body,
+            )
 
 
 def create_notification(recipient_id, actor_id, notification_type, title, message, 

@@ -11,6 +11,73 @@ import time
 student = Blueprint("student", __name__)
 
 
+@student.route("/student/express_interest/<int:thesis_id>", methods=["POST"])
+@login_required
+def express_interest(thesis_id):
+    """
+    Allow a student to express interest in a public and currently unassigned thesis.
+    """
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
+
+    thesis = Thesis.query.filter_by(id=thesis_id, is_public=True, author_id=None).first()
+    if not thesis:
+        flash("This thesis is not available for public interest.", "warning")
+        return redirect(url_for("public.public_thesis_dashboard"))
+
+    existing = Thesis_Interest.query.filter_by(
+        thesis_id=thesis_id, student_id=current_user.id, status="pending"
+    ).first()
+    if existing:
+        flash("You have already expressed interest in this thesis.", "info")
+        return redirect(url_for("public.public_thesis_detail", thesis_id=thesis_id))
+
+    message = (request.form.get("message") or "").strip()
+    interest = Thesis_Interest(
+        thesis_id=thesis_id,
+        student_id=current_user.id,
+        message=message or None,
+        status="pending",
+        created_at=int(time.time()),
+    )
+    db.session.add(interest)
+    db.session.commit()
+
+    from superviseme.utils.notifications import create_thesis_interest_notification
+
+    create_thesis_interest_notification(
+        thesis_id=thesis_id,
+        student_id=current_user.id,
+        interest_message=message,
+    )
+
+    flash("Your interest has been sent successfully.", "success")
+    return redirect(url_for("public.public_thesis_detail", thesis_id=thesis_id))
+
+
+@student.route("/student/interests")
+@login_required
+def interests():
+    """
+    Show the student's expression-of-interest history with statuses.
+    """
+    privilege_check = check_privileges(current_user.username, role="student")
+    if privilege_check is not True:
+        return privilege_check
+
+    interests = (
+        Thesis_Interest.query.filter_by(student_id=current_user.id)
+        .order_by(Thesis_Interest.created_at.desc())
+        .all()
+    )
+    return render_template(
+        "student/interests.html",
+        interests=interests,
+        dt=datetime.fromtimestamp,
+    )
+
+
 @student.route("/student/dashboard")
 @login_required
 def dashboard():

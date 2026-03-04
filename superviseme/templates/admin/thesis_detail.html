@@ -69,6 +69,30 @@
                                             <label for="description">Description</label>
                                             <textarea class="form-control" id="description" name="description" rows="4">{{ thesis.description }}</textarea>
                                         </div>
+                                        <div class="form-group">
+                                            <label for="short_description">Short Description</label>
+                                            <textarea class="form-control" id="short_description" name="short_description" rows="2">{{ thesis.short_description or '' }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="long_description">Long Description</label>
+                                            <textarea class="form-control" id="long_description" name="long_description" rows="5">{{ thesis.long_description or '' }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="topic">Topic</label>
+                                            <input type="text" class="form-control" id="topic" name="topic" value="{{ thesis.topic or '' }}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="prerequisites">Prerequisites</label>
+                                            <textarea class="form-control" id="prerequisites" name="prerequisites" rows="3">{{ thesis.prerequisites or '' }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="keywords">Keywords (comma separated)</label>
+                                            <input type="text" class="form-control" id="keywords" name="keywords" value="{{ tags|map(attribute='tag')|join(', ') }}">
+                                        </div>
+                                        <div class="form-group form-check">
+                                            <input type="checkbox" class="form-check-input" id="is_public" name="is_public" value="1" {% if thesis.is_public %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_public">Publish publicly when available</label>
+                                        </div>
                                         
                                         <div class="form-group">
                                             <label for="level">Level</label>
@@ -405,10 +429,43 @@
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
                     <a class="btn btn-primary" href="login.html">Logout</a>
-                </div>
-            </div>
-        </div>
-    </div>
+                                </div>
+                            </div>
+
+                            <!-- Expressions of Interest -->
+                            <div class="card mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Expressions of Interest</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if interests %}
+                                        {% for interest in interests %}
+                                            <div class="border rounded p-2 mb-2">
+                                                <div><strong>{{ interest.student.name }} {{ interest.student.surname }}</strong> ({{ interest.student.email }})</div>
+                                                {% if interest.message %}
+                                                    <div class="small text-muted mt-1">{{ interest.message }}</div>
+                                                {% endif %}
+                                                <div class="mt-2 d-flex">
+                                                    {% if not thesis.author_id %}
+                                                        <form action="/admin/thesis_interest/assign/{{ interest.id }}" method="POST" class="mr-2">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-sm btn-success">Assign Thesis</button>
+                                                        </form>
+                                                    {% endif %}
+                                                    <form action="/admin/thesis_interest/delete/{{ interest.id }}" method="POST">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Decline</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted mb-0">No expressions of interest yet.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
 </body>
 </html>

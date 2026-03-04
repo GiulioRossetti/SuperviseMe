@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_user, login_required, logout_user, login_manager, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
-from superviseme.models import User_mgmt
+from superviseme.models import User_mgmt, Thesis
 from superviseme import db, oauth
 from superviseme.utils.logging_config import log_login_attempt, log_logout, log_privilege_escalation_attempt
 import time
@@ -22,6 +22,24 @@ def _oauth_redirect_uri(endpoint):
     if base_url:
         return urljoin(f"{base_url.rstrip('/')}/", callback_path.lstrip("/"))
     return url_for(endpoint, _external=True)
+
+
+def _redirect_after_login(user):
+    """
+    Role-aware post-login redirect.
+    Students without an assigned thesis are redirected to the public thesis page.
+    """
+    if user.user_type == "admin":
+        return redirect(url_for("admin.dashboard"))
+    if user.user_type == "supervisor":
+        return redirect(url_for("supervisor.dashboard"))
+    if user.user_type == "researcher":
+        return redirect(url_for("researcher.dashboard"))
+
+    assigned_thesis = Thesis.query.filter_by(author_id=user.id).first()
+    if assigned_thesis is None:
+        return redirect(url_for("public.public_thesis_dashboard"))
+    return redirect(url_for("student.dashboard"))
 
 
 @auth.route("/")
@@ -74,14 +92,7 @@ def login_post():
     
     # if the above check passes, then we know the user has the right credentials
     login_user(user, remember=remember)
-    if user.user_type == "admin":
-        return redirect(url_for("admin.dashboard"))
-    elif user.user_type == "supervisor":
-        return redirect(url_for("supervisor.dashboard"))
-    elif user.user_type == "researcher":
-        return redirect(url_for("researcher.dashboard"))
-    else:
-        return redirect(url_for("student.dashboard"))
+    return _redirect_after_login(user)
 
 
 @auth.route("/logout", methods=["POST"])
@@ -168,15 +179,7 @@ def google_callback():
         log_login_attempt(user.username, True, request.remote_addr, details="Google Login")
         login_user(user, remember=True)
 
-        # Redirect based on role (same logic as login_post)
-        if user.user_type == "admin":
-            return redirect(url_for("admin.dashboard"))
-        elif user.user_type == "supervisor":
-            return redirect(url_for("supervisor.dashboard"))
-        elif user.user_type == "researcher":
-            return redirect(url_for("researcher.dashboard"))
-        else:
-            return redirect(url_for("student.dashboard"))
+        return _redirect_after_login(user)
 
 
 @auth.route('/login/orcid')
@@ -287,12 +290,4 @@ def orcid_callback():
         log_login_attempt(user.username, True, request.remote_addr, details="ORCID Login")
         login_user(user, remember=True)
 
-        # Redirect based on role
-        if user.user_type == "admin":
-            return redirect(url_for("admin.dashboard"))
-        elif user.user_type == "supervisor":
-            return redirect(url_for("supervisor.dashboard"))
-        elif user.user_type == "researcher":
-            return redirect(url_for("researcher.dashboard"))
-        else:
-            return redirect(url_for("student.dashboard"))
+        return _redirect_after_login(user)

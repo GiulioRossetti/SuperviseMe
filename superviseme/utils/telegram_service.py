@@ -273,6 +273,11 @@ NOTIFICATION_TYPES = {
         'description': 'Reminders for upcoming deadlines',
         'icon': '⏰'
     },
+    'thesis_interest': {
+        'name': 'Thesis Interest',
+        'description': 'When a student expresses interest in one of your public theses',
+        'icon': '📬'
+    },
     'weekly_summary': {
         'name': 'Weekly Summary',
         'description': 'Weekly summary of thesis activities',
@@ -288,4 +293,4 @@ def get_notification_types() -> Dict[str, Dict]:
 
 def get_default_notification_types() -> List[str]:
     """Get default enabled notification types for new users"""
-    return ['new_update', 'new_feedback', 'todo_assigned', 'thesis_status_change']
+    return ['new_update', 'new_feedback', 'todo_assigned', 'thesis_status_change', 'thesis_interest']

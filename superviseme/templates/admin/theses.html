@@ -363,7 +363,33 @@ try {
                                             <div class="col-sm-12">
                                                 <textarea type="text" class="form-control form-control-user" id="description" name="description">Description of the thesis</textarea>
                                             </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                                <label for="short_description">Short Description</label>
+                                                <textarea class="form-control" id="short_description" name="short_description" rows="2" placeholder="Card preview text"></textarea>
                                             </div>
+                                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                                <label for="topic">Topic</label>
+                                                <input type="text" class="form-control" id="topic" name="topic" placeholder="e.g. Distributed Systems">
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <div class="col-sm-12">
+                                                <label for="long_description">Long Description</label>
+                                                <textarea class="form-control" id="long_description" name="long_description" rows="4" placeholder="Detailed public description"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="form-group row">
+                                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                                <label for="prerequisites">Prerequisites</label>
+                                                <textarea class="form-control" id="prerequisites" name="prerequisites" rows="2" placeholder="Skills, courses, tools"></textarea>
+                                            </div>
+                                            <div class="col-sm-6 mb-3 mb-sm-0">
+                                                <label for="keywords">Keywords</label>
+                                                <input type="text" class="form-control" id="keywords" name="keywords" placeholder="AI, NLP, Python">
+                                            </div>
+                                        </div>
                                         <div class="form-group row">
                                             <div class="col-sm-4 mb-3 mb-sm-0">
                                                 Student
@@ -393,6 +419,12 @@ try {
                                                     <option value="other">Other</option>
                                                 </select>
 
+                                            </div>
+                                            <div class="col-sm-4 mb-3 mb-sm-0 d-flex align-items-end">
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input" id="is_public" name="is_public" value="1">
+                                                    <label class="form-check-label" for="is_public">Publish publicly (only if unassigned)</label>
+                                                </div>
                                             </div>
 
                                         </div>

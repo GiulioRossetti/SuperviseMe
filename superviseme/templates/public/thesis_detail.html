@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="Public thesis details">
+    <meta name="author" content="SuperviseMe">
+    <title>SuperviseMe - Thesis Detail</title>
+
+    <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
+
+    <style>
+        .public-sidebar-link.active {
+            background-color: rgba(255,255,255,.16);
+            border-radius: .35rem;
+        }
+    </style>
+</head>
+
+<body id="page-top">
+<div id="wrapper">
+
+    {% if current_user.is_authenticated and current_user.user_type == 'student' %}
+        {% include 'student/components/sidebar.html' %}
+    {% else %}
+        <ul class="navbar-nav bg-gradient-success sidebar sidebar-dark accordion" id="accordionSidebar">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('public.public_thesis_dashboard') }}">
+                <div class="sidebar-brand-icon rotate-n-15"><i class="fas fa-graduation-cap"></i></div>
+                <div class="sidebar-brand-text mx-3">SuperviseMe</div>
+            </a>
+
+            <hr class="sidebar-divider my-0">
+
+            <li class="nav-item active">
+                <a class="nav-link public-sidebar-link active" href="{{ url_for('public.public_thesis_dashboard') }}">
+                    <i class="fas fa-fw fa-book-open"></i>
+                    <span>Available Theses</span>
+                </a>
+            </li>
+
+            <hr class="sidebar-divider">
+
+            {% if current_user.is_authenticated %}
+                {% if current_user.user_type == 'admin' %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                {% elif current_user.user_type == 'supervisor' %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('supervisor.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                {% elif current_user.user_type == 'researcher' %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('researcher.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                {% endif %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('profile.profile_page') }}"><i class="fas fa-fw fa-user"></i><span>Profile</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="/notifications"><i class="fas fa-fw fa-bell"></i><span>Notifications</span></a></li>
+            {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-fw fa-sign-in-alt"></i><span>Sign in / Sign up</span></a></li>
+            {% endif %}
+
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+        </ul>
+    {% endif %}
+
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+            {% if current_user.is_authenticated %}
+                {% include 'admin/components/topbar.html' %}
+            {% else %}
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <span class="navbar-brand mb-0 h6 text-gray-700">Public Thesis Board</span>
+                </nav>
+            {% endif %}
+
+            <div class="container-fluid">
+
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <h1 class="h3 mb-0 text-gray-800">{{ thesis.title }}</h1>
+                    <a href="{{ url_for('public.public_thesis_dashboard') }}" class="btn btn-sm btn-secondary">Back to thesis list</a>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="row">
+                    <div class="col-xl-8 col-lg-7">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Thesis Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Topic:</strong> {{ thesis.topic or 'Not specified' }}</p>
+                                <p><strong>Short description</strong><br>{{ thesis.short_description or thesis.description }}</p>
+                                <p><strong>Long description</strong><br>{{ thesis.long_description or thesis.description }}</p>
+                                <p><strong>Prerequisites</strong><br>{{ thesis.prerequisites or 'Not specified' }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-4 col-lg-5">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Supervisors</h6>
+                            </div>
+                            <div class="card-body">
+                                {% if supervisors %}
+                                    {% for supervisor in supervisors %}
+                                        <div>{{ supervisor.name }} {{ supervisor.surname }}</div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-muted">Not specified</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Keywords</h6>
+                            </div>
+                            <div class="card-body">
+                                {% if tags %}
+                                    {% for tag in tags %}
+                                        <span class="badge badge-info mr-1 mb-1">{{ tag.tag }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted">none</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Express Interest</h6>
+                            </div>
+                            <div class="card-body">
+                                {% if current_user.is_authenticated and current_user.user_type == 'student' %}
+                                    {% if existing_interest %}
+                                        <div class="alert alert-info mb-0">You already expressed interest in this thesis.</div>
+                                    {% else %}
+                                        <form method="POST" action="{{ url_for('student.express_interest', thesis_id=thesis.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <div class="form-group">
+                                                <label for="message">Optional message to the publisher</label>
+                                                <textarea id="message" name="message" class="form-control" rows="3" placeholder="Why are you interested?"></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-sm">Send Interest</button>
+                                        </form>
+                                    {% endif %}
+                                {% elif current_user.is_authenticated %}
+                                    <div class="alert alert-secondary mb-0">Only students can express interest.</div>
+                                {% else %}
+                                    <div class="text-muted">Log in as a student to express interest.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+<script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
+</body>
+</html>
