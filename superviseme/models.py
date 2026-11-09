@@ -59,7 +59,7 @@ class Thesis(db.Model):
     topic = db.Column(db.String(120), nullable=True)
     prerequisites = db.Column(db.Text, nullable=True)
     is_public = db.Column(db.Boolean, default=False, nullable=False)
-    publisher_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
+    publisher_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
     frozen = db.Column(db.Boolean, default=False)
     level = db.Column(db.Text, nullable=True)
