@@ -32,4 +32,21 @@
     <!-- SuperviseMe modern UI override -->
     <link href="{{ url_for('static', filename='assets/css/superviseme.css') }}" rel="stylesheet">
 
+
+    <!-- Sidebar early-paint: apply collapsed class before first render to avoid flash -->
+    <script>
+    (function() {
+        try {
+            if (localStorage.getItem('sm_sidebar_collapsed') === '1') {
+                document.documentElement.classList.add('sidebar-preload-collapsed');
+            }
+        } catch(e) {}
+    })();
+    </script>
+    <style>
+    /* Applied by early-paint script above; avoids layout shift on page load */
+    .sidebar-preload-collapsed #accordionSidebar,
+    .sidebar-preload-collapsed #wrapper .sidebar { width: 6.5rem !important; }
+    </style>
+
 </head>

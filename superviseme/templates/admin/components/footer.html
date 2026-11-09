@@ -117,6 +117,43 @@
         });
     </script>
 
+
+    <!-- Sidebar state persistence via localStorage -->
+    <script>
+    (function() {
+        'use strict';
+        var SIDEBAR_KEY = 'sm_sidebar_collapsed';
+        var sidebar = document.getElementById('accordionSidebar');
+        var toggle = document.getElementById('sidebarToggle');
+        var chevron = document.getElementById('sidebarChevron');
+        var wrapper = document.getElementById('wrapper');
+
+        if (!sidebar || !toggle) return;
+
+        function setCollapsed(collapsed) {
+            if (collapsed) {
+                sidebar.classList.add('toggled');
+                if (wrapper) wrapper.classList.add('toggled');
+            } else {
+                sidebar.classList.remove('toggled');
+                if (wrapper) wrapper.classList.remove('toggled');
+            }
+            try { localStorage.setItem(SIDEBAR_KEY, collapsed ? '1' : '0'); } catch(e) {}
+        }
+
+        // Apply saved state before first paint (DOMContentLoaded already fired here,
+        // but we still apply it immediately to avoid visible flash)
+        var saved;
+        try { saved = localStorage.getItem(SIDEBAR_KEY); } catch(e) {}
+        if (saved === '1') setCollapsed(true);
+
+        toggle.addEventListener('click', function() {
+            var isCollapsed = sidebar.classList.contains('toggled');
+            setCollapsed(!isCollapsed);
+        });
+    })();
+    </script>
+
 </body>
 
 </html>

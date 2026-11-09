@@ -117,3 +117,73 @@ msgstr "Pagina"
 
 msgid "common.of"
 msgstr "di"
+
+# Sidebar navigation
+msgid "sidebar.dashboard"
+msgstr "Dashboard"
+
+msgid "sidebar.heading.management"
+msgstr "Gestione"
+
+msgid "sidebar.heading.supervision"
+msgstr "Supervisione"
+
+msgid "sidebar.heading.research"
+msgstr "Ricerca"
+
+msgid "sidebar.heading.my_thesis"
+msgstr "La Mia Tesi"
+
+msgid "sidebar.heading.system"
+msgstr "Sistema"
+
+msgid "sidebar.heading.account"
+msgstr "Account"
+
+msgid "sidebar.users"
+msgstr "Utenti"
+
+msgid "sidebar.theses"
+msgstr "Tesi"
+
+msgid "sidebar.settings"
+msgstr "Impostazioni"
+
+msgid "sidebar.settings.general"
+msgstr "Impostazioni generali"
+
+msgid "sidebar.settings.notifications"
+msgstr "Notifiche"
+
+msgid "sidebar.settings.email_reports"
+msgstr "Report via email"
+
+msgid "sidebar.settings.misc"
+msgstr "Varie"
+
+msgid "sidebar.profile"
+msgstr "Profilo"
+
+msgid "sidebar.orcid_publications"
+msgstr "Pubblicazioni ORCID"
+
+msgid "sidebar.students"
+msgstr "Studenti"
+
+msgid "sidebar.projects"
+msgstr "Progetti"
+
+msgid "sidebar.as_supervisor"
+msgstr "Come Relatore"
+
+msgid "sidebar.supervision.overview"
+msgstr "Panoramica"
+
+msgid "sidebar.interests"
+msgstr "Interessi"
+
+msgid "sidebar.my_thesis"
+msgstr "La Mia Tesi"
+
+msgid "sidebar.browse_theses"
+msgstr "Esplora Tesi"

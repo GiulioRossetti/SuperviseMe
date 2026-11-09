@@ -117,3 +117,73 @@ msgstr "Page"
 
 msgid "common.of"
 msgstr "of"
+
+# Sidebar navigation
+msgid "sidebar.dashboard"
+msgstr "Dashboard"
+
+msgid "sidebar.heading.management"
+msgstr "Management"
+
+msgid "sidebar.heading.supervision"
+msgstr "Supervision"
+
+msgid "sidebar.heading.research"
+msgstr "Research"
+
+msgid "sidebar.heading.my_thesis"
+msgstr "My Thesis"
+
+msgid "sidebar.heading.system"
+msgstr "System"
+
+msgid "sidebar.heading.account"
+msgstr "Account"
+
+msgid "sidebar.users"
+msgstr "Users"
+
+msgid "sidebar.theses"
+msgstr "Theses"
+
+msgid "sidebar.settings"
+msgstr "Settings"
+
+msgid "sidebar.settings.general"
+msgstr "General Settings"
+
+msgid "sidebar.settings.notifications"
+msgstr "Notifications"
+
+msgid "sidebar.settings.email_reports"
+msgstr "Email Reports"
+
+msgid "sidebar.settings.misc"
+msgstr "Miscellaneous"
+
+msgid "sidebar.profile"
+msgstr "Profile"
+
+msgid "sidebar.orcid_publications"
+msgstr "ORCID Publications"
+
+msgid "sidebar.students"
+msgstr "Students"
+
+msgid "sidebar.projects"
+msgstr "Projects"
+
+msgid "sidebar.as_supervisor"
+msgstr "As Supervisor"
+
+msgid "sidebar.supervision.overview"
+msgstr "Overview"
+
+msgid "sidebar.interests"
+msgstr "Interests"
+
+msgid "sidebar.my_thesis"
+msgstr "My Thesis"
+
+msgid "sidebar.browse_theses"
+msgstr "Browse Theses"

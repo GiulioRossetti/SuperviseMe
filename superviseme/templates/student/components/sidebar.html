@@ -4,7 +4,9 @@
 <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('student.dashboard') }}">
-        <div class="sidebar-brand-icon"><img src="{{ url_for('static', filename='assets/img/logo.svg') }}" alt="SuperviseMe" width="32" height="32" style="filter:brightness(1) drop-shadow(0 1px 2px rgba(0,0,0,.3));"></div>
+        <div class="sidebar-brand-icon">
+            <img src="{{ url_for('static', filename='assets/img/logo.svg') }}" alt="SuperviseMe" width="32" height="32">
+        </div>
         <div class="sidebar-brand-text mx-3">SuperviseMe</div>
     </a>
 
@@ -12,30 +14,30 @@
 
     <li class="nav-item{% if request.endpoint == 'student.dashboard' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('student.dashboard') }}">
-            <i class="fas fa-fw fa-chart-pie"></i><span>Dashboard</span>
+            <i class="fas fa-fw fa-chart-pie"></i><span>{{ _('sidebar.dashboard') }}</span>
         </a>
     </li>
 
     <hr class="sidebar-divider">
-    <div class="sidebar-heading">My Thesis</div>
+    <div class="sidebar-heading">{{ _('sidebar.heading.my_thesis') }}</div>
 
     <li class="nav-item{% if request.endpoint in ['student.thesis_data','public.public_thesis_dashboard'] %} active{% endif %}">
         <a class="nav-link{% if request.endpoint not in ['student.thesis_data','public.public_thesis_dashboard'] %} collapsed{% endif %}"
            href="#" data-toggle="collapse" data-target="#collapseThesis"
            aria-expanded="{{ 'true' if request.endpoint in ['student.thesis_data','public.public_thesis_dashboard'] else 'false' }}"
            aria-controls="collapseThesis">
-            <i class="fas fa-fw fa-book-open"></i><span>Thesis</span>
+            <i class="fas fa-fw fa-book-open"></i><span>{{ _('sidebar.my_thesis') }}</span>
         </a>
         <div id="collapseThesis" class="collapse{% if request.endpoint in ['student.thesis_data','public.public_thesis_dashboard'] %} show{% endif %}"
              data-parent="#accordionSidebar">
             <div class="py-2 collapse-inner rounded">
                 <a class="collapse-item{% if request.endpoint == 'student.thesis_data' %} active{% endif %}"
                    href="{{ url_for('student.thesis_data') }}">
-                    <i class="fas fa-fw fa-file-alt"></i> My Thesis
+                    <i class="fas fa-fw fa-file-alt"></i> {{ _('sidebar.my_thesis') }}
                 </a>
                 <a class="collapse-item{% if request.endpoint == 'public.public_thesis_dashboard' %} active{% endif %}"
                    href="{{ url_for('public.public_thesis_dashboard') }}">
-                    <i class="fas fa-fw fa-search"></i> Browse Theses
+                    <i class="fas fa-fw fa-search"></i> {{ _('sidebar.browse_theses') }}
                 </a>
             </div>
         </div>
@@ -43,12 +45,14 @@
 
     <li class="nav-item{% if request.endpoint == 'student.interests' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('student.interests') }}">
-            <i class="fas fa-fw fa-heart"></i><span>Interests</span>
+            <i class="fas fa-fw fa-heart"></i><span>{{ _('sidebar.interests') }}</span>
         </a>
     </li>
 
     <hr class="sidebar-divider d-none d-md-block">
     <div class="text-center d-none d-md-inline">
-        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        <button class="sidebar-toggle-btn" id="sidebarToggle" title="Toggle sidebar">
+            <i class="fas fa-chevron-left" id="sidebarChevron"></i>
+        </button>
     </div>
 </ul>

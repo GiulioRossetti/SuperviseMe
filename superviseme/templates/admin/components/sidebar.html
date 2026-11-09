@@ -5,7 +5,9 @@
 <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('admin.dashboard') }}">
-        <div class="sidebar-brand-icon"><img src="{{ url_for('static', filename='assets/img/logo.svg') }}" alt="SuperviseMe" width="32" height="32" style="filter:brightness(1) drop-shadow(0 1px 2px rgba(0,0,0,.3));"></div>
+        <div class="sidebar-brand-icon">
+            <img src="{{ url_for('static', filename='assets/img/logo.svg') }}" alt="SuperviseMe" width="32" height="32">
+        </div>
         <div class="sidebar-brand-text mx-3">SuperviseMe</div>
     </a>
 
@@ -13,77 +15,80 @@
 
     <li class="nav-item{% if request.endpoint == 'admin.dashboard' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
-            <i class="fas fa-fw fa-chart-pie"></i><span>Dashboard</span>
+            <i class="fas fa-fw fa-chart-pie"></i><span>{{ _('sidebar.dashboard') }}</span>
         </a>
     </li>
 
     <hr class="sidebar-divider">
-    <div class="sidebar-heading">Management</div>
+    <div class="sidebar-heading">{{ _('sidebar.heading.management') }}</div>
 
     <li class="nav-item{% if request.endpoint == 'admin.users' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('admin.users') }}">
-            <i class="fas fa-fw fa-users"></i><span>Users</span>
+            <i class="fas fa-fw fa-users"></i><span>{{ _('sidebar.users') }}</span>
         </a>
     </li>
 
     <li class="nav-item{% if request.endpoint == 'admin.theses' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('admin.theses') }}">
-            <i class="fas fa-fw fa-book-open"></i><span>Theses</span>
+            <i class="fas fa-fw fa-book-open"></i><span>{{ _('sidebar.theses') }}</span>
         </a>
     </li>
 
     <hr class="sidebar-divider">
-    <div class="sidebar-heading">System</div>
+    <div class="sidebar-heading">{{ _('sidebar.heading.system') }}</div>
 
     <li class="nav-item{% if request.endpoint in ['admin.theses_settings','admin.notify_settings','admin.notifications','admin.misc'] %} active{% endif %}">
         <a class="nav-link{% if request.endpoint not in ['admin.theses_settings','admin.notify_settings','admin.notifications','admin.misc'] %} collapsed{% endif %}"
            href="#" data-toggle="collapse" data-target="#collapseSystem"
            aria-expanded="{{ 'true' if request.endpoint in ['admin.theses_settings','admin.notify_settings','admin.notifications','admin.misc'] else 'false' }}"
            aria-controls="collapseSystem">
-            <i class="fas fa-fw fa-cogs"></i><span>Settings</span>
+            <i class="fas fa-fw fa-cogs"></i><span>{{ _('sidebar.settings') }}</span>
         </a>
         <div id="collapseSystem" class="collapse{% if request.endpoint in ['admin.theses_settings','admin.notify_settings','admin.notifications','admin.misc'] %} show{% endif %}"
              data-parent="#accordionSidebar">
             <div class="py-2 collapse-inner rounded">
                 <a class="collapse-item{% if request.endpoint == 'admin.theses_settings' %} active{% endif %}"
                    href="{{ url_for('admin.theses_settings') }}">
-                    <i class="fas fa-fw fa-sliders-h"></i> General Settings
+                    <i class="fas fa-fw fa-sliders-h"></i> {{ _('sidebar.settings.general') }}
                 </a>
                 <a class="collapse-item{% if request.endpoint == 'admin.notify_settings' %} active{% endif %}"
                    href="{{ url_for('admin.notify_settings') }}">
-                    <i class="fas fa-fw fa-bell"></i> Notifications
+                    <i class="fas fa-fw fa-bell"></i> {{ _('sidebar.settings.notifications') }}
                 </a>
                 <a class="collapse-item{% if request.endpoint == 'admin.notifications' %} active{% endif %}"
                    href="{{ url_for('admin.notifications') }}">
-                    <i class="fas fa-fw fa-envelope"></i> Email Reports
+                    <i class="fas fa-fw fa-envelope"></i> {{ _('sidebar.settings.email_reports') }}
                 </a>
                 <a class="collapse-item{% if request.endpoint == 'admin.misc' %} active{% endif %}"
                    href="{{ url_for('admin.misc') }}">
-                    <i class="fas fa-fw fa-tools"></i> Miscellaneous
+                    <i class="fas fa-fw fa-tools"></i> {{ _('sidebar.settings.misc') }}
                 </a>
             </div>
         </div>
     </li>
 
     <hr class="sidebar-divider">
-    <div class="sidebar-heading">Account</div>
+    <div class="sidebar-heading">{{ _('sidebar.heading.account') }}</div>
 
     <li class="nav-item{% if request.endpoint == 'profile.profile_page' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('profile.profile_page') }}">
-            <i class="fas fa-fw fa-user-circle"></i><span>Profile</span>
+            <i class="fas fa-fw fa-user-circle"></i><span>{{ _('sidebar.profile') }}</span>
         </a>
     </li>
 
     {% if current_user.orcid_id %}
     <li class="nav-item{% if request.endpoint == 'profile.orcid_publications' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('profile.orcid_publications') }}">
-            <i class="fab fa-fw fa-orcid"></i><span>ORCID Publications</span>
+            <i class="fab fa-fw fa-orcid"></i><span>{{ _('sidebar.orcid_publications') }}</span>
         </a>
     </li>
     {% endif %}
 
+    <!-- Minimal toggle — chevron at the edge -->
     <hr class="sidebar-divider d-none d-md-block">
     <div class="text-center d-none d-md-inline">
-        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        <button class="sidebar-toggle-btn" id="sidebarToggle" title="Toggle sidebar">
+            <i class="fas fa-chevron-left" id="sidebarChevron"></i>
+        </button>
     </div>
 </ul>
