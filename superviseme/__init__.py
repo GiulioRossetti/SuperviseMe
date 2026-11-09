@@ -10,6 +10,7 @@ from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth
+from flask_caching import Cache
 from sqlalchemy import MetaData
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -36,6 +37,7 @@ mail = Mail()
 csrf = CSRFProtect()
 migrate = Migrate()
 oauth = OAuth()
+cache = Cache()
 
 INSECURE_SECRET_KEY_VALUES = {
     "",
@@ -333,6 +335,16 @@ def create_app(db_type="sqlite", skip_user_init=False):
     mail.init_app(app)
     csrf.init_app(app)
     oauth.init_app(app)
+
+    # Flask-Caching: use Redis when REDIS_URL is set, otherwise SimpleCache.
+    redis_url = os.getenv("REDIS_URL", "")
+    if redis_url:
+        app.config["CACHE_TYPE"] = "RedisCache"
+        app.config["CACHE_REDIS_URL"] = redis_url
+    else:
+        app.config["CACHE_TYPE"] = "SimpleCache"
+    app.config.setdefault("CACHE_DEFAULT_TIMEOUT", 30)  # 30 s TTL for badge counts
+    cache.init_app(app)
 
     # Configure Google OAuth
     oauth.register(

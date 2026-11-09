@@ -62,14 +62,32 @@ def send_notification(
 def get_unread_count(user_id: int) -> int:
     """Return the number of unread notifications for *user_id*.
 
-    Uses Flask-Caching when available (cache key: ``notif_count_{user_id}``).
+    Result is cached for 30 seconds (CACHE_DEFAULT_TIMEOUT) to avoid
+    hitting the database on every page load.
     """
     try:
+        from superviseme import cache
+        cache_key = f"notif_count_{user_id}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         from superviseme.models import Notification
-        return Notification.query.filter_by(user_id=user_id, is_read=False).count()
+        count = Notification.query.filter_by(user_id=user_id, is_read=False).count()
+        cache.set(cache_key, count)
+        return count
     except Exception as exc:
         logger.error("get_unread_count failed for user %s: %s", user_id, exc)
         return 0
+
+
+def invalidate_unread_count(user_id: int) -> None:
+    """Evict the cached unread count for *user_id* (call after mark_read / new notification)."""
+    try:
+        from superviseme import cache
+        cache.delete(f"notif_count_{user_id}")
+    except Exception as exc:
+        logger.warning("invalidate_unread_count failed for user %s: %s", user_id, exc)
 
 
 def mark_all_read(user_id: int) -> int:
