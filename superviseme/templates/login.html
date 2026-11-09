@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>SuperviseMe — Sign In</title>
 
@@ -287,7 +290,7 @@
         <div class="login-panel">
             <div class="login-panel-content">
                 <div class="brand-icon">
-                    <i class="fas fa-graduation-cap"></i>
+                    <img src="{{ url_for('static', filename='assets/img/logo.svg') }}" alt="SuperviseMe" width="52" height="52">
                 </div>
                 <h1>SuperviseMe</h1>
                 <p>Thesis management platform for supervisors, researchers and students.</p>
@@ -364,6 +367,13 @@
                         <i class="fas fa-search mr-1"></i>Browse thesis opportunities
                     </a>
                     <a href="forgot-password.html">Forgot password?</a>
+                </div>
+
+                <!-- Language switcher -->
+                <div style="margin-top:1.25rem; text-align:center;">
+                    <a href="{{ url_for('public.set_lang', lang='en') }}" style="color:rgba(255,255,255,.65); font-size:.8rem; text-decoration:none; margin:0 .4rem;" title="English">🇬🇧 EN</a>
+                    <span style="color:rgba(255,255,255,.3);">|</span>
+                    <a href="{{ url_for('public.set_lang', lang='it') }}" style="color:rgba(255,255,255,.65); font-size:.8rem; text-decoration:none; margin:0 .4rem;" title="Italiano">🇮🇹 IT</a>
                 </div>
             </form>
         </div>

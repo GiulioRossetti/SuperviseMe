@@ -129,3 +129,22 @@ def public_thesis_detail(thesis_id):
         tags=tags,
         existing_interest=existing_interest,
     )
+
+
+@public.route("/set-lang")
+def set_lang():
+    """Set the UI language via cookie and redirect back to the referrer."""
+    from flask import redirect, make_response
+    lang = request.args.get("lang", "en")
+    if lang not in ("en", "it"):
+        lang = "en"
+    next_url = request.referrer or "/"
+    resp = make_response(redirect(next_url))
+    resp.set_cookie(
+        "lang",
+        lang,
+        max_age=60 * 60 * 24 * 365,  # 1 year
+        samesite="Lax",
+        httponly=True,
+    )
+    return resp

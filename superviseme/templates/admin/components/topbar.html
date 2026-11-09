@@ -89,6 +89,27 @@
                             </div>
                         </li>
 
+                        <!-- Nav Item - Language Switch -->
+                        <li class="nav-item dropdown no-arrow mx-1">
+                            <a class="nav-link dropdown-toggle" href="#" id="langDropdown" role="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                title="Language / Lingua">
+                                <i class="fas fa-language fa-fw"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                aria-labelledby="langDropdown">
+                                <a class="dropdown-item{% if request.cookies.get('lang', 'en') == 'en' %} active{% endif %}"
+                                   href="{{ url_for('public.set_lang', lang='en', **({'next': request.url} if request.url else {})) }}">
+                                    <span class="mr-2">🇬🇧</span> English
+                                </a>
+                                <a class="dropdown-item{% if request.cookies.get('lang') == 'it' %} active{% endif %}"
+                                   href="{{ url_for('public.set_lang', lang='it') }}">
+                                    <span class="mr-2">🇮🇹</span> Italiano
+                                </a>
+                            </div>
+                        </li>
+
+
                         <div class="topbar-divider d-none d-sm-block"></div>
 
                         <!-- Nav Item - User Information -->

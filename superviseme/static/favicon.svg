@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4338ca"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#bg)"/>
+  <!-- Board -->
+  <path d="M16 7 L27 12 L16 17 L5 12 Z" fill="white" opacity="0.95"/>
+  <!-- Right face -->
+  <path d="M27 12 L27 18 L16 23 L16 17 Z" fill="#a5b4fc" opacity="0.85"/>
+  <!-- Left face -->
+  <path d="M5 12 L5 18 L16 23 L16 17 Z" fill="white" opacity="0.2"/>
+  <!-- Tassel -->
+  <line x1="27" y1="12" x2="27" y2="19" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="27" cy="22" r="2.5" fill="#fbbf24"/>
+</svg>

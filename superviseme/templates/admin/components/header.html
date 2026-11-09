@@ -10,7 +10,11 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SuperviseMe - {{ current_user.user_type }}</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.svg') }}">
+
+    <title>SuperviseMe — {{ current_user.user_type | title }}</title>
 
     <!-- Custom fonts for this template-->
     <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
