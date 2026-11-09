@@ -24,7 +24,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">User Details</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('User Details') }}</h1>
                         <a href="/admin/users" class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left"></i> Back to Users
                         </a>
@@ -53,7 +53,7 @@
                             <!-- Basic Information -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Basic Information</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Basic Information') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -82,7 +82,7 @@
                             <!-- Edit User Form -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Edit User Information</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Edit User Information') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <form action="/admin/update_user" method="POST">
@@ -90,13 +90,13 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="name">First Name</label>
+                                                    <label for="name">{{ _('First Name') }}</label>
                                                     <input type="text" class="form-control" id="name" name="name" value="{{ user.name or '' }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="surname">Last Name</label>
+                                                    <label for="surname">{{ _('Last Name') }}</label>
                                                     <input type="text" class="form-control" id="surname" name="surname" value="{{ user.surname or '' }}">
                                                 </div>
                                             </div>
@@ -104,13 +104,13 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="email">Email</label>
+                                                    <label for="email">{{ _('Email') }}</label>
                                                     <input type="email" class="form-control" id="email" name="email" value="{{ user.email or '' }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="username">Username</label>
+                                                    <label for="username">{{ _('Username') }}</label>
                                                     <input type="text" class="form-control" id="username" name="username" value="{{ user.username or '' }}">
                                                 </div>
                                             </div>
@@ -118,7 +118,7 @@
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label for="user_type">User Type</label>
+                                                    <label for="user_type">{{ _('User Type') }}</label>
                                                     <select class="form-control" id="user_type" name="user_type">
                                                         <option value="admin" {% if user.user_type == 'admin' %}selected{% endif %}>Admin</option>
                                                         <option value="supervisor" {% if user.user_type == 'supervisor' %}selected{% endif %}>Supervisor</option>
@@ -129,7 +129,7 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label for="gender">Gender</label>
+                                                    <label for="gender">{{ _('Gender') }}</label>
                                                     <select class="form-control" id="gender" name="gender">
                                                         <option value="">Not specified</option>
                                                         <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Male</option>
@@ -139,7 +139,7 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label for="nationality">Nationality</label>
+                                                    <label for="nationality">{{ _('Nationality') }}</label>
                                                     <input type="text" class="form-control" id="nationality" name="nationality" value="{{ user.nationality or '' }}">
                                                 </div>
                                             </div>
@@ -147,12 +147,12 @@
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <div class="form-group">
-                                                    <label for="cdl">Degree Course</label>
+                                                    <label for="cdl">{{ _('Degree Course') }}</label>
                                                     <input type="text" class="form-control" id="cdl" name="cdl" value="{{ user.cdl or '' }}">
                                                 </div>
                                             </div>
                                         </div>
-                                        <button type="submit" class="btn btn-primary">Update User</button>
+                                        <button type="submit" class="btn btn-primary">{{ _('Update User') }}</button>
                                     </form>
                                 </div>
                             </div>
@@ -161,7 +161,7 @@
                             {% if user.user_type == "student" and authored_theses %}
                                 <div class="card shadow mb-4">
                                     <div class="card-header py-3">
-                                        <h6 class="m-0 font-weight-bold text-primary">Authored Theses</h6>
+                                        <h6 class="m-0 font-weight-bold text-primary">{{ _('Authored Theses') }}</h6>
                                     </div>
                                     <div class="card-body">
                                         {% for thesis in authored_theses %}
@@ -178,7 +178,7 @@
                             {% if user.user_type == "supervisor" and supervised_theses %}
                                 <div class="card shadow mb-4">
                                     <div class="card-header py-3">
-                                        <h6 class="m-0 font-weight-bold text-primary">Supervised Theses</h6>
+                                        <h6 class="m-0 font-weight-bold text-primary">{{ _('Supervised Theses') }}</h6>
                                     </div>
                                     <div class="card-body">
                                         {% for thesis in supervised_theses %}
@@ -202,7 +202,7 @@
                             <!-- Statistics -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">User Statistics</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('User Statistics') }}</h6>
                                 </div>
                                 <div class="card-body text-center">
                                     {% if user.user_type == "student" %}
@@ -217,7 +217,7 @@
                                         </div>
                                     {% endif %}
                                     <div class="border-bottom mb-3 pb-3">
-                                        <h4 class="text-success">Active</h4>
+                                        <h4 class="text-success">{{ _('Active') }}</h4>
                                         <p class="mb-0">Account Status</p>
                                     </div>
                                     <div>
@@ -232,7 +232,7 @@
                             <!-- Actions -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Actions</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Actions') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if user.user_type == "researcher" %}
@@ -243,7 +243,7 @@
                                             <form action="/admin/revoke_supervisor_role" method="POST" class="mb-2">
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <input type="hidden" name="researcher_id" value="{{ user.id }}">
-                                                <button type="submit" class="btn btn-outline-warning btn-block">Revoke Supervisor Privileges</button>
+                                                <button type="submit" class="btn btn-outline-warning btn-block">{{ _('Revoke Supervisor Privileges') }}</button>
                                             </form>
                                         {% else %}
                                             <div class="alert alert-secondary py-2 small" role="alert">
@@ -252,12 +252,12 @@
                                             <form action="/admin/grant_supervisor_role" method="POST" class="mb-2">
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <input type="hidden" name="researcher_id" value="{{ user.id }}">
-                                                <button type="submit" class="btn btn-outline-success btn-block">Grant Supervisor Privileges</button>
+                                                <button type="submit" class="btn btn-outline-success btn-block">{{ _('Grant Supervisor Privileges') }}</button>
                                             </form>
                                         {% endif %}
                                     {% endif %}
-                                    <button class="btn btn-warning btn-block mb-2" onclick="resetPassword({{ user.id }})">Reset Password</button>
-                                    <button class="btn btn-danger btn-block" onclick="deleteUser({{ user.id }})">Delete User</button>
+                                    <button class="btn btn-warning btn-block mb-2" onclick="resetPassword({{ user.id }})">{{ _('Reset Password') }}</button>
+                                    <button class="btn btn-danger btn-block" onclick="deleteUser({{ user.id }})">{{ _('Delete User') }}</button>
                                 </div>
                             </div>
 

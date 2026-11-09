@@ -39,7 +39,7 @@
                     <!-- Meeting Notes List -->
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Project Meeting Notes</h6>
+                            <h6 class="m-0 font-weight-bold text-primary">{{ _('Project Meeting Notes') }}</h6>
                         </div>
                         <div class="card-body">
                             {% if meeting_notes %}
@@ -70,7 +70,7 @@
                             {% else %}
                                 <div class="text-center py-4">
                                     <i class="fas fa-clipboard fa-3x text-gray-300 mb-3"></i>
-                                    <h5 class="text-gray-500">No meeting notes yet</h5>
+                                    <h5 class="text-gray-500">{{ _('No meeting notes yet') }}</h5>
                                     <p class="text-muted">Keep track of meetings, discussions, and decisions for this project</p>
                                     <button class="btn btn-dark" data-toggle="modal" data-target="#addMeetingNoteModal">
                                         <i class="fas fa-plus"></i> Add First Meeting Note
@@ -85,7 +85,7 @@
                         <div class="modal-dialog modal-lg" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">Add Meeting Note</h5>
+                                    <h5 class="modal-title">{{ _('Add Meeting Note') }}</h5>
                                     <button type="button" class="close" data-dismiss="modal">
                                         <span>&times;</span>
                                     </button>
@@ -93,34 +93,34 @@
                                 <form method="POST" action="{{ url_for('researcher.add_project_meeting_note', project_id=project.id) }}">
                                     <div class="modal-body">
                                         <div class="form-group">
-                                            <label>Meeting Title</label>
+                                            <label>{{ _('Meeting Title') }}</label>
                                             <input type="text" name="title" class="form-control" required 
-                                                   placeholder="e.g., Weekly Progress Meeting, Research Planning Session">
+                                                   placeholder="{{ _('e.g., Weekly Progress Meeting, Research Planning Session') }}">
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Meeting Date</label>
+                                                    <label>{{ _('Meeting Date') }}</label>
                                                     <input type="date" name="meeting_date" class="form-control" required>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Participants</label>
+                                                    <label>{{ _('Participants') }}</label>
                                                     <input type="text" name="participants" class="form-control" 
-                                                           placeholder="e.g., John Smith, Jane Doe, Project Team">
+                                                           placeholder="{{ _('e.g., John Smith, Jane Doe, Project Team') }}">
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="form-group">
-                                            <label>Meeting Content</label>
+                                            <label>{{ _('Meeting Content') }}</label>
                                             <textarea name="content" class="form-control" rows="8" required 
-                                                      placeholder="Meeting agenda, discussion points, decisions made, action items..."></textarea>
+                                                      placeholder="{{ _('Meeting agenda, discussion points, decisions made, action items...') }}"></textarea>
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-dark">Add Meeting Note</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                                        <button type="submit" class="btn btn-dark">{{ _('Add Meeting Note') }}</button>
                                     </div>
                                 </form>
                             </div>

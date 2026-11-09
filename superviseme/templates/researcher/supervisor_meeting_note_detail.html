@@ -45,7 +45,7 @@
                         <div class="col-lg-8">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-info">Meeting Note Content</h6>
+                                    <h6 class="m-0 font-weight-bold text-info">{{ _('Meeting Note Content') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="meeting-content">
@@ -58,7 +58,7 @@
                             {% if references %}
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-info">Referenced Todos</h6>
+                                    <h6 class="m-0 font-weight-bold text-info">{{ _('Referenced Todos') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -109,7 +109,7 @@
                             <!-- Meeting Note Info -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-info">Meeting Information</h6>
+                                    <h6 class="m-0 font-weight-bold text-info">{{ _('Meeting Information') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
@@ -140,7 +140,7 @@
                             <!-- Quick Actions -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-info">Quick Actions</h6>
+                                    <h6 class="m-0 font-weight-bold text-info">{{ _('Quick Actions') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="d-grid gap-2">
@@ -182,7 +182,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Meeting Note</h5>
+                    <h5 class="modal-title">{{ _('Edit Meeting Note') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span>&times;</span>
                     </button>
@@ -190,17 +190,17 @@
                 <form method="POST" action="{{ url_for('researcher.edit_meeting_note', note_id=meeting_note.id) }}">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="editTitle">Title:</label>
+                            <label for="editTitle">{{ _('Title:') }}</label>
                             <input type="text" class="form-control" name="title" id="editTitle" required>
                         </div>
                         <div class="form-group">
-                            <label for="editContent">Content:</label>
+                            <label for="editContent">{{ _('Content:') }}</label>
                             <textarea class="form-control" name="content" id="editContent" rows="10" required></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-warning">Update Meeting Note</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-warning">{{ _('Update Meeting Note') }}</button>
                     </div>
                 </form>
             </div>
@@ -212,7 +212,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Reference Todo</h5>
+                    <h5 class="modal-title">{{ _('Reference Todo') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span>&times;</span>
                     </button>
@@ -220,7 +220,7 @@
                 <form method="POST" action="{{ url_for('researcher.add_meeting_note_reference', note_id=meeting_note.id) }}">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="todoSelect">Select Todo:</label>
+                            <label for="todoSelect">{{ _('Select Todo:') }}</label>
                             <select class="form-control" name="todo_id" id="todoSelect" required>
                                 <option value="">Select a todo...</option>
                                 {% for todo in todos %}
@@ -230,8 +230,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success">Add Reference</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-success">{{ _('Add Reference') }}</button>
                     </div>
                 </form>
             </div>

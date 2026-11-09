@@ -24,7 +24,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Research Projects</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Research Projects') }}</h1>
                         <button class="btn btn-success" data-toggle="modal" data-target="#createProjectModal">
                             <i class="fas fa-plus"></i> Create New Project
                         </button>
@@ -49,7 +49,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-success">My Research Projects</h6>
+                                    <h6 class="m-0 font-weight-bold text-success">{{ _('My Research Projects') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if projects_with_collaborators %}
@@ -57,12 +57,12 @@
                                             <table class="table table-bordered" width="100%" cellspacing="0">
                                                 <thead>
                                                     <tr>
-                                                        <th>Title</th>
-                                                        <th>Description</th>
-                                                        <th>Level</th>
-                                                        <th>Collaborators</th>
-                                                        <th>Status</th>
-                                                        <th>Actions</th>
+                                                        <th>{{ _('Title') }}</th>
+                                                        <th>{{ _('Description') }}</th>
+                                                        <th>{{ _('Level') }}</th>
+                                                        <th>{{ _('Collaborators') }}</th>
+                                                        <th>{{ _('Status') }}</th>
+                                                        <th>{{ _('Actions') }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -128,7 +128,7 @@
                                     {% else %}
                                         <div class="text-center py-5">
                                             <i class="fas fa-project-diagram fa-4x text-gray-300 mb-4"></i>
-                                            <h4 class="text-gray-400">No Research Projects Yet</h4>
+                                            <h4 class="text-gray-400">{{ _('No Research Projects Yet') }}</h4>
                                             <p class="text-gray-500 mb-4">Create your first research project to get started with collaborative research!</p>
                                             <button class="btn btn-success" data-toggle="modal" data-target="#createProjectModal">
                                                 <i class="fas fa-plus"></i> Create Your First Project
@@ -161,7 +161,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Create New Research Project</h5>
+                    <h5 class="modal-title">{{ _('Create New Research Project') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -170,15 +170,15 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="title">Project Title:</label>
-                            <input type="text" class="form-control" name="title" required placeholder="Enter project title...">
+                            <label for="title">{{ _('Project Title:') }}</label>
+                            <input type="text" class="form-control" name="title" required placeholder="{{ _('Enter project title...') }}">
                         </div>
                         <div class="form-group">
-                            <label for="description">Description:</label>
-                            <textarea class="form-control" name="description" rows="4" required placeholder="Provide a detailed description of the research project..."></textarea>
+                            <label for="description">{{ _('Description:') }}</label>
+                            <textarea class="form-control" name="description" rows="4" required placeholder="{{ _('Provide a detailed description of the research project...') }}"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="level">Level:</label>
+                            <label for="level">{{ _('Level:') }}</label>
                             <select class="form-control" name="level">
                                 <option value="">Select Level</option>
                                 <option value="pilot">Pilot Study</option>
@@ -190,8 +190,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success">Create Project</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-success">{{ _('Create Project') }}</button>
                     </div>
                 </form>
             </div>
@@ -203,7 +203,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Research Project</h5>
+                    <h5 class="modal-title">{{ _('Edit Research Project') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -213,15 +213,15 @@
                     <input type="hidden" name="project_id" id="edit_project_id">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="edit_title">Project Title:</label>
+                            <label for="edit_title">{{ _('Project Title:') }}</label>
                             <input type="text" class="form-control" name="title" id="edit_title" required>
                         </div>
                         <div class="form-group">
-                            <label for="edit_description">Description:</label>
+                            <label for="edit_description">{{ _('Description:') }}</label>
                             <textarea class="form-control" name="description" id="edit_description" rows="4" required></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="edit_level">Level:</label>
+                            <label for="edit_level">{{ _('Level:') }}</label>
                             <select class="form-control" name="level" id="edit_level">
                                 <option value="">Select Level</option>
                                 <option value="pilot">Pilot Study</option>
@@ -233,8 +233,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success">Update Project</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-success">{{ _('Update Project') }}</button>
                     </div>
                 </form>
             </div>

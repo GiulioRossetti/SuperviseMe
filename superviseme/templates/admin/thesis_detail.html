@@ -24,7 +24,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Thesis Details</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Thesis Details') }}</h1>
                         <a href="/admin/theses" class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left"></i> Back to Theses
                         </a>
@@ -49,7 +49,7 @@
                         <div class="col-xl-8 col-lg-8">
                             <div class="card mb-4">
                                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                    <h6 class="m-0 font-weight-bold text-primary">Thesis Information</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Thesis Information') }}</h6>
                                     {% if thesis.frozen %}
                                         <span class="badge badge-warning">Archived</span>
                                     {% else %}
@@ -61,41 +61,41 @@
                                         <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                                         
                                         <div class="form-group">
-                                            <label for="title">Title</label>
+                                            <label for="title">{{ _('Title') }}</label>
                                             <input type="text" class="form-control" id="title" name="title" value="{{ thesis.title }}">
                                         </div>
                                         
                                         <div class="form-group">
-                                            <label for="description">Description</label>
+                                            <label for="description">{{ _('Description') }}</label>
                                             <textarea class="form-control" id="description" name="description" rows="4">{{ thesis.description }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="short_description">Short Description</label>
+                                            <label for="short_description">{{ _('Short Description') }}</label>
                                             <textarea class="form-control" id="short_description" name="short_description" rows="2">{{ thesis.short_description or '' }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="long_description">Long Description</label>
+                                            <label for="long_description">{{ _('Long Description') }}</label>
                                             <textarea class="form-control" id="long_description" name="long_description" rows="5">{{ thesis.long_description or '' }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="topic">Topic</label>
+                                            <label for="topic">{{ _('Topic') }}</label>
                                             <input type="text" class="form-control" id="topic" name="topic" value="{{ thesis.topic or '' }}">
                                         </div>
                                         <div class="form-group">
-                                            <label for="prerequisites">Prerequisites</label>
+                                            <label for="prerequisites">{{ _('Prerequisites') }}</label>
                                             <textarea class="form-control" id="prerequisites" name="prerequisites" rows="3">{{ thesis.prerequisites or '' }}</textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="keywords">Keywords (comma separated)</label>
+                                            <label for="keywords">{{ _('Keywords (comma separated)') }}</label>
                                             <input type="text" class="form-control" id="keywords" name="keywords" value="{{ tags|map(attribute='tag')|join(', ') }}">
                                         </div>
                                         <div class="form-group form-check">
                                             <input type="checkbox" class="form-check-input" id="is_public" name="is_public" value="1" {% if thesis.is_public %}checked{% endif %}>
-                                            <label class="form-check-label" for="is_public">Publish publicly when available</label>
+                                            <label class="form-check-label" for="is_public">{{ _('Publish publicly when available') }}</label>
                                         </div>
                                         
                                         <div class="form-group">
-                                            <label for="level">Level</label>
+                                            <label for="level">{{ _('Level') }}</label>
                                             <select class="form-control" id="level" name="level">
                                                 <option value="bachelor" {% if thesis.level == 'bachelor' %}selected{% endif %}>Bachelor</option>
                                                 <option value="master" {% if thesis.level == 'master' %}selected{% endif %}>Master</option>
@@ -103,7 +103,7 @@
                                             </select>
                                         </div>
                                         
-                                        <button type="submit" class="btn btn-primary">Update Thesis</button>
+                                        <button type="submit" class="btn btn-primary">{{ _('Update Thesis') }}</button>
                                     </form>
                                 </div>
                             </div>
@@ -111,14 +111,14 @@
                             <!-- Student Assignment -->
                             <div class="card mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Student Assignment</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Student Assignment') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <form action="/admin/assign_student" method="POST">
                                         <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                                         <div class="form-group row">
                                             <div class="col-sm-8">
-                                                <label>Current Student:</label>
+                                                <label>{{ _('Current Student:') }}</label>
                                                 {% if author %}
                                                     <p class="mb-2"><strong>{{ author.name }} {{ author.surname }}</strong> ({{ author.cdl }})</p>
                                                 {% else %}
@@ -138,7 +138,7 @@
                                                 </select>
                                             </div>
                                             <div class="col-sm-4">
-                                                <button type="submit" class="btn btn-success">Update Assignment</button>
+                                                <button type="submit" class="btn btn-success">{{ _('Update Assignment') }}</button>
                                             </div>
                                         </div>
                                     </form>
@@ -148,20 +148,20 @@
                             <!-- Supervisors -->
                             <div class="card mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Supervisors</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Supervisors') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <!-- Current Supervisors -->
                                     {% if supervisors %}
                                         <div class="mb-3">
-                                            <label>Current Supervisors:</label>
+                                            <label>{{ _('Current Supervisors:') }}</label>
                                             {% for supervisor in supervisors %}
                                                 <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
                                                     <span>{{ supervisor.name }} {{ supervisor.surname }}</span>
                                                     <form action="/admin/remove_supervisor" method="POST" class="d-inline">
                                                         <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                                                         <input type="hidden" name="supervisor_id" value="{{ supervisor.id }}">
-                                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Remove this supervisor?')">Remove</button>
+                                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Remove this supervisor?')">{{ _('Remove') }}</button>
                                                     </form>
                                                 </div>
                                             {% endfor %}
@@ -185,7 +185,7 @@
                                                 </select>
                                             </div>
                                             <div class="col-sm-4">
-                                                <button type="submit" class="btn btn-success">Add Supervisor</button>
+                                                <button type="submit" class="btn btn-success">{{ _('Add Supervisor') }}</button>
                                             </div>
                                         </div>
                                     </form>
@@ -198,28 +198,28 @@
                             <!-- Archive Controls -->
                             <div class="card mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Actions</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Actions') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <form action="/admin/archive_thesis" method="POST" class="mb-2">
                                         <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                                         {% if thesis.frozen %}
                                             <input type="hidden" name="action" value="unarchive">
-                                            <button type="submit" class="btn btn-success btn-block">Unarchive Thesis</button>
+                                            <button type="submit" class="btn btn-success btn-block">{{ _('Unarchive Thesis') }}</button>
                                         {% else %}
                                             <input type="hidden" name="action" value="archive">
-                                            <button type="submit" class="btn btn-warning btn-block" onclick="return confirm('Archive this thesis?')">Archive Thesis</button>
+                                            <button type="submit" class="btn btn-warning btn-block" onclick="return confirm('Archive this thesis?')">{{ _('Archive Thesis') }}</button>
                                         {% endif %}
                                     </form>
                                     
-                                    <button class="btn btn-danger btn-block" onclick="deleteThesis({{ thesis.id }})">Delete Thesis</button>
+                                    <button class="btn btn-danger btn-block" onclick="deleteThesis({{ thesis.id }})">{{ _('Delete Thesis') }}</button>
                                 </div>
                             </div>
 
                             <!-- Tags -->
                             <div class="card mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Tags</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Tags') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <!-- Current Tags -->
@@ -242,9 +242,9 @@
                                     <form action="/admin/add_thesis_tag" method="POST">
                                         <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                                         <div class="input-group">
-                                            <input type="text" class="form-control" name="tag" placeholder="Add tag" required>
+                                            <input type="text" class="form-control" name="tag" placeholder="{{ _('Add tag') }}" required>
                                             <div class="input-group-append">
-                                                <button type="submit" class="btn btn-success">Add</button>
+                                                <button type="submit" class="btn btn-success">{{ _('Add') }}</button>
                                             </div>
                                         </div>
                                     </form>
@@ -254,7 +254,7 @@
                             <!-- Status History -->
                             <div class="card mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Status History</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Status History') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if status_history %}
@@ -289,7 +289,7 @@
                                                     <div class="modal-content">
                                                         <form action="/admin/update_thesis_status" method="POST">
                                                             <div class="modal-header">
-                                                                <h5 class="modal-title" id="editStatusModalLabel{{ status.id }}">Edit Status</h5>
+                                                                <h5 class="modal-title" id="editStatusModalLabel{{ status.id }}">{{ _('Edit Status') }}</h5>
                                                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                                     <span aria-hidden="true">&times;</span>
                                                                 </button>
@@ -297,7 +297,7 @@
                                                             <div class="modal-body">
                                                                 <input type="hidden" name="status_id" value="{{ status.id }}">
                                                                 <div class="form-group">
-                                                                    <label for="status{{ status.id }}">Status</label>
+                                                                    <label for="status{{ status.id }}">{{ _('Status') }}</label>
                                                                     <select class="form-control" id="status{{ status.id }}" name="status" required>
                                                                         <option value="thesis proposed" {% if status.status == 'thesis proposed' %}selected{% endif %}>Thesis Proposed</option>
                                                                         <option value="thesis accepted" {% if status.status == 'thesis accepted' %}selected{% endif %}>Thesis Accepted</option>
@@ -312,8 +312,8 @@
                                                                 </div>
                                                             </div>
                                                             <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                                                <button type="submit" class="btn btn-primary">Update Status</button>
+                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                                                                <button type="submit" class="btn btn-primary">{{ _('Update Status') }}</button>
                                                             </div>
                                                         </form>
                                                     </div>
@@ -329,7 +329,7 @@
                                         <form action="/admin/add_thesis_status" method="POST">
                                             <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                                             <div class="form-group">
-                                                <label for="newStatus">Add New Status</label>
+                                                <label for="newStatus">{{ _('Add New Status') }}</label>
                                                 <div class="input-group">
                                                     <select class="form-control" id="newStatus" name="status" required>
                                                         <option value="">Select a status...</option>
@@ -344,7 +344,7 @@
                                                         <option value="cancelled">Cancelled</option>
                                                     </select>
                                                     <div class="input-group-append">
-                                                        <button type="submit" class="btn btn-success">Add Status</button>
+                                                        <button type="submit" class="btn btn-success">{{ _('Add Status') }}</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -357,7 +357,7 @@
                             {% if updates %}
                             <div class="card mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Recent Updates</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Recent Updates') }}</h6>
                                 </div>
                                 <div class="card-body" style="max-height: 300px; overflow-y: auto;">
                                     {% for update in updates[:5] %}
@@ -420,14 +420,14 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">{{ _('Ready to Leave?') }}</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
                 <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">{{ _('Cancel') }}</button>
                     <a class="btn btn-primary" href="login.html">Logout</a>
                                 </div>
                             </div>
@@ -435,7 +435,7 @@
                             <!-- Expressions of Interest -->
                             <div class="card mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Expressions of Interest</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Expressions of Interest') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if interests %}
@@ -449,12 +449,12 @@
                                                     {% if not thesis.author_id %}
                                                         <form action="/admin/thesis_interest/assign/{{ interest.id }}" method="POST" class="mr-2">
                                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                            <button type="submit" class="btn btn-sm btn-success">Assign Thesis</button>
+                                                            <button type="submit" class="btn btn-sm btn-success">{{ _('Assign Thesis') }}</button>
                                                         </form>
                                                     {% endif %}
                                                     <form action="/admin/thesis_interest/delete/{{ interest.id }}" method="POST">
                                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Decline</button>
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">{{ _('Decline') }}</button>
                                                     </form>
                                                 </div>
                                             </div>

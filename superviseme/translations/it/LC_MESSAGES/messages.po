@@ -187,3 +187,1185 @@ msgstr "La Mia Tesi"
 
 msgid "sidebar.browse_theses"
 msgstr "Esplora Tesi"
+
+msgid "AI, NLP, Python"
+msgstr "IA, NLP, Python"
+
+msgid "Account Information"
+msgstr "Informazioni Account"
+
+msgid "Actions"
+msgstr "Azioni"
+
+msgid "Active"
+msgstr "Attivo"
+
+msgid "Add"
+msgstr "Aggiungi"
+
+msgid "Add Collaborator"
+msgstr "Aggiungi Collaboratore"
+
+msgid "Add Comment"
+msgstr "Aggiungi Commento"
+
+msgid "Add Feedback"
+msgstr "Aggiungi Feedback"
+
+msgid "Add First Todo"
+msgstr "Aggiungi Primo Todo"
+
+msgid "Add First Update"
+msgstr "Aggiungi Primo Aggiornamento"
+
+msgid "Add Hypothesis"
+msgstr "Aggiungi Ipotesi"
+
+msgid "Add Meeting Note"
+msgstr "Aggiungi Nota Riunione"
+
+msgid "Add New Hypothesis"
+msgstr "Aggiungi Nuova Ipotesi"
+
+msgid "Add New Objective"
+msgstr "Aggiungi Nuovo Obiettivo"
+
+msgid "Add New Resource"
+msgstr "Aggiungi Nuova Risorsa"
+
+msgid "Add New Status"
+msgstr "Aggiungi Nuovo Stato"
+
+msgid "Add New ToDo"
+msgstr "Aggiungi Nuovo Todo"
+
+msgid "Add New Todo"
+msgstr "Aggiungi Nuovo Todo"
+
+msgid "Add New Update"
+msgstr "Aggiungi Nuovo Aggiornamento"
+
+msgid "Add Objective"
+msgstr "Aggiungi Obiettivo"
+
+msgid "Add Project Hypothesis"
+msgstr "Aggiungi Ipotesi Progetto"
+
+msgid "Add Project Objective"
+msgstr "Aggiungi Obiettivo Progetto"
+
+msgid "Add Project Resource"
+msgstr "Aggiungi Risorsa Progetto"
+
+msgid "Add Project Todo"
+msgstr "Aggiungi Todo Progetto"
+
+msgid "Add Project Update"
+msgstr "Aggiungi Aggiornamento Progetto"
+
+msgid "Add Reference"
+msgstr "Aggiungi Riferimento"
+
+msgid "Add Resource"
+msgstr "Aggiungi Risorsa"
+
+msgid "Add Status"
+msgstr "Aggiungi Stato"
+
+msgid "Add Supervisor"
+msgstr "Aggiungi Relatore"
+
+msgid "Add Supervisor Feedback"
+msgstr "Aggiungi Feedback Relatore"
+
+msgid "Add Tag"
+msgstr "Aggiungi Etichetta"
+
+msgid "Add ToDo"
+msgstr "Aggiungi Todo"
+
+msgid "Add Todo"
+msgstr "Aggiungi Todo"
+
+msgid "Add Update"
+msgstr "Aggiungi Aggiornamento"
+
+msgid "Add tag"
+msgstr "Aggiungi etichetta"
+
+msgid "Add your feedback or comment on this update..."
+msgstr "Aggiungi il tuo feedback o commento su questo aggiornamento..."
+
+msgid "Added"
+msgstr "Aggiunto"
+
+msgid "Additional details about this task..."
+msgstr "Dettagli aggiuntivi su questo compito..."
+
+msgid "Administrative Tools"
+msgstr "Strumenti Amministrativi"
+
+msgid "Advanced Settings"
+msgstr "Impostazioni Avanzate"
+
+msgid "Advancement Status:"
+msgstr "Stato Avanzamento:"
+
+msgid "All Notifications"
+msgstr "Tutte le Notifiche"
+
+msgid "Annotation & Notification Settings"
+msgstr "Impostazioni Annotazione e Notifiche"
+
+msgid "Annotation Settings"
+msgstr "Impostazioni Annotazione"
+
+msgid "Archive Thesis"
+msgstr "Archivia Tesi"
+
+msgid "Assign Thesis"
+msgstr "Assegna Tesi"
+
+msgid "Assign To"
+msgstr "Assegna a"
+
+msgid "Assign to:"
+msgstr "Assegna a:"
+
+msgid "Assigned"
+msgstr "Assegnato"
+
+msgid "Assigned Theses"
+msgstr "Tesi Assegnate"
+
+msgid "Assigned To:"
+msgstr "Assegnato a:"
+
+msgid "Assignee CDL"
+msgstr "Corso di studi assegnatario"
+
+msgid "Author"
+msgstr "Autore"
+
+msgid "Authored Theses"
+msgstr "Tesi Autorale"
+
+msgid "Available Theses"
+msgstr "Tesi Disponibili"
+
+msgid "Available Thesis Opportunities"
+msgstr "Opportunità di Tesi Disponibili"
+
+msgid "Backup & Restore"
+msgstr "Backup e Ripristino"
+
+msgid "Basic Information"
+msgstr "Informazioni di Base"
+
+msgid "Body:"
+msgstr "Corpo:"
+
+msgid "Bot Status"
+msgstr "Stato Bot"
+
+msgid "Brief description of the resource"
+msgstr "Breve descrizione della risorsa"
+
+msgid "Brief description of the resource..."
+msgstr "Breve descrizione della risorsa..."
+
+msgid "Brief description of the task"
+msgstr "Breve descrizione del compito"
+
+msgid "Brief title for this hypothesis"
+msgstr "Titolo breve per questa ipotesi"
+
+msgid "Brief title for your hypothesis"
+msgstr "Titolo breve per la tua ipotesi"
+
+msgid "Brief title for your objective"
+msgstr "Titolo breve per il tuo obiettivo"
+
+msgid "Bulk Thesis Operations"
+msgstr "Operazioni Massive su Tesi"
+
+msgid "Bulk User Operations"
+msgstr "Operazioni Massive su Utenti"
+
+msgid "Cancel"
+msgstr "Annulla"
+
+msgid "Card preview text"
+msgstr "Testo anteprima scheda"
+
+msgid "CdL"
+msgstr "Corso di Laurea"
+
+msgid "Change Password"
+msgstr "Cambia Password"
+
+msgid "Collaborator Email:"
+msgstr "Email Collaboratore:"
+
+msgid "Collaborators"
+msgstr "Collaboratori"
+
+msgid "Comments:"
+msgstr "Commenti:"
+
+msgid "Confirm New Password"
+msgstr "Conferma Nuova Password"
+
+msgid "Confirm Password"
+msgstr "Conferma Password"
+
+msgid "Connection Status"
+msgstr "Stato Connessione"
+
+msgid "Content"
+msgstr "Contenuto"
+
+msgid "Content:"
+msgstr "Contenuto:"
+
+msgid "Course of Study"
+msgstr "Corso di Studi"
+
+msgid "Create New Research Project"
+msgstr "Crea Nuovo Progetto di Ricerca"
+
+msgid "Create New Student"
+msgstr "Crea Nuovo Studente"
+
+msgid "Create New Thesis"
+msgstr "Crea Nuova Tesi"
+
+msgid "Create Project"
+msgstr "Crea Progetto"
+
+msgid "Create Student"
+msgstr "Crea Studente"
+
+msgid "Create Thesis"
+msgstr "Crea Tesi"
+
+msgid "Create User"
+msgstr "Crea Utente"
+
+msgid "Created"
+msgstr "Creato"
+
+msgid "Created By"
+msgstr "Creato da"
+
+msgid "Current Password"
+msgstr "Password Attuale"
+
+msgid "Current Student:"
+msgstr "Studente attuale:"
+
+msgid "Current Supervised Students"
+msgstr "Studenti Supervisionati Attuali"
+
+msgid "Current Supervisors:"
+msgstr "Relatori attuali:"
+
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Data Import/Export"
+msgstr "Import/Export Dati"
+
+msgid "Database Operations"
+msgstr "Operazioni Database"
+
+msgid "Deadline Reminder Template"
+msgstr "Template Promemoria Scadenza"
+
+msgid "Debug Information"
+msgstr "Informazioni Debug"
+
+msgid "Decline"
+msgstr "Rifiuta"
+
+msgid "Degree"
+msgstr "Laurea"
+
+msgid "Degree Course"
+msgstr "Corso di Laurea"
+
+msgid "Degree Program"
+msgstr "Corso di Studi"
+
+msgid "Delete Student"
+msgstr "Elimina Studente"
+
+msgid "Delete Thesis"
+msgstr "Elimina Tesi"
+
+msgid "Delete User"
+msgstr "Elimina Utente"
+
+msgid "Department"
+msgstr "Dipartimento"
+
+msgid "Describe the progress, feedback, or milestone..."
+msgstr "Descrivi il progresso, il feedback o il traguardo..."
+
+msgid "Describe the progress, findings, issues, or general update..."
+msgstr "Descrivi il progresso, i risultati, i problemi o l'aggiornamento generale..."
+
+msgid "Describe what this resource is and how it relates to the project..."
+msgstr "Descrivi cos'è questa risorsa e come si relaziona al progetto..."
+
+msgid "Describe what you aim to achieve with this objective..."
+msgstr "Descrivi cosa vuoi raggiungere con questo obiettivo..."
+
+msgid "Describe your progress, challenges, or achievements..."
+msgstr "Descrivi il tuo progresso, le sfide o i risultati..."
+
+msgid "Describe your research hypothesis or assumption..."
+msgstr "Descrivi la tua ipotesi o assunzione di ricerca..."
+
+msgid "Description"
+msgstr "Descrizione"
+
+msgid "Description (optional):"
+msgstr "Descrizione (opzionale):"
+
+msgid "Description:"
+msgstr "Descrizione:"
+
+msgid "Detailed description of what needs to be done..."
+msgstr "Descrizione dettagliata di cosa deve essere fatto..."
+
+msgid "Detailed public description"
+msgstr "Descrizione pubblica dettagliata"
+
+msgid "Due Date"
+msgstr "Scadenza"
+
+msgid "Due Date (optional):"
+msgstr "Scadenza (opzionale):"
+
+msgid "Edit Feedback"
+msgstr "Modifica Feedback"
+
+msgid "Edit Hypothesis"
+msgstr "Modifica Ipotesi"
+
+msgid "Edit Meeting Note"
+msgstr "Modifica Nota Riunione"
+
+msgid "Edit Objective"
+msgstr "Modifica Obiettivo"
+
+msgid "Edit Research Project"
+msgstr "Modifica Progetto di Ricerca"
+
+msgid "Edit Resource"
+msgstr "Modifica Risorsa"
+
+msgid "Edit Status"
+msgstr "Modifica Stato"
+
+msgid "Edit Student"
+msgstr "Modifica Studente"
+
+msgid "Edit Thesis Information"
+msgstr "Modifica Informazioni Tesi"
+
+msgid "Edit Todo"
+msgstr "Modifica Todo"
+
+msgid "Edit Update"
+msgstr "Modifica Aggiornamento"
+
+msgid "Edit User Information"
+msgstr "Modifica Informazioni Utente"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Email Address"
+msgstr "Indirizzo email"
+
+msgid "Email Configuration"
+msgstr "Configurazione Email"
+
+msgid "Email Notification Management"
+msgstr "Gestione Notifiche Email"
+
+msgid "Email Preview"
+msgstr "Anteprima Email"
+
+msgid "Email Templates"
+msgstr "Template Email"
+
+msgid "Email address"
+msgstr "Indirizzo email"
+
+msgid "Enter project title..."
+msgstr "Inserisci il titolo del progetto..."
+
+msgid "Enter the email of the person you want to add"
+msgstr "Inserisci l'email della persona che vuoi aggiungere"
+
+msgid "Enter thesis title..."
+msgstr "Inserisci il titolo della tesi..."
+
+msgid "Express Interest"
+msgstr "Esprimi Interesse"
+
+msgid "Expressions of Interest"
+msgstr "Manifestazioni di Interesse"
+
+msgid "Extended public description"
+msgstr "Descrizione pubblica estesa"
+
+msgid "Feedback Content:"
+msgstr "Contenuto Feedback:"
+
+msgid "First Name"
+msgstr "Nome"
+
+msgid "Free text in title, description, prerequisites, tags"
+msgstr "Testo libero in titolo, descrizione, prerequisiti, tag"
+
+msgid "Gender"
+msgstr "Genere"
+
+msgid "General Settings"
+msgstr "Impostazioni Generali"
+
+msgid "Grant Supervisor Privileges"
+msgstr "Concedi Privilegi Relatore"
+
+msgid "Handled"
+msgstr "Gestita"
+
+msgid "Handler"
+msgstr "Gestore"
+
+msgid "How Weekly Email Reports Work"
+msgstr "Come Funzionano i Report Email Settimanali"
+
+msgid "Hypotheses"
+msgstr "Ipotesi"
+
+msgid "Hypothesis Description:"
+msgstr "Descrizione Ipotesi:"
+
+msgid "Hypothesis Title:"
+msgstr "Titolo Ipotesi:"
+
+msgid "ID"
+msgstr "ID"
+
+msgid "Job Name"
+msgstr "Nome Job"
+
+msgid "Keywords"
+msgstr "Parole chiave"
+
+msgid "Keywords (comma separated)"
+msgstr "Parole chiave (separate da virgola)"
+
+msgid "Keywords (comma separated):"
+msgstr "Parole chiave (separate da virgola):"
+
+msgid "Last Activity"
+msgstr "Ultima Attività"
+
+msgid "Last Name"
+msgstr "Cognome"
+
+msgid "Level"
+msgstr "Livello"
+
+msgid "Level:"
+msgstr "Livello:"
+
+msgid "Link/URL"
+msgstr "Link/URL"
+
+msgid "Long Description"
+msgstr "Descrizione Estesa"
+
+msgid "Long Description:"
+msgstr "Descrizione Estesa:"
+
+msgid "Meeting Content"
+msgstr "Contenuto Riunione"
+
+msgid "Meeting Date"
+msgstr "Data Riunione"
+
+msgid "Meeting Details"
+msgstr "Dettagli Riunione"
+
+msgid "Meeting Information"
+msgstr "Informazioni Riunione"
+
+msgid "Meeting Note Content"
+msgstr "Contenuto Nota Riunione"
+
+msgid "Meeting Notes"
+msgstr "Note di Riunione"
+
+msgid "Meeting Notes:"
+msgstr "Note di Riunione:"
+
+msgid "Meeting Title"
+msgstr "Titolo Riunione"
+
+msgid "Meeting Title:"
+msgstr "Titolo Riunione:"
+
+msgid "Meeting agenda, discussion points, decisions made, action items..."
+msgstr "Agenda riunione, punti di discussione, decisioni prese, azioni..."
+
+msgid "Message"
+msgstr "Messaggio"
+
+msgid "Miscellanea"
+msgstr "Varie"
+
+msgid "My Expressed Interests"
+msgstr "I Miei Interessi Espressi"
+
+msgid "My Profile"
+msgstr "Il Mio Profilo"
+
+msgid "My Research Projects"
+msgstr "I Miei Progetti di Ricerca"
+
+msgid "My Students"
+msgstr "I Miei Studenti"
+
+msgid "My Supervised Theses"
+msgstr "Le Mie Tesi Supervisionate"
+
+msgid "My Theses"
+msgstr "Le Mie Tesi"
+
+msgid "My Thesis"
+msgstr "La Mia Tesi"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Nationality"
+msgstr "Nazionalità"
+
+msgid "New Password"
+msgstr "Nuova Password"
+
+msgid "New Password (leave blank to keep current)"
+msgstr "Nuova Password (lascia vuoto per mantenere quella attuale)"
+
+msgid "New Search"
+msgstr "Nuova ricerca"
+
+msgid "Next Run"
+msgstr "Prossima Esecuzione"
+
+msgid "No Research Projects Yet"
+msgstr "Nessun Progetto di Ricerca"
+
+msgid "No Thesis Assigned"
+msgstr "Nessuna Tesi Assegnata"
+
+msgid "No hypotheses yet"
+msgstr "Nessuna ipotesi ancora"
+
+msgid "No meeting notes yet"
+msgstr "Nessuna nota di riunione ancora"
+
+msgid "No notifications"
+msgstr "Nessuna notifica"
+
+msgid "No objectives yet"
+msgstr "Nessun obiettivo ancora"
+
+msgid "No resources yet"
+msgstr "Nessuna risorsa ancora"
+
+msgid "No shared todos yet"
+msgstr "Nessun todo condiviso ancora"
+
+msgid "No todos yet"
+msgstr "Nessun todo ancora"
+
+msgid "No updates yet"
+msgstr "Nessun aggiornamento ancora"
+
+msgid "Notification Settings"
+msgstr "Impostazioni Notifiche"
+
+msgid "Objective Description:"
+msgstr "Descrizione Obiettivo:"
+
+msgid "Objective Title:"
+msgstr "Titolo Obiettivo:"
+
+msgid "Objectives"
+msgstr "Obiettivi"
+
+msgid "Optional message to the publisher"
+msgstr "Messaggio opzionale per il pubblicante"
+
+msgid "Participants"
+msgstr "Partecipanti"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Past Students (Archived/Frozen Theses)"
+msgstr "Ex Studenti (Tesi Archiviate/Bloccate)"
+
+msgid "Popular Tags"
+msgstr "Tag Popolari"
+
+msgid "Prerequisites"
+msgstr "Prerequisiti"
+
+msgid "Prerequisites:"
+msgstr "Prerequisiti:"
+
+msgid "Priority"
+msgstr "Priorità"
+
+msgid "Priority:"
+msgstr "Priorità:"
+
+msgid "Project Context"
+msgstr "Contesto del Progetto"
+
+msgid "Project Hypotheses"
+msgstr "Ipotesi del Progetto"
+
+msgid "Project Meeting Notes"
+msgstr "Note di Riunione del Progetto"
+
+msgid "Project Objectives"
+msgstr "Obiettivi del Progetto"
+
+msgid "Project Overview"
+msgstr "Panoramica del Progetto"
+
+msgid "Project Resources"
+msgstr "Risorse del Progetto"
+
+msgid "Project Statistics"
+msgstr "Statistiche del Progetto"
+
+msgid "Project Title:"
+msgstr "Titolo Progetto:"
+
+msgid "Project Todos"
+msgstr "Todo del Progetto"
+
+msgid "Project Updates"
+msgstr "Aggiornamenti del Progetto"
+
+msgid "Provide a detailed description of the research project..."
+msgstr "Fornisci una descrizione dettagliata del progetto di ricerca..."
+
+msgid "Provide a detailed description of the thesis..."
+msgstr "Fornisci una descrizione dettagliata della tesi..."
+
+msgid "Provide feedback to the student..."
+msgstr "Fornisci feedback allo studente..."
+
+msgid "Publish publicly (only if unassigned)"
+msgstr "Pubblica pubblicamente (solo se non assegnata)"
+
+msgid "Publish publicly when available"
+msgstr "Pubblica pubblicamente quando disponibile"
+
+msgid "Publish publicly when thesis is unassigned"
+msgstr "Pubblica pubblicamente quando la tesi non è assegnata"
+
+msgid "Publish publicly when unassigned"
+msgstr "Pubblica pubblicamente quando non assegnata"
+
+msgid "Purge Inactive Users"
+msgstr "Elimina Utenti Inattivi"
+
+msgid "Quick Actions"
+msgstr "Azioni Rapide"
+
+msgid "Quick Stats"
+msgstr "Statistiche Rapide"
+
+msgid "Quick Todo Reference:"
+msgstr "Riferimento Rapido Todo:"
+
+msgid "Ready to Leave?"
+msgstr "Vuoi uscire?"
+
+msgid "Recent Research Projects"
+msgstr "Progetti di Ricerca Recenti"
+
+msgid "Recent Theses"
+msgstr "Tesi Recenti"
+
+msgid "Recent Todos"
+msgstr "Todo Recenti"
+
+msgid "Recent Updates"
+msgstr "Aggiornamenti Recenti"
+
+msgid "Recent Users"
+msgstr "Utenti Recenti"
+
+msgid "Recreate Tables"
+msgstr "Ricrea Tabelle"
+
+msgid "Reference Todo"
+msgstr "Riferimento Todo"
+
+msgid "Referenced Todos"
+msgstr "Todo Referenziati"
+
+msgid "Referenced Todos:"
+msgstr "Todo Referenziati:"
+
+msgid "Referenced Updates"
+msgstr "Aggiornamenti Referenziati"
+
+msgid "Referenced in Updates"
+msgstr "Referenziato negli Aggiornamenti"
+
+msgid "Refresh"
+msgstr "Aggiorna"
+
+msgid "Remember me for 30 days"
+msgstr "Ricordami per 30 giorni"
+
+msgid "Remove"
+msgstr "Rimuovi"
+
+msgid "Repeat Password"
+msgstr "Ripeti Password"
+
+msgid "Required skills/tools/courses"
+msgstr "Competenze/strumenti/corsi richiesti"
+
+msgid "Research Projects"
+msgstr "Progetti di Ricerca"
+
+msgid "Researcher + Supervisor"
+msgstr "Ricercatore + Relatore"
+
+msgid "Researcher Dashboard"
+msgstr "Dashboard Ricercatore"
+
+msgid "Reset All Passwords"
+msgstr "Reimposta Tutte le Password"
+
+msgid "Reset Database"
+msgstr "Reimposta Database"
+
+msgid "Reset Password"
+msgstr "Reimposta Password"
+
+msgid "Resource Type"
+msgstr "Tipo Risorsa"
+
+msgid "Resource Type:"
+msgstr "Tipo Risorsa:"
+
+msgid "Resource URL:"
+msgstr "URL Risorsa:"
+
+msgid "Resources"
+msgstr "Risorse"
+
+msgid "Revoke Supervisor Privileges"
+msgstr "Revoca Privilegi Relatore"
+
+msgid "Role"
+msgstr "Ruolo"
+
+msgid "Role:"
+msgstr "Ruolo:"
+
+msgid "Save Changes"
+msgstr "Salva modifiche"
+
+msgid "Save Meeting Note"
+msgstr "Salva Nota Riunione"
+
+msgid "Schedule"
+msgstr "Pianificazione"
+
+msgid "Search"
+msgstr "Cerca"
+
+msgid "Search & Filters"
+msgstr "Ricerca e Filtri"
+
+msgid "Search Results"
+msgstr "Risultati Ricerca"
+
+msgid "Search theses or students..."
+msgstr "Cerca tesi o studenti..."
+
+msgid "Search theses..."
+msgstr "Cerca tesi..."
+
+msgid "Search users..."
+msgstr "Cerca utenti..."
+
+msgid "Select Criteria:"
+msgstr "Seleziona Criteri:"
+
+msgid "Select Todo:"
+msgstr "Seleziona Todo:"
+
+msgid "Select User Type:"
+msgstr "Seleziona Tipo Utente:"
+
+msgid "Send Interest"
+msgstr "Invia Interesse"
+
+msgid "Set Status"
+msgstr "Imposta Stato"
+
+msgid "Set Thesis Status"
+msgstr "Imposta Stato Tesi"
+
+msgid "Shared Todo Lists"
+msgstr "Liste Todo Condivise"
+
+msgid "Short Description"
+msgstr "Descrizione Breve"
+
+msgid "Short Description:"
+msgstr "Descrizione Breve:"
+
+msgid "Short summary for the public card"
+msgstr "Riepilogo breve per la scheda pubblica"
+
+msgid "Skills, courses, tools"
+msgstr "Competenze, corsi, strumenti"
+
+msgid "Statistics"
+msgstr "Statistiche"
+
+msgid "Status"
+msgstr "Stato"
+
+msgid "Status & History"
+msgstr "Stato e Cronologia"
+
+msgid "Status Change Template"
+msgstr "Template Cambio Stato"
+
+msgid "Status History"
+msgstr "Cronologia Stato"
+
+msgid "Status History:"
+msgstr "Cronologia Stato:"
+
+msgid "Student"
+msgstr "Studente"
+
+msgid "Student Assignment"
+msgstr "Assegnazione Studente"
+
+msgid "Student Dashboard"
+msgstr "Dashboard Studente"
+
+msgid "Student Hypotheses"
+msgstr "Ipotesi dello Studente"
+
+msgid "Student Objectives"
+msgstr "Obiettivi dello Studente"
+
+msgid "Student ToDo List"
+msgstr "Lista Todo dello Studente"
+
+msgid "Subject:"
+msgstr "Oggetto:"
+
+msgid "Submitted"
+msgstr "Inviato"
+
+msgid "SuperviseMe"
+msgstr "SuperviseMe"
+
+msgid "SuperviseMe - Profile"
+msgstr "SuperviseMe - Profilo"
+
+msgid "SuperviseMe System"
+msgstr "Sistema SuperviseMe"
+
+msgid "Supervised Theses"
+msgstr "Tesi Supervisionate"
+
+msgid "Supervisor"
+msgstr "Relatore"
+
+msgid "Supervisor Functions"
+msgstr "Funzioni Relatore"
+
+msgid "Supervisors"
+msgstr "Relatori"
+
+msgid "Surname"
+msgstr "Cognome"
+
+msgid "System Information"
+msgstr "Informazioni Sistema"
+
+msgid "System Maintenance"
+msgstr "Manutenzione Sistema"
+
+msgid "System Settings"
+msgstr "Impostazioni Sistema"
+
+msgid "Tag Update"
+msgstr "Aggiornamento Tag"
+
+msgid "Tag:"
+msgstr "Tag:"
+
+msgid "Tags"
+msgstr "Etichette"
+
+msgid "Task"
+msgstr "Compito"
+
+msgid "Task Description:"
+msgstr "Descrizione Compito:"
+
+msgid "Task Title:"
+msgstr "Titolo Compito:"
+
+msgid "Test Email Preview"
+msgstr "Anteprima Email di Test"
+
+msgid "Theses"
+msgstr "Tesi"
+
+msgid "Thesis"
+msgstr "Tesi"
+
+msgid "Thesis *"
+msgstr "Tesi *"
+
+msgid "Thesis Assignment Template"
+msgstr "Template Assegnazione Tesi"
+
+msgid "Thesis Details"
+msgstr "Dettagli Tesi"
+
+msgid "Thesis Information"
+msgstr "Informazioni Tesi"
+
+msgid "Thesis Level Distribution"
+msgstr "Distribuzione Livelli Tesi"
+
+msgid "Thesis Status"
+msgstr "Stato Tesi"
+
+msgid "Thesis Title"
+msgstr "Titolo Tesi"
+
+msgid "Thesis Title:"
+msgstr "Titolo Tesi:"
+
+msgid "Title"
+msgstr "Titolo"
+
+msgid "Title *"
+msgstr "Titolo *"
+
+msgid "Title:"
+msgstr "Titolo:"
+
+msgid "ToDo List"
+msgstr "Lista Todo"
+
+msgid "Todo Details"
+msgstr "Dettagli Todo"
+
+msgid "Todo Information"
+msgstr "Informazioni Todo"
+
+msgid "Todo List"
+msgstr "Lista Todo"
+
+msgid "Todo Statistics"
+msgstr "Statistiche Todo"
+
+msgid "Todo Title:"
+msgstr "Titolo Todo:"
+
+msgid "Topic"
+msgstr "Argomento"
+
+msgid "Topic:"
+msgstr "Argomento:"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "URL/Link"
+msgstr "URL/Link"
+
+msgid "URL/Link:"
+msgstr "URL/Link:"
+
+msgid "Unarchive Thesis"
+msgstr "Disarchivia Tesi"
+
+msgid "Update Assignment"
+msgstr "Aggiorna Assegnazione"
+
+msgid "Update Content"
+msgstr "Contenuto Aggiornamento"
+
+msgid "Update Content:"
+msgstr "Contenuto Aggiornamento:"
+
+msgid "Update Hypothesis"
+msgstr "Aggiorna Ipotesi"
+
+msgid "Update Meeting Note"
+msgstr "Aggiorna Nota Riunione"
+
+msgid "Update Objective"
+msgstr "Aggiorna Obiettivo"
+
+msgid "Update Profile"
+msgstr "Aggiorna Profilo"
+
+msgid "Update Project"
+msgstr "Aggiorna Progetto"
+
+msgid "Update Resource"
+msgstr "Aggiorna Risorsa"
+
+msgid "Update Status"
+msgstr "Aggiorna Stato"
+
+msgid "Update Student"
+msgstr "Aggiorna Studente"
+
+msgid "Update Thesis"
+msgstr "Aggiorna Tesi"
+
+msgid "Update Type"
+msgstr "Tipo Aggiornamento"
+
+msgid "Update Type:"
+msgstr "Tipo Aggiornamento:"
+
+msgid "Update User"
+msgstr "Aggiorna Utente"
+
+msgid "Updated"
+msgstr "Aggiornato"
+
+msgid "Updates & Feedback"
+msgstr "Aggiornamenti e Feedback"
+
+msgid "Updates & Progress"
+msgstr "Aggiornamenti e Progresso"
+
+msgid "Updates Referencing This Todo"
+msgstr "Aggiornamenti che Referenziano Questo Todo"
+
+msgid "Usage Statistics"
+msgstr "Statistiche di Utilizzo"
+
+msgid "User Details"
+msgstr "Dettagli Utente"
+
+msgid "User Management"
+msgstr "Gestione Utenti"
+
+msgid "User Statistics"
+msgstr "Statistiche Utenti"
+
+msgid "User Type"
+msgstr "Tipo Utente"
+
+msgid "Username"
+msgstr "Nome utente"
+
+msgid "Users"
+msgstr "Utenti"
+
+msgid "Weekly Email Scheduler Status"
+msgstr "Stato Scheduler Email Settimanale"
+
+msgid "Welcome Message Template"
+msgstr "Template Messaggio di Benvenuto"
+
+msgid "What can you do?"
+msgstr "Cosa puoi fare?"
+
+msgid "What do you want to achieve?"
+msgstr "Cosa vuoi raggiungere?"
+
+msgid "What happened?"
+msgstr "Cosa è successo?"
+
+msgid "What needs to be done?"
+msgstr "Cosa deve essere fatto?"
+
+msgid "Why are you interested?"
+msgstr "Perché sei interessato?"
+
+msgid "Your Comment:"
+msgstr "Il Tuo Commento:"
+
+msgid "Your password"
+msgstr "La tua password"
+
+msgid "YourBotName"
+msgstr "NomeTuoBot"
+
+msgid "deep learning, python, healthcare"
+msgstr "deep learning, python, sanità"
+
+msgid "e.g. Computer Vision"
+msgstr "es. Computer Vision"
+
+msgid "e.g. Distributed Systems"
+msgstr "es. Sistemi Distribuiti"
+
+msgid "e.g. Human-Computer Interaction"
+msgstr "es. Interazione Uomo-Computer"
+
+msgid "e.g., John Smith, Jane Doe, Project Team"
+msgstr "es. Mario Rossi, Anna Bianchi, Team di Progetto"
+
+msgid "e.g., Weekly Meeting - Progress Review"
+msgstr "es. Riunione Settimanale - Revisione Progressi"
+
+msgid "e.g., Weekly Progress Meeting, Research Planning Session"
+msgstr "es. Riunione Settimanale Progressi, Sessione Pianificazione Ricerca"
+
+msgid "noreply@university.edu"
+msgstr "noreply@university.edu"
+
+msgid "smtp.example.com"
+msgstr "smtp.example.com"
+
+msgid "ux, user studies, prototyping"
+msgstr "ux, studi utenti, prototipazione"
+
+msgid "you@institution.edu"
+msgstr "tu@istituzione.edu"
+
+msgid "your-email@example.com"
+msgstr "tua-email@esempio.com"

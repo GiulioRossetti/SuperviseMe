@@ -24,7 +24,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Dashboard') }}</h1>
                     </div>
 
 
@@ -35,7 +35,7 @@
 
                              <div class="card mb-4">
                                  <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Users</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Users') }}</h6>
                                  </div>
                                 <div class="card-body">
 
@@ -45,14 +45,14 @@
                                         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                             <thead>
                                                 <tr>
-                                                    <th>Name</th>
-                                                    <th>Surname</th>
-                                                    <th>Gender</th>
-                                                    <th>Role</th>
-                                                    <th>Researcher + Supervisor</th>
-                                                    <th>Status</th>
-                                                    <th>ID</th>
-                                                    <th>Actions</th>
+                                                    <th>{{ _('Name') }}</th>
+                                                    <th>{{ _('Surname') }}</th>
+                                                    <th>{{ _('Gender') }}</th>
+                                                    <th>{{ _('Role') }}</th>
+                                                    <th>{{ _('Researcher + Supervisor') }}</th>
+                                                    <th>{{ _('Status') }}</th>
+                                                    <th>{{ _('ID') }}</th>
+                                                    <th>{{ _('Actions') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="users-tbody">
@@ -61,10 +61,10 @@
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mt-3">
                                         <div>
-                                            <input type="text" id="search-input" class="form-control" placeholder="Search users..." style="width: 200px;">
+                                            <input type="text" id="search-input" class="form-control" placeholder="{{ _('Search users...') }}" style="width: 200px;">
                                         </div>
                                         <div>
-                                            <button id="refresh-btn" class="btn btn-secondary">Refresh</button>
+                                            <button id="refresh-btn" class="btn btn-secondary">{{ _('Refresh') }}</button>
                                         </div>
                                     </div>
                                 </div>
@@ -434,7 +434,7 @@ try {
                         <div class="col-xl-8 col-lg-16">
                             <div class="card mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Create User</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Create User') }}</h6>
                                  </div>
                                 <div class="card-body">
                                     <form class="user" action="/admin/create_user" method="POST">
@@ -442,15 +442,15 @@ try {
                                         <div class="form-group row">
                                             <div class="col-sm-4 mb-3 mb-sm-0">
                                                 <input type="text" class="form-control form-control-user" id="name" name="name"
-                                                    placeholder="First Name">
+                                                    placeholder="{{ _('First Name') }}">
                                             </div>
                                             <div class="col-sm-4">
                                                 <input type="text" class="form-control form-control-user" id="surname" name="surname"
-                                                    placeholder="Last Name">
+                                                    placeholder="{{ _('Last Name') }}">
                                             </div>
                                             <div class="col-sm-4">
                                                 <input type="text" class="form-control form-control-user" id="nationality" name="nationality"
-                                                    placeholder="Nationality">
+                                                    placeholder="{{ _('Nationality') }}">
                                             </div>
 
 
@@ -458,11 +458,11 @@ try {
                                          <div class="form-group row">
                                             <div class="col-sm-6 ">
                                             <input type="email" class="form-control form-control-user" id="email" name="email"
-                                                placeholder="Email Address">
+                                                placeholder="{{ _('Email Address') }}">
                                             </div>
                                             <div class="col-sm-6 ">
                                                 <input type="text" class="form-control form-control-user"
-                                                    id="username" placeholder="Username" name="username">
+                                                    id="username" placeholder="{{ _('Username') }}" name="username">
                                             </div>
                                         </div>
 
@@ -501,11 +501,11 @@ try {
                                         <div class="form-group row">
                                             <div class="col-sm-6 mb-3 mb-sm-0">
                                                 <input type="password" class="form-control form-control-user"
-                                                    id="password" placeholder="Password" name="password">
+                                                    id="password" placeholder="{{ _('Password') }}" name="password">
                                             </div>
                                             <div class="col-sm-6">
                                                 <input type="password" class="form-control form-control-user"
-                                                    id="password2" placeholder="Repeat Password" name="password2">
+                                                    id="password2" placeholder="{{ _('Repeat Password') }}" name="password2">
                                             </div>
                                         </div>
                                 <button class="btn btn-primary btn-user btn-block">
@@ -546,14 +546,14 @@ try {
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">{{ _('Ready to Leave?') }}</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
                 <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">{{ _('Cancel') }}</button>
                     <a class="btn btn-primary" href="login.html">Logout</a>
                 </div>
             </div>

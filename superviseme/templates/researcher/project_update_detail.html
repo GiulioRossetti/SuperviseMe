@@ -50,7 +50,7 @@
                         <div class="col-lg-8">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Update Content</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Update Content') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row mb-3">
@@ -81,7 +81,7 @@
                             {% if referenced_todos %}
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Referenced Todos</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Referenced Todos') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% for todo in referenced_todos %}
@@ -115,7 +115,7 @@
                             <!-- Project Context -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Project Context</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Project Context') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <h6>{{ project.title }}</h6>
@@ -138,7 +138,7 @@
                             <!-- Quick Actions -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Quick Actions') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if update.author_id == current_user.id or is_owner %}
@@ -159,7 +159,7 @@
                             {% if todos %}
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Project Todos</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Project Todos') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <small class="text-muted">Recent todos in this project:</small>
@@ -202,7 +202,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Update</h5>
+                    <h5 class="modal-title">{{ _('Edit Update') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -210,7 +210,7 @@
                 <form method="POST" id="editUpdateForm">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="editUpdateType">Update Type:</label>
+                            <label for="editUpdateType">{{ _('Update Type:') }}</label>
                             <select class="form-control" name="update_type" id="editUpdateType" required>
                                 <option value="progress">Progress</option>
                                 <option value="milestone">Milestone</option>
@@ -220,17 +220,17 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="editUpdateContent">Update Content:</label>
+                            <label for="editUpdateContent">{{ _('Update Content:') }}</label>
                             <textarea class="form-control" name="content" id="editUpdateContent" rows="8" required
-                                      placeholder="Describe the progress, findings, issues, or general update..."></textarea>
+                                      placeholder="{{ _('Describe the progress, findings, issues, or general update...') }}"></textarea>
                             <small class="form-text text-muted">
                                 You can reference todos and include any relevant details about the project progress.
                             </small>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Save Changes') }}</button>
                     </div>
                 </form>
             </div>

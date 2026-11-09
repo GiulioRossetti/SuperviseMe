@@ -24,7 +24,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">My Supervised Theses</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('My Supervised Theses') }}</h1>
                         <button class="btn btn-primary" data-toggle="modal" data-target="#createThesisModal">
                             <i class="fas fa-plus"></i> Create New Thesis
                         </button>
@@ -35,7 +35,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Supervised Theses</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Supervised Theses') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if theses %}
@@ -43,12 +43,12 @@
                                             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                                 <thead>
                                                     <tr>
-                                                        <th>Title</th>
-                                                        <th>Student</th>
-                                                        <th>Level</th>
-                                                        <th>Created</th>
-                                                        <th>Status</th>
-                                                        <th>Actions</th>
+                                                        <th>{{ _('Title') }}</th>
+                                                        <th>{{ _('Student') }}</th>
+                                                        <th>{{ _('Level') }}</th>
+                                                        <th>{{ _('Created') }}</th>
+                                                        <th>{{ _('Status') }}</th>
+                                                        <th>{{ _('Actions') }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -141,7 +141,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Create New Thesis</h5>
+                    <h5 class="modal-title">{{ _('Create New Thesis') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -150,39 +150,39 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="title">Thesis Title:</label>
-                            <input type="text" class="form-control" name="title" required placeholder="Enter thesis title...">
+                            <label for="title">{{ _('Thesis Title:') }}</label>
+                            <input type="text" class="form-control" name="title" required placeholder="{{ _('Enter thesis title...') }}">
                         </div>
                         <div class="form-group">
-                            <label for="description">Description:</label>
-                            <textarea class="form-control" name="description" rows="4" required placeholder="Provide a detailed description of the thesis..."></textarea>
+                            <label for="description">{{ _('Description:') }}</label>
+                            <textarea class="form-control" name="description" rows="4" required placeholder="{{ _('Provide a detailed description of the thesis...') }}"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="short_description">Short Description:</label>
-                            <textarea class="form-control" name="short_description" rows="2" placeholder="Short summary for the public card"></textarea>
+                            <label for="short_description">{{ _('Short Description:') }}</label>
+                            <textarea class="form-control" name="short_description" rows="2" placeholder="{{ _('Short summary for the public card') }}"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="long_description">Long Description:</label>
-                            <textarea class="form-control" name="long_description" rows="4" placeholder="Extended public description"></textarea>
+                            <label for="long_description">{{ _('Long Description:') }}</label>
+                            <textarea class="form-control" name="long_description" rows="4" placeholder="{{ _('Extended public description') }}"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="topic">Topic:</label>
-                            <input type="text" class="form-control" name="topic" placeholder="e.g. Human-Computer Interaction">
+                            <label for="topic">{{ _('Topic:') }}</label>
+                            <input type="text" class="form-control" name="topic" placeholder="{{ _('e.g. Human-Computer Interaction') }}">
                         </div>
                         <div class="form-group">
-                            <label for="prerequisites">Prerequisites:</label>
-                            <textarea class="form-control" name="prerequisites" rows="2" placeholder="Required skills/tools/courses"></textarea>
+                            <label for="prerequisites">{{ _('Prerequisites:') }}</label>
+                            <textarea class="form-control" name="prerequisites" rows="2" placeholder="{{ _('Required skills/tools/courses') }}"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="keywords">Keywords (comma separated):</label>
-                            <input type="text" class="form-control" name="keywords" placeholder="ux, user studies, prototyping">
+                            <label for="keywords">{{ _('Keywords (comma separated):') }}</label>
+                            <input type="text" class="form-control" name="keywords" placeholder="{{ _('ux, user studies, prototyping') }}">
                         </div>
                         <div class="form-group form-check">
                             <input type="checkbox" class="form-check-input" id="researcher_publish_create" name="is_public" value="1">
-                            <label class="form-check-label" for="researcher_publish_create">Publish publicly when thesis is unassigned</label>
+                            <label class="form-check-label" for="researcher_publish_create">{{ _('Publish publicly when thesis is unassigned') }}</label>
                         </div>
                         <div class="form-group">
-                            <label for="level">Level:</label>
+                            <label for="level">{{ _('Level:') }}</label>
                             <select class="form-control" name="level" required>
                                 <option value="">Select Level</option>
                                 <option value="bachelor">Bachelor</option>
@@ -193,8 +193,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create Thesis</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Create Thesis') }}</button>
                     </div>
                 </form>
             </div>

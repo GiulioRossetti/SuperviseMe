@@ -98,7 +98,7 @@
                     <div class="col-xl-8 col-lg-7">
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Thesis Information</h6>
+                                <h6 class="m-0 font-weight-bold text-primary">{{ _('Thesis Information') }}</h6>
                             </div>
                             <div class="card-body">
                                 <p><strong>Topic:</strong> {{ thesis.topic or 'Not specified' }}</p>
@@ -112,7 +112,7 @@
                     <div class="col-xl-4 col-lg-5">
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Supervisors</h6>
+                                <h6 class="m-0 font-weight-bold text-primary">{{ _('Supervisors') }}</h6>
                             </div>
                             <div class="card-body">
                                 {% if supervisors %}
@@ -127,7 +127,7 @@
 
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Keywords</h6>
+                                <h6 class="m-0 font-weight-bold text-primary">{{ _('Keywords') }}</h6>
                             </div>
                             <div class="card-body">
                                 {% if tags %}
@@ -142,7 +142,7 @@
 
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
-                                <h6 class="m-0 font-weight-bold text-primary">Express Interest</h6>
+                                <h6 class="m-0 font-weight-bold text-primary">{{ _('Express Interest') }}</h6>
                             </div>
                             <div class="card-body">
                                 {% if current_user.is_authenticated and current_user.user_type == 'student' %}
@@ -152,10 +152,10 @@
                                         <form method="POST" action="{{ url_for('student.express_interest', thesis_id=thesis.id) }}">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <div class="form-group">
-                                                <label for="message">Optional message to the publisher</label>
-                                                <textarea id="message" name="message" class="form-control" rows="3" placeholder="Why are you interested?"></textarea>
+                                                <label for="message">{{ _('Optional message to the publisher') }}</label>
+                                                <textarea id="message" name="message" class="form-control" rows="3" placeholder="{{ _('Why are you interested?') }}"></textarea>
                                             </div>
-                                            <button type="submit" class="btn btn-primary btn-sm">Send Interest</button>
+                                            <button type="submit" class="btn btn-primary btn-sm">{{ _('Send Interest') }}</button>
                                         </form>
                                     {% endif %}
                                 {% elif current_user.is_authenticated %}

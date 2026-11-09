@@ -43,7 +43,7 @@
                     <!-- Simple Topbar for non-admin users -->
                     <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
                         <div class="container-fluid">
-                            <h1 class="h3 mb-0 text-gray-800">SuperviseMe - Profile</h1>
+                            <h1 class="h3 mb-0 text-gray-800">{{ _('SuperviseMe - Profile') }}</h1>
                             <div class="navbar-nav ml-auto">
                                 <div class="nav-item dropdown no-arrow">
                                     <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
@@ -78,7 +78,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">My Profile</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('My Profile') }}</h1>
                         <a href="{{ url_for(dashboard_endpoint) }}" class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left"></i> Back to Dashboard
                         </a>
@@ -107,7 +107,7 @@
                             <!-- Basic Information -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Basic Information</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Basic Information') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <form action="/profile/update" method="POST">
@@ -115,13 +115,13 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="name">First Name</label>
+                                                    <label for="name">{{ _('First Name') }}</label>
                                                     <input type="text" class="form-control" id="name" name="name" value="{{ user.name or '' }}" required>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="surname">Last Name</label>
+                                                    <label for="surname">{{ _('Last Name') }}</label>
                                                     <input type="text" class="form-control" id="surname" name="surname" value="{{ user.surname or '' }}" required>
                                                 </div>
                                             </div>
@@ -129,13 +129,13 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="email">Email</label>
+                                                    <label for="email">{{ _('Email') }}</label>
                                                     <input type="email" class="form-control" id="email" name="email" value="{{ user.email or '' }}" required>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="nationality">Nationality</label>
+                                                    <label for="nationality">{{ _('Nationality') }}</label>
                                                     <input type="text" class="form-control" id="nationality" name="nationality" value="{{ user.nationality or '' }}">
                                                 </div>
                                             </div>
@@ -143,7 +143,7 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="gender">Gender</label>
+                                                    <label for="gender">{{ _('Gender') }}</label>
                                                     <select class="form-control" id="gender" name="gender">
                                                         <option value="">Not specified</option>
                                                         <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Male</option>
@@ -153,12 +153,12 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="cdl">Degree Course</label>
+                                                    <label for="cdl">{{ _('Degree Course') }}</label>
                                                     <input type="text" class="form-control" id="cdl" name="cdl" value="{{ user.cdl or '' }}">
                                                 </div>
                                             </div>
                                         </div>
-                                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                                        <button type="submit" class="btn btn-primary">{{ _('Update Profile') }}</button>
                                     </form>
                                 </div>
                             </div>
@@ -166,7 +166,7 @@
                             <!-- Change Password -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Change Password</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Change Password') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <form action="/profile/change_password" method="POST">
@@ -174,7 +174,7 @@
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <div class="form-group">
-                                                    <label for="current_password">Current Password</label>
+                                                    <label for="current_password">{{ _('Current Password') }}</label>
                                                     <input type="password" class="form-control" id="current_password" name="current_password" required>
                                                 </div>
                                             </div>
@@ -182,18 +182,18 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="new_password">New Password</label>
+                                                    <label for="new_password">{{ _('New Password') }}</label>
                                                     <input type="password" class="form-control" id="new_password" name="new_password" required>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="confirm_password">Confirm New Password</label>
+                                                    <label for="confirm_password">{{ _('Confirm New Password') }}</label>
                                                     <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
                                                 </div>
                                             </div>
                                         </div>
-                                        <button type="submit" class="btn btn-warning">Change Password</button>
+                                        <button type="submit" class="btn btn-warning">{{ _('Change Password') }}</button>
                                     </form>
                                 </div>
                             </div>
@@ -302,14 +302,14 @@
                                         <div class="col-md-4">
                                             <div class="card bg-light">
                                                 <div class="card-body">
-                                                    <h6 class="card-title">Connection Status</h6>
+                                                    <h6 class="card-title">{{ _('Connection Status') }}</h6>
                                                     <div id="telegram-connection-status">
                                                         <span class="badge badge-secondary">Not Connected</span>
                                                     </div>
                                                     
                                                     <hr>
                                                     
-                                                    <h6 class="card-title">Last Activity</h6>
+                                                    <h6 class="card-title">{{ _('Last Activity') }}</h6>
                                                     <div class="small" id="telegram-last-activity">
                                                         No activity yet
                                                     </div>
@@ -324,7 +324,7 @@
                             {% if user.user_type == "student" and authored_theses %}
                                 <div class="card shadow mb-4">
                                     <div class="card-header py-3">
-                                        <h6 class="m-0 font-weight-bold text-primary">My Theses</h6>
+                                        <h6 class="m-0 font-weight-bold text-primary">{{ _('My Theses') }}</h6>
                                     </div>
                                     <div class="card-body">
                                         {% for thesis in authored_theses %}
@@ -345,7 +345,7 @@
                             {% if user.user_type == "supervisor" and supervised_theses %}
                                 <div class="card shadow mb-4">
                                     <div class="card-header py-3">
-                                        <h6 class="m-0 font-weight-bold text-primary">Supervised Theses</h6>
+                                        <h6 class="m-0 font-weight-bold text-primary">{{ _('Supervised Theses') }}</h6>
                                     </div>
                                     <div class="card-body">
                                         {% for thesis in supervised_theses %}
@@ -371,7 +371,7 @@
                             <!-- Account Info -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Account Information</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Account Information') }}</h6>
                                 </div>
                                 <div class="card-body text-center">
                                     <div class="border-bottom mb-3 pb-3">
@@ -393,7 +393,7 @@
                                     {% endif %}
                                     
                                     <div class="border-bottom mb-3 pb-3">
-                                        <h4 class="text-success">Active</h4>
+                                        <h4 class="text-success">{{ _('Active') }}</h4>
                                         <p class="mb-0">Account Status</p>
                                     </div>
                                     

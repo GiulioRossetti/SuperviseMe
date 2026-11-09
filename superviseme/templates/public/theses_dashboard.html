@@ -107,34 +107,34 @@
 
                 <div class="d-sm-flex align-items-center justify-content-between mb-4">
                     <div>
-                        <h1 class="h3 mb-0 text-gray-800">Available Thesis Opportunities</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Available Thesis Opportunities') }}</h1>
                         <div class="small text-muted">Public catalog of currently unassigned theses.</div>
                     </div>
                 </div>
 
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Search & Filters</h6>
+                        <h6 class="m-0 font-weight-bold text-primary">{{ _('Search & Filters') }}</h6>
                     </div>
                     <div class="card-body">
                         <form method="GET">
                             <div class="form-row">
                                 <div class="col-md-3 mb-2">
-                                    <input type="text" class="form-control" name="supervisor" placeholder="Supervisor" value="{{ filters.supervisor }}">
+                                    <input type="text" class="form-control" name="supervisor" placeholder="{{ _('Supervisor') }}" value="{{ filters.supervisor }}">
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <input type="text" class="form-control" name="topic" placeholder="Topic" value="{{ filters.topic }}">
+                                    <input type="text" class="form-control" name="topic" placeholder="{{ _('Topic') }}" value="{{ filters.topic }}">
                                 </div>
                                 <div class="col-md-4 mb-2">
-                                    <input type="text" class="form-control" name="keywords" placeholder="Keywords (comma separated)" value="{{ filters.keywords }}">
+                                    <input type="text" class="form-control" name="keywords" placeholder="{{ _('Keywords (comma separated)') }}" value="{{ filters.keywords }}">
                                 </div>
                                 <div class="col-md-2 mb-2">
-                                    <button type="submit" class="btn btn-primary btn-block">Search</button>
+                                    <button type="submit" class="btn btn-primary btn-block">{{ _('Search') }}</button>
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="col-12">
-                                    <input type="text" class="form-control" name="q" placeholder="Free text in title, description, prerequisites, tags" value="{{ filters.q }}">
+                                    <input type="text" class="form-control" name="q" placeholder="{{ _('Free text in title, description, prerequisites, tags') }}" value="{{ filters.q }}">
                                 </div>
                             </div>
                         </form>

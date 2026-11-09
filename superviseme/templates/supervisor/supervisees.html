@@ -24,7 +24,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">My Students</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('My Students') }}</h1>
                         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createStudentModal">
                             <i class="fas fa-plus"></i> Create Student
                         </button>
@@ -35,7 +35,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Current Supervised Students</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Current Supervised Students') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if supervisees %}
@@ -160,19 +160,19 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Past Students (Archived/Frozen Theses)</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Past Students (Archived/Frozen Theses)') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table class="table table-bordered">
                                             <thead>
                                                 <tr>
-                                                    <th>Student</th>
-                                                    <th>Email</th>
-                                                    <th>Thesis Title</th>
-                                                    <th>Level</th>
-                                                    <th>Status</th>
-                                                    <th>Actions</th>
+                                                    <th>{{ _('Student') }}</th>
+                                                    <th>{{ _('Email') }}</th>
+                                                    <th>{{ _('Thesis Title') }}</th>
+                                                    <th>{{ _('Level') }}</th>
+                                                    <th>{{ _('Status') }}</th>
+                                                    <th>{{ _('Actions') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -373,7 +373,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="createStudentModalLabel">Create New Student</h5>
+                    <h5 class="modal-title" id="createStudentModalLabel">{{ _('Create New Student') }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -384,13 +384,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="name">First Name</label>
+                                    <label for="name">{{ _('First Name') }}</label>
                                     <input type="text" class="form-control" id="name" name="name" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="surname">Last Name</label>
+                                    <label for="surname">{{ _('Last Name') }}</label>
                                     <input type="text" class="form-control" id="surname" name="surname" required>
                                 </div>
                             </div>
@@ -398,13 +398,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="username">Username</label>
+                                    <label for="username">{{ _('Username') }}</label>
                                     <input type="text" class="form-control" id="username" name="username" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="email">Email</label>
+                                    <label for="email">{{ _('Email') }}</label>
                                     <input type="email" class="form-control" id="email" name="email" required>
                                 </div>
                             </div>
@@ -412,13 +412,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="cdl">Course of Study</label>
+                                    <label for="cdl">{{ _('Course of Study') }}</label>
                                     <input type="text" class="form-control" id="cdl" name="cdl">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="gender">Gender</label>
+                                    <label for="gender">{{ _('Gender') }}</label>
                                     <select class="form-control" id="gender" name="gender">
                                         <option value="">Select Gender</option>
                                         <option value="male">Male</option>
@@ -431,7 +431,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="nationality">Nationality</label>
+                                    <label for="nationality">{{ _('Nationality') }}</label>
                                     <input type="text" class="form-control" id="nationality" name="nationality">
                                 </div>
                             </div>
@@ -439,21 +439,21 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="password">Password</label>
+                                    <label for="password">{{ _('Password') }}</label>
                                     <input type="password" class="form-control" id="password" name="password" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="password2">Confirm Password</label>
+                                    <label for="password2">{{ _('Confirm Password') }}</label>
                                     <input type="password" class="form-control" id="password2" name="password2" required>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create Student</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Create Student') }}</button>
                     </div>
                 </form>
             </div>
@@ -465,7 +465,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editStudentModalLabel">Edit Student</h5>
+                    <h5 class="modal-title" id="editStudentModalLabel">{{ _('Edit Student') }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -475,13 +475,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="edit_name">First Name</label>
+                                    <label for="edit_name">{{ _('First Name') }}</label>
                                     <input type="text" class="form-control" id="edit_name" name="name" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="edit_surname">Last Name</label>
+                                    <label for="edit_surname">{{ _('Last Name') }}</label>
                                     <input type="text" class="form-control" id="edit_surname" name="surname" required>
                                 </div>
                             </div>
@@ -489,7 +489,7 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <div class="form-group">
-                                    <label for="edit_email">Email</label>
+                                    <label for="edit_email">{{ _('Email') }}</label>
                                     <input type="email" class="form-control" id="edit_email" name="email" required>
                                 </div>
                             </div>
@@ -497,13 +497,13 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="edit_cdl">Course of Study</label>
+                                    <label for="edit_cdl">{{ _('Course of Study') }}</label>
                                     <input type="text" class="form-control" id="edit_cdl" name="cdl">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="edit_gender">Gender</label>
+                                    <label for="edit_gender">{{ _('Gender') }}</label>
                                     <select class="form-control" id="edit_gender" name="gender">
                                         <option value="">Select Gender</option>
                                         <option value="male">Male</option>
@@ -516,7 +516,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="edit_nationality">Nationality</label>
+                                    <label for="edit_nationality">{{ _('Nationality') }}</label>
                                     <input type="text" class="form-control" id="edit_nationality" name="nationality">
                                 </div>
                             </div>
@@ -524,21 +524,21 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="edit_password">New Password (leave blank to keep current)</label>
+                                    <label for="edit_password">{{ _('New Password (leave blank to keep current)') }}</label>
                                     <input type="password" class="form-control" id="edit_password" name="password">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="edit_password2">Confirm New Password</label>
+                                    <label for="edit_password2">{{ _('Confirm New Password') }}</label>
                                     <input type="password" class="form-control" id="edit_password2" name="password2">
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Update Student</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Update Student') }}</button>
                     </div>
                 </form>
             </div>
@@ -550,7 +550,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteStudentModalLabel">Delete Student</h5>
+                    <h5 class="modal-title" id="deleteStudentModalLabel">{{ _('Delete Student') }}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -563,9 +563,9 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
                     <form method="POST" id="deleteStudentForm" style="display: inline;">
-                        <button type="submit" class="btn btn-danger">Delete Student</button>
+                        <button type="submit" class="btn btn-danger">{{ _('Delete Student') }}</button>
                     </form>
                 </div>
             </div>

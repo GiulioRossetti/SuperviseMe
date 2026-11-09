@@ -24,7 +24,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Search Results</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Search Results') }}</h1>
                         <a href="{{ url_for('student.dashboard') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
                             <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Dashboard
                         </a>
@@ -89,10 +89,10 @@
                                         <table class="table table-bordered" width="100%">
                                             <thead>
                                                 <tr>
-                                                    <th>Name</th>
-                                                    <th>URL</th>
-                                                    <th>Added</th>
-                                                    <th>Actions</th>
+                                                    <th>{{ _('Name') }}</th>
+                                                    <th>{{ _('URL') }}</th>
+                                                    <th>{{ _('Added') }}</th>
+                                                    <th>{{ _('Actions') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>

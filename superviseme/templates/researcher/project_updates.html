@@ -39,7 +39,7 @@
                     <!-- Updates List -->
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Project Updates</h6>
+                            <h6 class="m-0 font-weight-bold text-primary">{{ _('Project Updates') }}</h6>
                         </div>
                         <div class="card-body">
                             {% if updates %}
@@ -68,7 +68,7 @@
                             {% else %}
                                 <div class="text-center py-4">
                                     <i class="fas fa-comments fa-3x text-gray-300 mb-3"></i>
-                                    <h5 class="text-gray-500">No updates yet</h5>
+                                    <h5 class="text-gray-500">{{ _('No updates yet') }}</h5>
                                     <p class="text-muted">Be the first to add an update to this project</p>
                                     <button class="btn btn-primary" data-toggle="modal" data-target="#addUpdateModal">
                                         <i class="fas fa-plus"></i> Add First Update
@@ -83,7 +83,7 @@
                         <div class="modal-dialog modal-lg" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">Add Project Update</h5>
+                                    <h5 class="modal-title">{{ _('Add Project Update') }}</h5>
                                     <button type="button" class="close" data-dismiss="modal">
                                         <span>&times;</span>
                                     </button>
@@ -91,7 +91,7 @@
                                 <form method="POST" action="{{ url_for('researcher.add_project_update', project_id=project.id) }}">
                                     <div class="modal-body">
                                         <div class="form-group">
-                                            <label>Update Type</label>
+                                            <label>{{ _('Update Type') }}</label>
                                             <select name="update_type" class="form-control">
                                                 <option value="progress">Progress Update</option>
                                                 <option value="feedback">Feedback</option>
@@ -100,14 +100,14 @@
                                             </select>
                                         </div>
                                         <div class="form-group">
-                                            <label>Content</label>
+                                            <label>{{ _('Content') }}</label>
                                             <textarea name="content" class="form-control" rows="6" required 
-                                                      placeholder="Describe the progress, feedback, or milestone..."></textarea>
+                                                      placeholder="{{ _('Describe the progress, feedback, or milestone...') }}"></textarea>
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Add Update</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                                        <button type="submit" class="btn btn-primary">{{ _('Add Update') }}</button>
                                     </div>
                                 </form>
                             </div>

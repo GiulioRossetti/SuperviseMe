@@ -24,7 +24,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Search Results</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Search Results') }}</h1>
                         <a href="{{ url_for('researcher.supervisor_dashboard') }}" class="d-none d-sm-inline-block btn btn-sm btn-info shadow-sm">
                             <i class="fas fa-arrow-left fa-sm text-white-50"></i> Back to Dashboard
                         </a>
@@ -55,11 +55,11 @@
                                         <table class="table table-bordered" id="thesesTable" width="100%" cellspacing="0">
                                             <thead>
                                                 <tr>
-                                                    <th>Title</th>
-                                                    <th>Level</th>
-                                                    <th>Student</th>
-                                                    <th>Status</th>
-                                                    <th>Actions</th>
+                                                    <th>{{ _('Title') }}</th>
+                                                    <th>{{ _('Level') }}</th>
+                                                    <th>{{ _('Student') }}</th>
+                                                    <th>{{ _('Status') }}</th>
+                                                    <th>{{ _('Actions') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -147,11 +147,11 @@
                                         <table class="table table-bordered" id="studentsTable" width="100%" cellspacing="0">
                                             <thead>
                                                 <tr>
-                                                    <th>Name</th>
-                                                    <th>Email</th>
-                                                    <th>Username</th>
-                                                    <th>Degree Program</th>
-                                                    <th>Actions</th>
+                                                    <th>{{ _('Name') }}</th>
+                                                    <th>{{ _('Email') }}</th>
+                                                    <th>{{ _('Username') }}</th>
+                                                    <th>{{ _('Degree Program') }}</th>
+                                                    <th>{{ _('Actions') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -202,14 +202,14 @@
                         <div class="col-12">
                             <div class="card shadow">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-info">New Search</h6>
+                                    <h6 class="m-0 font-weight-bold text-info">{{ _('New Search') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <form method="POST" action="{{ url_for('researcher.supervisor_search') }}">
                                         <div class="row">
                                             <div class="col-md-10">
                                                 <input type="text" name="search_term" class="form-control" 
-                                                       placeholder="Search theses or students..." required>
+                                                       placeholder="{{ _('Search theses or students...') }}" required>
                                             </div>
                                             <div class="col-md-2">
                                                 <button type="submit" class="btn btn-info btn-block">

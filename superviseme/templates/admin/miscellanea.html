@@ -24,7 +24,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Miscellanea</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Miscellanea') }}</h1>
                         <small class="text-muted">System utilities and administrative tools</small>
                     </div>
 
@@ -33,7 +33,7 @@
                         <div class="col-xl-8 col-lg-7">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">System Information</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('System Information') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -86,7 +86,7 @@
                         <div class="col-xl-4 col-lg-5">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Quick Stats</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Quick Stats') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
@@ -117,7 +117,7 @@
                         <div class="col-xl-6 col-lg-7">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Recent Users</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Recent Users') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if activity_summary.recent_users %}
@@ -142,7 +142,7 @@
                         <div class="col-xl-6 col-lg-5">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Recent Theses</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Recent Theses') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if activity_summary.recent_theses %}
@@ -172,7 +172,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Popular Tags</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Popular Tags') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -197,7 +197,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Administrative Tools</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Administrative Tools') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -207,7 +207,7 @@
                                                 <div class="card-body">
                                                     <div class="text-center">
                                                         <i class="fas fa-download fa-3x text-primary mb-3"></i>
-                                                        <h5 class="card-title">Backup & Restore</h5>
+                                                        <h5 class="card-title">{{ _('Backup & Restore') }}</h5>
                                                         <p class="card-text small">Create database backups and restore from previous versions.</p>
                                                         <div class="btn-group-vertical w-100">
                                                             <button class="btn btn-primary btn-sm" onclick="createBackup()">
@@ -228,7 +228,7 @@
                                                 <div class="card-body">
                                                     <div class="text-center">
                                                         <i class="fas fa-exchange-alt fa-3x text-success mb-3"></i>
-                                                        <h5 class="card-title">Data Import/Export</h5>
+                                                        <h5 class="card-title">{{ _('Data Import/Export') }}</h5>
                                                         <p class="card-text small">Import users and theses from CSV files or export current data.</p>
                                                         <div class="btn-group-vertical w-100">
                                                             <button class="btn btn-success btn-sm" onclick="exportData()">
@@ -249,7 +249,7 @@
                                                 <div class="card-body">
                                                     <div class="text-center">
                                                         <i class="fas fa-tools fa-3x text-warning mb-3"></i>
-                                                        <h5 class="card-title">System Maintenance</h5>
+                                                        <h5 class="card-title">{{ _('System Maintenance') }}</h5>
                                                         <p class="card-text small">Clean up temporary files, optimize performance, and run diagnostics.</p>
                                                         <div class="btn-group-vertical w-100">
                                                             <button class="btn btn-warning btn-sm" onclick="cleanupSystem()">
@@ -270,9 +270,9 @@
                                     <!-- Bulk Operations -->
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h6 class="text-primary mb-3">Bulk User Operations</h6>
+                                            <h6 class="text-primary mb-3">{{ _('Bulk User Operations') }}</h6>
                                             <div class="form-group">
-                                                <label class="small font-weight-bold">Select User Type:</label>
+                                                <label class="small font-weight-bold">{{ _('Select User Type:') }}</label>
                                                 <select class="form-control form-control-sm" id="bulkUserType">
                                                     <option>All Users</option>
                                                     <option>Students Only</option>
@@ -291,9 +291,9 @@
                                         </div>
 
                                         <div class="col-md-6">
-                                            <h6 class="text-primary mb-3">Bulk Thesis Operations</h6>
+                                            <h6 class="text-primary mb-3">{{ _('Bulk Thesis Operations') }}</h6>
                                             <div class="form-group">
-                                                <label class="small font-weight-bold">Select Criteria:</label>
+                                                <label class="small font-weight-bold">{{ _('Select Criteria:') }}</label>
                                                 <select class="form-control form-control-sm" id="bulkThesisType">
                                                     <option>All Theses</option>
                                                     <option>Unassigned Theses</option>
@@ -321,7 +321,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                    <h6 class="m-0 font-weight-bold text-danger">Advanced Settings</h6>
+                                    <h6 class="m-0 font-weight-bold text-danger">{{ _('Advanced Settings') }}</h6>
                                     <small class="text-danger">Use with caution!</small>
                                 </div>
                                 <div class="card-body">
@@ -332,18 +332,18 @@
 
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h6 class="text-danger mb-3">Database Operations</h6>
+                                            <h6 class="text-danger mb-3">{{ _('Database Operations') }}</h6>
                                             <div class="list-group">
                                                 <button class="list-group-item list-group-item-action" onclick="resetDatabase()">
                                                     <div class="d-flex w-100 justify-content-between">
-                                                        <h6 class="mb-1 text-danger">Reset Database</h6>
+                                                        <h6 class="mb-1 text-danger">{{ _('Reset Database') }}</h6>
                                                         <small><i class="fas fa-exclamation-triangle text-danger"></i></small>
                                                     </div>
                                                     <p class="mb-1 small">Remove all data and reset to initial state</p>
                                                 </button>
                                                 <button class="list-group-item list-group-item-action" onclick="recreateTables()">
                                                     <div class="d-flex w-100 justify-content-between">
-                                                        <h6 class="mb-1 text-warning">Recreate Tables</h6>
+                                                        <h6 class="mb-1 text-warning">{{ _('Recreate Tables') }}</h6>
                                                         <small><i class="fas fa-exclamation-triangle text-warning"></i></small>
                                                     </div>
                                                     <p class="mb-1 small">Drop and recreate all database tables</p>
@@ -352,18 +352,18 @@
                                         </div>
 
                                         <div class="col-md-6">
-                                            <h6 class="text-danger mb-3">User Management</h6>
+                                            <h6 class="text-danger mb-3">{{ _('User Management') }}</h6>
                                             <div class="list-group">
                                                 <button class="list-group-item list-group-item-action" onclick="resetAllPasswords()">
                                                     <div class="d-flex w-100 justify-content-between">
-                                                        <h6 class="mb-1 text-danger">Reset All Passwords</h6>
+                                                        <h6 class="mb-1 text-danger">{{ _('Reset All Passwords') }}</h6>
                                                         <small><i class="fas fa-key text-danger"></i></small>
                                                     </div>
                                                     <p class="mb-1 small">Reset passwords for all users to default</p>
                                                 </button>
                                                 <button class="list-group-item list-group-item-action" onclick="purgeInactiveUsers()">
                                                     <div class="d-flex w-100 justify-content-between">
-                                                        <h6 class="mb-1 text-warning">Purge Inactive Users</h6>
+                                                        <h6 class="mb-1 text-warning">{{ _('Purge Inactive Users') }}</h6>
                                                         <small><i class="fas fa-user-times text-warning"></i></small>
                                                     </div>
                                                     <p class="mb-1 small">Remove users inactive for more than 1 year</p>

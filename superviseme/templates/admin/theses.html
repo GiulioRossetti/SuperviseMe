@@ -24,7 +24,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Dashboard') }}</h1>
                     </div>
 
 
@@ -34,7 +34,7 @@
 
                              <div class="card mb-4">
                                  <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Theses</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Theses') }}</h6>
                                  </div>
                                 <div class="card-body">
 
@@ -44,11 +44,11 @@
                                         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                             <thead>
                                                 <tr>
-                                                    <th>Title</th>
-                                                    <th>Assigned</th>
-                                                    <th>Assignee CDL</th>
-                                                    <th>Level</th>
-                                                    <th>Actions</th>
+                                                    <th>{{ _('Title') }}</th>
+                                                    <th>{{ _('Assigned') }}</th>
+                                                    <th>{{ _('Assignee CDL') }}</th>
+                                                    <th>{{ _('Level') }}</th>
+                                                    <th>{{ _('Actions') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="theses-tbody">
@@ -57,10 +57,10 @@
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mt-3">
                                         <div>
-                                            <input type="text" id="search-input" class="form-control" placeholder="Search theses..." style="width: 200px;">
+                                            <input type="text" id="search-input" class="form-control" placeholder="{{ _('Search theses...') }}" style="width: 200px;">
                                         </div>
                                         <div>
-                                            <button id="refresh-btn" class="btn btn-secondary">Refresh</button>
+                                            <button id="refresh-btn" class="btn btn-secondary">{{ _('Refresh') }}</button>
                                         </div>
                                     </div>
                                 </div>
@@ -348,7 +348,7 @@ try {
                         <div class="col-xl-8 col-lg-16">
                             <div class="card mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Create Thesis</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Create Thesis') }}</h6>
                                  </div>
                                 <div class="card-body">
                                     <form class="user" action="/admin/create_thesis" method="POST">
@@ -356,7 +356,7 @@ try {
                                         <div class="form-group row">
                                             <div class="col-sm-12 mb-3 mb-sm-0">
                                                 <input type="text" class="form-control form-control-user" id="title" name="title"
-                                                    placeholder="Title">
+                                                    placeholder="{{ _('Title') }}">
                                             </div>
                                         </div>
                                         <div class="form-group row">
@@ -366,28 +366,28 @@ try {
                                         </div>
                                         <div class="form-group row">
                                             <div class="col-sm-6 mb-3 mb-sm-0">
-                                                <label for="short_description">Short Description</label>
-                                                <textarea class="form-control" id="short_description" name="short_description" rows="2" placeholder="Card preview text"></textarea>
+                                                <label for="short_description">{{ _('Short Description') }}</label>
+                                                <textarea class="form-control" id="short_description" name="short_description" rows="2" placeholder="{{ _('Card preview text') }}"></textarea>
                                             </div>
                                             <div class="col-sm-6 mb-3 mb-sm-0">
-                                                <label for="topic">Topic</label>
-                                                <input type="text" class="form-control" id="topic" name="topic" placeholder="e.g. Distributed Systems">
+                                                <label for="topic">{{ _('Topic') }}</label>
+                                                <input type="text" class="form-control" id="topic" name="topic" placeholder="{{ _('e.g. Distributed Systems') }}">
                                             </div>
                                         </div>
                                         <div class="form-group row">
                                             <div class="col-sm-12">
-                                                <label for="long_description">Long Description</label>
-                                                <textarea class="form-control" id="long_description" name="long_description" rows="4" placeholder="Detailed public description"></textarea>
+                                                <label for="long_description">{{ _('Long Description') }}</label>
+                                                <textarea class="form-control" id="long_description" name="long_description" rows="4" placeholder="{{ _('Detailed public description') }}"></textarea>
                                             </div>
                                         </div>
                                         <div class="form-group row">
                                             <div class="col-sm-6 mb-3 mb-sm-0">
-                                                <label for="prerequisites">Prerequisites</label>
-                                                <textarea class="form-control" id="prerequisites" name="prerequisites" rows="2" placeholder="Skills, courses, tools"></textarea>
+                                                <label for="prerequisites">{{ _('Prerequisites') }}</label>
+                                                <textarea class="form-control" id="prerequisites" name="prerequisites" rows="2" placeholder="{{ _('Skills, courses, tools') }}"></textarea>
                                             </div>
                                             <div class="col-sm-6 mb-3 mb-sm-0">
-                                                <label for="keywords">Keywords</label>
-                                                <input type="text" class="form-control" id="keywords" name="keywords" placeholder="AI, NLP, Python">
+                                                <label for="keywords">{{ _('Keywords') }}</label>
+                                                <input type="text" class="form-control" id="keywords" name="keywords" placeholder="{{ _('AI, NLP, Python') }}">
                                             </div>
                                         </div>
                                         <div class="form-group row">
@@ -423,7 +423,7 @@ try {
                                             <div class="col-sm-4 mb-3 mb-sm-0 d-flex align-items-end">
                                                 <div class="form-check">
                                                     <input type="checkbox" class="form-check-input" id="is_public" name="is_public" value="1">
-                                                    <label class="form-check-label" for="is_public">Publish publicly (only if unassigned)</label>
+                                                    <label class="form-check-label" for="is_public">{{ _('Publish publicly (only if unassigned)') }}</label>
                                                 </div>
                                             </div>
 
@@ -470,14 +470,14 @@ try {
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">{{ _('Ready to Leave?') }}</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
                 <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">{{ _('Cancel') }}</button>
                     <a class="btn btn-primary" href="login.html">Logout</a>
                 </div>
             </div>

@@ -53,7 +53,7 @@
                         <div class="col-xl-8 col-lg-7">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Project Overview</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Project Overview') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -74,7 +74,7 @@
                                         </div>
                                     </div>
                                     <hr>
-                                    <h6 class="font-weight-bold">Description</h6>
+                                    <h6 class="font-weight-bold">{{ _('Description') }}</h6>
                                     <p>{{ project.description }}</p>
                                 </div>
                             </div>
@@ -82,7 +82,7 @@
                             <!-- Project Statistics -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                    <h6 class="m-0 font-weight-bold text-primary">Project Statistics</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Project Statistics') }}</h6>
                                     <small class="text-muted">Real-time overview</small>
                                 </div>
                                 <div class="card-body">
@@ -213,7 +213,7 @@
                             <!-- Quick Actions -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Quick Actions') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="list-group">
@@ -242,7 +242,7 @@
                             <!-- Collaborators -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                    <h6 class="m-0 font-weight-bold text-primary">Collaborators</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Collaborators') }}</h6>
                                     {% if is_owner %}
                                     <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addCollaboratorModal">
                                         <i class="fas fa-plus"></i> Add
@@ -278,7 +278,7 @@
                         <div class="col-lg-6">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Recent Updates</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Recent Updates') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if recent_updates %}
@@ -296,7 +296,7 @@
                                         <a href="{{ url_for('researcher.project_updates', project_id=project.id) }}" class="btn btn-outline-primary btn-sm">View All Updates</a>
                                     {% else %}
                                         <p class="text-muted">No updates yet</p>
-                                        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addUpdateModal">Add First Update</button>
+                                        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addUpdateModal">{{ _('Add First Update') }}</button>
                                     {% endif %}
                                 </div>
                             </div>
@@ -305,7 +305,7 @@
                         <div class="col-lg-6">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Recent Todos</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Recent Todos') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if recent_todos %}
@@ -328,7 +328,7 @@
                                         <a href="{{ url_for('researcher.project_todos', project_id=project.id) }}" class="btn btn-outline-warning btn-sm">View All Todos</a>
                                     {% else %}
                                         <p class="text-muted">No todos yet</p>
-                                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#addTodoModal">Add First Todo</button>
+                                        <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#addTodoModal">{{ _('Add First Todo') }}</button>
                                     {% endif %}
                                 </div>
                             </div>
@@ -342,7 +342,7 @@
                         <div class="modal-dialog" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">Add Update</h5>
+                                    <h5 class="modal-title">{{ _('Add Update') }}</h5>
                                     <button type="button" class="close" data-dismiss="modal">
                                         <span>&times;</span>
                                     </button>
@@ -350,7 +350,7 @@
                                 <form method="POST" action="{{ url_for('researcher.add_project_update', project_id=project.id) }}">
                                     <div class="modal-body">
                                         <div class="form-group">
-                                            <label>Update Type</label>
+                                            <label>{{ _('Update Type') }}</label>
                                             <select name="update_type" class="form-control">
                                                 <option value="progress">Progress Update</option>
                                                 <option value="feedback">Feedback</option>
@@ -358,13 +358,13 @@
                                             </select>
                                         </div>
                                         <div class="form-group">
-                                            <label>Content</label>
+                                            <label>{{ _('Content') }}</label>
                                             <textarea name="content" class="form-control" rows="4" required></textarea>
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Add Update</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                                        <button type="submit" class="btn btn-primary">{{ _('Add Update') }}</button>
                                     </div>
                                 </form>
                             </div>
@@ -376,7 +376,7 @@
                         <div class="modal-dialog" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">Add Todo</h5>
+                                    <h5 class="modal-title">{{ _('Add Todo') }}</h5>
                                     <button type="button" class="close" data-dismiss="modal">
                                         <span>&times;</span>
                                     </button>
@@ -384,17 +384,17 @@
                                 <form method="POST" action="{{ url_for('researcher.add_project_todo', project_id=project.id) }}">
                                     <div class="modal-body">
                                         <div class="form-group">
-                                            <label>Title</label>
+                                            <label>{{ _('Title') }}</label>
                                             <input type="text" name="title" class="form-control" required>
                                         </div>
                                         <div class="form-group">
-                                            <label>Description</label>
+                                            <label>{{ _('Description') }}</label>
                                             <textarea name="description" class="form-control" rows="3"></textarea>
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Priority</label>
+                                                    <label>{{ _('Priority') }}</label>
                                                     <select name="priority" class="form-control">
                                                         <option value="low">Low</option>
                                                         <option value="medium" selected>Medium</option>
@@ -404,13 +404,13 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Due Date</label>
+                                                    <label>{{ _('Due Date') }}</label>
                                                     <input type="date" name="due_date" class="form-control">
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="form-group">
-                                            <label>Assign To</label>
+                                            <label>{{ _('Assign To') }}</label>
                                             <select name="assigned_to_id" class="form-control">
                                                 <option value="">No assignment</option>
                                                 <option value="{{ project.researcher.id }}">{{ project.researcher.name }} {{ project.researcher.surname }} (Principal Researcher)</option>
@@ -421,8 +421,8 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-warning">Add Todo</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                                        <button type="submit" class="btn btn-warning">{{ _('Add Todo') }}</button>
                                     </div>
                                 </form>
                             </div>
@@ -436,7 +436,7 @@
                         <div class="modal-dialog" role="document">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title">Add Collaborator</h5>
+                                    <h5 class="modal-title">{{ _('Add Collaborator') }}</h5>
                                     <button type="button" class="close" data-dismiss="modal">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
@@ -445,13 +445,13 @@
                                     <input type="hidden" name="project_id" value="{{ project.id }}">
                                     <div class="modal-body">
                                         <div class="form-group">
-                                            <label for="collaborator_email">Collaborator Email:</label>
+                                            <label for="collaborator_email">{{ _('Collaborator Email:') }}</label>
                                             <input type="email" class="form-control" name="collaborator_email" required 
-                                                   placeholder="Enter the email of the person you want to add">
+                                                   placeholder="{{ _('Enter the email of the person you want to add') }}">
                                             <small class="form-text text-muted">The person must have an account in the system</small>
                                         </div>
                                         <div class="form-group">
-                                            <label for="role">Role:</label>
+                                            <label for="role">{{ _('Role:') }}</label>
                                             <select class="form-control" name="role">
                                                 <option value="collaborator">Collaborator</option>
                                                 <option value="co-investigator">Co-Investigator</option>
@@ -461,8 +461,8 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-success">Add Collaborator</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                                        <button type="submit" class="btn btn-success">{{ _('Add Collaborator') }}</button>
                                     </div>
                                 </form>
                             </div>

@@ -292,7 +292,7 @@
                 <div class="brand-icon">
                     <img src="{{ url_for('static', filename='assets/img/logo.svg') }}" alt="SuperviseMe" width="52" height="52">
                 </div>
-                <h1>SuperviseMe</h1>
+                <h1>{{ _('SuperviseMe') }}</h1>
                 <p>Thesis management platform for supervisors, researchers and students.</p>
                 <ul class="feature-list">
                     <li><i class="fas fa-check-circle"></i> Track thesis progress in real time</li>
@@ -320,26 +320,26 @@
                 {% endwith %}
 
                 <div class="field-group">
-                    <label for="login-email">Email address</label>
+                    <label for="login-email">{{ _('Email address') }}</label>
                     <div class="input-wrap">
                         <i class="fas fa-envelope input-icon"></i>
                         <input type="email" id="login-email" name="email"
-                               placeholder="you@institution.edu" required autocomplete="email">
+                               placeholder="{{ _('you@institution.edu') }}" required autocomplete="email">
                     </div>
                 </div>
 
                 <div class="field-group">
-                    <label for="login-password">Password</label>
+                    <label for="login-password">{{ _('Password') }}</label>
                     <div class="input-wrap">
                         <i class="fas fa-lock input-icon"></i>
                         <input type="password" id="login-password" name="password"
-                               placeholder="Your password" required autocomplete="current-password">
+                               placeholder="{{ _('Your password') }}" required autocomplete="current-password">
                     </div>
                 </div>
 
                 <div class="remember-row">
                     <input type="checkbox" id="remember" name="remember">
-                    <label for="remember">Remember me for 30 days</label>
+                    <label for="remember">{{ _('Remember me for 30 days') }}</label>
                 </div>
 
                 <button type="submit" class="btn-login">

@@ -119,38 +119,31 @@
 
 
     <!-- Sidebar state persistence via localStorage -->
+    <!-- NOTE: SB Admin 2's sb-admin-2.min.js already handles #sidebarToggle click
+         (toggles body.sidebar-toggled + .sidebar.toggled). We ONLY persist here. -->
     <script>
     (function() {
         'use strict';
         var SIDEBAR_KEY = 'sm_sidebar_collapsed';
         var sidebar = document.getElementById('accordionSidebar');
-        var toggle = document.getElementById('sidebarToggle');
-        var chevron = document.getElementById('sidebarChevron');
-        var wrapper = document.getElementById('wrapper');
+        if (!sidebar) return;
 
-        if (!sidebar || !toggle) return;
-
-        function setCollapsed(collapsed) {
-            if (collapsed) {
-                sidebar.classList.add('toggled');
-                if (wrapper) wrapper.classList.add('toggled');
-            } else {
-                sidebar.classList.remove('toggled');
-                if (wrapper) wrapper.classList.remove('toggled');
-            }
-            try { localStorage.setItem(SIDEBAR_KEY, collapsed ? '1' : '0'); } catch(e) {}
-        }
-
-        // Apply saved state before first paint (DOMContentLoaded already fired here,
-        // but we still apply it immediately to avoid visible flash)
+        // Apply saved state immediately (SB Admin 2 JS hasn't run yet here, but
+        // we directly mirror what it would do so there's no flash on navigation)
         var saved;
         try { saved = localStorage.getItem(SIDEBAR_KEY); } catch(e) {}
-        if (saved === '1') setCollapsed(true);
+        if (saved === '1') {
+            sidebar.classList.add('toggled');
+            document.body.classList.add('sidebar-toggled');
+        }
 
-        toggle.addEventListener('click', function() {
-            var isCollapsed = sidebar.classList.contains('toggled');
-            setCollapsed(!isCollapsed);
+        // Watch for class changes driven by SB Admin 2's own click handler
+        // and persist the new state — no second click handler needed.
+        var observer = new MutationObserver(function() {
+            var collapsed = sidebar.classList.contains('toggled');
+            try { localStorage.setItem(SIDEBAR_KEY, collapsed ? '1' : '0'); } catch(e) {}
         });
+        observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
     })();
     </script>
 

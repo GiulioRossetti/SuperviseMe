@@ -7,7 +7,7 @@
             {% include 'admin/components/topbar.html' %}
             <div class="container-fluid">
                 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                    <h1 class="h3 mb-0 text-gray-800">My Expressed Interests</h1>
+                    <h1 class="h3 mb-0 text-gray-800">{{ _('My Expressed Interests') }}</h1>
                     <a href="{{ url_for('public.public_thesis_dashboard') }}" class="btn btn-sm btn-primary">Browse Public Theses</a>
                 </div>
 
@@ -16,19 +16,19 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Status & History</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Status & History') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
                                         <table class="table table-bordered">
                                             <thead>
                                                 <tr>
-                                                    <th>Thesis</th>
-                                                    <th>Status</th>
-                                                    <th>Submitted</th>
-                                                    <th>Handled</th>
-                                                    <th>Handler</th>
-                                                    <th>Message</th>
+                                                    <th>{{ _('Thesis') }}</th>
+                                                    <th>{{ _('Status') }}</th>
+                                                    <th>{{ _('Submitted') }}</th>
+                                                    <th>{{ _('Handled') }}</th>
+                                                    <th>{{ _('Handler') }}</th>
+                                                    <th>{{ _('Message') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>

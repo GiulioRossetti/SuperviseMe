@@ -24,7 +24,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">My Thesis</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('My Thesis') }}</h1>
                     </div>
 
                     <!-- Thesis Info Row -->
@@ -60,7 +60,7 @@
                         <div class="col-xl-4 col-lg-5">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Statistics</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Statistics') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row no-gutters align-items-center mb-3">
@@ -118,7 +118,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary" id="status">Thesis Status</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary" id="status">{{ _('Thesis Status') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     {% if thesis_statuses %}
@@ -153,7 +153,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary" id="objectives">Objectives</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary" id="objectives">{{ _('Objectives') }}</h6>
                                     <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addObjectiveModal">
                                         <i class="fas fa-plus"></i> Add Objective
                                     </button>
@@ -202,7 +202,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary" id="hypotheses">Hypotheses</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary" id="hypotheses">{{ _('Hypotheses') }}</h6>
                                     <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addHypothesisModal">
                                         <i class="fas fa-plus"></i> Add Hypothesis
                                     </button>
@@ -251,7 +251,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary" id="updates">Updates & Progress</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary" id="updates">{{ _('Updates & Progress') }}</h6>
                                     <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addUpdateModal">
                                         <i class="fas fa-plus"></i> Add Update
                                     </button>
@@ -381,7 +381,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Meeting Notes</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Meeting Notes') }}</h6>
                                     <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addMeetingNoteModal">
                                         <i class="fas fa-plus"></i> Add Meeting Note
                                     </button>
@@ -392,12 +392,12 @@
                                         <table class="table table-bordered" id="meetingNotesTable">
                                             <thead>
                                                 <tr>
-                                                    <th width="25%">Title</th>
-                                                    <th width="35%">Content</th>
-                                                    <th width="15%">Author</th>
-                                                    <th width="10%">Created</th>
-                                                    <th width="10%">Updated</th>
-                                                    <th width="5%">Actions</th>
+                                                    <th width="25%">{{ _('Title') }}</th>
+                                                    <th width="35%">{{ _('Content') }}</th>
+                                                    <th width="15%">{{ _('Author') }}</th>
+                                                    <th width="10%">{{ _('Created') }}</th>
+                                                    <th width="10%">{{ _('Updated') }}</th>
+                                                    <th width="5%">{{ _('Actions') }}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -497,7 +497,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary" id="todos">ToDo List</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary" id="todos">{{ _('ToDo List') }}</h6>
                                     <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addTodoModal">
                                         <i class="fas fa-plus"></i> Add ToDo
                                     </button>
@@ -508,12 +508,12 @@
                                             <table class="table table-bordered">
                                                 <thead>
                                                     <tr>
-                                                        <th width="5%">Status</th>
-                                                        <th width="30%">Task</th>
-                                                        <th width="25%">Description</th>
-                                                        <th width="10%">Priority</th>
-                                                        <th width="15%">Due Date</th>
-                                                        <th width="15%">Actions</th>
+                                                        <th width="5%">{{ _('Status') }}</th>
+                                                        <th width="30%">{{ _('Task') }}</th>
+                                                        <th width="25%">{{ _('Description') }}</th>
+                                                        <th width="10%">{{ _('Priority') }}</th>
+                                                        <th width="15%">{{ _('Due Date') }}</th>
+                                                        <th width="15%">{{ _('Actions') }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -583,7 +583,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary" id="resources">Resources</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary" id="resources">{{ _('Resources') }}</h6>
                                     <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#addResourceModal">
                                         <i class="fas fa-plus"></i> Add Resource
                                     </button>
@@ -594,10 +594,10 @@
                                             <table class="table table-bordered">
                                                 <thead>
                                                     <tr>
-                                                        <th>Type</th>
-                                                        <th>Link/URL</th>
-                                                        <th>Description</th>
-                                                        <th>Actions</th>
+                                                        <th>{{ _('Type') }}</th>
+                                                        <th>{{ _('Link/URL') }}</th>
+                                                        <th>{{ _('Description') }}</th>
+                                                        <th>{{ _('Actions') }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -651,7 +651,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add New Update</h5>
+                    <h5 class="modal-title">{{ _('Add New Update') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -660,8 +660,8 @@
                     <div class="modal-body">
                         <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                         <div class="form-group">
-                            <label for="content">Update Content:</label>
-                            <textarea class="form-control" name="content" rows="5" required placeholder="Describe your progress, challenges, or achievements..."></textarea>
+                            <label for="content">{{ _('Update Content:') }}</label>
+                            <textarea class="form-control" name="content" rows="5" required placeholder="{{ _('Describe your progress, challenges, or achievements...') }}"></textarea>
                             <small class="form-text text-muted">
                                 <strong>Todo References:</strong> Use @todo:ID or #todo-ID to reference todos. 
                                 {% if todos %}Available todos: 
@@ -672,7 +672,7 @@
                         </div>
                         {% if todos %}
                         <div class="form-group">
-                            <label>Quick Todo Reference:</label>
+                            <label>{{ _('Quick Todo Reference:') }}</label>
                             <div class="btn-group-toggle" data-toggle="buttons">
                                 {% for todo in todos %}
                                 <label class="btn btn-outline-secondary btn-sm mr-1 mb-1" onclick="insertTodoReference({{ todo.id }}, '{{ todo.title }}')">
@@ -686,8 +686,8 @@
                         {% endif %}
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add Update</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Add Update') }}</button>
                     </div>
                 </form>
             </div>
@@ -699,7 +699,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add Resource</h5>
+                    <h5 class="modal-title">{{ _('Add Resource') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -708,7 +708,7 @@
                     <div class="modal-body">
                         <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                         <div class="form-group">
-                            <label for="resource_type">Resource Type:</label>
+                            <label for="resource_type">{{ _('Resource Type:') }}</label>
                             <select class="form-control" name="resource_type" required>
                                 <option value="document">Document</option>
                                 <option value="link">Web Link</option>
@@ -718,17 +718,17 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="resource_link">URL/Link:</label>
+                            <label for="resource_link">{{ _('URL/Link:') }}</label>
                             <input type="url" class="form-control" name="resource_link" required placeholder="https://...">
                         </div>
                         <div class="form-group">
-                            <label for="description">Description (optional):</label>
-                            <textarea class="form-control" name="description" rows="3" placeholder="Brief description of the resource..."></textarea>
+                            <label for="description">{{ _('Description (optional):') }}</label>
+                            <textarea class="form-control" name="description" rows="3" placeholder="{{ _('Brief description of the resource...') }}"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success">Add Resource</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-success">{{ _('Add Resource') }}</button>
                     </div>
                 </form>
             </div>
@@ -740,7 +740,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Update</h5>
+                    <h5 class="modal-title">{{ _('Edit Update') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -749,13 +749,13 @@
                     <div class="modal-body">
                         <input type="hidden" name="update_id" id="edit_update_id">
                         <div class="form-group">
-                            <label for="new_content">Update Content:</label>
+                            <label for="new_content">{{ _('Update Content:') }}</label>
                             <textarea class="form-control" name="new_content" id="edit_update_content" rows="5" required></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Save Changes') }}</button>
                     </div>
                 </form>
             </div>
@@ -767,7 +767,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add New Objective</h5>
+                    <h5 class="modal-title">{{ _('Add New Objective') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -776,17 +776,17 @@
                     <div class="modal-body">
                         <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                         <div class="form-group">
-                            <label for="title">Objective Title:</label>
-                            <input type="text" class="form-control" name="title" required placeholder="Brief title for your objective">
+                            <label for="title">{{ _('Objective Title:') }}</label>
+                            <input type="text" class="form-control" name="title" required placeholder="{{ _('Brief title for your objective') }}">
                         </div>
                         <div class="form-group">
-                            <label for="description">Objective Description:</label>
-                            <textarea class="form-control" name="description" rows="4" required placeholder="Describe what you aim to achieve with this objective..."></textarea>
+                            <label for="description">{{ _('Objective Description:') }}</label>
+                            <textarea class="form-control" name="description" rows="4" required placeholder="{{ _('Describe what you aim to achieve with this objective...') }}"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add Objective</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Add Objective') }}</button>
                     </div>
                 </form>
             </div>
@@ -798,7 +798,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add New Hypothesis</h5>
+                    <h5 class="modal-title">{{ _('Add New Hypothesis') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -807,17 +807,17 @@
                     <div class="modal-body">
                         <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                         <div class="form-group">
-                            <label for="title">Hypothesis Title:</label>
-                            <input type="text" class="form-control" name="title" required placeholder="Brief title for your hypothesis">
+                            <label for="title">{{ _('Hypothesis Title:') }}</label>
+                            <input type="text" class="form-control" name="title" required placeholder="{{ _('Brief title for your hypothesis') }}">
                         </div>
                         <div class="form-group">
-                            <label for="description">Hypothesis Description:</label>
-                            <textarea class="form-control" name="description" rows="4" required placeholder="Describe your research hypothesis or assumption..."></textarea>
+                            <label for="description">{{ _('Hypothesis Description:') }}</label>
+                            <textarea class="form-control" name="description" rows="4" required placeholder="{{ _('Describe your research hypothesis or assumption...') }}"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add Hypothesis</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Add Hypothesis') }}</button>
                     </div>
                 </form>
             </div>
@@ -829,7 +829,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Objective</h5>
+                    <h5 class="modal-title">{{ _('Edit Objective') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -838,17 +838,17 @@
                     <div class="modal-body">
                         <input type="hidden" name="objective_id" id="editObjectiveId">
                         <div class="form-group">
-                            <label for="editObjectiveTitle">Objective Title:</label>
+                            <label for="editObjectiveTitle">{{ _('Objective Title:') }}</label>
                             <input type="text" class="form-control" name="title" id="editObjectiveTitle" required>
                         </div>
                         <div class="form-group">
-                            <label for="editObjectiveDescription">Objective Description:</label>
+                            <label for="editObjectiveDescription">{{ _('Objective Description:') }}</label>
                             <textarea class="form-control" name="description" id="editObjectiveDescription" rows="4" required></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Update Objective</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Update Objective') }}</button>
                     </div>
                 </form>
             </div>
@@ -860,7 +860,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Hypothesis</h5>
+                    <h5 class="modal-title">{{ _('Edit Hypothesis') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -869,17 +869,17 @@
                     <div class="modal-body">
                         <input type="hidden" name="hypothesis_id" id="editHypothesisId">
                         <div class="form-group">
-                            <label for="editHypothesisTitle">Hypothesis Title:</label>
+                            <label for="editHypothesisTitle">{{ _('Hypothesis Title:') }}</label>
                             <input type="text" class="form-control" name="title" id="editHypothesisTitle" required>
                         </div>
                         <div class="form-group">
-                            <label for="editHypothesisDescription">Hypothesis Description:</label>
+                            <label for="editHypothesisDescription">{{ _('Hypothesis Description:') }}</label>
                             <textarea class="form-control" name="description" id="editHypothesisDescription" rows="4" required></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Update Hypothesis</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Update Hypothesis') }}</button>
                     </div>
                 </form>
             </div>
@@ -891,7 +891,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Resource</h5>
+                    <h5 class="modal-title">{{ _('Edit Resource') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -900,7 +900,7 @@
                     <div class="modal-body">
                         <input type="hidden" name="resource_id" id="editResourceId">
                         <div class="form-group">
-                            <label for="editResourceType">Resource Type:</label>
+                            <label for="editResourceType">{{ _('Resource Type:') }}</label>
                             <select class="form-control" name="resource_type" id="editResourceType" required>
                                 <option value="document">Document</option>
                                 <option value="link">Link</option>
@@ -912,17 +912,17 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="editResourceUrl">Resource URL:</label>
+                            <label for="editResourceUrl">{{ _('Resource URL:') }}</label>
                             <input type="url" class="form-control" name="resource_url" id="editResourceUrl" required>
                         </div>
                         <div class="form-group">
-                            <label for="editResourceDescription">Description:</label>
-                            <textarea class="form-control" name="description" id="editResourceDescription" rows="3" placeholder="Brief description of the resource"></textarea>
+                            <label for="editResourceDescription">{{ _('Description:') }}</label>
+                            <textarea class="form-control" name="description" id="editResourceDescription" rows="3" placeholder="{{ _('Brief description of the resource') }}"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Update Resource</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Update Resource') }}</button>
                     </div>
                 </form>
             </div>
@@ -934,7 +934,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add New ToDo</h5>
+                    <h5 class="modal-title">{{ _('Add New ToDo') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -943,17 +943,17 @@
                     <div class="modal-body">
                         <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                         <div class="form-group">
-                            <label for="title">Task Title:</label>
-                            <input type="text" class="form-control" name="title" required placeholder="Brief description of the task">
+                            <label for="title">{{ _('Task Title:') }}</label>
+                            <input type="text" class="form-control" name="title" required placeholder="{{ _('Brief description of the task') }}">
                         </div>
                         <div class="form-group">
-                            <label for="description">Task Description:</label>
-                            <textarea class="form-control" name="description" rows="3" placeholder="Detailed description of what needs to be done..."></textarea>
+                            <label for="description">{{ _('Task Description:') }}</label>
+                            <textarea class="form-control" name="description" rows="3" placeholder="{{ _('Detailed description of what needs to be done...') }}"></textarea>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="priority">Priority:</label>
+                                    <label for="priority">{{ _('Priority:') }}</label>
                                     <select class="form-control" name="priority">
                                         <option value="low">Low</option>
                                         <option value="medium" selected>Medium</option>
@@ -963,15 +963,15 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="due_date">Due Date (optional):</label>
+                                    <label for="due_date">{{ _('Due Date (optional):') }}</label>
                                     <input type="date" class="form-control" name="due_date">
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Add ToDo</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Add ToDo') }}</button>
                     </div>
                 </form>
             </div>
@@ -1020,7 +1020,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add Meeting Note</h5>
+                    <h5 class="modal-title">{{ _('Add Meeting Note') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -1029,12 +1029,12 @@
                     <div class="modal-body">
                         <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                         <div class="form-group">
-                            <label for="meetingNoteTitle">Meeting Title:</label>
+                            <label for="meetingNoteTitle">{{ _('Meeting Title:') }}</label>
                             <input type="text" class="form-control" name="title" id="meetingNoteTitle" required 
-                                   placeholder="e.g., Weekly Meeting - Progress Review">
+                                   placeholder="{{ _('e.g., Weekly Meeting - Progress Review') }}">
                         </div>
                         <div class="form-group">
-                            <label for="meetingNoteContent">Meeting Notes:</label>
+                            <label for="meetingNoteContent">{{ _('Meeting Notes:') }}</label>
                             <textarea class="form-control" name="content" id="meetingNoteContent" rows="8" required 
                                       placeholder="Write your meeting notes using markdown. You can reference todos using @todo:ID syntax."></textarea>
                             <small class="form-text text-muted">
@@ -1048,7 +1048,7 @@
                         </div>
                         {% if todos %}
                         <div class="form-group">
-                            <label>Quick Todo Reference:</label>
+                            <label>{{ _('Quick Todo Reference:') }}</label>
                             <div class="btn-group-toggle" data-toggle="buttons">
                                 {% for todo in todos %}
                                 <label class="btn btn-outline-secondary btn-sm mr-1 mb-1" onclick="insertTodoReference({{ todo.id }}, '{{ todo.title }}', 'meetingNoteContent')">
@@ -1062,8 +1062,8 @@
                         {% endif %}
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Meeting Note</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Save Meeting Note') }}</button>
                     </div>
                 </form>
             </div>
@@ -1075,7 +1075,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit Meeting Note</h5>
+                    <h5 class="modal-title">{{ _('Edit Meeting Note') }}</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -1083,11 +1083,11 @@
                 <form method="POST" id="editMeetingNoteForm">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="editMeetingNoteTitle">Meeting Title:</label>
+                            <label for="editMeetingNoteTitle">{{ _('Meeting Title:') }}</label>
                             <input type="text" class="form-control" name="title" id="editMeetingNoteTitle" required>
                         </div>
                         <div class="form-group">
-                            <label for="editMeetingNoteContent">Meeting Notes:</label>
+                            <label for="editMeetingNoteContent">{{ _('Meeting Notes:') }}</label>
                             <textarea class="form-control" name="content" id="editMeetingNoteContent" rows="8" required></textarea>
                             <small class="form-text text-muted">
                                 <strong>Markdown supported:</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
@@ -1096,7 +1096,7 @@
                         </div>
                         {% if todos %}
                         <div class="form-group">
-                            <label>Quick Todo Reference:</label>
+                            <label>{{ _('Quick Todo Reference:') }}</label>
                             <div class="btn-group-toggle" data-toggle="buttons">
                                 {% for todo in todos %}
                                 <label class="btn btn-outline-secondary btn-sm mr-1 mb-1" onclick="insertTodoReference({{ todo.id }}, '{{ todo.title }}', 'editMeetingNoteContent')">
@@ -1109,8 +1109,8 @@
                         {% endif %}
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Update Meeting Note</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Update Meeting Note') }}</button>
                     </div>
                 </form>
             </div>

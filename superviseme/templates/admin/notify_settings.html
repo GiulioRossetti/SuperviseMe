@@ -24,7 +24,7 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Annotation & Notification Settings</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Annotation & Notification Settings') }}</h1>
                     </div>
 
                     <!-- Statistics Cards -->
@@ -104,7 +104,7 @@
                         <div class="col-xl-6 col-lg-7">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Notification Settings</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Notification Settings') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <form id="notificationSettings">
@@ -178,7 +178,7 @@
                         <div class="col-xl-6 col-lg-5">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Annotation Settings</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Annotation Settings') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <form id="annotationSettings">
@@ -260,7 +260,7 @@
                                                         <div class="form-group">
                                                             <label for="telegram-bot-username"><strong>Bot Username</strong></label>
                                                             <input type="text" class="form-control" id="telegram-bot-username" 
-                                                                   placeholder="YourBotName">
+                                                                   placeholder="{{ _('YourBotName') }}">
                                                             <small class="form-text text-muted">Without @</small>
                                                         </div>
                                                     </div>
@@ -299,14 +299,14 @@
                                         <div class="col-md-4">
                                             <div class="card bg-light">
                                                 <div class="card-body">
-                                                    <h6 class="card-title">Bot Status</h6>
+                                                    <h6 class="card-title">{{ _('Bot Status') }}</h6>
                                                     <div id="telegram-bot-status">
                                                         <span class="badge badge-secondary">Not Configured</span>
                                                     </div>
                                                     
                                                     <hr>
                                                     
-                                                    <h6 class="card-title">Usage Statistics</h6>
+                                                    <h6 class="card-title">{{ _('Usage Statistics') }}</h6>
                                                     <div class="small">
                                                         <div>Users with Telegram: <span id="telegram-users-count">-</span></div>
                                                         <div>Messages sent today: <span id="telegram-messages-today">-</span></div>
@@ -325,7 +325,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Email Configuration</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Email Configuration') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <form id="emailSettings">
@@ -333,7 +333,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="smtp-server"><strong>SMTP Server</strong></label>
-                                                    <input type="text" class="form-control" id="smtp-server" placeholder="smtp.example.com">
+                                                    <input type="text" class="form-control" id="smtp-server" placeholder="{{ _('smtp.example.com') }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
@@ -357,7 +357,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="smtp-username"><strong>Username</strong></label>
-                                                    <input type="text" class="form-control" id="smtp-username" placeholder="your-email@example.com">
+                                                    <input type="text" class="form-control" id="smtp-username" placeholder="{{ _('your-email@example.com') }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -371,13 +371,13 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="from-email"><strong>From Email</strong></label>
-                                                    <input type="email" class="form-control" id="from-email" placeholder="noreply@university.edu">
+                                                    <input type="email" class="form-control" id="from-email" placeholder="{{ _('noreply@university.edu') }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="from-name"><strong>From Name</strong></label>
-                                                    <input type="text" class="form-control" id="from-name" placeholder="SuperviseMe System">
+                                                    <input type="text" class="form-control" id="from-name" placeholder="{{ _('SuperviseMe System') }}">
                                                 </div>
                                             </div>
                                         </div>
@@ -405,7 +405,7 @@
                         <div class="col-12">
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Email Templates</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Email Templates') }}</h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -428,13 +428,13 @@
                                         <div class="col-md-9">
                                             <div class="tab-content" id="v-pills-tabContent">
                                                 <div class="tab-pane fade show active" id="v-pills-assignment" role="tabpanel">
-                                                    <h6>Thesis Assignment Template</h6>
+                                                    <h6>{{ _('Thesis Assignment Template') }}</h6>
                                                     <div class="form-group">
-                                                        <label>Subject:</label>
+                                                        <label>{{ _('Subject:') }}</label>
                                                         <input type="text" class="form-control" value="New Thesis Assignment: {thesis_title}">
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Body:</label>
+                                                        <label>{{ _('Body:') }}</label>
                                                         <textarea class="form-control" rows="6">Dear {student_name},
 
 You have been assigned a new thesis: "{thesis_title}"
@@ -450,13 +450,13 @@ SuperviseMe Team</textarea>
                                                     </div>
                                                 </div>
                                                 <div class="tab-pane fade" id="v-pills-status" role="tabpanel">
-                                                    <h6>Status Change Template</h6>
+                                                    <h6>{{ _('Status Change Template') }}</h6>
                                                     <div class="form-group">
-                                                        <label>Subject:</label>
+                                                        <label>{{ _('Subject:') }}</label>
                                                         <input type="text" class="form-control" value="Thesis Status Update: {thesis_title}">
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Body:</label>
+                                                        <label>{{ _('Body:') }}</label>
                                                         <textarea class="form-control" rows="6">Dear {student_name},
 
 The status of your thesis "{thesis_title}" has been updated to: {new_status}
@@ -471,13 +471,13 @@ SuperviseMe Team</textarea>
                                                     </div>
                                                 </div>
                                                 <div class="tab-pane fade" id="v-pills-deadline" role="tabpanel">
-                                                    <h6>Deadline Reminder Template</h6>
+                                                    <h6>{{ _('Deadline Reminder Template') }}</h6>
                                                     <div class="form-group">
-                                                        <label>Subject:</label>
+                                                        <label>{{ _('Subject:') }}</label>
                                                         <input type="text" class="form-control" value="Reminder: Thesis Deadline Approaching">
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Body:</label>
+                                                        <label>{{ _('Body:') }}</label>
                                                         <textarea class="form-control" rows="6">Dear {student_name},
 
 This is a reminder that the deadline for your thesis "{thesis_title}" is approaching.
@@ -492,13 +492,13 @@ SuperviseMe Team</textarea>
                                                     </div>
                                                 </div>
                                                 <div class="tab-pane fade" id="v-pills-welcome" role="tabpanel">
-                                                    <h6>Welcome Message Template</h6>
+                                                    <h6>{{ _('Welcome Message Template') }}</h6>
                                                     <div class="form-group">
-                                                        <label>Subject:</label>
+                                                        <label>{{ _('Subject:') }}</label>
                                                         <input type="text" class="form-control" value="Welcome to SuperviseMe!">
                                                     </div>
                                                     <div class="form-group">
-                                                        <label>Body:</label>
+                                                        <label>{{ _('Body:') }}</label>
                                                         <textarea class="form-control" rows="6">Dear {user_name},
 
 Welcome to SuperviseMe! Your account has been created successfully.
