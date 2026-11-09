@@ -1,0 +1,52 @@
+{# Supervision team of a thesis. Expects: thesis, mm_next. #}
+{% set tm = team_members(thesis) %}
+{% set manage = can_manage_team(thesis) %}
+<div class="dash-panel" id="team">
+    <header>
+        <h6><i class="fas fa-users"></i> {{ _('Supervision team') }}</h6>
+        {% if manage %}<button class="btn btn-primary btn-sm" data-toggle="collapse" data-target="#teamAdd"><i class="fas fa-user-plus"></i> {{ _('Add') }}</button>{% endif %}
+    </header>
+    <div class="dash-panel-body">
+        {% if manage %}
+        <div class="collapse mb-3" id="teamAdd">
+            <form method="POST" action="{{ url_for('workflow.add_team_member', thesis_id=thesis.id) }}" class="form-row">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ mm_next }}#team">
+                <div class="col-md-5 mb-2">
+                    <select class="form-control form-control-sm" name="kind">
+                        <option value="co_supervisor">{{ _('Co-supervisor (full access)') }}</option>
+                        <option value="reviewer">{{ _('Reviewer (read and comment only)') }}</option>
+                    </select>
+                </div>
+                <div class="col-md-5 mb-2">
+                    <select class="form-control form-control-sm" name="user_id" required>
+                        {% for u in team_candidates(thesis) %}<option value="{{ u.id }}">{{ u.surname }} {{ u.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2"><button class="btn btn-sm btn-primary btn-block">{{ _('Add') }}</button></div>
+            </form>
+        </div>
+        {% endif %}
+        <ul class="list-unstyled mb-0">
+            {% for ts in tm.supervisors %}
+            <li class="d-flex align-items-center justify-content-between mb-2">
+                <span>{{ user_link(ts.supervisor) }} <span class="badge badge-{{ 'primary' if ts.role == 'supervisor' else 'info' }}">{{ _('Supervisor') if ts.role == 'supervisor' else _('Co-supervisor') }}</span></span>
+                {% if manage and ts.role == 'co_supervisor' %}
+                <form method="POST" action="{{ url_for('workflow.remove_team_member', thesis_id=thesis.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ mm_next }}#team"><input type="hidden" name="user_id" value="{{ ts.supervisor_id }}">
+                    <button class="btn btn-link btn-sm text-danger p-0" title="{{ _('Remove') }}"><i class="fas fa-times"></i></button>
+                </form>{% endif %}
+            </li>
+            {% endfor %}
+            {% for r in tm.reviewers %}
+            <li class="d-flex align-items-center justify-content-between mb-2">
+                <span>{{ user_link(r.reviewer) }} <span class="badge badge-secondary">{{ _('Reviewer') }}</span></span>
+                {% if manage %}
+                <form method="POST" action="{{ url_for('workflow.remove_team_member', thesis_id=thesis.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ mm_next }}#team"><input type="hidden" name="user_id" value="{{ r.reviewer_id }}">
+                    <button class="btn btn-link btn-sm text-danger p-0" title="{{ _('Remove') }}"><i class="fas fa-times"></i></button>
+                </form>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

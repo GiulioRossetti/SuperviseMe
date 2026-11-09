@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 from flask import abort, request, url_for
 
-from superviseme.models import Thesis, Thesis_Supervisor
+from superviseme.models import Thesis, Thesis_Reviewer, Thesis_Supervisor
 
 
 def thesis_role(user, thesis):
@@ -18,7 +18,19 @@ def thesis_role(user, thesis):
         return "student"
     if Thesis_Supervisor.query.filter_by(thesis_id=thesis.id, supervisor_id=user.id).first():
         return "supervisor"
+    if Thesis_Reviewer.query.filter_by(thesis_id=thesis.id, reviewer_id=user.id).first():
+        return "reviewer"
     return None
+
+
+def can_manage_team(user, thesis):
+    """Admins and the primary supervisors (not co-supervisors) manage the supervision team."""
+    if user.user_type == "admin":
+        return True
+    return Thesis_Supervisor.query.filter_by(thesis_id=thesis.id, supervisor_id=user.id, role="supervisor").first() is not None
+
+
+READ_ROLES = ("admin", "supervisor", "student", "reviewer")
 
 
 def load_thesis_or_403(user, thesis_id, roles=("admin", "supervisor", "student")):

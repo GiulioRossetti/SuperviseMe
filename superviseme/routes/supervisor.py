@@ -1617,6 +1617,12 @@ def assign_thesis():
         flash("Thesis is already assigned to a student")
         return redirect(url_for('supervisor.theses_data'))
     
+    from superviseme.utils.capacity import capacity_message
+    over = capacity_message(thesis)
+    if over:
+        flash(over, "warning")
+        return redirect(url_for('supervisor.theses_data'))
+
     # Assign thesis to student
     thesis.author_id = student_id
     close_interests_after_direct_assignment(
@@ -1681,6 +1687,12 @@ def assign_thesis_interest(interest_id):
         return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
     if thesis.author_id:
         flash("Thesis is already assigned.", "warning")
+        return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+
+    from superviseme.utils.capacity import capacity_message
+    over = capacity_message(thesis)
+    if over:
+        flash(over, "warning")
         return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
 
     thesis.author_id = interest.student_id

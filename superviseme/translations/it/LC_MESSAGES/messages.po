@@ -3630,3 +3630,69 @@ msgstr "Eliminare questo documento e tutte le sue versioni?"
 
 msgid "Delete document"
 msgstr "Elimina documento"
+
+msgid "The maximum number of students must be between 0 and 100."
+msgstr "Il numero massimo di studenti deve essere compreso tra 0 e 100."
+
+msgid "Maximum active students"
+msgstr "Numero massimo di studenti attivi"
+
+msgid "New assignments are blocked once you reach this number."
+msgstr "Le nuove assegnazioni vengono bloccate una volta raggiunto questo numero."
+
+msgid "Invalid selection."
+msgstr "Selezione non valida."
+
+msgid "This person is already part of the team."
+msgstr "Questa persona fa già parte del team."
+
+msgid "co-supervisor"
+msgstr "co-relatore"
+
+msgid "reviewer"
+msgstr "controrelatore"
+
+msgid "You were added as %(r)s"
+msgstr "Sei stato aggiunto come %(r)s"
+
+msgid "Team updated."
+msgstr "Team aggiornato."
+
+msgid "Supervision team"
+msgstr "Team di supervisione"
+
+msgid "Co-supervisor (full access)"
+msgstr "Co-relatore (accesso completo)"
+
+msgid "Reviewer (read and comment only)"
+msgstr "Controrelatore (solo lettura e commenti)"
+
+msgid "Co-supervisor"
+msgstr "Co-relatore"
+
+msgid "Reviewer"
+msgstr "Controrelatore"
+
+msgid "Theses to review"
+msgstr "Tesi da revisionare"
+
+msgid "Theses where you are the reviewer"
+msgstr "Tesi di cui sei controrelatore"
+
+msgid "Assigned reviews"
+msgstr "Revisioni assegnate"
+
+msgid "No theses to review"
+msgstr "Nessuna tesi da revisionare"
+
+msgid "Review"
+msgstr "Revisione"
+
+msgid "All reviews"
+msgstr "Tutte le revisioni"
+
+msgid "People"
+msgstr "Persone"
+
+msgid "Reviews"
+msgstr "Revisioni"

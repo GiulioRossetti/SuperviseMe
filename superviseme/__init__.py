@@ -575,6 +575,35 @@ def create_app(db_type="sqlite", skip_user_init=False):
     from superviseme.utils.action_items import extract_action_items
     app.jinja_env.globals["action_items"] = extract_action_items
 
+    def _team_helpers():
+        from superviseme.models import Thesis_Reviewer, Thesis_Supervisor, User_mgmt
+        from superviseme.utils.capacity import capacity_info
+        from superviseme.utils.workflow import can_manage_team
+        from flask_login import current_user as _cu
+
+        def team_members(thesis):
+            return {
+                "supervisors": Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).all(),
+                "reviewers": Thesis_Reviewer.query.filter_by(thesis_id=thesis.id).all(),
+            }
+
+        def team_candidates(thesis):
+            taken = {t.supervisor_id for t in Thesis_Supervisor.query.filter_by(thesis_id=thesis.id)}
+            taken |= {r.reviewer_id for r in Thesis_Reviewer.query.filter_by(thesis_id=thesis.id)}
+            if thesis.author_id:
+                taken.add(thesis.author_id)
+            return [u for u in User_mgmt.query.filter(User_mgmt.user_type.in_(("supervisor", "researcher")))
+                    .order_by(User_mgmt.surname, User_mgmt.name).all() if u.id not in taken]
+
+        def has_reviews(user):
+            return bool(getattr(user, "is_authenticated", False)) and \
+                Thesis_Reviewer.query.filter_by(reviewer_id=user.id).first() is not None
+
+        return {"team_members": team_members, "team_candidates": team_candidates, "has_reviews": has_reviews,
+                "can_manage_team": lambda t: _cu.is_authenticated and can_manage_team(_cu, t), "capacity_info": capacity_info}
+
+    app.jinja_env.globals.update(_team_helpers())
+
     @app.context_processor
     def _dashboard_context():
         import time as _t

@@ -2,10 +2,10 @@
 <div class="dash-panel" id="documents">
     <header>
         <h6><i class="fas fa-file-pdf"></i> {{ _('Documents') }}{% if thesis.documents %} <span class="text-muted small">· {{ thesis.documents|length }}</span>{% endif %}</h6>
-        <button class="btn btn-primary btn-sm" data-toggle="collapse" data-target="#docAdd"><i class="fas fa-upload"></i> {{ _('Upload document') }}</button>
+        {% if mm_role != 'reviewer' %}<button class="btn btn-primary btn-sm" data-toggle="collapse" data-target="#docAdd"><i class="fas fa-upload"></i> {{ _('Upload document') }}</button>{% endif %}
     </header>
     <div class="dash-panel-body">
-        <div class="collapse mb-3" id="docAdd">
+        {% if mm_role != 'reviewer' %}<div class="collapse mb-3" id="docAdd">
             <form method="POST" action="{{ url_for('workflow.add_document', thesis_id=thesis.id) }}" enctype="multipart/form-data" class="form-row">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ mm_next }}#documents">
                 <div class="col-md-5 mb-2"><input class="form-control form-control-sm" name="title" maxlength="200" required placeholder="{{ _('e.g. Chapter 2 — Related work') }}"></div>
@@ -14,7 +14,7 @@
                 <div class="col-md-3 mb-2"><button class="btn btn-sm btn-primary btn-block">{{ _('Upload') }}</button></div>
                 <div class="col-12"><small class="text-muted">{{ _('PDF only, max 15 MB.') }}</small></div>
             </form>
-        </div>
+        </div>{% endif %}
         {% if thesis.documents %}
         <div class="doc-list">
             {% for d in thesis.documents|sort(attribute='created_at', reverse=True) %}

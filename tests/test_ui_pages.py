@@ -572,3 +572,38 @@ def test_documents_versions_comments_permissions(client, supervisor_user, studen
     login(client, supervisor_user)
     client.post(f"/documents/{doc.id}/delete")
     assert Thesis_Document.query.count() == 0 and Document_Comment.query.count() == 0
+
+
+def test_capacity_blocks_assignment_and_team_roles(client, supervisor_user, student_user, researcher_user):
+    from tests.conftest import _make_user
+    from superviseme.utils.capacity import capacity_info, capacity_message
+    from superviseme.utils.workflow import thesis_role, can_manage_team
+    sup, co, st1 = supervisor_user, researcher_user, student_user
+    rev = _make_user("supervisor", "reviewer_x", "reviewer_x@test.com")
+    sup.max_students = 1
+    db.session.commit()
+    t1 = _assign(st1, sup)
+    t2 = _thesis(sup)
+    db.session.add(Thesis_Supervisor(thesis_id=t2.id, supervisor_id=sup.id, assigned_at=1))
+    db.session.commit()
+    assert capacity_info(sup)["full"] and capacity_message(t2)
+    sup.max_students = None
+    db.session.commit()
+    assert capacity_message(t2) is None
+    login(client, sup)
+    assert client.post(f"/thesis/{t1.id}/team/add", data={"kind": "co_supervisor", "user_id": co.id}).status_code == 302
+    client.post(f"/thesis/{t1.id}/team/add", data={"kind": "reviewer", "user_id": rev.id})
+    assert thesis_role(co, t1) == "supervisor" and thesis_role(rev, t1) == "reviewer"
+    assert not can_manage_team(co, t1) and can_manage_team(sup, t1)
+    assert capacity_info(co)["used"] == 0
+    page = client.get(f"/supervisor/thesis/{t1.id}")
+    assert page.status_code == 200 and b"Supervision team" in page.data and b"Co-supervisor" in page.data
+    client.post("/logout")
+    login(client, rev)
+    assert client.get("/reviews").status_code == 200
+    assert client.get(f"/reviews/{t1.id}").status_code == 200
+    assert client.post(f"/thesis/{t1.id}/milestones/add", data={"title": "x", "due": "2030-01-01"}).status_code == 403
+    client.post("/logout")
+    login(client, sup)
+    client.post(f"/thesis/{t1.id}/team/remove", data={"user_id": rev.id})
+    assert thesis_role(rev, t1) is None

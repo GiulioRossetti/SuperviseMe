@@ -1,0 +1,21 @@
+{% extends 'public/base_public.html' %}
+{% from 'components/dash.html' import hero, panel with context %}
+{% block page_content %}
+{% call hero(thesis.title, _('Review'), 'fa-glasses') %}
+    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('workflow.reviews') }}"><i class="fas fa-arrow-left"></i> {{ _('All reviews') }}</a>
+{% endcall %}
+<div class="row">
+<div class="col-xl-8">
+    {% call panel(_('Description'), 'fa-align-left') %}
+        <div style="white-space:pre-line">{{ thesis.long_description or thesis.description }}</div>
+    {% endcall %}
+    {% with mm_role='reviewer' %}{% include 'components/documents.html' %}{% endwith %}
+</div>
+<div class="col-xl-4">
+    {% call panel(_('People'), 'fa-users') %}
+        {% if student %}<div class="mb-2"><small class="text-muted d-block">{{ _('Student') }}</small>{{ user_link(student) }}</div>{% endif %}
+        {% for ts in supervisors %}<div class="mb-2"><small class="text-muted d-block">{{ _('Supervisor') if ts.role == 'supervisor' else _('Co-supervisor') }}</small>{{ user_link(ts.supervisor) }}</div>{% endfor %}
+    {% endcall %}
+</div>
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@
 {% from 'components/dash.html' import hero, panel, empty, avatar with context %}
 {% block page_content %}
 {% call hero(doc.title, thesis.title, 'fa-file-pdf') %}
-    <a class="btn btn-outline-primary btn-sm" href="{{ thesis_url(current_user, thesis) }}#documents"><i class="fas fa-arrow-left"></i> {{ _('Back to thesis') }}</a>
+    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('workflow.review_thesis', thesis_id=thesis.id) if role == 'reviewer' else thesis_url(current_user, thesis) ~ '#documents' }}"><i class="fas fa-arrow-left"></i> {{ _('Back to thesis') }}</a>
     {% if selected %}<a class="btn btn-primary btn-sm" href="{{ url_for('workflow.document_file', version_id=selected.id, download=1) }}"><i class="fas fa-download"></i> {{ _('Download') }}</a>{% endif %}
 {% endcall %}
 
@@ -39,14 +39,14 @@
 </div>
 
 <div class="col-xl-4">
-    {% call panel(_('Upload a new version'), 'fa-upload') %}
+    {% if role != 'reviewer' %}{% call panel(_('Upload a new version'), 'fa-upload') %}
         <form method="POST" action="{{ url_for('workflow.add_document_version', doc_id=doc.id) }}" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group"><input type="file" class="form-control-file" name="file" accept="application/pdf,.pdf" required></div>
             <div class="form-group"><input class="form-control form-control-sm" name="note" maxlength="500" placeholder="{{ _('What changed? (optional)') }}"></div>
             <button class="btn btn-primary btn-sm btn-block">{{ _('Upload') }}</button>
         </form>
-    {% endcall %}
+    {% endcall %}{% endif %}
 
     <section class="dash-panel" id="comments">
         <header><h6><i class="far fa-comments"></i> {{ _('Comments') }}{% if selected %} <span class="text-muted small">· v{{ selected.version }}</span>{% endif %}</h6></header>

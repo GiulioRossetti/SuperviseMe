@@ -836,6 +836,11 @@ def assign_student():
     student_id = request.form.get("student_id")
     
     thesis = Thesis.query.get_or_404(thesis_id)
+    if student_id and not thesis.author_id:
+        from superviseme.utils.capacity import capacity_message
+        over = capacity_message(thesis)
+        if over:
+            flash(over + " (assigned anyway: administrator override)", "warning")
     thesis.author_id = int(student_id) if student_id else None
     if thesis.author_id:
         close_interests_after_direct_assignment(

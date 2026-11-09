@@ -136,6 +136,14 @@ def update_profile():
         current_user.office_location = (request.form.get("office_location") or "").strip()[:120] or None
         current_user.contact_email = contact_email[:120] or None
         current_user.phone = phone or None
+        raw_max = (request.form.get("max_students") or "").strip()
+        if raw_max:
+            if not raw_max.isdigit() or not (0 <= int(raw_max) <= 100):
+                flash(_("The maximum number of students must be between 0 and 100."), "error")
+                return redirect(url_for("profile.profile_page"))
+            current_user.max_students = int(raw_max)
+        else:
+            current_user.max_students = None
 
     db.session.commit()
     flash("Profile updated successfully", "success")

@@ -4,3 +4,8 @@
     <li class="nav-item{% if request.endpoint == 'workflow.agenda' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('workflow.agenda') }}"><i class="fas fa-fw fa-calendar-alt"></i><span>{{ _('Agenda') }}</span></a>
     </li>
+    {% if has_reviews(current_user) %}
+    <li class="nav-item{% if request.endpoint in ('workflow.reviews', 'workflow.review_thesis') %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('workflow.reviews') }}"><i class="fas fa-fw fa-glasses"></i><span>{{ _('Reviews') }}</span></a>
+    </li>
+    {% endif %}

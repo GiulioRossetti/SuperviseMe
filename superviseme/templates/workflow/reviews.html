@@ -1,0 +1,20 @@
+{% extends 'public/base_public.html' %}
+{% from 'components/dash.html' import hero, panel, empty with context %}
+{% block page_content %}
+{% call hero(_('Theses to review'), _('Theses where you are the reviewer'), 'fa-glasses') %}{% endcall %}
+{% call panel(_('Assigned reviews'), 'fa-glasses') %}
+    {% if rows %}
+    <div class="doc-list">
+        {% for r in rows %}
+        <a class="doc-item" href="{{ url_for('workflow.review_thesis', thesis_id=r.thesis_id) }}">
+            <span class="doc-ic"><i class="fas fa-book"></i></span>
+            <span class="doc-main"><strong>{{ r.thesis.title }}</strong><small>{{ dt(r.assigned_at).strftime('%d %b %Y') }}</small></span>
+            <i class="fas fa-chevron-right text-muted"></i>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+        <div class="dash-empty"><i class="fas fa-glasses"></i>{{ _('No theses to review') }}</div>
+    {% endif %}
+{% endcall %}
+{% endblock %}

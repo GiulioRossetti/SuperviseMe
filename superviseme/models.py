@@ -41,6 +41,9 @@ class User_mgmt(UserMixin, db.Model):
     telegram_enabled = db.Column(db.Boolean, default=False, nullable=False)  # Enable/disable Telegram notifications
     telegram_notification_types = db.Column(db.Text, nullable=True)  # JSON string of enabled notification types
 
+    # Supervision capacity: maximum number of active students (None = unlimited)
+    max_students = db.Column(db.Integer, nullable=True)
+
     # Email notification channel (a copy of in-app notifications + weekly digest)
     email_notifications = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
     weekly_digest = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
@@ -119,6 +122,8 @@ class Thesis_Supervisor(db.Model):
     thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False)
     supervisor_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
     assigned_at = db.Column(db.Integer, nullable=False)
+    # "supervisor" (primary, relatore) or "co_supervisor" (co-relatore): both have full supervisor rights
+    role = db.Column(db.String(20), nullable=False, default="supervisor", server_default="supervisor")
 
     thesis = db.relationship("Thesis", backref="supervisors", lazy=True)
     supervisor = db.relationship("User_mgmt", backref="supervised_theses", lazy=True)
@@ -591,3 +596,17 @@ class Document_Comment(db.Model):
     created_at = db.Column(db.Integer, nullable=False)
 
     author = db.relationship("User_mgmt", foreign_keys=[author_id], lazy=True)
+
+
+class Thesis_Reviewer(db.Model):
+    """Second reader (controrelatore): read access to the thesis and its documents, comments only."""
+    __tablename__ = "thesis_reviewer"
+    __table_args__ = (db.UniqueConstraint("thesis_id", "reviewer_id", name="uq_thesis_reviewer"),)
+    id = db.Column(db.Integer, primary_key=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False, index=True)
+    reviewer_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False, index=True)
+    assigned_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
+    assigned_at = db.Column(db.Integer, nullable=False)
+
+    thesis = db.relationship("Thesis", backref=db.backref("reviewers", cascade="all, delete-orphan", lazy=True))
+    reviewer = db.relationship("User_mgmt", foreign_keys=[reviewer_id], backref="review_assignments", lazy=True)

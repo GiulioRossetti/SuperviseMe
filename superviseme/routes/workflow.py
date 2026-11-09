@@ -1,13 +1,13 @@
 """Workflow features: milestones (and, in later commits, meetings, documents, checklist, ...)."""
 import time
 
-from flask import Blueprint, abort, flash, redirect, request, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
 
 from superviseme import db
-from superviseme.models import Thesis_Milestone
-from superviseme.utils.workflow import load_thesis_or_403, parse_date, safe_next, thesis_role
+from superviseme.models import Thesis_Milestone, Thesis_Reviewer, Thesis_Supervisor, User_mgmt
+from superviseme.utils.workflow import READ_ROLES, can_manage_team, load_thesis_or_403, parse_date, safe_next, thesis_role
 
 workflow = Blueprint("workflow", __name__)
 
@@ -281,6 +281,7 @@ from superviseme.utils.uploads import UploadError, delete_file, resolve_path  # 
 
 def _participants(thesis, exclude=None):
     ids = {ts.supervisor_id for ts in Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).all()}
+    ids |= {r.reviewer_id for r in Thesis_Reviewer.query.filter_by(thesis_id=thesis.id).all()}
     if thesis.author_id:
         ids.add(thesis.author_id)
     ids.discard(exclude)
@@ -328,9 +329,9 @@ def add_document(thesis_id):
     return redirect(url_for("workflow.document_detail", doc_id=doc.id))
 
 
-def _doc_for(doc_id):
+def _doc_for(doc_id, roles=("admin", "supervisor", "student")):
     doc = Thesis_Document.query.get_or_404(doc_id)
-    thesis, role = load_thesis_or_403(current_user, doc.thesis_id)
+    thesis, role = load_thesis_or_403(current_user, doc.thesis_id, roles=roles)
     return doc, thesis, role
 
 
@@ -357,7 +358,7 @@ def add_document_version(doc_id):
 @workflow.route("/documents/<int:doc_id>")
 @login_required
 def document_detail(doc_id):
-    doc, thesis, role = _doc_for(doc_id)
+    doc, thesis, role = _doc_for(doc_id, roles=READ_ROLES)
     selected = next((v for v in doc.versions if v.id == request.args.get("v", type=int)), doc.latest)
     previous = None
     if selected:
@@ -376,7 +377,7 @@ def document_detail(doc_id):
 @login_required
 def document_file(version_id):
     v = Thesis_Document_Version.query.get_or_404(version_id)
-    load_thesis_or_403(current_user, v.document.thesis_id)
+    load_thesis_or_403(current_user, v.document.thesis_id, roles=READ_ROLES)
     path = resolve_path(v.filename)
     if not path:
         abort(404)
@@ -392,7 +393,7 @@ def document_file(version_id):
 @login_required
 def add_document_comment(version_id):
     v = Thesis_Document_Version.query.get_or_404(version_id)
-    thesis, _role = load_thesis_or_403(current_user, v.document.thesis_id)
+    thesis, _role = load_thesis_or_403(current_user, v.document.thesis_id, roles=READ_ROLES)
     body = (request.form.get("body") or "").strip()[:3000]
     if not body:
         flash(_("The comment cannot be empty."), "error")
@@ -410,7 +411,7 @@ def add_document_comment(version_id):
 @login_required
 def resolve_document_comment(comment_id):
     c = Document_Comment.query.get_or_404(comment_id)
-    load_thesis_or_403(current_user, c.version.document.thesis_id)
+    load_thesis_or_403(current_user, c.version.document.thesis_id, roles=READ_ROLES)
     c.resolved = not c.resolved
     db.session.commit()
     return redirect(url_for("workflow.document_detail", doc_id=c.version.document_id, v=c.version_id) + "#comments")
@@ -429,3 +430,67 @@ def delete_document(doc_id):
         delete_file(f)
     flash(_("Document deleted."), "success")
     return redirect(thesis_url(current_user, thesis))
+
+
+# ---------------------------------------------------------------- team (co-supervisors, reviewers)
+def _team_back(thesis):
+    return redirect(safe_next(fallback=thesis_url(current_user, thesis)))
+
+
+@workflow.route("/thesis/<int:thesis_id>/team/add", methods=["POST"])
+@login_required
+def add_team_member(thesis_id):
+    thesis, _role = load_thesis_or_403(current_user, thesis_id, roles=("admin", "supervisor"))
+    if not can_manage_team(current_user, thesis):
+        abort(403)
+    kind = request.form.get("kind")
+    user = User_mgmt.query.get(request.form.get("user_id", type=int) or 0)
+    if kind not in ("co_supervisor", "reviewer") or not user or user.user_type not in ("supervisor", "researcher"):
+        flash(_("Invalid selection."), "error")
+        return _team_back(thesis)
+    if thesis.author_id == user.id or Thesis_Supervisor.query.filter_by(thesis_id=thesis.id, supervisor_id=user.id).first() \
+            or Thesis_Reviewer.query.filter_by(thesis_id=thesis.id, reviewer_id=user.id).first():
+        flash(_("This person is already part of the team."), "warning")
+        return _team_back(thesis)
+    if kind == "co_supervisor":
+        db.session.add(Thesis_Supervisor(thesis_id=thesis.id, supervisor_id=user.id, assigned_at=int(time.time()), role="co_supervisor"))
+        label = _("co-supervisor")
+    else:
+        db.session.add(Thesis_Reviewer(thesis_id=thesis.id, reviewer_id=user.id, assigned_by=current_user.id, assigned_at=int(time.time())))
+        label = _("reviewer")
+    db.session.commit()
+    _notify_many({user.id}, current_user.id, _("You were added as %(r)s", r=label), thesis.title, thesis.id)
+    flash(_("Team updated."), "success")
+    return _team_back(thesis)
+
+
+@workflow.route("/thesis/<int:thesis_id>/team/remove", methods=["POST"])
+@login_required
+def remove_team_member(thesis_id):
+    thesis, _role = load_thesis_or_403(current_user, thesis_id, roles=("admin", "supervisor"))
+    if not can_manage_team(current_user, thesis):
+        abort(403)
+    uid = request.form.get("user_id", type=int) or 0
+    # only co-supervisors and reviewers can be removed here; primary supervisors are managed elsewhere
+    Thesis_Supervisor.query.filter_by(thesis_id=thesis.id, supervisor_id=uid, role="co_supervisor").delete()
+    Thesis_Reviewer.query.filter_by(thesis_id=thesis.id, reviewer_id=uid).delete()
+    db.session.commit()
+    flash(_("Team updated."), "success")
+    return _team_back(thesis)
+
+
+@workflow.route("/reviews")
+@login_required
+def reviews():
+    rows = Thesis_Reviewer.query.filter_by(reviewer_id=current_user.id).all()
+    return render_template("workflow/reviews.html", rows=rows, dt=datetime.fromtimestamp)
+
+
+@workflow.route("/reviews/<int:thesis_id>")
+@login_required
+def review_thesis(thesis_id):
+    thesis, _role = load_thesis_or_403(current_user, thesis_id, roles=("reviewer",))
+    supervisors = Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).all()
+    student = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
+    return render_template("workflow/review_thesis.html", thesis=thesis, supervisors=supervisors, student=student,
+                           mm_next=url_for("workflow.review_thesis", thesis_id=thesis.id), dt=datetime.fromtimestamp)
