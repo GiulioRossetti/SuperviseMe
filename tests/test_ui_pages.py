@@ -524,3 +524,51 @@ def test_agenda_booking_flow(client, supervisor_user, student_user, researcher_u
     client.post(f"/agenda/meetings/{m.id}/cancel")
     db.session.refresh(slot)
     assert slot.booked_by is None  # slot is free again
+
+
+# ── documents ───────────────────────────────────────────────────────────────
+PDF = b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n"
+
+
+def test_documents_versions_comments_permissions(client, supervisor_user, student_user, researcher_user, app, tmp_path):
+    from superviseme.models import Document_Comment, Thesis_Document
+    app.config["UPLOAD_FOLDER"] = str(tmp_path)
+    t = _assign(student_user, supervisor_user)
+    login(client, student_user)
+    assert b"Upload document" in client.get("/student/thesis").data
+    bad = client.post(f"/thesis/{t.id}/documents/add", data={"title": "Fake", "file": (io.BytesIO(b"<html>"), "x.pdf")},
+                      content_type="multipart/form-data")
+    assert bad.status_code == 302 and Thesis_Document.query.count() == 0
+    r = client.post(f"/thesis/{t.id}/documents/add", data={"title": "Chapter 1", "file": (io.BytesIO(PDF), "../../evil name.pdf")},
+                    content_type="multipart/form-data")
+    assert r.status_code == 302
+    doc = Thesis_Document.query.one()
+    v1 = doc.latest
+    assert v1.version == 1 and "/" not in v1.original_name and v1.filename.startswith("documents/")
+    client.post(f"/documents/{doc.id}/versions/add", data={"note": "fixed", "file": (io.BytesIO(PDF + b"x"), "c.pdf")}, content_type="multipart/form-data")
+    db.session.refresh(doc)
+    assert [v.version for v in doc.versions] == [2, 1]
+    page = client.get(f"/documents/{doc.id}")
+    assert page.status_code == 200 and b"v2" in page.data
+    f = client.get(f"/documents/versions/{v1.id}/file")
+    assert f.status_code == 200 and f.mimetype == "application/pdf" and f.headers["X-Content-Type-Options"] == "nosniff"
+    client.post("/logout")
+
+    login(client, supervisor_user)
+    client.post(f"/documents/versions/{doc.latest.id}/comments/add", data={"section": "p. 3", "body": "Please expand."})
+    c = Document_Comment.query.one()
+    assert c.section == "p. 3"
+    client.post(f"/comments/{c.id}/resolve")
+    db.session.refresh(c)
+    assert c.resolved is True
+    client.post("/logout")
+
+    login(client, researcher_user)  # not involved
+    assert client.get(f"/documents/{doc.id}").status_code == 403
+    assert client.get(f"/documents/versions/{v1.id}/file").status_code == 403
+    assert client.post(f"/documents/{doc.id}/delete").status_code == 403
+    client.post("/logout")
+
+    login(client, supervisor_user)
+    client.post(f"/documents/{doc.id}/delete")
+    assert Thesis_Document.query.count() == 0 and Document_Comment.query.count() == 0

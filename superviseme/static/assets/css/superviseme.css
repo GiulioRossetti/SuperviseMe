@@ -953,3 +953,17 @@ a.dash-card:hover { transform: translateY(-3px); box-shadow: var(--sm-shadow-md)
 .ag-chip { display: inline-flex; align-items: center; gap: .35rem; background: var(--sm-bg); border: 1px solid var(--sm-border); border-radius: 999px; padding: .15rem .6rem; font-size: .75rem; }
 .ag-chip.booked { background: #e6f7ef; border-color: transparent; color: #0f9d63; }
 .ag-chip button { border: 0; background: none; padding: 0; line-height: 1; color: var(--sm-text-muted); cursor: pointer; }
+
+/* ── Documents ──────────────────────────────────────────── */
+.doc-list { display: grid; gap: .5rem; }
+.doc-item { display: flex; align-items: center; gap: .8rem; padding: .65rem .8rem; background: var(--sm-bg); border: 1px solid var(--sm-border); border-radius: var(--sm-radius-sm); color: inherit; text-decoration: none !important; }
+a.doc-item:hover { border-color: var(--sm-primary); color: inherit; }
+.doc-ic { flex: none; width: 2.4rem; height: 2.4rem; border-radius: .7rem; background: #fdecea; color: #d64533; display: flex; align-items: center; justify-content: center; }
+.doc-main { flex: 1; min-width: 0; } .doc-main strong { display: block; color: var(--sm-text); } .doc-main small { color: var(--sm-text-muted); }
+.doc-versions { display: flex; flex-wrap: wrap; gap: .35rem; }
+.doc-ver { padding: .1rem .65rem; border-radius: 999px; border: 1px solid var(--sm-border); font-size: .8rem; font-weight: 700; color: var(--sm-text-muted); text-decoration: none !important; }
+.doc-ver.active { background: var(--sm-primary); border-color: var(--sm-primary); color: #fff; }
+.doc-frame { width: 100%; height: 70vh; border: 1px solid var(--sm-border); border-radius: var(--sm-radius-sm); background: var(--sm-bg); }
+.doc-diff { max-height: 320px; overflow: auto; font-family: ui-monospace, monospace; font-size: .78rem; border: 1px solid var(--sm-border); border-radius: var(--sm-radius-sm); }
+.doc-diff .add { background: #e6f7ef; } .doc-diff .del { background: #fdecea; } .doc-diff div { padding: .1rem .5rem; } .doc-diff span { display: inline-block; width: 1rem; font-weight: 800; }
+.dash-feed li.doc-resolved { opacity: .55; }

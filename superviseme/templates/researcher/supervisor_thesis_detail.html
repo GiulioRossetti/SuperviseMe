@@ -647,6 +647,7 @@
 
                     {% with bp='researcher' %}{% include 'components/thesis_media_manage.html' %}{% endwith %}
                     {% with mm_role='supervisor', mm_next=url_for('researcher.supervisor_thesis_detail', thesis_id=thesis.id) %}{% include 'components/milestones.html' %}{% endwith %}
+                    {% with mm_role='supervisor', mm_next=url_for('researcher.supervisor_thesis_detail', thesis_id=thesis.id) %}{% include 'components/documents.html' %}{% endwith %}
 
                     <!-- Resources Section -->
                     <div class="row">

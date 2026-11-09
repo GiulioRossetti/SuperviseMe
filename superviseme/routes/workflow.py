@@ -1,7 +1,7 @@
 """Workflow features: milestones (and, in later commits, meetings, documents, checklist, ...)."""
 import time
 
-from flask import Blueprint, abort, flash, redirect, request
+from flask import Blueprint, abort, flash, redirect, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
 
@@ -267,3 +267,165 @@ def note_action_items(note_id):
     else:
         flash(_("No new action items found (use lines like “- [ ] Task @due:2026-12-01 @student”)."), "info")
     return redirect(safe_next("workflow.agenda"))
+
+
+# ═══════════════════════════ Documents: versions and comments ═══════════════════════════
+import os  # noqa: E402
+
+from flask import send_file  # noqa: E402
+
+from superviseme.models import Document_Comment, Thesis_Document, Thesis_Document_Version  # noqa: E402
+from superviseme.utils import documents as doc_utils  # noqa: E402
+from superviseme.utils.uploads import UploadError, delete_file, resolve_path  # noqa: E402
+
+
+def _participants(thesis, exclude=None):
+    ids = {ts.supervisor_id for ts in Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).all()}
+    if thesis.author_id:
+        ids.add(thesis.author_id)
+    ids.discard(exclude)
+    return ids
+
+
+def _notify_many(ids, actor_id, title, message, thesis_id):
+    from superviseme.utils.notifications import create_notification
+    for uid in ids:
+        create_notification(uid, actor_id, "new_update", title, message, thesis_id=thesis_id)
+
+
+def _store_version(doc, file, note):
+    stored, original, size = doc_utils.save_pdf(file)
+    number = (doc.versions[0].version + 1) if doc.versions else 1
+    v = Thesis_Document_Version(document=doc, version=number, filename=stored, original_name=original, size=size,
+                                note=(note or "").strip()[:500] or None, uploaded_by=current_user.id, created_at=int(time.time()))
+    db.session.add(v)
+    return v
+
+
+@workflow.route("/thesis/<int:thesis_id>/documents/add", methods=["POST"])
+@login_required
+def add_document(thesis_id):
+    thesis, _role = load_thesis_or_403(current_user, thesis_id)
+    title = (request.form.get("title") or "").strip()[:200]
+    if not title:
+        flash(_("Please give the document a title."), "error")
+        return redirect(safe_next(fallback=thesis_url(current_user, thesis)))
+    if len(thesis.documents) >= doc_utils.MAX_DOCUMENTS:
+        flash(_("Too many documents for this thesis."), "error")
+        return redirect(safe_next(fallback=thesis_url(current_user, thesis)))
+    doc = Thesis_Document(thesis_id=thesis.id, title=title, created_by=current_user.id, created_at=int(time.time()))
+    db.session.add(doc)
+    try:
+        _store_version(doc, request.files.get("file"), request.form.get("note"))
+    except UploadError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return redirect(safe_next(fallback=thesis_url(current_user, thesis)))
+    db.session.commit()
+    _notify_many(_participants(thesis, current_user.id), current_user.id, _("New document: %(t)s", t=title),
+                 _("%(n)s uploaded a document.", n=current_user.name), thesis.id)
+    flash(_("Document uploaded."), "success")
+    return redirect(url_for("workflow.document_detail", doc_id=doc.id))
+
+
+def _doc_for(doc_id):
+    doc = Thesis_Document.query.get_or_404(doc_id)
+    thesis, role = load_thesis_or_403(current_user, doc.thesis_id)
+    return doc, thesis, role
+
+
+@workflow.route("/documents/<int:doc_id>/versions/add", methods=["POST"])
+@login_required
+def add_document_version(doc_id):
+    doc, thesis, _role = _doc_for(doc_id)
+    if len(doc.versions) >= doc_utils.MAX_VERSIONS:
+        flash(_("This document reached the maximum number of versions."), "error")
+        return redirect(url_for("workflow.document_detail", doc_id=doc.id))
+    try:
+        v = _store_version(doc, request.files.get("file"), request.form.get("note"))
+    except UploadError as exc:
+        db.session.rollback()
+        flash(str(exc), "error")
+        return redirect(url_for("workflow.document_detail", doc_id=doc.id))
+    db.session.commit()
+    _notify_many(_participants(thesis, current_user.id), current_user.id, _("New version of %(t)s", t=doc.title),
+                 _("Version %(v)d was uploaded.", v=v.version), thesis.id)
+    flash(_("Version uploaded."), "success")
+    return redirect(url_for("workflow.document_detail", doc_id=doc.id, v=v.id))
+
+
+@workflow.route("/documents/<int:doc_id>")
+@login_required
+def document_detail(doc_id):
+    doc, thesis, role = _doc_for(doc_id)
+    selected = next((v for v in doc.versions if v.id == request.args.get("v", type=int)), doc.latest)
+    previous = None
+    if selected:
+        older = [v for v in doc.versions if v.version < selected.version]
+        previous = older[0] if older else None
+    diff = None
+    if selected and previous:
+        a, b = resolve_path(previous.filename), resolve_path(selected.filename)
+        if a and b:
+            diff = doc_utils.compare_versions(a, b)
+    return render_template("workflow/document.html", doc=doc, thesis=thesis, role=role, selected=selected, previous=previous,
+                           diff=diff, dt=datetime.fromtimestamp, thesis_url=thesis_url)
+
+
+@workflow.route("/documents/versions/<int:version_id>/file")
+@login_required
+def document_file(version_id):
+    v = Thesis_Document_Version.query.get_or_404(version_id)
+    load_thesis_or_403(current_user, v.document.thesis_id)
+    path = resolve_path(v.filename)
+    if not path:
+        abort(404)
+    download = request.args.get("download") == "1"
+    resp = send_file(path, mimetype="application/pdf", as_attachment=download,
+                     download_name=f"{os.path.splitext(v.original_name)[0]}-v{v.version}.pdf", conditional=True)
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    resp.headers["Cache-Control"] = "private, max-age=0"
+    return resp
+
+
+@workflow.route("/documents/versions/<int:version_id>/comments/add", methods=["POST"])
+@login_required
+def add_document_comment(version_id):
+    v = Thesis_Document_Version.query.get_or_404(version_id)
+    thesis, _role = load_thesis_or_403(current_user, v.document.thesis_id)
+    body = (request.form.get("body") or "").strip()[:3000]
+    if not body:
+        flash(_("The comment cannot be empty."), "error")
+    else:
+        db.session.add(Document_Comment(version_id=v.id, author_id=current_user.id, body=body,
+                                        section=(request.form.get("section") or "").strip()[:100] or None,
+                                        created_at=int(time.time())))
+        db.session.commit()
+        _notify_many(_participants(thesis, current_user.id), current_user.id, _("New comment on %(t)s", t=v.document.title),
+                     body[:200], thesis.id)
+    return redirect(url_for("workflow.document_detail", doc_id=v.document_id, v=v.id) + "#comments")
+
+
+@workflow.route("/comments/<int:comment_id>/resolve", methods=["POST"])
+@login_required
+def resolve_document_comment(comment_id):
+    c = Document_Comment.query.get_or_404(comment_id)
+    load_thesis_or_403(current_user, c.version.document.thesis_id)
+    c.resolved = not c.resolved
+    db.session.commit()
+    return redirect(url_for("workflow.document_detail", doc_id=c.version.document_id, v=c.version_id) + "#comments")
+
+
+@workflow.route("/documents/<int:doc_id>/delete", methods=["POST"])
+@login_required
+def delete_document(doc_id):
+    doc, thesis, role = _doc_for(doc_id)
+    if role not in ("admin", "supervisor") and doc.created_by != current_user.id:
+        abort(403)
+    files = [v.filename for v in doc.versions]
+    db.session.delete(doc)
+    db.session.commit()
+    for f in files:
+        delete_file(f)
+    flash(_("Document deleted."), "success")
+    return redirect(thesis_url(current_user, thesis))

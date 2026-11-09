@@ -3504,3 +3504,129 @@ msgstr "Le voci non spuntate diventano attività; quelle già esistenti vengono 
 
 msgid "Write checklist lines in the note to turn them into tasks, e.g."
 msgstr "Scrivi righe di checklist nel verbale per trasformarle in attività, ad es."
+
+msgid "The file is too large (max %(mb)d MB)."
+msgstr "Il file è troppo grande (max %(mb)d MB)."
+
+msgid "Only PDF files are accepted."
+msgstr "Sono accettati solo file PDF."
+
+msgid "Please give the document a title."
+msgstr "Dai un titolo al documento."
+
+msgid "Too many documents for this thesis."
+msgstr "Troppi documenti per questa tesi."
+
+msgid "New document: %(t)s"
+msgstr "Nuovo documento: %(t)s"
+
+msgid "%(n)s uploaded a document."
+msgstr "%(n)s ha caricato un documento."
+
+msgid "Document uploaded."
+msgstr "Documento caricato."
+
+msgid "This document reached the maximum number of versions."
+msgstr "Questo documento ha raggiunto il numero massimo di versioni."
+
+msgid "New version of %(t)s"
+msgstr "Nuova versione di %(t)s"
+
+msgid "Version %(v)d was uploaded."
+msgstr "È stata caricata la versione %(v)d."
+
+msgid "Version uploaded."
+msgstr "Versione caricata."
+
+msgid "The comment cannot be empty."
+msgstr "Il commento non può essere vuoto."
+
+msgid "New comment on %(t)s"
+msgstr "Nuovo commento su %(t)s"
+
+msgid "Document deleted."
+msgstr "Documento eliminato."
+
+msgid "Documents"
+msgstr "Documenti"
+
+msgid "Upload document"
+msgstr "Carica documento"
+
+msgid "e.g. Chapter 2 — Related work"
+msgstr "es. Capitolo 2 — Stato dell'arte"
+
+msgid "What is in this version? (optional)"
+msgstr "Cosa contiene questa versione? (facoltativo)"
+
+msgid "PDF only, max 15 MB."
+msgstr "Solo PDF, max 15 MB."
+
+msgid "versions"
+msgstr "versioni"
+
+msgid "No documents yet"
+msgstr "Ancora nessun documento"
+
+msgid "Upload drafts here to keep versions and collect feedback in one place."
+msgstr "Carica qui le bozze per tenere le versioni e raccogliere feedback in un unico posto."
+
+msgid "Back to thesis"
+msgstr "Torna alla tesi"
+
+msgid "Download"
+msgstr "Scarica"
+
+msgid "Preview"
+msgstr "Anteprima"
+
+msgid "Your browser cannot display PDFs here."
+msgstr "Il tuo browser non può mostrare i PDF qui."
+
+msgid "Changes since v%(v)d"
+msgstr "Modifiche rispetto alla v%(v)d"
+
+msgid "lines"
+msgstr "righe"
+
+msgid "No textual differences."
+msgstr "Nessuna differenza testuale."
+
+msgid "Size changed from %(a)d KB to %(b)d KB."
+msgstr "Dimensione cambiata da %(a)d KB a %(b)d KB."
+
+msgid "Install the optional pypdf package to see a text comparison."
+msgstr "Installa il pacchetto opzionale pypdf per vedere il confronto del testo."
+
+msgid "Upload a new version"
+msgstr "Carica una nuova versione"
+
+msgid "What changed? (optional)"
+msgstr "Cosa è cambiato? (facoltativo)"
+
+msgid "Comments"
+msgstr "Commenti"
+
+msgid "Reopen"
+msgstr "Riapri"
+
+msgid "Mark resolved"
+msgstr "Segna come risolto"
+
+msgid "No comments on this version yet."
+msgstr "Ancora nessun commento su questa versione."
+
+msgid "Page or section (optional), e.g. p. 12"
+msgstr "Pagina o sezione (facoltativa), es. p. 12"
+
+msgid "Write a comment…"
+msgstr "Scrivi un commento…"
+
+msgid "Add comment"
+msgstr "Aggiungi commento"
+
+msgid "Delete this document and all its versions?"
+msgstr "Eliminare questo documento e tutte le sue versioni?"
+
+msgid "Delete document"
+msgstr "Elimina documento"

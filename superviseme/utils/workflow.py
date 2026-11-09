@@ -29,9 +29,11 @@ def load_thesis_or_403(user, thesis_id, roles=("admin", "supervisor", "student")
     return thesis, role
 
 
-def safe_next(default_endpoint="public.public_thesis_dashboard", **values):
+def safe_next(default_endpoint="public.public_thesis_dashboard", fallback=None, **values):
     """Return the ``next`` form/query value only if it is a same-site relative path."""
     nxt = request.values.get("next") or ""
+    if not nxt and fallback:
+        return fallback
     parsed = urlparse(nxt)
     if nxt.startswith("/") and not nxt.startswith("//") and not parsed.netloc and "\\" not in nxt:
         return nxt

@@ -1,0 +1,89 @@
+{% extends 'public/base_public.html' %}
+{% from 'components/dash.html' import hero, panel, empty, avatar with context %}
+{% block page_content %}
+{% call hero(doc.title, thesis.title, 'fa-file-pdf') %}
+    <a class="btn btn-outline-primary btn-sm" href="{{ thesis_url(current_user, thesis) }}#documents"><i class="fas fa-arrow-left"></i> {{ _('Back to thesis') }}</a>
+    {% if selected %}<a class="btn btn-primary btn-sm" href="{{ url_for('workflow.document_file', version_id=selected.id, download=1) }}"><i class="fas fa-download"></i> {{ _('Download') }}</a>{% endif %}
+{% endcall %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}{% for cat, message in messages %}
+    <div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }} alert-dismissible fade show">{{ message }}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button></div>
+{% endfor %}{% endwith %}
+
+<div class="row">
+<div class="col-xl-8">
+    {% call panel(_('Preview'), 'fa-eye') %}
+        {% if selected %}
+        <div class="doc-versions mb-3">
+            {% for v in doc.versions %}<a class="doc-ver {{ 'active' if v.id == selected.id }}" href="{{ url_for('workflow.document_detail', doc_id=doc.id, v=v.id) }}">v{{ v.version }}</a>{% endfor %}
+        </div>
+        <div class="small text-muted mb-2">{{ selected.original_name }} · {{ (selected.size / 1024)|round|int }} KB · {{ dt(selected.created_at).strftime('%d %b %Y, %H:%M') }}{% if selected.uploader %} · {{ user_link(selected.uploader) }}{% endif %}</div>
+        {% if selected.note %}<div class="alert alert-light border small">{{ selected.note }}</div>{% endif %}
+        <object class="doc-frame" data="{{ url_for('workflow.document_file', version_id=selected.id) }}" type="application/pdf">
+            <div class="p-3">{{ _('Your browser cannot display PDFs here.') }} <a href="{{ url_for('workflow.document_file', version_id=selected.id, download=1) }}">{{ _('Download') }}</a></div>
+        </object>
+        {% endif %}
+    {% endcall %}
+
+    {% if previous %}
+    {% call panel(_('Changes since v%(v)d', v=previous.version), 'fa-code-compare') %}
+        {% if diff %}
+            <div class="mb-2"><span class="badge badge-success">+{{ diff.added }}</span> <span class="badge badge-danger">−{{ diff.removed }}</span> <span class="text-muted small">{{ _('lines') }}</span></div>
+            {% if diff.lines %}<div class="doc-diff">{% for sign, text in diff.lines %}<div class="{{ 'add' if sign == '+' else 'del' }}"><span>{{ sign }}</span>{{ text }}</div>{% endfor %}</div>
+            {% else %}<div class="text-muted small">{{ _('No textual differences.') }}</div>{% endif %}
+        {% else %}
+            <div class="text-muted small">{{ _('Size changed from %(a)d KB to %(b)d KB.', a=(previous.size / 1024)|round|int, b=(selected.size / 1024)|round|int) }} {{ _('Install the optional pypdf package to see a text comparison.') }}</div>
+        {% endif %}
+    {% endcall %}
+    {% endif %}
+</div>
+
+<div class="col-xl-4">
+    {% call panel(_('Upload a new version'), 'fa-upload') %}
+        <form method="POST" action="{{ url_for('workflow.add_document_version', doc_id=doc.id) }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group"><input type="file" class="form-control-file" name="file" accept="application/pdf,.pdf" required></div>
+            <div class="form-group"><input class="form-control form-control-sm" name="note" maxlength="500" placeholder="{{ _('What changed? (optional)') }}"></div>
+            <button class="btn btn-primary btn-sm btn-block">{{ _('Upload') }}</button>
+        </form>
+    {% endcall %}
+
+    <section class="dash-panel" id="comments">
+        <header><h6><i class="far fa-comments"></i> {{ _('Comments') }}{% if selected %} <span class="text-muted small">· v{{ selected.version }}</span>{% endif %}</h6></header>
+        <div class="dash-panel-body">
+            {% if selected %}
+            <ul class="dash-feed mb-3">
+                {% for c in selected.comments %}
+                <li class="{{ 'doc-resolved' if c.resolved }}">{{ avatar(c.author) }}
+                    <div class="tx">
+                        <strong>{{ user_link(c.author) }}</strong> <small class="d-inline text-muted">· {{ dt(c.created_at).strftime('%d %b') }}</small>
+                        {% if c.section %}<span class="badge badge-light border">{{ c.section }}</span>{% endif %}
+                        <div style="white-space:pre-wrap">{{ c.body }}</div>
+                        <form method="POST" action="{{ url_for('workflow.resolve_document_comment', comment_id=c.id) }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-link btn-sm p-0 small">{{ _('Reopen') if c.resolved else _('Mark resolved') }}</button>
+                        </form>
+                    </div></li>
+                {% else %}
+                <li class="text-muted small">{{ _('No comments on this version yet.') }}</li>
+                {% endfor %}
+            </ul>
+            <form method="POST" action="{{ url_for('workflow.add_document_comment', version_id=selected.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group"><input class="form-control form-control-sm" name="section" maxlength="100" placeholder="{{ _('Page or section (optional), e.g. p. 12') }}"></div>
+                <div class="form-group"><textarea class="form-control form-control-sm" name="body" rows="3" maxlength="3000" required placeholder="{{ _('Write a comment…') }}"></textarea></div>
+                <button class="btn btn-outline-primary btn-sm btn-block">{{ _('Add comment') }}</button>
+            </form>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if role in ('admin', 'supervisor') or doc.created_by == current_user.id %}
+    <form method="POST" action="{{ url_for('workflow.delete_document', doc_id=doc.id) }}" onsubmit="return confirm({{ _('Delete this document and all its versions?')|tojson|forceescape }});">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i> {{ _('Delete document') }}</button>
+    </form>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

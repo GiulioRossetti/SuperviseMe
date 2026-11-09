@@ -543,3 +543,51 @@ class Meeting(db.Model):
     thesis = db.relationship("Thesis", backref=db.backref("meetings", lazy=True))
     supervisor = db.relationship("User_mgmt", foreign_keys=[supervisor_id], lazy=True)
     student = db.relationship("User_mgmt", foreign_keys=[student_id], lazy=True)
+
+
+class Thesis_Document(db.Model):
+    """A document (e.g. a chapter draft) with a history of uploaded PDF versions."""
+    __tablename__ = "thesis_document"
+    id = db.Column(db.Integer, primary_key=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False, index=True)
+    title = db.Column(db.String(200), nullable=False)
+    created_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    thesis = db.relationship("Thesis", backref=db.backref("documents", cascade="all, delete-orphan", lazy=True))
+    versions = db.relationship("Thesis_Document_Version", backref="document", cascade="all, delete-orphan",
+                               order_by="Thesis_Document_Version.version.desc()", lazy=True)
+
+    @property
+    def latest(self):
+        return self.versions[0] if self.versions else None
+
+
+class Thesis_Document_Version(db.Model):
+    __tablename__ = "thesis_document_version"
+    id = db.Column(db.Integer, primary_key=True)
+    document_id = db.Column(db.Integer, db.ForeignKey("thesis_document.id"), nullable=False, index=True)
+    version = db.Column(db.Integer, nullable=False)
+    filename = db.Column(db.String(255), nullable=False)  # relative to the upload root
+    original_name = db.Column(db.String(255), nullable=False)
+    size = db.Column(db.Integer, nullable=False)
+    note = db.Column(db.String(500), nullable=True)
+    uploaded_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    uploader = db.relationship("User_mgmt", foreign_keys=[uploaded_by], lazy=True)
+    comments = db.relationship("Document_Comment", backref="version", cascade="all, delete-orphan",
+                               order_by="Document_Comment.created_at", lazy=True)
+
+
+class Document_Comment(db.Model):
+    __tablename__ = "document_comment"
+    id = db.Column(db.Integer, primary_key=True)
+    version_id = db.Column(db.Integer, db.ForeignKey("thesis_document_version.id"), nullable=False, index=True)
+    author_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    section = db.Column(db.String(100), nullable=True)  # e.g. "p. 12" or "Section 3.2"
+    body = db.Column(db.Text, nullable=False)
+    resolved = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    author = db.relationship("User_mgmt", foreign_keys=[author_id], lazy=True)

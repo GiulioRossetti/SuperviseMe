@@ -1,0 +1,37 @@
+{# Document list of a thesis. Expects: thesis, mm_next. #}
+<div class="dash-panel" id="documents">
+    <header>
+        <h6><i class="fas fa-file-pdf"></i> {{ _('Documents') }}{% if thesis.documents %} <span class="text-muted small">· {{ thesis.documents|length }}</span>{% endif %}</h6>
+        <button class="btn btn-primary btn-sm" data-toggle="collapse" data-target="#docAdd"><i class="fas fa-upload"></i> {{ _('Upload document') }}</button>
+    </header>
+    <div class="dash-panel-body">
+        <div class="collapse mb-3" id="docAdd">
+            <form method="POST" action="{{ url_for('workflow.add_document', thesis_id=thesis.id) }}" enctype="multipart/form-data" class="form-row">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ mm_next }}#documents">
+                <div class="col-md-5 mb-2"><input class="form-control form-control-sm" name="title" maxlength="200" required placeholder="{{ _('e.g. Chapter 2 — Related work') }}"></div>
+                <div class="col-md-7 mb-2"><input type="file" class="form-control-file" name="file" accept="application/pdf,.pdf" required></div>
+                <div class="col-md-9 mb-2"><input class="form-control form-control-sm" name="note" maxlength="500" placeholder="{{ _('What is in this version? (optional)') }}"></div>
+                <div class="col-md-3 mb-2"><button class="btn btn-sm btn-primary btn-block">{{ _('Upload') }}</button></div>
+                <div class="col-12"><small class="text-muted">{{ _('PDF only, max 15 MB.') }}</small></div>
+            </form>
+        </div>
+        {% if thesis.documents %}
+        <div class="doc-list">
+            {% for d in thesis.documents|sort(attribute='created_at', reverse=True) %}
+            {% set v = d.latest %}
+            {% set open_c = namespace(n=0) %}
+            {% for ver in d.versions %}{% for c in ver.comments if not c.resolved %}{% set open_c.n = open_c.n + 1 %}{% endfor %}{% endfor %}
+            <a class="doc-item" href="{{ url_for('workflow.document_detail', doc_id=d.id) }}">
+                <span class="doc-ic"><i class="fas fa-file-pdf"></i></span>
+                <span class="doc-main"><strong>{{ d.title }}</strong>
+                    <small>v{{ v.version }} · {{ dt(v.created_at).strftime('%d %b %Y') }}{% if v.uploader %} · {{ v.uploader.name }}{% endif %}{% if d.versions|length > 1 %} · {{ d.versions|length }} {{ _('versions') }}{% endif %}</small></span>
+                {% if open_c.n %}<span class="badge badge-warning"><i class="far fa-comment"></i> {{ open_c.n }}</span>{% endif %}
+                <i class="fas fa-chevron-right text-muted"></i>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+            <div class="dash-empty"><i class="far fa-file-pdf"></i>{{ _('No documents yet') }}<small>{{ _('Upload drafts here to keep versions and collect feedback in one place.') }}</small></div>
+        {% endif %}
+    </div>
+</div>
