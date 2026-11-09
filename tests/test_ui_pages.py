@@ -607,3 +607,34 @@ def test_capacity_blocks_assignment_and_team_roles(client, supervisor_user, stud
     login(client, sup)
     client.post(f"/thesis/{t1.id}/team/remove", data={"user_id": rev.id})
     assert thesis_role(rev, t1) is None
+
+
+def test_graduation_checklist_flow(client, admin_user, supervisor_user, student_user):
+    from superviseme.models import Checklist_Template, Thesis_Checklist_Item
+    from superviseme.utils.checklist import parse_items
+    from superviseme.utils.reminders import run_reminders
+    assert parse_items("A | 30\n\nB\nC | x") == [("A", 30), ("B", None), ("C", None)]
+    login(client, admin_user)
+    assert client.post("/admin/checklists/add", data={"name": "Std", "degree_course": "CS", "items": "Apply | 30\nUpload PDF | 7"}).status_code == 302
+    assert client.get("/admin/checklists").status_code == 200
+    tpl = Checklist_Template.query.one()
+    client.post("/logout")
+    t = _assign(student_user, supervisor_user)
+    login(client, supervisor_user)
+    assert client.post("/admin/checklists/add", data={"name": "x", "items": "a"}).status_code == 403
+    soon = (date.today() + timedelta(days=20)).isoformat()
+    client.post(f"/thesis/{t.id}/checklist/settings", data={"defense_date": soon, "degree_course": "CS"})
+    client.post(f"/thesis/{t.id}/checklist/apply", data={"template_id": tpl.id})
+    client.post(f"/thesis/{t.id}/checklist/apply", data={"template_id": tpl.id})  # idempotent
+    items = Thesis_Checklist_Item.query.filter_by(thesis_id=t.id).all()
+    assert len(items) == 2 and all(i.due_date for i in items)
+    assert b"Graduation checklist" in client.get(f"/supervisor/thesis/{t.id}").data
+    first = sorted(items, key=lambda i: i.due_date)[0]
+    assert run_reminders()["checklist"] >= 1  # "Apply" is due in less than a week
+    assert run_reminders()["checklist"] == 0
+    client.post("/logout")
+    login(client, student_user)
+    assert b"Graduation checklist" in client.get("/student/thesis").data
+    client.post(f"/checklist/{first.id}/toggle")
+    assert Thesis_Checklist_Item.query.get(first.id).status == "done"
+    assert client.post(f"/checklist/{first.id}/delete").status_code == 403

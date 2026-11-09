@@ -494,3 +494,117 @@ def review_thesis(thesis_id):
     student = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
     return render_template("workflow/review_thesis.html", thesis=thesis, supervisors=supervisors, student=student,
                            mm_next=url_for("workflow.review_thesis", thesis_id=thesis.id), dt=datetime.fromtimestamp)
+
+
+# ---------------------------------------------------------------- end-of-thesis checklist
+from superviseme.models import Checklist_Template, Checklist_Template_Item, Thesis_Checklist_Item  # noqa: E402
+from superviseme.utils import checklist as cl  # noqa: E402
+
+
+def _admin_only():
+    if current_user.user_type != "admin":
+        abort(403)
+
+
+@workflow.route("/admin/checklists")
+@login_required
+def checklist_templates():
+    _admin_only()
+    return render_template("workflow/checklist_templates.html", templates=Checklist_Template.query.order_by(Checklist_Template.name).all())
+
+
+@workflow.route("/admin/checklists/add", methods=["POST"])
+@login_required
+def add_checklist_template():
+    _admin_only()
+    name = (request.form.get("name") or "").strip()[:150]
+    items = cl.parse_items(request.form.get("items"))
+    if not name or not items:
+        flash(_("A name and at least one step are required."), "error")
+        return redirect(url_for("workflow.checklist_templates"))
+    t = Checklist_Template(name=name, degree_course=(request.form.get("degree_course") or "").strip()[:120] or None,
+                           created_at=int(time.time()))
+    for pos, (title, days) in enumerate(items):
+        t.items.append(Checklist_Template_Item(title=title, position=pos, days_before_defense=days))
+    db.session.add(t)
+    db.session.commit()
+    flash(_("Template created."), "success")
+    return redirect(url_for("workflow.checklist_templates"))
+
+
+@workflow.route("/admin/checklists/<int:template_id>/delete", methods=["POST"])
+@login_required
+def delete_checklist_template(template_id):
+    _admin_only()
+    db.session.delete(Checklist_Template.query.get_or_404(template_id))
+    db.session.commit()
+    flash(_("Template deleted."), "success")
+    return redirect(url_for("workflow.checklist_templates"))
+
+
+@workflow.route("/thesis/<int:thesis_id>/checklist/apply", methods=["POST"])
+@login_required
+def apply_checklist_template(thesis_id):
+    thesis, _role = load_thesis_or_403(current_user, thesis_id, roles=("admin", "supervisor"))
+    template = Checklist_Template.query.get_or_404(request.form.get("template_id", type=int) or 0)
+    added = cl.apply_template(thesis, template)
+    flash(_("%(n)d steps added.", n=added), "success")
+    return _team_back(thesis)
+
+
+@workflow.route("/thesis/<int:thesis_id>/checklist/settings", methods=["POST"])
+@login_required
+def checklist_settings(thesis_id):
+    thesis, _role = load_thesis_or_403(current_user, thesis_id, roles=("admin", "supervisor"))
+    raw = (request.form.get("defense_date") or "").strip()
+    if raw and parse_date(raw) is None:
+        flash(_("Invalid date."), "error")
+        return _team_back(thesis)
+    thesis.defense_date = parse_date(raw) if raw else None
+    thesis.degree_course = (request.form.get("degree_course") or "").strip()[:120] or None
+    cl.recompute_due_dates(thesis)
+    db.session.commit()
+    flash(_("Checklist settings saved."), "success")
+    return _team_back(thesis)
+
+
+@workflow.route("/thesis/<int:thesis_id>/checklist/add", methods=["POST"])
+@login_required
+def add_checklist_item(thesis_id):
+    thesis, _role = load_thesis_or_403(current_user, thesis_id, roles=("admin", "supervisor"))
+    title = (request.form.get("title") or "").strip()[:200]
+    due = parse_date(request.form.get("due_date"))
+    if not title or len(thesis.checklist) >= cl.MAX_ITEMS:
+        flash(_("A title is required."), "error")
+        return _team_back(thesis)
+    pos = max([i.position for i in thesis.checklist] + [-1]) + 1
+    db.session.add(Thesis_Checklist_Item(thesis_id=thesis.id, title=title, position=pos, due_date=due, created_at=int(time.time())))
+    db.session.commit()
+    return _team_back(thesis)
+
+
+def _item_for(item_id, roles):
+    item = Thesis_Checklist_Item.query.get_or_404(item_id)
+    thesis, role = load_thesis_or_403(current_user, item.thesis_id, roles=roles)
+    return item, thesis
+
+
+@workflow.route("/checklist/<int:item_id>/toggle", methods=["POST"])
+@login_required
+def toggle_checklist_item(item_id):
+    item, thesis = _item_for(item_id, ("admin", "supervisor", "student"))
+    if item.status == "done":
+        item.status, item.completed_at, item.completed_by = "pending", None, None
+    else:
+        item.status, item.completed_at, item.completed_by = "done", int(time.time()), current_user.id
+    db.session.commit()
+    return _team_back(thesis)
+
+
+@workflow.route("/checklist/<int:item_id>/delete", methods=["POST"])
+@login_required
+def delete_checklist_item(item_id):
+    item, thesis = _item_for(item_id, ("admin", "supervisor"))
+    db.session.delete(item)
+    db.session.commit()
+    return _team_back(thesis)

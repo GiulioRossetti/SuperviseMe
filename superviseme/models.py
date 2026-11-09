@@ -75,6 +75,9 @@ class Thesis(db.Model):
     frozen = db.Column(db.Boolean, default=False)
     level = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.Integer, nullable=False)
+    # Used by the end-of-thesis checklist (due dates are computed backwards from the defense date)
+    defense_date = db.Column(db.Integer, nullable=True)
+    degree_course = db.Column(db.String(120), nullable=True)
     publisher = db.relationship("User_mgmt", foreign_keys=[publisher_id], backref="published_theses", lazy=True)
 
 
@@ -610,3 +613,41 @@ class Thesis_Reviewer(db.Model):
 
     thesis = db.relationship("Thesis", backref=db.backref("reviewers", cascade="all, delete-orphan", lazy=True))
     reviewer = db.relationship("User_mgmt", foreign_keys=[reviewer_id], backref="review_assignments", lazy=True)
+
+
+class Checklist_Template(db.Model):
+    """Administrative steps to complete before graduating; one template per degree course."""
+    __tablename__ = "checklist_template"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    degree_course = db.Column(db.String(120), nullable=True)  # NULL = generic template
+    created_at = db.Column(db.Integer, nullable=False)
+
+    items = db.relationship("Checklist_Template_Item", backref="template", cascade="all, delete-orphan",
+                            order_by="Checklist_Template_Item.position", lazy=True)
+
+
+class Checklist_Template_Item(db.Model):
+    __tablename__ = "checklist_template_item"
+    id = db.Column(db.Integer, primary_key=True)
+    template_id = db.Column(db.Integer, db.ForeignKey("checklist_template.id"), nullable=False, index=True)
+    title = db.Column(db.String(200), nullable=False)
+    position = db.Column(db.Integer, nullable=False, default=0)
+    days_before_defense = db.Column(db.Integer, nullable=True)
+
+
+class Thesis_Checklist_Item(db.Model):
+    __tablename__ = "thesis_checklist_item"
+    id = db.Column(db.Integer, primary_key=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False, index=True)
+    title = db.Column(db.String(200), nullable=False)
+    position = db.Column(db.Integer, nullable=False, default=0)
+    days_before_defense = db.Column(db.Integer, nullable=True)
+    due_date = db.Column(db.Integer, nullable=True)
+    status = db.Column(db.String(20), nullable=False, default="pending")  # "pending" | "done"
+    completed_at = db.Column(db.Integer, nullable=True)
+    completed_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    thesis = db.relationship("Thesis", backref=db.backref("checklist", cascade="all, delete-orphan",
+                                                          order_by="Thesis_Checklist_Item.position, Thesis_Checklist_Item.id", lazy=True))

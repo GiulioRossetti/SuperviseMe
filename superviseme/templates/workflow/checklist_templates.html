@@ -1,0 +1,33 @@
+{% extends 'public/base_public.html' %}
+{% from 'components/dash.html' import hero, panel with context %}
+{% block page_content %}
+{% call hero(_('Graduation checklists'), _('Templates of administrative steps, per degree course'), 'fa-graduation-cap') %}{% endcall %}
+{% with messages = get_flashed_messages(with_categories=true) %}{% for cat, message in messages %}
+    <div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }} alert-dismissible fade show">{{ message }}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button></div>
+{% endfor %}{% endwith %}
+<div class="row">
+<div class="col-xl-7">
+    {% call panel(_('Templates'), 'fa-list-check') %}
+        {% for t in templates %}
+        <div class="border rounded p-3 mb-3">
+            <div class="d-flex justify-content-between"><strong>{{ t.name }}{% if t.degree_course %} <span class="badge badge-light border">{{ t.degree_course }}</span>{% endif %}</strong>
+                <form method="POST" action="{{ url_for('workflow.delete_checklist_template', template_id=t.id) }}" onsubmit="return confirm({{ _('Delete this template?')|tojson|forceescape }});">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-link btn-sm text-danger p-0"><i class="fas fa-trash-alt"></i></button></form></div>
+            <ol class="small mb-0 mt-2">{% for i in t.items %}<li>{{ i.title }}{% if i.days_before_defense is not none %} <span class="text-muted">· {{ _('%(n)d days before the defense', n=i.days_before_defense) }}</span>{% endif %}</li>{% endfor %}</ol>
+        </div>
+        {% else %}<div class="dash-empty"><i class="fas fa-list-check"></i>{{ _('No templates yet') }}</div>{% endfor %}
+    {% endcall %}
+</div>
+<div class="col-xl-5">
+    {% call panel(_('New template'), 'fa-plus') %}
+    <form method="POST" action="{{ url_for('workflow.add_checklist_template') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group"><input class="form-control form-control-sm" name="name" maxlength="150" required placeholder="{{ _('Template name') }}"></div>
+        <div class="form-group"><input class="form-control form-control-sm" name="degree_course" maxlength="120" placeholder="{{ _('Degree course (empty = generic)') }}"></div>
+        <div class="form-group"><textarea class="form-control form-control-sm" name="items" rows="8" required placeholder="{{ _('One step per line, optionally followed by | and the number of days before the defense') }}&#10;Submit the application | 60&#10;Upload the final PDF | 14"></textarea></div>
+        <button class="btn btn-primary btn-sm btn-block">{{ _('Create') }}</button>
+    </form>
+    {% endcall %}
+</div>
+</div>
+{% endblock %}

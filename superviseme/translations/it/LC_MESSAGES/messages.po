@@ -3696,3 +3696,87 @@ msgstr "Persone"
 
 msgid "Reviews"
 msgstr "Revisioni"
+
+msgid "A name and at least one step are required."
+msgstr "Servono un nome e almeno un passaggio."
+
+msgid "Template created."
+msgstr "Template creato."
+
+msgid "Template deleted."
+msgstr "Template eliminato."
+
+msgid "%(n)d steps added."
+msgstr "%(n)d passaggi aggiunti."
+
+msgid "Invalid date."
+msgstr "Data non valida."
+
+msgid "Checklist settings saved."
+msgstr "Impostazioni della checklist salvate."
+
+msgid "A title is required."
+msgstr "Il titolo è obbligatorio."
+
+msgid "Graduation checklist"
+msgstr "Checklist di laurea"
+
+msgid "Set up"
+msgstr "Configura"
+
+msgid "Defense"
+msgstr "Discussione"
+
+msgid "Defense date"
+msgstr "Data di discussione"
+
+msgid "Degree course"
+msgstr "Corso di laurea"
+
+msgid "Apply template"
+msgstr "Applica template"
+
+msgid "Custom step"
+msgstr "Passaggio personalizzato"
+
+msgid "Toggle step"
+msgstr "Cambia stato del passaggio"
+
+msgid "No graduation steps yet"
+msgstr "Nessun passaggio di laurea"
+
+msgid "Apply a template to list the administrative steps to complete before the defense."
+msgstr "Applica un template per elencare i passaggi amministrativi da completare prima della discussione."
+
+msgid "Graduation checklists"
+msgstr "Checklist di laurea"
+
+msgid "Templates of administrative steps, per degree course"
+msgstr "Template di passaggi amministrativi, per corso di laurea"
+
+msgid "Templates"
+msgstr "Template"
+
+msgid "Delete this template?"
+msgstr "Eliminare questo template?"
+
+msgid "%(n)d days before the defense"
+msgstr "%(n)d giorni prima della discussione"
+
+msgid "No templates yet"
+msgstr "Nessun template"
+
+msgid "New template"
+msgstr "Nuovo template"
+
+msgid "Template name"
+msgstr "Nome del template"
+
+msgid "Degree course (empty = generic)"
+msgstr "Corso di laurea (vuoto = generico)"
+
+msgid "One step per line, optionally followed by | and the number of days before the defense"
+msgstr "Un passaggio per riga, opzionalmente seguito da | e dal numero di giorni prima della discussione"
+
+msgid "Create"
+msgstr "Crea"

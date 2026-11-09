@@ -13,6 +13,7 @@ from superviseme import db
 from superviseme.models import (
     ReminderLog,
     Thesis,
+    Thesis_Checklist_Item,
     Thesis_Milestone,
     Thesis_Supervisor,
     Todo,
@@ -54,7 +55,7 @@ def _thesis_people(thesis):
 
 def run_reminders(now=None, inactive_days=14):
     now = int(now or time.time())
-    sent = {"todo": 0, "milestone": 0, "inactive": 0, "meeting": 0}
+    sent = {"todo": 0, "milestone": 0, "checklist": 0, "inactive": 0, "meeting": 0}
 
     # --- tasks: due within 48h, or overdue ------------------------------------------------
     for todo in Todo.query.filter(Todo.status == "pending", Todo.due_date.isnot(None)).all():
@@ -88,6 +89,25 @@ def run_reminders(now=None, inactive_days=14):
         due = datetime.utcfromtimestamp(m.due_date).strftime("%d %b %Y")
         for uid in _thesis_people(thesis):
             sent["milestone"] += _notify(uid, "milestone", m.id, bucket, f"Milestone {label}: {m.title}", f"Due {due} — thesis \"{thesis.title}\".", thesis.id)
+
+    # --- graduation checklist: same buckets as milestones --------------------------------
+    for item in Thesis_Checklist_Item.query.filter(Thesis_Checklist_Item.status == "pending",
+                                                   Thesis_Checklist_Item.due_date.isnot(None)).all():
+        thesis = Thesis.query.get(item.thesis_id)
+        if not thesis or thesis.frozen:
+            continue
+        left = item.due_date - now
+        if left < 0:
+            bucket, label = "late", "is overdue"
+        elif left <= DAY:
+            bucket, label = "day", "is due tomorrow"
+        elif left <= 7 * DAY:
+            bucket, label = "week", "is due within a week"
+        else:
+            continue
+        due = datetime.utcfromtimestamp(item.due_date).strftime("%d %b %Y")
+        for uid in _thesis_people(thesis):
+            sent["checklist"] += _notify(uid, "checklist", item.id, bucket, f"Graduation step {label}: {item.title}", f"Due {due} — thesis \"{thesis.title}\".", thesis.id)
 
     # --- inactive students: tell supervisors once per ISO week ---------------------------
     iso = datetime.utcfromtimestamp(now).isocalendar()

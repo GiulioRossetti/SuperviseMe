@@ -1,0 +1,61 @@
+{# End-of-thesis checklist. Expects: thesis, mm_role, mm_next. #}
+{% set can_edit = mm_role in ('admin', 'supervisor') %}
+{% set items = thesis.checklist %}
+{% set done_n = items|selectattr('status', 'equalto', 'done')|list|length %}
+<div class="dash-panel" id="checklist">
+    <header>
+        <h6><i class="fas fa-graduation-cap"></i> {{ _('Graduation checklist') }}{% if items %} <span class="text-muted small">· {{ done_n }}/{{ items|length }}</span>{% endif %}</h6>
+        {% if can_edit %}<button class="btn btn-outline-primary btn-sm" data-toggle="collapse" data-target="#clSet"><i class="fas fa-cog"></i> {{ _('Set up') }}</button>{% endif %}
+    </header>
+    <div class="dash-panel-body">
+        {% if thesis.defense_date %}<div class="small text-muted mb-2"><i class="fas fa-flag"></i> {{ _('Defense') }}: <strong>{{ dt(thesis.defense_date).strftime('%d %b %Y') }}</strong>{% if thesis.degree_course %} · {{ thesis.degree_course }}{% endif %}</div>{% endif %}
+        {% if can_edit %}
+        <div class="collapse mb-3" id="clSet">
+            <form method="POST" action="{{ url_for('workflow.checklist_settings', thesis_id=thesis.id) }}" class="form-row mb-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ mm_next }}#checklist">
+                <div class="col-md-4 mb-2"><input class="form-control form-control-sm" type="date" name="defense_date" value="{{ dt(thesis.defense_date).strftime('%Y-%m-%d') if thesis.defense_date else '' }}" title="{{ _('Defense date') }}"></div>
+                <div class="col-md-5 mb-2"><input class="form-control form-control-sm" name="degree_course" maxlength="120" value="{{ thesis.degree_course or '' }}" placeholder="{{ _('Degree course') }}"></div>
+                <div class="col-md-3 mb-2"><button class="btn btn-sm btn-primary btn-block">{{ _('Save') }}</button></div>
+            </form>
+            {% set tpls = checklist_templates_for(thesis) %}
+            {% if tpls %}
+            <form method="POST" action="{{ url_for('workflow.apply_checklist_template', thesis_id=thesis.id) }}" class="form-row mb-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ mm_next }}#checklist">
+                <div class="col-md-9 mb-2"><select class="form-control form-control-sm" name="template_id">{% for t in tpls %}<option value="{{ t.id }}">{{ t.name }}{% if t.degree_course %} ({{ t.degree_course }}){% endif %}</option>{% endfor %}</select></div>
+                <div class="col-md-3 mb-2"><button class="btn btn-sm btn-outline-primary btn-block">{{ _('Apply template') }}</button></div>
+            </form>
+            {% endif %}
+            <form method="POST" action="{{ url_for('workflow.add_checklist_item', thesis_id=thesis.id) }}" class="form-row">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ mm_next }}#checklist">
+                <div class="col-md-6 mb-2"><input class="form-control form-control-sm" name="title" maxlength="200" required placeholder="{{ _('Custom step') }}"></div>
+                <div class="col-md-3 mb-2"><input class="form-control form-control-sm" type="date" name="due_date"></div>
+                <div class="col-md-3 mb-2"><button class="btn btn-sm btn-outline-primary btn-block">{{ _('Add') }}</button></div>
+            </form>
+        </div>
+        {% endif %}
+        {% if items %}
+        <div class="progress mb-3" style="height:.45rem"><div class="progress-bar bg-success" style="width: {{ 100 * done_n / items|length }}%"></div></div>
+        <ul class="ms-list">
+            {% for i in items %}
+            {% set late = i.status == 'pending' and i.due_date and i.due_date < now_ts %}
+            <li class="{{ 'is-done' if i.status == 'done' }} {{ 'is-late' if late }}">
+                <form method="POST" action="{{ url_for('workflow.toggle_checklist_item', item_id=i.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ mm_next }}#checklist">
+                    <button type="submit" class="ms-dot" aria-label="{{ _('Toggle step') }}"><i class="fas fa-check"></i></button>
+                </form>
+                <div class="ms-body"><strong>{{ i.title }}</strong></div>
+                {% if i.due_date %}<span class="ms-date {{ 'late' if late }}"><i class="far fa-calendar"></i> {{ dt(i.due_date).strftime('%d %b %Y') }}</span>{% endif %}
+                {% if can_edit %}
+                <form method="POST" action="{{ url_for('workflow.delete_checklist_item', item_id=i.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ mm_next }}#checklist">
+                    <button type="submit" class="btn btn-link btn-sm text-muted p-0" aria-label="{{ _('Delete') }}"><i class="fas fa-trash-alt"></i></button>
+                </form>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+            <div class="dash-empty"><i class="fas fa-graduation-cap"></i>{{ _('No graduation steps yet') }}<small>{{ _('Apply a template to list the administrative steps to complete before the defense.') }}</small></div>
+        {% endif %}
+    </div>
+</div>
