@@ -1,105 +1,90 @@
-<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+<ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
 
-            <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
-                <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-laugh-wink"></i>
-                </div>
-                <div class="sidebar-brand-text mx-3">SuperviseMe</div>
-            </a>
+    <!-- Brand -->
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('admin.dashboard') }}">
+        <div class="sidebar-brand-icon">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">SuperviseMe</div>
+    </a>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider my-0">
+    <hr class="sidebar-divider my-0">
 
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item active">
-                <a class="nav-link" href="/admin/dashboard">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span></a>
-            </li>
+    <!-- Dashboard -->
+    <li class="nav-item active">
+        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+            <i class="fas fa-fw fa-chart-pie"></i>
+            <span>Dashboard</span>
+        </a>
+    </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider">
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">Management</div>
 
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Views
-            </div>
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('admin.users') }}">
+            <i class="fas fa-fw fa-users"></i>
+            <span>Users</span>
+        </a>
+    </li>
 
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item active">
-                <a class="nav-link" href="/admin/users">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Users</span></a>
-            </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('admin.theses') }}">
+            <i class="fas fa-fw fa-book-open"></i>
+            <span>Theses</span>
+        </a>
+    </li>
 
-            <li class="nav-item active">
-                <a class="nav-link" href="/admin/theses">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Theses</span></a>
-            </li>
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">System</div>
 
-            <!-- Divider -->
-
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
-                    aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>System</span>
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSystem"
+            aria-expanded="false" aria-controls="collapseSystem">
+            <i class="fas fa-fw fa-cogs"></i>
+            <span>Settings</span>
+        </a>
+        <div id="collapseSystem" class="collapse" aria-labelledby="headingSystem" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <a class="collapse-item" href="{{ url_for('admin.theses_settings') }}">
+                    <i class="fas fa-fw fa-sliders-h"></i> General Settings
                 </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="/admin/theses_settings">General Settings</a>
-                        <a class="collapse-item" href="/admin/notify_settings">Annotation & Notification</a>
-                        <a class="collapse-item" href="/admin/notifications">Weekly Email Reports</a>
-                        <a class="collapse-item" href="/admin/misc">Miscellanea</a>
-                    </div>
-                </div>
-            </li>
-
-            <hr class="sidebar-divider">
-
-            <div class="sidebar-heading">
-                Account
-            </div>
-
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('profile.profile_page') }}">
-                    <i class="fas fa-fw fa-user"></i>
-                    <span>Profile</span>
+                <a class="collapse-item" href="{{ url_for('admin.notify_settings') }}">
+                    <i class="fas fa-fw fa-bell"></i> Notifications
                 </a>
-            </li>
-
-            {% if current_user.orcid_id %}
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('profile.orcid_publications') }}">
-                    <i class="fab fa-fw fa-orcid"></i>
-                    <span>ORCID Publications</span>
+                <a class="collapse-item" href="{{ url_for('admin.notifications') }}">
+                    <i class="fas fa-fw fa-envelope"></i> Email Reports
                 </a>
-            </li>
-            {% endif %}
-
-            <!-- Nav Item - Charts
-            <li class="nav-item">
-                <a class="nav-link" href="charts.html">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Charts</span></a>
-            </li>
-            -->
-            <!-- Nav Item - Tables
-            <li class="nav-item">
-                <a class="nav-link" href="tables.html">
-                    <i class="fas fa-fw fa-table"></i>
-                    <span>Tables</span></a>
-            </li>
-            -->
-            <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">
-
-            <!-- Sidebar Toggler (Sidebar) -->
-            <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+                <a class="collapse-item" href="{{ url_for('admin.misc') }}">
+                    <i class="fas fa-fw fa-tools"></i> Miscellaneous
+                </a>
             </div>
+        </div>
+    </li>
 
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">Account</div>
 
-        </ul>
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('profile.profile_page') }}">
+            <i class="fas fa-fw fa-user-circle"></i>
+            <span>Profile</span>
+        </a>
+    </li>
+
+    {% if current_user.orcid_id %}
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('profile.orcid_publications') }}">
+            <i class="fab fa-fw fa-orcid"></i>
+            <span>ORCID Publications</span>
+        </a>
+    </li>
+    {% endif %}
+
+    <hr class="sidebar-divider d-none d-md-block">
+
+    <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+    </div>
+
+</ul>

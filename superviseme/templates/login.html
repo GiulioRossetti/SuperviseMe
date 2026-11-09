@@ -5,181 +5,368 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="description" content="SuperviseMe Login">
-    <meta name="author" content="SuperviseMe Team">
+    <title>SuperviseMe — Sign In</title>
 
-    <title>SuperviseMe - Login</title>
-
-    <!-- Custom fonts for this template-->
-    <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
-
-    <!-- Custom styles for this template-->
-    <link href="{{ url_for('static', filename='assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
+    <!-- Icons & Fonts -->
+    <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary:       #4f46e5;
+            --primary-dark:  #3730a3;
+            --primary-light: #818cf8;
+            --success:       #10b981;
+            --danger:        #ef4444;
+            --text:          #0f172a;
+            --text-muted:    #64748b;
+            --border:        #e2e8f0;
+            --surface:       #ffffff;
+            --surface-alt:   #f8fafc;
+        }
+
         body {
-            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-            height: 100vh;
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 70%, #4f46e5 100%);
+            padding: 1rem;
+            -webkit-font-smoothing: antialiased;
         }
-        .card {
-            border: none;
-            border-radius: 1rem;
-            box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.1);
+
+        /* Animated background blobs */
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.35;
+            pointer-events: none;
+            animation: float 8s ease-in-out infinite;
+        }
+        body::before {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, #818cf8, transparent);
+            top: -100px; left: -100px;
+        }
+        body::after {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, #06b6d4, transparent);
+            bottom: -80px; right: -80px;
+            animation-delay: -4s;
+        }
+        @keyframes float {
+            0%, 100% { transform: translate(0,0) scale(1); }
+            50%       { transform: translate(20px, -20px) scale(1.05); }
+        }
+
+        /* Card */
+        .login-card {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            background: var(--surface);
+            border-radius: 1.25rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,.35);
+            display: flex;
+            overflow: hidden;
+            animation: cardIn 0.5s cubic-bezier(.16,1,.3,1) both;
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to   { opacity: 1; transform: none; }
+        }
+
+        /* Left panel — illustration */
+        .login-panel {
+            flex: 0 0 45%;
+            background: linear-gradient(160deg, #3730a3 0%, #4f46e5 60%, #818cf8 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+            position: relative;
             overflow: hidden;
         }
-        .bg-login-image {
-            background-color: #f8f9fc;
+        .login-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .login-panel-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+        .login-panel .brand-icon {
+            width: 80px; height: 80px;
+            background: rgba(255,255,255,.15);
+            border-radius: 1.5rem;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,.2);
+        }
+        .login-panel .brand-icon i {
+            font-size: 2.2rem;
+            color: #fff;
+        }
+        .login-panel h1 {
+            font-size: 1.8rem; font-weight: 800; color: #fff; letter-spacing: -0.04em; line-height: 1.2;
+            margin-bottom: 0.75rem;
+        }
+        .login-panel p {
+            font-size: 0.9rem; color: rgba(255,255,255,.7); line-height: 1.6;
+        }
+        .login-panel .feature-list {
+            list-style: none;
+            margin-top: 2rem;
+            text-align: left;
+        }
+        .login-panel .feature-list li {
+            display: flex; align-items: center; gap: 0.6rem;
+            color: rgba(255,255,255,.8);
+            font-size: 0.82rem; font-weight: 500;
+            margin-bottom: 0.6rem;
+        }
+        .login-panel .feature-list li i {
+            color: #a5f3fc; font-size: 0.85rem; flex-shrink: 0;
+        }
+
+        /* Right panel — form */
+        .login-form-wrap {
+            flex: 1;
+            padding: 3rem 2.5rem;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
-            padding: 2rem;
         }
-        .bg-login-image img {
-            max-width: 100%;
-            height: auto;
-            max-height: 300px;
+        .login-form-wrap .form-title {
+            font-size: 1.5rem; font-weight: 800; color: var(--text);
+            letter-spacing: -0.04em; margin-bottom: 0.4rem;
         }
-        .form-control-user {
-            border-radius: 2rem;
-            padding: 1.5rem 1rem;
-            font-size: 0.9rem;
+        .login-form-wrap .form-subtitle {
+            font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem;
         }
-        .btn-user {
-            border-radius: 2rem;
-            padding: 0.75rem 1rem;
-            font-size: 0.9rem;
-            font-weight: 600;
+
+        /* Flash message */
+        .alert {
+            border-radius: 0.6rem; padding: 0.75rem 1rem;
+            font-size: 0.82rem; font-weight: 500;
+            border: none; margin-bottom: 1.25rem;
         }
-        .btn-google {
-            background-color: #ea4335;
-            color: white;
+        .alert-danger { background: #fee2e2; color: #991b1b; }
+
+        /* Form groups */
+        .field-group { margin-bottom: 1.1rem; }
+        .field-group label {
+            display: block; font-size: 0.78rem; font-weight: 600;
+            color: var(--text); margin-bottom: 0.4rem; letter-spacing: 0.02em;
+        }
+        .field-group .input-wrap { position: relative; }
+        .field-group .input-icon {
+            position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 0.85rem; pointer-events: none;
+        }
+        .field-group input {
+            width: 100%;
+            padding: 0.65rem 0.9rem 0.65rem 2.4rem;
+            border: 1px solid var(--border);
+            border-radius: 0.6rem;
+            font-size: 0.85rem;
+            font-family: inherit;
+            color: var(--text);
+            background: var(--surface-alt);
+            transition: border-color .15s, box-shadow .15s, background .15s;
+            outline: none;
+        }
+        .field-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79,70,229,.12);
+            background: var(--surface);
+        }
+        .field-group input::placeholder { color: #94a3b8; }
+
+        /* Remember me */
+        .remember-row {
+            display: flex; align-items: center; gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .remember-row input[type=checkbox] {
+            width: 1rem; height: 1rem; accent-color: var(--primary); cursor: pointer;
+        }
+        .remember-row label {
+            font-size: 0.8rem; color: var(--text-muted); cursor: pointer; margin: 0;
+        }
+
+        /* Buttons */
+        .btn-login {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary);
+            color: #fff;
             border: none;
-        }
-        .btn-google:hover {
-            background-color: #d62516;
-            color: white;
-        }
-        .btn-orcid {
-            background-color: #A6CE39;
-            color: white;
-            border: none;
-        }
-        .btn-orcid:hover {
-            background-color: #8fb826;
-            color: white;
-        }
-        .custom-control-input:checked ~ .custom-control-label::before {
-            background-color: #4e73df;
-            border-color: #4e73df;
-        }
-        h1 {
-            color: #4e73df;
+            border-radius: 0.6rem;
+            font-size: 0.88rem;
             font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            letter-spacing: 0.01em;
+            transition: background .15s, transform .15s, box-shadow .15s;
+        }
+        .btn-login:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(79,70,229,.35);
+        }
+        .btn-login:active { transform: none; }
+
+        .divider {
+            display: flex; align-items: center; gap: 0.75rem;
+            margin: 1.25rem 0; color: var(--text-muted); font-size: 0.75rem;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        .btn-oauth {
+            width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+            padding: 0.65rem;
+            border-radius: 0.6rem;
+            font-size: 0.84rem; font-weight: 600;
+            font-family: inherit; cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            transition: background .12s, border-color .12s, box-shadow .12s;
+            margin-bottom: 0.6rem;
+            text-decoration: none;
+        }
+        .btn-oauth:hover {
+            background: var(--surface-alt);
+            border-color: #cbd5e1;
+            box-shadow: 0 2px 8px rgba(0,0,0,.07);
+            text-decoration: none; color: var(--text);
+        }
+        .btn-oauth.google i { color: #ea4335; }
+        .btn-oauth.orcid  i { color: #A6CE39; }
+
+        /* Links */
+        .login-links {
+            display: flex; justify-content: space-between;
+            margin-top: 1.25rem;
+        }
+        .login-links a {
+            font-size: 0.78rem; color: var(--text-muted); text-decoration: none; transition: color .12s;
+        }
+        .login-links a:hover { color: var(--primary); }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .login-panel { display: none; }
+            .login-form-wrap { padding: 2rem 1.5rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
         }
     </style>
 </head>
 
 <body>
+    <div class="login-card">
 
-    <div class="container">
+        <!-- Left: Brand panel -->
+        <div class="login-panel">
+            <div class="login-panel-content">
+                <div class="brand-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h1>SuperviseMe</h1>
+                <p>Thesis management platform for supervisors, researchers and students.</p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check-circle"></i> Track thesis progress in real time</li>
+                    <li><i class="fas fa-check-circle"></i> Collaborate with supervisors</li>
+                    <li><i class="fas fa-check-circle"></i> Manage objectives &amp; milestones</li>
+                    <li><i class="fas fa-check-circle"></i> ORCID &amp; Google login supported</li>
+                </ul>
+            </div>
+        </div>
 
-        <!-- Outer Row -->
-        <div class="row justify-content-center w-100">
+        <!-- Right: Form -->
+        <div class="login-form-wrap">
+            <p class="form-title">Welcome back</p>
+            <p class="form-subtitle">Sign in to your account to continue</p>
 
-            <div class="col-xl-10 col-lg-12 col-md-9">
+            <form method="POST" action="{{ url_for('auth.login_post') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                <div class="card o-hidden border-0 shadow-lg my-5">
-                    <div class="card-body p-0">
-                        <!-- Nested Row within Card Body -->
-                        <div class="row">
-                            <div class="col-lg-6 d-none d-lg-flex bg-login-image">
-                                <img src="{{ url_for('static', filename='assets/img/superviseme.png') }}" alt="SuperviseMe Logo">
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="p-5">
-                                    <div class="text-center">
-                                        <h1 class="h4 mb-4">Welcome Back!</h1>
-                                    </div>
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-circle mr-1"></i> {{ messages[0] }}
+                    </div>
+                    {% endif %}
+                {% endwith %}
 
-                                    <form class="user" method="POST" action="{{ url_for('auth.login_post') }}">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        {% with messages = get_flashed_messages() %}
-                                            {% if messages %}
-                                            <div class="alert alert-danger" role="alert">
-                                                {{ messages[0] }}
-                                            </div>
-                                            {% endif %}
-                                        {% endwith %}
-                                        <div class="form-group">
-                                            <input type="email" class="form-control form-control-user"
-                                                id="exampleInputEmail" aria-describedby="emailHelp" name="email"
-                                                placeholder="Enter Email Address..." required>
-                                        </div>
-                                        <div class="form-group">
-                                            <input type="password" class="form-control form-control-user"
-                                                id="exampleInputPassword" placeholder="Password" name="password" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <div class="custom-control custom-checkbox small">
-                                                <input type="checkbox" class="custom-control-input" id="remember" name="remember">
-                                                <label class="custom-control-label" for="remember">Remember Me</label>
-                                            </div>
-                                        </div>
-                                        <button class="btn btn-primary btn-user btn-block">
-                                            Login
-                                        </button>
-
-                                        {% if google_enabled or orcid_enabled %}
-                                        <hr>
-                                        {% endif %}
-
-                                        {% if google_enabled %}
-                                        <a href="{{ url_for('auth.google_login') }}" class="btn btn-google btn-user btn-block">
-                                            <i class="fab fa-google fa-fw"></i> Login with Google
-                                        </a>
-                                        {% endif %}
-
-                                        {% if orcid_enabled %}
-                                        <a href="{{ url_for('auth.orcid_login') }}" class="btn btn-orcid btn-user btn-block">
-                                            <i class="fab fa-orcid fa-fw"></i> Login with ORCID
-                                        </a>
-                                        {% endif %}
-
-                                    </form>
-
-                                    <hr>
-                                    <div class="text-center">
-                                        <a class="small" href="forgot-password.html">Forgot Password?</a>
-                                    </div>
-                                    <div class="text-center mt-2">
-                                        <a class="small" href="{{ url_for('public.public_thesis_dashboard') }}">Browse public thesis opportunities</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div class="field-group">
+                    <label for="login-email">Email address</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" id="login-email" name="email"
+                               placeholder="you@institution.edu" required autocomplete="email">
                     </div>
                 </div>
 
-            </div>
+                <div class="field-group">
+                    <label for="login-password">Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input type="password" id="login-password" name="password"
+                               placeholder="Your password" required autocomplete="current-password">
+                    </div>
+                </div>
 
+                <div class="remember-row">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Remember me for 30 days</label>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-sign-in-alt mr-1"></i> Sign In
+                </button>
+
+                {% if google_enabled or orcid_enabled %}
+                <div class="divider">or continue with</div>
+                {% endif %}
+
+                {% if google_enabled %}
+                <a href="{{ url_for('auth.google_login') }}" class="btn-oauth google">
+                    <i class="fab fa-google"></i> Sign in with Google
+                </a>
+                {% endif %}
+
+                {% if orcid_enabled %}
+                <a href="{{ url_for('auth.orcid_login') }}" class="btn-oauth orcid">
+                    <i class="fab fa-orcid"></i> Sign in with ORCID
+                </a>
+                {% endif %}
+
+                <div class="login-links">
+                    <a href="{{ url_for('public.public_thesis_dashboard') }}">
+                        <i class="fas fa-search mr-1"></i>Browse thesis opportunities
+                    </a>
+                    <a href="forgot-password.html">Forgot password?</a>
+                </div>
+            </form>
         </div>
-
     </div>
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js' ) }}"></script>
-
 </body>
-
 </html>
