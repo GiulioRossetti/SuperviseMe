@@ -1,25 +1,58 @@
 site_name: SuperviseMe
 site_url: https://giuliorossetti.github.io/SuperviseMe/
-site_description: SuperviseMe - your friendly thesis supervision dashboard.
+site_description: SuperviseMe — your intelligent thesis supervision platform.
 site_author: Giulio Rossetti
+repo_url: https://github.com/GiulioRossetti/SuperviseMe
+repo_name: GiulioRossetti/SuperviseMe
+edit_uri: edit/main/docs/
 
 theme:
   name: material
+  logo: assets/img/logo.svg
+  favicon: assets/img/logo.svg
+  font:
+    text: Inter
+    code: JetBrains Mono
   features:
+    - navigation.instant
+    - navigation.instant.progress
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
     - navigation.expand
-    - toc.integrate
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - announce.dismiss
   palette:
     - scheme: default
-      primary: teal
-      accent: purple
-    - scheme: slate
-      primary: teal
-      accent: lime
+      primary: deep purple
+      accent: amber
       toggle:
-        icon: material/brightness-4
+        icon: material/weather-night
         name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/GiulioRossetti/SuperviseMe
+  generator: false
+
+extra_css:
+  - stylesheets/extra.css
 
 nav:
   - Home: index.md
@@ -29,24 +62,40 @@ nav:
     - Database: database_setup.md
     - Social Logins: social_login.md
     - Telegram Setup: telegram_setup.md
-  #  - Telegram (Detailed): telegram_setup_detailed.md
   - Deployment:
     - Docker: docker_deployment.md
- #   - Docker (Detailed): docker_readme.md
     - Runbook: deployment_runbook.md
-  #  - Runbook (Detailed): deployment_runbook_detailed.md
-  #  - Readiness Report: deployment_readiness_report.md
-  #- Reference:
-  #  - Dropdown Verification: dropdown_verification.md
-  #  - Implementation Summary: implementation_summary.md
-  #  - UI Changes: ui_changes.md
+  - API:
+    - REST API v1: api.md
+  - Guides:
+    - i18n & Multilingual: i18n.md
 
 plugins:
-  - search
+  - search:
+      lang: en
 
 markdown_extensions:
   - admonition
+  - attr_list
+  - md_in_html
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - toc:
+      permalink: true

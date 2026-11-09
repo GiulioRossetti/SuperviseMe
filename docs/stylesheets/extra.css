@@ -1,0 +1,134 @@
+/* ── SuperviseMe custom theme ───────────────────────────────────────────── */
+
+/* Inter font – already pulled by MkDocs Material, just reinforce it */
+:root {
+  --md-text-font: "Inter", sans-serif;
+  --sm-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%);
+  --sm-accent: #fbbf24;
+}
+
+/* ── Hero header on the home page ──────────────────────────────────────── */
+.sm-hero {
+  background: var(--sm-gradient);
+  border-radius: 1rem;
+  padding: 3rem 2rem 2.5rem;
+  text-align: center;
+  margin-bottom: 2.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(79, 70, 229, 0.25);
+}
+
+.sm-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(251,191,36,.12) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(167,139,250,.18) 0%, transparent 55%);
+  pointer-events: none;
+}
+
+.sm-hero img {
+  width: 90px;
+  height: 90px;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,.35));
+}
+
+.sm-hero h1 {
+  color: #fff !important;
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -.5px;
+  margin: 0 0 .5rem;
+}
+
+.sm-hero p {
+  color: rgba(255,255,255,.85);
+  font-size: 1.1rem;
+  margin: 0 0 1.75rem;
+  max-width: 56ch;
+  margin-inline: auto;
+}
+
+/* CTA buttons inside hero */
+.sm-hero .sm-cta { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+.sm-cta a {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .6rem 1.4rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  font-size: .9rem;
+  text-decoration: none;
+  transition: transform .15s, box-shadow .15s;
+}
+.sm-cta a:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+.sm-cta .sm-btn-primary { background: var(--sm-accent); color: #1e1b4b; }
+.sm-cta .sm-btn-secondary { background: rgba(255,255,255,.18); color: #fff; border: 1px solid rgba(255,255,255,.35); backdrop-filter: blur(4px); }
+
+/* ── Feature cards grid ─────────────────────────────────────────────────── */
+.sm-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.1rem;
+  margin: 2rem 0;
+}
+
+.sm-card {
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: .75rem;
+  padding: 1.4rem 1.4rem 1.2rem;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.sm-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--sm-gradient);
+  opacity: 0;
+  transition: opacity .2s;
+  pointer-events: none;
+}
+
+.sm-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(79,70,229,.18);
+  border-color: #818cf8;
+}
+.sm-card:hover::after { opacity: .04; }
+
+.sm-card-icon { font-size: 2rem; margin-bottom: .65rem; display: block; }
+.sm-card h3 { margin: 0 0 .4rem; font-size: 1rem; font-weight: 700; }
+.sm-card p  { margin: 0; font-size: .88rem; color: var(--md-default-fg-color--light); line-height: 1.55; }
+
+/* ── Badge pills ────────────────────────────────────────────────────────── */
+.sm-badge {
+  display: inline-block;
+  padding: .15rem .6rem;
+  border-radius: 2rem;
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1.6;
+  margin-right: .3rem;
+  margin-bottom: .3rem;
+  background: rgba(79,70,229,.12);
+  color: #818cf8;
+  border: 1px solid rgba(129,140,248,.3);
+}
+
+/* ── Dark mode tweaks ───────────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] .sm-card {
+  background: rgba(255,255,255,.04);
+  border-color: rgba(255,255,255,.08);
+}
+[data-md-color-scheme="slate"] .sm-card:hover { border-color: #818cf8; }
+
+/* ── Navigation accent ──────────────────────────────────────────────────── */
+.md-tabs__link--active,
+.md-tabs__link:hover {
+  color: var(--sm-accent) !important;
+}
