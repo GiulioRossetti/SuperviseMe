@@ -4,6 +4,7 @@ import time
 from superviseme.models import OrcidActivity
 from superviseme import db
 from flask import current_app
+from superviseme.utils.crypto import decrypt_token
 
 ORCID_API_BASE = "https://pub.orcid.org/v3.0"
 
@@ -175,7 +176,7 @@ def fetch_orcid_activities(user):
 
     headers = {"Accept": "application/json"}
     if user.orcid_access_token:
-        headers["Authorization"] = f"Bearer {user.orcid_access_token}"
+        headers["Authorization"] = f"Bearer {decrypt_token(user.orcid_access_token)}"
 
     all_activities = []
     errors = []

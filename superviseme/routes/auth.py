@@ -8,6 +8,7 @@ from superviseme.utils.logging_config import log_login_attempt, log_logout, log_
 import time
 import os
 from urllib.parse import urljoin
+from superviseme.utils.crypto import encrypt_token, decrypt_token
 
 auth = Blueprint("auth", __name__)
 
@@ -222,9 +223,9 @@ def orcid_callback():
             return redirect(url_for("profile.orcid_publications"))
 
         linking_user.orcid_id = orcid_id
-        linking_user.orcid_access_token = token.get("access_token")
+        linking_user.orcid_access_token = encrypt_token(token.get("access_token"))
         if token.get("refresh_token"):
-            linking_user.orcid_refresh_token = token.get("refresh_token")
+            linking_user.orcid_refresh_token = encrypt_token(token.get("refresh_token"))
         db.session.commit()
         flash("ORCID account linked successfully.", "success")
         if link_next == "profile.orcid_publications":
@@ -264,8 +265,8 @@ def orcid_callback():
             user_type="student",  # Default to student
             joined_on=int(time.time()),
             orcid_id=orcid_id,
-            orcid_access_token=token.get('access_token'),
-            orcid_refresh_token=token.get('refresh_token'),
+            orcid_access_token=encrypt_token(token.get('access_token')),
+            orcid_refresh_token=encrypt_token(token.get('refresh_token')),
             is_enabled=False  # Disabled by default — awaiting admin approval
         )
         db.session.add(new_user)
@@ -277,9 +278,9 @@ def orcid_callback():
 
     else:
         # Update tokens on login
-        user.orcid_access_token = token.get('access_token')
+        user.orcid_access_token = encrypt_token(token.get('access_token'))
         if token.get('refresh_token'):
-            user.orcid_refresh_token = token.get('refresh_token')
+            user.orcid_refresh_token = encrypt_token(token.get('refresh_token'))
         db.session.commit()
 
         # Check if enabled

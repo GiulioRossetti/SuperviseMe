@@ -1,4 +1,5 @@
 from flask_login import UserMixin
+from sqlalchemy import CheckConstraint
 
 from . import db
 
@@ -12,7 +13,15 @@ class User_mgmt(UserMixin, db.Model):
     cdl = db.Column(db.String(15))
     email = db.Column(db.String(50), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)
-    user_type = db.Column(db.String(10), nullable=False, default="student")
+    user_type = db.Column(
+        db.String(10),
+        db.CheckConstraint(
+            "user_type IN ('admin', 'supervisor', 'student', 'researcher')",
+            name="ck_user_mgmt_user_type",
+        ),
+        nullable=False,
+        default="student",
+    )
     joined_on = db.Column(db.Integer, nullable=False)
     gender = db.Column(db.String(10), default=None)
     nationality = db.Column(db.String(15), default=None)
