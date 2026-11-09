@@ -120,9 +120,9 @@ function renderFallbackTable(usersData) {
       <td>
         ${user.user_type === 'researcher'
           ? (user.has_supervisor_privileges
-              ? '<span class="badge badge-success">Enabled</span>'
+              ? '<span class="badge badge-success">{{ _('Enabled') }}</span>'
               : '<span class="badge badge-secondary">No</span>')
-          : '<span class="text-muted">N/A</span>'}
+          : '<span class="text-muted">{{ _('N/A') }}</span>'}
       </td>
       <td>
         <span class="badge ${user.is_enabled ? 'badge-success' : 'badge-warning'}">
@@ -138,7 +138,7 @@ function renderFallbackTable(usersData) {
       </td>
       <td>
         <div style="display: flex; gap: 8px; justify-content: center;">
-          <a href="/admin/user/${user.id}" class="btn btn-success btn-sm">Details</a>
+          <a href="/admin/user/${user.id}" class="btn btn-success btn-sm">{{ _('Details') }}</a>
           <button class="btn btn-danger btn-sm delete-button" data-id="${user.id}">Delete</button>
         </div>
       </td>
@@ -226,11 +226,11 @@ try {
               const userType = row.cells[7].data;
               const hasPrivileges = row.cells[3].data;
               if (userType !== 'researcher') {
-                return gridjs.html('<span class="text-muted">N/A</span>');
+                return gridjs.html('<span class="text-muted">{{ _('N/A') }}</span>');
               }
               return gridjs.html(
                 hasPrivileges
-                  ? '<span class="badge badge-success">Enabled</span>'
+                  ? '<span class="badge badge-success">{{ _('Enabled') }}</span>'
                   : '<span class="badge badge-secondary">No</span>'
               );
             }
@@ -470,10 +470,10 @@ try {
                                             <div class="col-sm-4 mb-3 mb-sm-0">
                                                 Role
                                                 <select name="role" class="form-control form-select form-select-user">
-                                                    <option value="admin">Admin</option>
-                                                    <option value="supervisor">Supervisor</option>
-                                                    <option value="researcher">Researcher</option>
-                                                    <option value="student">Student</option>
+                                                    <option value="admin">{{ _('Admin') }}</option>
+                                                    <option value="supervisor">{{ _('Supervisor') }}</option>
+                                                    <option value="researcher">{{ _('Researcher') }}</option>
+                                                    <option value="student">{{ _('Student') }}</option>
                                                 </select>
 
                                             </div>
@@ -489,10 +489,10 @@ try {
                                                 Degree Enrolled
                                                 <select name="cdl" class="form-control form-select form-select-user">
                                                     <option value=""></option>
-                                                    <option value="computer science">Computer Science</option>
-                                                    <option value="data science">Data Science</option>
-                                                    <option value="digital humanities">Digital Humanities</option>
-                                                    <option value="physics">Physics</option>
+                                                    <option value="computer science">{{ _('Computer Science') }}</option>
+                                                    <option value="data science">{{ _('Data Science') }}</option>
+                                                    <option value="digital humanities">{{ _('Digital Humanities') }}</option>
+                                                    <option value="physics">{{ _('Physics') }}</option>
                                                 </select>
                                             </div>
 
@@ -554,7 +554,7 @@ try {
                 <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">{{ _('Cancel') }}</button>
-                    <a class="btn btn-primary" href="login.html">Logout</a>
+                    <a class="btn btn-primary" href="login.html">{{ _('Logout') }}</a>
                 </div>
             </div>
         </div>

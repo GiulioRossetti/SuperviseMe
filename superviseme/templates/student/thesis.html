@@ -38,15 +38,15 @@
                                     <p class="text-gray-700">{{ thesis.description }}</p>
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <strong>Level:</strong> {{ thesis.level|title if thesis.level else 'Not specified' }}
+                                            <strong>{{ _('Level:') }}</strong> {{ thesis.level|title if thesis.level else 'Not specified' }}
                                         </div>
                                         <div class="col-md-6">
-                                            <strong>Created:</strong> {{ dt(thesis.created_at).strftime('%B %d, %Y') if thesis.created_at else 'Unknown' }}
+                                            <strong>{{ _('Created:') }}</strong> {{ dt(thesis.created_at).strftime('%B %d, %Y') if thesis.created_at else 'Unknown' }}
                                         </div>
                                     </div>
                                     {% if supervisors %}
                                     <div class="mt-3">
-                                        <strong>Supervisors:</strong>
+                                        <strong>{{ _('Supervisors:') }}</strong>
                                         {% for supervisor in supervisors %}
                                             <span class="badge badge-info mr-1">{{ supervisor.name }} {{ supervisor.surname }}</span>
                                         {% endfor %}
@@ -140,7 +140,7 @@
                                     {% else %}
                                         <div class="text-center py-4">
                                             <i class="fas fa-info-circle fa-2x text-gray-300 mb-3"></i>
-                                            <p class="text-muted">No status updates yet.</p>
+                                            <p class="text-muted">{{ _('No status updates yet.') }}</p>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -167,7 +167,7 @@
                                                     <h6 class="font-weight-bold">{{ objective.title }}</h6>
                                                     <div class="d-flex align-items-center">
                                                         {% if objective.frozen %}
-                                                            <span class="badge badge-warning mr-2">Frozen</span>
+                                                            <span class="badge badge-warning mr-2">{{ _('Frozen') }}</span>
                                                         {% endif %}
                                                         {% if not objective.frozen %}
                                                         <button class="btn btn-sm btn-outline-primary mr-2"
@@ -190,7 +190,7 @@
                                         </div>
                                         {% endfor %}
                                     {% else %}
-                                        <p class="text-gray-500 text-center">No objectives defined yet. Add your first objective to outline your thesis goals!</p>
+                                        <p class="text-gray-500 text-center">{{ _('No objectives defined yet. Add your first objective to outline your thesis goals!') }}</p>
                                     {% endif %}
                                 </div>
                             </div>
@@ -216,7 +216,7 @@
                                                     <h6 class="font-weight-bold">{{ hypothesis.title }}</h6>
                                                     <div class="d-flex align-items-center">
                                                         {% if hypothesis.frozen %}
-                                                            <span class="badge badge-warning mr-2">Frozen</span>
+                                                            <span class="badge badge-warning mr-2">{{ _('Frozen') }}</span>
                                                         {% endif %}
                                                         {% if not hypothesis.frozen %}
                                                         <button class="btn btn-sm btn-outline-primary mr-2"
@@ -239,7 +239,7 @@
                                         </div>
                                         {% endfor %}
                                     {% else %}
-                                        <p class="text-gray-500 text-center">No hypotheses defined yet. Add your first hypothesis to outline your research assumptions!</p>
+                                        <p class="text-gray-500 text-center">{{ _('No hypotheses defined yet. Add your first hypothesis to outline your research assumptions!') }}</p>
                                     {% endif %}
                                 </div>
                             </div>
@@ -267,10 +267,10 @@
                                                         <div class="d-flex align-items-center mb-2">
                                                             {% if update.update_type == 'student_update' %}
                                                                 <i class="fas fa-user text-primary mr-2"></i>
-                                                                <strong class="text-primary">You</strong>
+                                                                <strong class="text-primary">{{ _('You') }}</strong>
                                                             {% elif update.update_type == 'supervisor_update' %}
                                                                 <i class="fas fa-user-tie text-info mr-2"></i>
-                                                                <strong class="text-info">Supervisor</strong>
+                                                                <strong class="text-info">{{ _('Supervisor') }}</strong>
                                                             {% endif %}
                                                             <small class="text-gray-500 ml-2">
                                                                 {{ dt(update.created_at).strftime('%B %d, %Y at %I:%M %p') if update.created_at else 'Unknown time' }}
@@ -284,7 +284,7 @@
                                                         <!-- Todo References -->
                                                         {% if update.todo_references %}
                                                         <div class="mt-2">
-                                                            <small class="text-muted">Referenced Todos:</small>
+                                                            <small class="text-muted">{{ _('Referenced Todos:') }}</small>
                                                             {% for ref in update.todo_references %}
                                                             <a href="{{ url_for('student.todo_detail', todo_id=ref.todo.id) }}" 
                                                                class="badge badge-primary ml-1" title="{{ ref.todo.title }}">
@@ -324,10 +324,10 @@
                                                         <div class="d-flex align-items-center mb-2">
                                                             {% if comment.update_type == 'supervisor_comment' or comment.update_type == 'supervisor_update' %}
                                                                 <i class="fas fa-user-tie text-info mr-2"></i>
-                                                                <strong class="text-info">Supervisor Feedback</strong>
+                                                                <strong class="text-info">{{ _('Supervisor Feedback') }}</strong>
                                                             {% else %}
                                                                 <i class="fas fa-user text-primary mr-2"></i>
-                                                                <strong class="text-primary">Student Reply</strong>
+                                                                <strong class="text-primary">{{ _('Student Reply') }}</strong>
                                                             {% endif %}
                                                             <small class="text-gray-500 ml-2">
                                                                 {{ dt(comment.created_at).strftime('%B %d, %Y at %I:%M %p') if comment.created_at else 'Unknown time' }}
@@ -368,7 +368,7 @@
                                     {% else %}
                                         <div class="text-center py-4">
                                             <i class="fas fa-edit fa-2x text-gray-300 mb-3"></i>
-                                            <p class="text-muted">No updates yet. <a href="#" data-toggle="modal" data-target="#addUpdateModal">Add your first update!</a></p>
+                                            <p class="text-muted">No updates yet. <a href="#" data-toggle="modal" data-target="#addUpdateModal">{{ _('Add your first update!') }}</a></p>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -418,7 +418,7 @@
                                                         <!-- Todo References -->
                                                         {% if note.todo_references %}
                                                         <div class="mt-2">
-                                                            <small class="text-muted">Referenced Todos:</small>
+                                                            <small class="text-muted">{{ _('Referenced Todos:') }}</small>
                                                             {% for ref in note.todo_references %}
                                                             <a href="{{ url_for('student.todo_detail', todo_id=ref.todo.id) }}" 
                                                                class="badge badge-primary ml-1" title="{{ ref.todo.title }}">
@@ -484,7 +484,7 @@
                                     {% else %}
                                     <div class="text-center py-4">
                                         <i class="fas fa-sticky-note fa-2x text-gray-300 mb-3"></i>
-                                        <p class="text-muted">No meeting notes yet. <a href="#" data-toggle="modal" data-target="#addMeetingNoteModal">Add your first meeting note!</a></p>
+                                        <p class="text-muted">No meeting notes yet. <a href="#" data-toggle="modal" data-target="#addMeetingNoteModal">{{ _('Add your first meeting note!') }}</a></p>
                                     </div>
                                     {% endif %}
                                 </div>
@@ -539,7 +539,7 @@
                                                             {% if todo.due_date %}
                                                                 {{ dt(todo.due_date).strftime('%Y-%m-%d') }}
                                                             {% else %}
-                                                                <span class="text-muted">No due date</span>
+                                                                <span class="text-muted">{{ _('No due date') }}</span>
                                                             {% endif %}
                                                         </td>
                                                         <td>
@@ -570,7 +570,7 @@
                                     {% else %}
                                         <div class="text-center py-4">
                                             <i class="fas fa-tasks fa-2x text-gray-300 mb-3"></i>
-                                            <p class="text-muted">No todos yet. <a href="#" data-toggle="modal" data-target="#addTodoModal">Add your first todo!</a></p>
+                                            <p class="text-muted">No todos yet. <a href="#" data-toggle="modal" data-target="#addTodoModal">{{ _('Add your first todo!') }}</a></p>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -623,7 +623,7 @@
                                             </table>
                                         </div>
                                     {% else %}
-                                        <p class="text-gray-500 text-center">No resources added yet.</p>
+                                        <p class="text-gray-500 text-center">{{ _('No resources added yet.') }}</p>
                                     {% endif %}
                                 </div>
                             </div>
@@ -663,7 +663,7 @@
                             <label for="content">{{ _('Update Content:') }}</label>
                             <textarea class="form-control" name="content" rows="5" required placeholder="{{ _('Describe your progress, challenges, or achievements...') }}"></textarea>
                             <small class="form-text text-muted">
-                                <strong>Todo References:</strong> Use @todo:ID or #todo-ID to reference todos. 
+                                <strong>{{ _('Todo References:') }}</strong> Use @todo:ID or #todo-ID to reference todos. 
                                 {% if todos %}Available todos: 
                                 {% for todo in todos[:3] %}@todo:{{ todo.id }} ({{ todo.title[:20] }}{% if todo.title|length > 20 %}...{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
                                 {% if todos|length > 3 %}... and {{ todos|length - 3 }} more{% endif %}
@@ -681,7 +681,7 @@
                                 </label>
                                 {% endfor %}
                             </div>
-                            <small class="form-text text-muted">Click buttons above to insert todo references into your update.</small>
+                            <small class="form-text text-muted">{{ _('Click buttons above to insert todo references into your update.') }}</small>
                         </div>
                         {% endif %}
                     </div>
@@ -710,11 +710,11 @@
                         <div class="form-group">
                             <label for="resource_type">{{ _('Resource Type:') }}</label>
                             <select class="form-control" name="resource_type" required>
-                                <option value="document">Document</option>
-                                <option value="link">Web Link</option>
-                                <option value="paper">Research Paper</option>
-                                <option value="book">Book</option>
-                                <option value="other">Other</option>
+                                <option value="document">{{ _('Document') }}</option>
+                                <option value="link">{{ _('Web Link') }}</option>
+                                <option value="paper">{{ _('Research Paper') }}</option>
+                                <option value="book">{{ _('Book') }}</option>
+                                <option value="other">{{ _('Other') }}</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -902,13 +902,13 @@
                         <div class="form-group">
                             <label for="editResourceType">{{ _('Resource Type:') }}</label>
                             <select class="form-control" name="resource_type" id="editResourceType" required>
-                                <option value="document">Document</option>
-                                <option value="link">Link</option>
-                                <option value="paper">Paper</option>
-                                <option value="book">Book</option>
-                                <option value="dataset">Dataset</option>
-                                <option value="tool">Tool</option>
-                                <option value="other">Other</option>
+                                <option value="document">{{ _('Document') }}</option>
+                                <option value="link">{{ _('Link') }}</option>
+                                <option value="paper">{{ _('Paper') }}</option>
+                                <option value="book">{{ _('Book') }}</option>
+                                <option value="dataset">{{ _('Dataset') }}</option>
+                                <option value="tool">{{ _('Tool') }}</option>
+                                <option value="other">{{ _('Other') }}</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -955,9 +955,9 @@
                                 <div class="form-group">
                                     <label for="priority">{{ _('Priority:') }}</label>
                                     <select class="form-control" name="priority">
-                                        <option value="low">Low</option>
-                                        <option value="medium" selected>Medium</option>
-                                        <option value="high">High</option>
+                                        <option value="low">{{ _('Low') }}</option>
+                                        <option value="medium" selected>{{ _('Medium') }}</option>
+                                        <option value="high">{{ _('High') }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -1038,8 +1038,8 @@
                             <textarea class="form-control" name="content" id="meetingNoteContent" rows="8" required 
                                       placeholder="Write your meeting notes using markdown. You can reference todos using @todo:ID syntax."></textarea>
                             <small class="form-text text-muted">
-                                <strong>Markdown supported:</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
-                                <strong>Todo References:</strong> Use @todo:ID to reference todos. 
+                                <strong>{{ _('Markdown supported:') }}</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
+                                <strong>{{ _('Todo References:') }}</strong> Use @todo:ID to reference todos. 
                                 {% if todos %}Available todos: 
                                 {% for todo in todos[:3] %}@todo:{{ todo.id }} ({{ todo.title[:20] }}{% if todo.title|length > 20 %}...{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
                                 {% if todos|length > 3 %}... and {{ todos|length - 3 }} more{% endif %}
@@ -1057,7 +1057,7 @@
                                 </label>
                                 {% endfor %}
                             </div>
-                            <small class="form-text text-muted">Click buttons above to insert todo references into your meeting notes.</small>
+                            <small class="form-text text-muted">{{ _('Click buttons above to insert todo references into your meeting notes.') }}</small>
                         </div>
                         {% endif %}
                     </div>
@@ -1090,8 +1090,8 @@
                             <label for="editMeetingNoteContent">{{ _('Meeting Notes:') }}</label>
                             <textarea class="form-control" name="content" id="editMeetingNoteContent" rows="8" required></textarea>
                             <small class="form-text text-muted">
-                                <strong>Markdown supported:</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
-                                <strong>Todo References:</strong> Use @todo:ID to reference todos.
+                                <strong>{{ _('Markdown supported:') }}</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
+                                <strong>{{ _('Todo References:') }}</strong> Use @todo:ID to reference todos.
                             </small>
                         </div>
                         {% if todos %}

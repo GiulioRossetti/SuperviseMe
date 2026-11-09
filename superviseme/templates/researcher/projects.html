@@ -94,14 +94,14 @@
                                                                     <span class="text-muted">+{{ collaborators|length - 2 }} more</span>
                                                                 {% endif %}
                                                             {% else %}
-                                                                <span class="text-muted">No collaborators</span>
+                                                                <span class="text-muted">{{ _('No collaborators') }}</span>
                                                             {% endif %}
                                                         </td>
                                                         <td>
                                                             {% if project.frozen %}
-                                                                <span class="badge badge-warning">Frozen</span>
+                                                                <span class="badge badge-warning">{{ _('Frozen') }}</span>
                                                             {% else %}
-                                                                <span class="badge badge-success">Active</span>
+                                                                <span class="badge badge-success">{{ _('Active') }}</span>
                                                             {% endif %}
                                                         </td>
                                                         <td>
@@ -129,7 +129,7 @@
                                         <div class="text-center py-5">
                                             <i class="fas fa-project-diagram fa-4x text-gray-300 mb-4"></i>
                                             <h4 class="text-gray-400">{{ _('No Research Projects Yet') }}</h4>
-                                            <p class="text-gray-500 mb-4">Create your first research project to get started with collaborative research!</p>
+                                            <p class="text-gray-500 mb-4">{{ _('Create your first research project to get started with collaborative research!') }}</p>
                                             <button class="btn btn-success" data-toggle="modal" data-target="#createProjectModal">
                                                 <i class="fas fa-plus"></i> Create Your First Project
                                             </button>
@@ -180,12 +180,12 @@
                         <div class="form-group">
                             <label for="level">{{ _('Level:') }}</label>
                             <select class="form-control" name="level">
-                                <option value="">Select Level</option>
-                                <option value="pilot">Pilot Study</option>
-                                <option value="research">Research Project</option>
-                                <option value="full-scale">Full-Scale Study</option>
-                                <option value="longitudinal">Longitudinal Study</option>
-                                <option value="other">Other</option>
+                                <option value="">{{ _('Select Level') }}</option>
+                                <option value="pilot">{{ _('Pilot Study') }}</option>
+                                <option value="research">{{ _('Research Project') }}</option>
+                                <option value="full-scale">{{ _('Full-Scale Study') }}</option>
+                                <option value="longitudinal">{{ _('Longitudinal Study') }}</option>
+                                <option value="other">{{ _('Other') }}</option>
                             </select>
                         </div>
                     </div>
@@ -223,12 +223,12 @@
                         <div class="form-group">
                             <label for="edit_level">{{ _('Level:') }}</label>
                             <select class="form-control" name="level" id="edit_level">
-                                <option value="">Select Level</option>
-                                <option value="pilot">Pilot Study</option>
-                                <option value="research">Research Project</option>
-                                <option value="full-scale">Full-Scale Study</option>
-                                <option value="longitudinal">Longitudinal Study</option>
-                                <option value="other">Other</option>
+                                <option value="">{{ _('Select Level') }}</option>
+                                <option value="pilot">{{ _('Pilot Study') }}</option>
+                                <option value="research">{{ _('Research Project') }}</option>
+                                <option value="full-scale">{{ _('Full-Scale Study') }}</option>
+                                <option value="longitudinal">{{ _('Longitudinal Study') }}</option>
+                                <option value="other">{{ _('Other') }}</option>
                             </select>
                         </div>
                     </div>

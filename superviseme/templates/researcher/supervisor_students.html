@@ -56,14 +56,14 @@
                                                                     {{ supervisee_info.student.email }}
                                                                 </div>
                                                                 <div class="mb-2">
-                                                                    <strong>Thesis:</strong> {{ supervisee_info.thesis.title }}
+                                                                    <strong>{{ _('Thesis:') }}</strong> {{ supervisee_info.thesis.title }}
                                                                 </div>
                                                                 <div class="mb-2">
                                                                     <span class="badge badge-info">{{ supervisee_info.thesis.level|title if supervisee_info.thesis.level else 'No Level' }}</span>
                                                                     {% if supervisee_info.thesis.frozen %}
-                                                                        <span class="badge badge-danger">Frozen</span>
+                                                                        <span class="badge badge-danger">{{ _('Frozen') }}</span>
                                                                     {% else %}
-                                                                        <span class="badge badge-success">Active</span>
+                                                                        <span class="badge badge-success">{{ _('Active') }}</span>
                                                                     {% endif %}
                                                                 </div>
                                                                 
@@ -73,7 +73,7 @@
                                                                         <div class="alert alert-warning py-2 mb-2" style="font-size: 0.85em;">
                                                                             <i class="fas fa-exclamation-triangle"></i>
                                                                             {% if supervisee_info.days_inactive == 'Unknown' or supervisee_info.days_inactive is none %}
-                                                                                <strong>Not yet logged</strong>
+                                                                                <strong>{{ _('Not yet logged') }}</strong>
                                                                             {% else %}
                                                                                 <strong>Inactive for {{ supervisee_info.days_inactive }} days</strong>
                                                                             {% endif %}
@@ -84,15 +84,15 @@
                                                                     {% else %}
                                                                         <div class="alert alert-success py-2 mb-2" style="font-size: 0.85em;">
                                                                             <i class="fas fa-check-circle"></i>
-                                                                            <strong>Active</strong>
+                                                                            <strong>{{ _('Active') }}</strong>
                                                                             {% if supervisee_info.last_activity_location %}
                                                                                 <br><small>Last seen: {{ supervisee_info.last_activity_location }}</small>
                                                                             {% endif %}
                                                                             {% if supervisee_info.days_inactive is not none and supervisee_info.days_inactive != 'Unknown' %}
                                                                                 {% if supervisee_info.days_inactive == 0 %}
-                                                                                    <br><small>Last online: Today</small>
+                                                                                    <br><small>{{ _('Last online: Today') }}</small>
                                                                                 {% elif supervisee_info.days_inactive == 1 %}
-                                                                                    <br><small>Last online: Yesterday</small>
+                                                                                    <br><small>{{ _('Last online: Yesterday') }}</small>
                                                                                 {% else %}
                                                                                     <br><small>Last online: {{ supervisee_info.days_inactive }} days ago</small>
                                                                                 {% endif %}
@@ -148,7 +148,7 @@
                                     {% else %}
                                         <div class="text-center">
                                             <i class="fas fa-user-graduate fa-3x text-gray-300 mb-3"></i>
-                                            <p class="text-gray-500">No students assigned yet. Students will appear here when they are assigned to your theses.</p>
+                                            <p class="text-gray-500">{{ _('No students assigned yet. Students will appear here when they are assigned to your theses.') }}</p>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -204,9 +204,9 @@
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <span class="badge badge-danger">Archived</span>
+                                                        <span class="badge badge-danger">{{ _('Archived') }}</span>
                                                         {% if supervisee_info.thesis.frozen %}
-                                                            <span class="badge badge-secondary">Frozen</span>
+                                                            <span class="badge badge-secondary">{{ _('Frozen') }}</span>
                                                         {% endif %}
                                                     </td>
                                                     <td>
@@ -422,10 +422,10 @@
                                 <div class="form-group">
                                     <label for="gender">{{ _('Gender') }}</label>
                                     <select class="form-control" id="gender" name="gender">
-                                        <option value="">Select Gender</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                        <option value="other">Other</option>
+                                        <option value="">{{ _('Select Gender') }}</option>
+                                        <option value="male">{{ _('Male') }}</option>
+                                        <option value="female">{{ _('Female') }}</option>
+                                        <option value="other">{{ _('Other') }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -507,10 +507,10 @@
                                 <div class="form-group">
                                     <label for="edit_gender">{{ _('Gender') }}</label>
                                     <select class="form-control" id="edit_gender" name="gender">
-                                        <option value="">Select Gender</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                        <option value="other">Other</option>
+                                        <option value="">{{ _('Select Gender') }}</option>
+                                        <option value="male">{{ _('Male') }}</option>
+                                        <option value="female">{{ _('Female') }}</option>
+                                        <option value="other">{{ _('Other') }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -561,7 +561,7 @@
                     <p>Are you sure you want to delete student <strong><span id="deleteStudentName"></span></strong>?</p>
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <strong>Warning:</strong> This action cannot be undone. Students with active thesis assignments cannot be deleted.
+                        <strong>{{ _('Warning:') }}</strong> This action cannot be undone. Students with active thesis assignments cannot be deleted.
                     </div>
                 </div>
                 <div class="modal-footer">

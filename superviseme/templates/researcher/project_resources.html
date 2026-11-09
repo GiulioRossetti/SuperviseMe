@@ -86,7 +86,7 @@
                                 <div class="text-center py-4">
                                     <i class="fas fa-file-alt fa-3x text-gray-300 mb-3"></i>
                                     <h5 class="text-gray-500">{{ _('No resources yet') }}</h5>
-                                    <p class="text-muted">Add resources like documents, links, and references to support this project</p>
+                                    <p class="text-muted">{{ _('Add resources like documents, links, and references to support this project') }}</p>
                                     <button class="btn btn-info" data-toggle="modal" data-target="#addResourceModal">
                                         <i class="fas fa-plus"></i> Add First Resource
                                     </button>
@@ -110,18 +110,18 @@
                                         <div class="form-group">
                                             <label>{{ _('Resource Type') }}</label>
                                             <select name="resource_type" class="form-control">
-                                                <option value="document">Document</option>
-                                                <option value="link">Link</option>
-                                                <option value="reference">Reference</option>
-                                                <option value="dataset">Dataset</option>
-                                                <option value="software">Software</option>
+                                                <option value="document">{{ _('Document') }}</option>
+                                                <option value="link">{{ _('Link') }}</option>
+                                                <option value="reference">{{ _('Reference') }}</option>
+                                                <option value="dataset">{{ _('Dataset') }}</option>
+                                                <option value="software">{{ _('Software') }}</option>
                                             </select>
                                         </div>
                                         <div class="form-group">
                                             <label>{{ _('URL/Link') }}</label>
                                             <input type="url" name="resource_url" class="form-control" required 
                                                    placeholder="https://example.com/resource">
-                                            <small class="form-text text-muted">Enter the URL where this resource can be accessed</small>
+                                            <small class="form-text text-muted">{{ _('Enter the URL where this resource can be accessed') }}</small>
                                         </div>
                                         <div class="form-group">
                                             <label>{{ _('Description') }}</label>

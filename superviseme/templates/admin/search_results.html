@@ -34,9 +34,9 @@
                     <div class="row mb-4">
                         <div class="col-12">
                             <div class="alert alert-info">
-                                <strong>Search results for:</strong> "{{ search_term }}"
+                                <strong>{{ _('Search results for:') }}</strong> "{{ search_term }}"
                                 {% if not users and not theses %}
-                                <br><small class="text-muted">No results found. Try a different search term.</small>
+                                <br><small class="text-muted">{{ _('No results found. Try a different search term.') }}</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -117,7 +117,7 @@
                                                         {% if thesis.author %}
                                                             {{ thesis.author.name }} {{ thesis.author.surname }}
                                                         {% else %}
-                                                            <em>Available</em>
+                                                            <em>{{ _('Available') }}</em>
                                                         {% endif %}
                                                     </td>
                                                     <td>

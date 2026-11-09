@@ -141,9 +141,9 @@
                                                         <td>{{ dt(project.created_at).strftime('%Y-%m-%d') }}</td>
                                                         <td>
                                                             {% if project.frozen %}
-                                                                <span class="badge badge-warning">Frozen</span>
+                                                                <span class="badge badge-warning">{{ _('Frozen') }}</span>
                                                             {% else %}
-                                                                <span class="badge badge-success">Active</span>
+                                                                <span class="badge badge-success">{{ _('Active') }}</span>
                                                             {% endif %}
                                                         </td>
                                                         <td>
@@ -160,7 +160,7 @@
                                     {% else %}
                                         <div class="text-center py-4">
                                             <i class="fas fa-project-diagram fa-3x text-gray-300 mb-3"></i>
-                                            <p class="text-gray-500">No research projects yet. Create your first project to get started!</p>
+                                            <p class="text-gray-500">{{ _('No research projects yet. Create your first project to get started!') }}</p>
                                             <a href="{{ url_for('researcher.projects') }}" class="btn btn-success">
                                                 <i class="fas fa-plus"></i> Create Project
                                             </a>

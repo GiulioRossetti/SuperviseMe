@@ -1369,3 +1369,879 @@ msgstr "you@institution.edu"
 
 msgid "your-email@example.com"
 msgstr "your-email@example.com"
+
+msgid "Accepted"
+msgstr "Accepted"
+
+msgid "Account Status"
+msgstr "Account Status"
+
+msgid "Activity Tracking:"
+msgstr "Activity Tracking:"
+
+msgid "Add resources like documents, links, and references to support this project"
+msgstr "Add resources like documents, links, and references to support this project"
+
+msgid "Add the first hypothesis!"
+msgstr "Add the first hypothesis!"
+
+msgid "Add the first objective!"
+msgstr "Add the first objective!"
+
+msgid "Add the first resource!"
+msgstr "Add the first resource!"
+
+msgid "Add todos to track tasks and goals for this project"
+msgstr "Add todos to track tasks and goals for this project"
+
+msgid "Add your first meeting note!"
+msgstr "Add your first meeting note!"
+
+msgid "Add your first todo!"
+msgstr "Add your first todo!"
+
+msgid "Add your first update!"
+msgstr "Add your first update!"
+
+msgid "Added by:"
+msgstr "Added by:"
+
+msgid "Admin"
+msgstr "Admin"
+
+msgid "Admin approval required before annotations are visible"
+msgstr "Admin approval required before annotations are visible"
+
+msgid "Admins Only"
+msgstr "Admins Only"
+
+msgid "Advisor"
+msgstr "Advisor"
+
+msgid "All Theses"
+msgstr "All Theses"
+
+msgid "All Users"
+msgstr "All Users"
+
+msgid "Allow Anonymous Annotations"
+msgstr "Allow Anonymous Annotations"
+
+msgid "Application Version:"
+msgstr "Application Version:"
+
+msgid "Approved"
+msgstr "Approved"
+
+msgid "Archived"
+msgstr "Archived"
+
+msgid "Archived Theses"
+msgstr "Archived Theses"
+
+msgid "Assign Student:"
+msgstr "Assign Student:"
+
+msgid "Assign to..."
+msgstr "Assign to..."
+
+msgid "Assigned to:"
+msgstr "Assigned to:"
+
+msgid "Assignment Notifications"
+msgstr "Assignment Notifications"
+
+msgid "Author:"
+msgstr "Author:"
+
+msgid "Auto-assign Supervisors"
+msgstr "Auto-assign Supervisors"
+
+msgid "Automatic Schedule:"
+msgstr "Automatic Schedule:"
+
+msgid "Automatically suggest supervisors"
+msgstr "Automatically suggest supervisors"
+
+msgid "Available"
+msgstr "Available"
+
+msgid "Bachelor"
+msgstr "Bachelor"
+
+msgid "Bachelor Theses"
+msgstr "Bachelor Theses"
+
+msgid "Back to thesis list"
+msgstr "Back to thesis list"
+
+msgid "Be the first to add an update to this project"
+msgstr "Be the first to add an update to this project"
+
+msgid "Book"
+msgstr "Book"
+
+msgid "Bot Token"
+msgstr "Bot Token"
+
+msgid "Bot Username"
+msgstr "Bot Username"
+
+msgid "Bot:"
+msgstr "Bot:"
+
+msgid "Browse Public Theses"
+msgstr "Browse Public Theses"
+
+msgid "Cancelled"
+msgstr "Cancelled"
+
+msgid "Clean up temporary files, optimize performance, and run diagnostics."
+msgstr "Clean up temporary files, optimize performance, and run diagnostics."
+
+msgid "Click buttons above to insert todo references into your feedback."
+msgstr "Click buttons above to insert todo references into your feedback."
+
+msgid "Click buttons above to insert todo references into your meeting notes."
+msgstr "Click buttons above to insert todo references into your meeting notes."
+
+msgid "Click buttons above to insert todo references into your update."
+msgstr "Click buttons above to insert todo references into your update."
+
+msgid "Co-Investigator"
+msgstr "Co-Investigator"
+
+msgid "Collaborator"
+msgstr "Collaborator"
+
+msgid "Completed"
+msgstr "Completed"
+
+msgid "Completed Theses"
+msgstr "Completed Theses"
+
+msgid "Completed:"
+msgstr "Completed:"
+
+msgid "Computer Science"
+msgstr "Computer Science"
+
+msgid "Connected"
+msgstr "Connected"
+
+msgid "Copy your bot token and paste it below"
+msgstr "Copy your bot token and paste it below"
+
+msgid "Create database backups and restore from previous versions."
+msgstr "Create database backups and restore from previous versions."
+
+msgid "Create todos to collaborate with your students!"
+msgstr "Create todos to collaborate with your students!"
+
+msgid "Create your first research project to get started with collaborative research!"
+msgstr "Create your first research project to get started with collaborative research!"
+
+msgid "Create your first todo to get organized!"
+msgstr "Create your first todo to get organized!"
+
+msgid "Created By:"
+msgstr "Created By:"
+
+msgid "Created:"
+msgstr "Created:"
+
+msgid "Current Status:"
+msgstr "Current Status:"
+
+msgid "Data Science"
+msgstr "Data Science"
+
+msgid "Database Size:"
+msgstr "Database Size:"
+
+msgid "Database:"
+msgstr "Database:"
+
+msgid "Dataset"
+msgstr "Dataset"
+
+msgid "Deadline Reminders"
+msgstr "Deadline Reminders"
+
+msgid "Declined"
+msgstr "Declined"
+
+msgid "Default Annotation Type"
+msgstr "Default Annotation Type"
+
+msgid "Default Thesis Level"
+msgstr "Default Thesis Level"
+
+msgid "Define clear objectives to guide your research project"
+msgstr "Define clear objectives to guide your research project"
+
+msgid "Degree Course:"
+msgstr "Degree Course:"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Digital Humanities"
+msgstr "Digital Humanities"
+
+msgid "Document"
+msgstr "Document"
+
+msgid "Drop and recreate all database tables"
+msgstr "Drop and recreate all database tables"
+
+msgid "Due Date:"
+msgstr "Due Date:"
+
+msgid "Due:"
+msgstr "Due:"
+
+msgid "Email Notifications"
+msgstr "Email Notifications"
+
+msgid "Email:"
+msgstr "Email:"
+
+msgid "Enable Telegram Notifications"
+msgstr "Enable Telegram Notifications"
+
+msgid "Enabled"
+msgstr "Enabled"
+
+msgid "Enabled Notification Types"
+msgstr "Enabled Notification Types"
+
+msgid "Encryption"
+msgstr "Encryption"
+
+msgid "Enter the URL where this resource can be accessed"
+msgstr "Enter the URL where this resource can be accessed"
+
+msgid "Enter your User ID below and test the connection"
+msgstr "Enter your User ID below and test the connection"
+
+msgid "Error Message:"
+msgstr "Error Message:"
+
+msgid "Error Type:"
+msgstr "Error Type:"
+
+msgid "Feedback"
+msgstr "Feedback"
+
+msgid "Female"
+msgstr "Female"
+
+msgid "Final Review"
+msgstr "Final Review"
+
+msgid "Forgot password?"
+msgstr "Forgot password?"
+
+msgid "Formulate hypotheses to guide your research investigations"
+msgstr "Formulate hypotheses to guide your research investigations"
+
+msgid "From Email"
+msgstr "From Email"
+
+msgid "From Name"
+msgstr "From Name"
+
+msgid "Frozen"
+msgstr "Frozen"
+
+msgid "Full-Scale Study"
+msgstr "Full-Scale Study"
+
+msgid "Gender:"
+msgstr "Gender:"
+
+msgid "General"
+msgstr "General"
+
+msgid "General Comment"
+msgstr "General Comment"
+
+msgid "High"
+msgstr "High"
+
+msgid "Import users and theses from CSV files or export current data."
+msgstr "Import users and theses from CSV files or export current data."
+
+msgid "Important Note"
+msgstr "Important Note"
+
+msgid "In Progress"
+msgstr "In Progress"
+
+msgid "Inactive Students:"
+msgstr "Inactive Students:"
+
+msgid "Issue"
+msgstr "Issue"
+
+msgid "Joined On:"
+msgstr "Joined On:"
+
+msgid "Keep this token secure and never share it publicly"
+msgstr "Keep this token secure and never share it publicly"
+
+msgid "Keep track of meetings, discussions, and decisions for this project"
+msgstr "Keep track of meetings, discussions, and decisions for this project"
+
+msgid "Last Activity Location:"
+msgstr "Last Activity Location:"
+
+msgid "Last Updated:"
+msgstr "Last Updated:"
+
+msgid "Last online: Today"
+msgstr "Last online: Today"
+
+msgid "Last online: Yesterday"
+msgstr "Last online: Yesterday"
+
+msgid "Link"
+msgstr "Link"
+
+msgid "Link your ORCID account to sync and export publications."
+msgstr "Link your ORCID account to sync and export publications."
+
+msgid "Loading..."
+msgstr "Loading..."
+
+msgid "Logout"
+msgstr "Logout"
+
+msgid "Long description"
+msgstr "Long description"
+
+msgid "Longitudinal Study"
+msgstr "Longitudinal Study"
+
+msgid "Low"
+msgstr "Low"
+
+msgid "Male"
+msgstr "Male"
+
+msgid "Manage synchronization and export from the dedicated ORCID publications page."
+msgstr "Manage synchronization and export from the dedicated ORCID publications page."
+
+msgid "Markdown supported:"
+msgstr "Markdown supported:"
+
+msgid "Master"
+msgstr "Master"
+
+msgid "Master Theses"
+msgstr "Master Theses"
+
+msgid "Maximum Annotation Length"
+msgstr "Maximum Annotation Length"
+
+msgid "Medium"
+msgstr "Medium"
+
+msgid "Meeting"
+msgstr "Meeting"
+
+msgid "Meeting Content:"
+msgstr "Meeting Content:"
+
+msgid "Method:"
+msgstr "Method:"
+
+msgid "Milestone"
+msgstr "Milestone"
+
+msgid "Myself"
+msgstr "Myself"
+
+msgid "N/A"
+msgstr "N/A"
+
+msgid "Name:"
+msgstr "Name:"
+
+msgid "Nationality:"
+msgstr "Nationality:"
+
+msgid "Needs Revision"
+msgstr "Needs Revision"
+
+msgid "New"
+msgstr "New"
+
+msgid "Next"
+msgstr "Next"
+
+msgid "No assignment"
+msgstr "No assignment"
+
+msgid "No available students (all students have active thesis assignments)"
+msgstr "No available students (all students have active thesis assignments)"
+
+msgid "No collaborators"
+msgstr "No collaborators"
+
+msgid "No collaborators yet"
+msgstr "No collaborators yet"
+
+msgid "No due date"
+msgstr "No due date"
+
+msgid "No expressions of interest yet."
+msgstr "No expressions of interest yet."
+
+msgid "No hypotheses defined yet. Add your first hypothesis to outline your research assumptions!"
+msgstr "No hypotheses defined yet. Add your first hypothesis to outline your research assumptions!"
+
+msgid "No keywords"
+msgstr "No keywords"
+
+msgid "No limit"
+msgstr "No limit"
+
+msgid "No objectives defined yet. Add your first objective to outline your thesis goals!"
+msgstr "No objectives defined yet. Add your first objective to outline your thesis goals!"
+
+msgid "No recent theses found."
+msgstr "No recent theses found."
+
+msgid "No recent updates."
+msgstr "No recent updates."
+
+msgid "No recent users found."
+msgstr "No recent users found."
+
+msgid "No research projects yet. Create your first project to get started!"
+msgstr "No research projects yet. Create your first project to get started!"
+
+msgid "No resources added yet."
+msgstr "No resources added yet."
+
+msgid "No results found. Try a different search term."
+msgstr "No results found. Try a different search term."
+
+msgid "No status history available"
+msgstr "No status history available"
+
+msgid "No status set yet. Use the \"Set Status\" button to assign an advancement status."
+msgstr "No status set yet. Use the \"Set Status\" button to assign an advancement status."
+
+msgid "No status updates yet."
+msgstr "No status updates yet."
+
+msgid "No student assigned"
+msgstr "No student assigned"
+
+msgid "No students assigned yet. Students will appear here when they are assigned to your theses."
+msgstr "No students assigned yet. Students will appear here when they are assigned to your theses."
+
+msgid "No supervisors assigned"
+msgstr "No supervisors assigned"
+
+msgid "No theses found. Create your first thesis to get started."
+msgstr "No theses found. Create your first thesis to get started."
+
+msgid "No thesis assigned"
+msgstr "No thesis assigned"
+
+msgid "No updates reference this todo yet."
+msgstr "No updates reference this todo yet."
+
+msgid "No updates yet."
+msgstr "No updates yet."
+
+msgid "None"
+msgstr "None"
+
+msgid "Not Configured"
+msgstr "Not Configured"
+
+msgid "Not Connected"
+msgstr "Not Connected"
+
+msgid "Not assigned"
+msgstr "Not assigned"
+
+msgid "Not set"
+msgstr "Not set"
+
+msgid "Not specified"
+msgstr "Not specified"
+
+msgid "Not yet logged"
+msgstr "Not yet logged"
+
+msgid "Note:"
+msgstr "Note:"
+
+msgid "Notification Types"
+msgstr "Notification Types"
+
+msgid "Notifications"
+msgstr "Notifications"
+
+msgid "Notify when theses are assigned"
+msgstr "Notify when theses are assigned"
+
+msgid "Notify when thesis status changes"
+msgstr "Notify when thesis status changes"
+
+msgid "Only the thesis publisher can handle expressions of interest."
+msgstr "Only the thesis publisher can handle expressions of interest."
+
+msgid "Other"
+msgstr "Other"
+
+msgid "Other Theses"
+msgstr "Other Theses"
+
+msgid "Paper"
+msgstr "Paper"
+
+msgid "Pending"
+msgstr "Pending"
+
+msgid "PhD"
+msgstr "PhD"
+
+msgid "Physics"
+msgstr "Physics"
+
+msgid "Pilot Study"
+msgstr "Pilot Study"
+
+msgid "Please contact your supervisor or administrator to get assigned to a thesis project."
+msgstr "Please contact your supervisor or administrator to get assigned to a thesis project."
+
+msgid "Principal Researcher:"
+msgstr "Principal Researcher:"
+
+msgid "Profile"
+msgstr "Profile"
+
+msgid "Progress"
+msgstr "Progress"
+
+msgid "Progress Update"
+msgstr "Progress Update"
+
+msgid "Public Thesis Board"
+msgstr "Public Thesis Board"
+
+msgid "Question"
+msgstr "Question"
+
+msgid "Real-time overview"
+msgstr "Real-time overview"
+
+msgid "Recent todos in this project:"
+msgstr "Recent todos in this project:"
+
+msgid "Reference"
+msgstr "Reference"
+
+msgid "Reference this Todo:"
+msgstr "Reference this Todo:"
+
+msgid "Remove all data and reset to initial state"
+msgstr "Remove all data and reset to initial state"
+
+msgid "Remove users inactive for more than 1 year"
+msgstr "Remove users inactive for more than 1 year"
+
+msgid "Require Approval for Public Annotations"
+msgstr "Require Approval for Public Annotations"
+
+msgid "Require admin approval for new theses"
+msgstr "Require admin approval for new theses"
+
+msgid "Research Assistant"
+msgstr "Research Assistant"
+
+msgid "Research Paper"
+msgstr "Research Paper"
+
+msgid "Research Project"
+msgstr "Research Project"
+
+msgid "Researcher"
+msgstr "Researcher"
+
+msgid "Reset passwords for all users to default"
+msgstr "Reset passwords for all users to default"
+
+msgid "Review Phase"
+msgstr "Review Phase"
+
+msgid "SMTP Port"
+msgstr "SMTP Port"
+
+msgid "SMTP Server"
+msgstr "SMTP Server"
+
+msgid "SSL"
+msgstr "SSL"
+
+msgid "Scheduled Jobs:"
+msgstr "Scheduled Jobs:"
+
+msgid "Search results for:"
+msgstr "Search results for:"
+
+msgid "Select Gender"
+msgstr "Select Gender"
+
+msgid "Select Level"
+msgstr "Select Level"
+
+msgid "Select Supervisor to Preview Email:"
+msgstr "Select Supervisor to Preview Email:"
+
+msgid "Select a status..."
+msgstr "Select a status..."
+
+msgid "Select a student..."
+msgstr "Select a student..."
+
+msgid "Select a todo..."
+msgstr "Select a todo..."
+
+msgid "Select assignee (optional)"
+msgstr "Select assignee (optional)"
+
+msgid "Select level..."
+msgstr "Select level..."
+
+msgid "Select supervisor to add"
+msgstr "Select supervisor to add"
+
+msgid "Select the default type for new annotations"
+msgstr "Select the default type for new annotations"
+
+msgid "Select thesis..."
+msgstr "Select thesis..."
+
+msgid "Select type..."
+msgstr "Select type..."
+
+msgid "Select which notification types can be sent via Telegram"
+msgstr "Select which notification types can be sent via Telegram"
+
+msgid "Select which notifications you want to receive via Telegram"
+msgstr "Select which notifications you want to receive via Telegram"
+
+msgid "Send any message to the bot (e.g., \"Hello\")"
+msgstr "Send any message to the bot (e.g., \"Hello\")"
+
+msgid "Send email notifications to users"
+msgstr "Send email notifications to users"
+
+msgid "Send reminders before deadlines"
+msgstr "Send reminders before deadlines"
+
+msgid "Set the current advancement status of this thesis."
+msgstr "Set the current advancement status of this thesis."
+
+msgid "Set the default level for new theses"
+msgstr "Set the default level for new theses"
+
+msgid "Short description"
+msgstr "Short description"
+
+msgid "Sign in / Sign up"
+msgstr "Sign in / Sign up"
+
+msgid "Sign in to your account to continue"
+msgstr "Sign in to your account to continue"
+
+msgid "Software"
+msgstr "Software"
+
+msgid "Start a chat with the SuperviseMe bot on Telegram"
+msgstr "Start a chat with the SuperviseMe bot on Telegram"
+
+msgid "Status Change Notifications"
+msgstr "Status Change Notifications"
+
+msgid "Status Updated:"
+msgstr "Status Updated:"
+
+msgid "Status:"
+msgstr "Status:"
+
+msgid "Student Reply"
+msgstr "Student Reply"
+
+msgid "Student:"
+msgstr "Student:"
+
+msgid "Students Only"
+msgstr "Students Only"
+
+msgid "Suggestion"
+msgstr "Suggestion"
+
+msgid "SuperviseMe - 2025"
+msgstr "SuperviseMe - 2025"
+
+msgid "Supervisor Feedback"
+msgstr "Supervisor Feedback"
+
+msgid "Supervisor:"
+msgstr "Supervisor:"
+
+msgid "Supervisors Only"
+msgstr "Supervisors Only"
+
+msgid "Supervisors:"
+msgstr "Supervisors:"
+
+msgid "Suspended"
+msgstr "Suspended"
+
+msgid "System Time:"
+msgstr "System Time:"
+
+msgid "System utilities and administrative tools"
+msgstr "System utilities and administrative tools"
+
+msgid "TLS"
+msgstr "TLS"
+
+msgid "Tags:"
+msgstr "Tags:"
+
+msgid "Telegram User ID"
+msgstr "Telegram User ID"
+
+msgid "The bot will reply with your Telegram User ID"
+msgstr "The bot will reply with your Telegram User ID"
+
+msgid "The person must have an account in the system"
+msgstr "The person must have an account in the system"
+
+msgid "Thesis Accepted"
+msgstr "Thesis Accepted"
+
+msgid "Thesis Approval Required"
+msgstr "Thesis Approval Required"
+
+msgid "Thesis Proposed"
+msgstr "Thesis Proposed"
+
+msgid "Thesis management platform for supervisors, researchers and students."
+msgstr "Thesis management platform for supervisors, researchers and students."
+
+msgid "Thesis:"
+msgstr "Thesis:"
+
+msgid "Timestamp:"
+msgstr "Timestamp:"
+
+msgid "To:"
+msgstr "To:"
+
+msgid "Todo References:"
+msgstr "Todo References:"
+
+msgid "Tool"
+msgstr "Tool"
+
+msgid "URL:"
+msgstr "URL:"
+
+msgid "Unassign student"
+msgstr "Unassign student"
+
+msgid "Unassigned"
+msgstr "Unassigned"
+
+msgid "Unassigned Theses"
+msgstr "Unassigned Theses"
+
+msgid "Unknown"
+msgstr "Unknown"
+
+msgid "Updated:"
+msgstr "Updated:"
+
+msgid "Use short, descriptive tags to categorize updates."
+msgstr "Use short, descriptive tags to categorize updates."
+
+msgid "Use these references in updates:"
+msgstr "Use these references in updates:"
+
+msgid "Use with caution!"
+msgstr "Use with caution!"
+
+msgid "User Agent:"
+msgstr "User Agent:"
+
+msgid "User Type:"
+msgstr "User Type:"
+
+msgid "Username:"
+msgstr "Username:"
+
+msgid "Users can submit annotations anonymously"
+msgstr "Users can submit annotations anonymously"
+
+msgid "Users can then configure their Telegram notifications in their profiles"
+msgstr "Users can then configure their Telegram notifications in their profiles"
+
+msgid "Verified"
+msgstr "Verified"
+
+msgid "Video"
+msgstr "Video"
+
+msgid "View All"
+msgstr "View All"
+
+msgid "View All Todos"
+msgstr "View All Todos"
+
+msgid "View All Updates"
+msgstr "View All Updates"
+
+msgid "View Details"
+msgstr "View Details"
+
+msgid "Warning:"
+msgstr "Warning:"
+
+msgid "Web Link"
+msgstr "Web Link"
+
+msgid "Welcome back"
+msgstr "Welcome back"
+
+msgid "Without @"
+msgstr "Without @"
+
+msgid "Writing Phase"
+msgstr "Writing Phase"
+
+msgid "You"
+msgstr "You"
+
+msgid "You (Comment)"
+msgstr "You (Comment)"
+
+msgid "You (Supervisor)"
+msgstr "You (Supervisor)"
+
+msgid "You:"
+msgstr "You:"
+
+msgid "Your numeric Telegram User ID (not username)"
+msgstr "Your numeric Telegram User ID (not username)"

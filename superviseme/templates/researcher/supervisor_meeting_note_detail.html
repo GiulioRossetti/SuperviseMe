@@ -113,25 +113,25 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
-                                        <strong>Thesis:</strong><br>
+                                        <strong>{{ _('Thesis:') }}</strong><br>
                                         <a href="{{ url_for('researcher.supervisor_thesis_detail', thesis_id=thesis.id) }}" class="text-info">
                                             {{ thesis.title }}
                                         </a>
                                     </div>
                                     <div class="mb-3">
-                                        <strong>Student:</strong><br>
+                                        <strong>{{ _('Student:') }}</strong><br>
                                         {% if thesis.author %}
                                             {{ thesis.author.name }} {{ thesis.author.surname }}
                                         {% else %}
-                                            <span class="text-muted">No student assigned</span>
+                                            <span class="text-muted">{{ _('No student assigned') }}</span>
                                         {% endif %}
                                     </div>
                                     <div class="mb-3">
-                                        <strong>Created:</strong><br>
+                                        <strong>{{ _('Created:') }}</strong><br>
                                         {{ dt(meeting_note.created_at).strftime('%Y-%m-%d %H:%M') }}
                                     </div>
                                     <div class="mb-3">
-                                        <strong>Last Updated:</strong><br>
+                                        <strong>{{ _('Last Updated:') }}</strong><br>
                                         {{ dt(meeting_note.updated_at).strftime('%Y-%m-%d %H:%M') }}
                                     </div>
                                 </div>
@@ -222,7 +222,7 @@
                         <div class="form-group">
                             <label for="todoSelect">{{ _('Select Todo:') }}</label>
                             <select class="form-control" name="todo_id" id="todoSelect" required>
-                                <option value="">Select a todo...</option>
+                                <option value="">{{ _('Select a todo...') }}</option>
                                 {% for todo in todos %}
                                 <option value="{{ todo.id }}">{{ todo.title }} ({{ todo.status }})</option>
                                 {% endfor %}

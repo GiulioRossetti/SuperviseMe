@@ -34,9 +34,9 @@
                     <div class="row mb-4">
                         <div class="col-12">
                             <div class="alert alert-info">
-                                <strong>Search results for:</strong> "{{ search_term }}"
+                                <strong>{{ _('Search results for:') }}</strong> "{{ search_term }}"
                                 {% if not theses and not supervisees %}
-                                <br><small class="text-muted">No results found. Try a different search term.</small>
+                                <br><small class="text-muted">{{ _('No results found. Try a different search term.') }}</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -77,7 +77,7 @@
                                                             {{ thesis.author.name }} {{ thesis.author.surname }}
                                                             <br><small class="text-muted">{{ thesis.author.email }}</small>
                                                         {% else %}
-                                                            <span class="text-muted">Not assigned</span>
+                                                            <span class="text-muted">{{ _('Not assigned') }}</span>
                                                         {% endif %}
                                                     </td>
                                                     <td>
@@ -91,7 +91,7 @@
                                                                 {{ latest_status.status|replace('_', ' ')|title }}
                                                             </span>
                                                         {% else %}
-                                                            <span class="badge badge-secondary">Unknown</span>
+                                                            <span class="badge badge-secondary">{{ _('Unknown') }}</span>
                                                         {% endif %}
                                                     </td>
                                                     <td>

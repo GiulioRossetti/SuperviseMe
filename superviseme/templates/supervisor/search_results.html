@@ -34,9 +34,9 @@
                     <div class="row mb-4">
                         <div class="col-12">
                             <div class="alert alert-info">
-                                <strong>Search results for:</strong> "{{ search_term }}"
+                                <strong>{{ _('Search results for:') }}</strong> "{{ search_term }}"
                                 {% if not theses and not supervisees %}
-                                <br><small class="text-muted">No results found. Try a different search term.</small>
+                                <br><small class="text-muted">{{ _('No results found. Try a different search term.') }}</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -70,7 +70,7 @@
                                                         {% if thesis.author %}
                                                             {{ thesis.author.name }} {{ thesis.author.surname }}
                                                         {% else %}
-                                                            <em>Available</em>
+                                                            <em>{{ _('Available') }}</em>
                                                         {% endif %}
                                                     </td>
                                                     <td>
@@ -124,7 +124,7 @@
                                                         {% if student_thesis %}
                                                             {{ student_thesis.title[:50] }}{% if student_thesis.title|length > 50 %}...{% endif %}
                                                         {% else %}
-                                                            <em>No thesis assigned</em>
+                                                            <em>{{ _('No thesis assigned') }}</em>
                                                         {% endif %}
                                                     </td>
                                                     <td>

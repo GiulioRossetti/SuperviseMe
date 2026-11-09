@@ -34,9 +34,9 @@
                     <div class="row mb-4">
                         <div class="col-12">
                             <div class="alert alert-info">
-                                <strong>Search results for:</strong> "{{ search_term }}"
+                                <strong>{{ _('Search results for:') }}</strong> "{{ search_term }}"
                                 {% if not updates and not resources and not todos %}
-                                <br><small class="text-muted">No results found. Try a different search term.</small>
+                                <br><small class="text-muted">{{ _('No results found. Try a different search term.') }}</small>
                                 {% endif %}
                             </div>
                         </div>
@@ -58,7 +58,7 @@
                                                 <div class="d-flex align-items-center mb-2">
                                                     {% if update.update_type == 'student_update' %}
                                                         <i class="fas fa-user text-success mr-2"></i>
-                                                        <strong class="text-success">You</strong>
+                                                        <strong class="text-success">{{ _('You') }}</strong>
                                                     {% else %}
                                                         <i class="fas fa-user-tie text-primary mr-2"></i>
                                                         <strong class="text-primary">{{ update.author.name if update.author else 'Supervisor' }}</strong>

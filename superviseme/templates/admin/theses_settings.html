@@ -113,19 +113,19 @@
                                         <div class="col-md-4">
                                             <div class="text-center">
                                                 <h4 class="text-primary">{{ stats.thesis_levels.bachelor }}</h4>
-                                                <p class="text-xs">Bachelor Theses</p>
+                                                <p class="text-xs">{{ _('Bachelor Theses') }}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="text-center">
                                                 <h4 class="text-success">{{ stats.thesis_levels.master }}</h4>
-                                                <p class="text-xs">Master Theses</p>
+                                                <p class="text-xs">{{ _('Master Theses') }}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="text-center">
                                                 <h4 class="text-info">{{ stats.thesis_levels.other }}</h4>
-                                                <p class="text-xs">Other Theses</p>
+                                                <p class="text-xs">{{ _('Other Theses') }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -149,19 +149,19 @@
                                     <div class="list-group">
                                         <div class="list-group-item d-flex justify-content-between align-items-center">
                                             <div>
-                                                <strong>Default Thesis Level</strong>
-                                                <br><small class="text-muted">Set the default level for new theses</small>
+                                                <strong>{{ _('Default Thesis Level') }}</strong>
+                                                <br><small class="text-muted">{{ _('Set the default level for new theses') }}</small>
                                             </div>
                                             <select class="form-control-sm" style="width: 120px;">
-                                                <option>Bachelor</option>
-                                                <option selected>Master</option>
-                                                <option>Other</option>
+                                                <option>{{ _('Bachelor') }}</option>
+                                                <option selected>{{ _('Master') }}</option>
+                                                <option>{{ _('Other') }}</option>
                                             </select>
                                         </div>
                                         <div class="list-group-item d-flex justify-content-between align-items-center">
                                             <div>
-                                                <strong>Auto-assign Supervisors</strong>
-                                                <br><small class="text-muted">Automatically suggest supervisors</small>
+                                                <strong>{{ _('Auto-assign Supervisors') }}</strong>
+                                                <br><small class="text-muted">{{ _('Automatically suggest supervisors') }}</small>
                                             </div>
                                             <div class="custom-control custom-switch">
                                                 <input type="checkbox" class="custom-control-input" id="auto-assign">
@@ -170,8 +170,8 @@
                                         </div>
                                         <div class="list-group-item d-flex justify-content-between align-items-center">
                                             <div>
-                                                <strong>Thesis Approval Required</strong>
-                                                <br><small class="text-muted">Require admin approval for new theses</small>
+                                                <strong>{{ _('Thesis Approval Required') }}</strong>
+                                                <br><small class="text-muted">{{ _('Require admin approval for new theses') }}</small>
                                             </div>
                                             <div class="custom-control custom-switch">
                                                 <input type="checkbox" class="custom-control-input" id="approval-required" checked>

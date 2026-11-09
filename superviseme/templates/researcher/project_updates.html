@@ -69,7 +69,7 @@
                                 <div class="text-center py-4">
                                     <i class="fas fa-comments fa-3x text-gray-300 mb-3"></i>
                                     <h5 class="text-gray-500">{{ _('No updates yet') }}</h5>
-                                    <p class="text-muted">Be the first to add an update to this project</p>
+                                    <p class="text-muted">{{ _('Be the first to add an update to this project') }}</p>
                                     <button class="btn btn-primary" data-toggle="modal" data-target="#addUpdateModal">
                                         <i class="fas fa-plus"></i> Add First Update
                                     </button>
@@ -93,10 +93,10 @@
                                         <div class="form-group">
                                             <label>{{ _('Update Type') }}</label>
                                             <select name="update_type" class="form-control">
-                                                <option value="progress">Progress Update</option>
-                                                <option value="feedback">Feedback</option>
-                                                <option value="milestone">Milestone</option>
-                                                <option value="meeting">Meeting Notes</option>
+                                                <option value="progress">{{ _('Progress Update') }}</option>
+                                                <option value="feedback">{{ _('Feedback') }}</option>
+                                                <option value="milestone">{{ _('Milestone') }}</option>
+                                                <option value="meeting">{{ _('Meeting Notes') }}</option>
                                             </select>
                                         </div>
                                         <div class="form-group">

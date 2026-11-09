@@ -45,24 +45,24 @@
                                     
                                     <div class="row mt-4">
                                         <div class="col-md-3">
-                                            <strong>Status:</strong>
+                                            <strong>{{ _('Status:') }}</strong>
                                             <span class="badge {% if todo.status == 'completed' %}badge-success{% elif todo.status == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">
                                                 {{ todo.status|title }}
                                             </span>
                                         </div>
                                         <div class="col-md-3">
-                                            <strong>Priority:</strong>
+                                            <strong>{{ _('Priority:') }}</strong>
                                             <span class="badge {% if todo.priority == 'high' %}badge-danger{% elif todo.priority == 'medium' %}badge-warning{% else %}badge-info{% endif %}">
                                                 {{ todo.priority|title }}
                                             </span>
                                         </div>
                                         <div class="col-md-3">
-                                            <strong>Created:</strong>
+                                            <strong>{{ _('Created:') }}</strong>
                                             {{ dt(todo.created_at).strftime('%B %d, %Y') if todo.created_at else 'Unknown' }}
                                         </div>
                                         <div class="col-md-3">
                                             {% if todo.due_date %}
-                                            <strong>Due:</strong>
+                                            <strong>{{ _('Due:') }}</strong>
                                             {{ dt(todo.due_date).strftime('%B %d, %Y') }}
                                             {% endif %}
                                         </div>
@@ -70,14 +70,14 @@
                                     
                                     {% if todo.assigned_to %}
                                     <div class="mt-3">
-                                        <strong>Assigned to:</strong> {{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}
+                                        <strong>{{ _('Assigned to:') }}</strong> {{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}
                                         <br><small class="text-muted">{{ todo.assigned_to.email }}</small>
                                     </div>
                                     {% endif %}
                                     
                                     {% if todo.completed_at %}
                                     <div class="mt-3">
-                                        <strong>Completed:</strong> {{ dt(todo.completed_at).strftime('%B %d, %Y at %I:%M %p') }}
+                                        <strong>{{ _('Completed:') }}</strong> {{ dt(todo.completed_at).strftime('%B %d, %Y at %I:%M %p') }}
                                     </div>
                                     {% endif %}
                                 </div>
@@ -106,8 +106,8 @@
                                         </form>
                                         
                                         <div class="mt-3">
-                                            <strong>Reference this Todo:</strong>
-                                            <small class="text-muted d-block">Use these references in updates:</small>
+                                            <strong>{{ _('Reference this Todo:') }}</strong>
+                                            <small class="text-muted d-block">{{ _('Use these references in updates:') }}</small>
                                             <code class="d-block">@todo:{{ todo.id }}</code>
                                             <code class="d-block">#todo-{{ todo.id }}</code>
                                         </div>
@@ -160,7 +160,7 @@
                                 </div>
                                 <div class="card-body text-center">
                                     <i class="fas fa-link fa-3x text-gray-300 mb-3"></i>
-                                    <p class="text-gray-500">No updates reference this todo yet.</p>
+                                    <p class="text-gray-500">{{ _('No updates reference this todo yet.') }}</p>
                                     <small class="text-muted">Use @todo:{{ todo.id }} or #todo-{{ todo.id }} in updates to reference this todo.</small>
                                 </div>
                             </div>

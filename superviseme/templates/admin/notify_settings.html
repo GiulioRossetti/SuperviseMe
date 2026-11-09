@@ -112,8 +112,8 @@
                                             <div class="list-group-item">
                                                 <div class="row align-items-center">
                                                     <div class="col">
-                                                        <strong>Email Notifications</strong>
-                                                        <br><small class="text-muted">Send email notifications to users</small>
+                                                        <strong>{{ _('Email Notifications') }}</strong>
+                                                        <br><small class="text-muted">{{ _('Send email notifications to users') }}</small>
                                                     </div>
                                                     <div class="col-auto">
                                                         <div class="custom-control custom-switch">
@@ -127,8 +127,8 @@
                                             <div class="list-group-item">
                                                 <div class="row align-items-center">
                                                     <div class="col">
-                                                        <strong>Assignment Notifications</strong>
-                                                        <br><small class="text-muted">Notify when theses are assigned</small>
+                                                        <strong>{{ _('Assignment Notifications') }}</strong>
+                                                        <br><small class="text-muted">{{ _('Notify when theses are assigned') }}</small>
                                                     </div>
                                                     <div class="col-auto">
                                                         <div class="custom-control custom-switch">
@@ -142,8 +142,8 @@
                                             <div class="list-group-item">
                                                 <div class="row align-items-center">
                                                     <div class="col">
-                                                        <strong>Status Change Notifications</strong>
-                                                        <br><small class="text-muted">Notify when thesis status changes</small>
+                                                        <strong>{{ _('Status Change Notifications') }}</strong>
+                                                        <br><small class="text-muted">{{ _('Notify when thesis status changes') }}</small>
                                                     </div>
                                                     <div class="col-auto">
                                                         <div class="custom-control custom-switch">
@@ -157,8 +157,8 @@
                                             <div class="list-group-item">
                                                 <div class="row align-items-center">
                                                     <div class="col">
-                                                        <strong>Deadline Reminders</strong>
-                                                        <br><small class="text-muted">Send reminders before deadlines</small>
+                                                        <strong>{{ _('Deadline Reminders') }}</strong>
+                                                        <br><small class="text-muted">{{ _('Send reminders before deadlines') }}</small>
                                                     </div>
                                                     <div class="col-auto">
                                                         <div class="custom-control custom-switch">
@@ -183,39 +183,39 @@
                                 <div class="card-body">
                                     <form id="annotationSettings">
                                         <div class="form-group">
-                                            <label for="default-annotation-type"><strong>Default Annotation Type</strong></label>
+                                            <label for="default-annotation-type"><strong>{{ _('Default Annotation Type') }}</strong></label>
                                             <select class="form-control" id="default-annotation-type">
-                                                <option>General Comment</option>
-                                                <option>Suggestion</option>
-                                                <option>Question</option>
-                                                <option>Important Note</option>
+                                                <optionNone>{{ _('General Comment') }}</option>
+                                                <optionNone>{{ _('Suggestion') }}</option>
+                                                <optionNone>{{ _('Question') }}</option>
+                                                <optionNone>{{ _('Important Note') }}</option>
                                             </select>
-                                            <small class="form-text text-muted">Select the default type for new annotations</small>
+                                            <small class="form-text text-muted">{{ _('Select the default type for new annotations') }}</small>
                                         </div>
 
                                         <div class="form-group">
-                                            <label for="max-annotation-length"><strong>Maximum Annotation Length</strong></label>
+                                            <label for="max-annotation-length"><strong>{{ _('Maximum Annotation Length') }}</strong></label>
                                             <select class="form-control" id="max-annotation-length">
                                                 <option>500 characters</option>
                                                 <option selected>1000 characters</option>
                                                 <option>2000 characters</option>
-                                                <option>No limit</option>
+                                                <optionNone>{{ _('No limit') }}</option>
                                             </select>
                                         </div>
 
                                         <div class="custom-control custom-checkbox mb-3">
                                             <input type="checkbox" class="custom-control-input" id="require-annotation-approval" checked>
                                             <label class="custom-control-label" for="require-annotation-approval">
-                                                <strong>Require Approval for Public Annotations</strong>
-                                                <br><small class="text-muted">Admin approval required before annotations are visible</small>
+                                                <strong>{{ _('Require Approval for Public Annotations') }}</strong>
+                                                <br><small class="text-muted">{{ _('Admin approval required before annotations are visible') }}</small>
                                             </label>
                                         </div>
 
                                         <div class="custom-control custom-checkbox mb-3">
                                             <input type="checkbox" class="custom-control-input" id="allow-anonymous-annotations">
                                             <label class="custom-control-label" for="allow-anonymous-annotations">
-                                                <strong>Allow Anonymous Annotations</strong>
-                                                <br><small class="text-muted">Users can submit annotations anonymously</small>
+                                                <strong>{{ _('Allow Anonymous Annotations') }}</strong>
+                                                <br><small class="text-muted">{{ _('Users can submit annotations anonymously') }}</small>
                                             </label>
                                         </div>
                                     </form>
@@ -241,8 +241,8 @@
                                                 <ol class="mb-0">
                                                     <li>Create a bot by messaging <a href="https://t.me/BotFather" target="_blank">@BotFather</a> on Telegram</li>
                                                     <li>Send <code>/newbot</code> and follow the instructions</li>
-                                                    <li>Copy your bot token and paste it below</li>
-                                                    <li>Users can then configure their Telegram notifications in their profiles</li>
+                                                    <li>{{ _('Copy your bot token and paste it below') }}</li>
+                                                    <li>{{ _('Users can then configure their Telegram notifications in their profiles') }}</li>
                                                 </ol>
                                             </div>
                                             
@@ -250,18 +250,18 @@
                                                 <div class="row">
                                                     <div class="col-md-8">
                                                         <div class="form-group">
-                                                            <label for="telegram-bot-token"><strong>Bot Token</strong></label>
+                                                            <label for="telegram-bot-token"><strong>{{ _('Bot Token') }}</strong></label>
                                                             <input type="password" class="form-control" id="telegram-bot-token" 
                                                                    placeholder="123456789:ABCdefGHIjklMNOpqrSTUvwxyz">
-                                                            <small class="form-text text-muted">Keep this token secure and never share it publicly</small>
+                                                            <small class="form-text text-muted">{{ _('Keep this token secure and never share it publicly') }}</small>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <div class="form-group">
-                                                            <label for="telegram-bot-username"><strong>Bot Username</strong></label>
+                                                            <label for="telegram-bot-username"><strong>{{ _('Bot Username') }}</strong></label>
                                                             <input type="text" class="form-control" id="telegram-bot-username" 
                                                                    placeholder="{{ _('YourBotName') }}">
-                                                            <small class="form-text text-muted">Without @</small>
+                                                            <small class="form-text text-muted">{{ _('Without @') }}</small>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -269,16 +269,16 @@
                                                 <div class="custom-control custom-switch mb-3">
                                                     <input type="checkbox" class="custom-control-input" id="telegram-enabled" checked>
                                                     <label class="custom-control-label" for="telegram-enabled">
-                                                        <strong>Enable Telegram Notifications</strong>
+                                                        <strong>{{ _('Enable Telegram Notifications') }}</strong>
                                                     </label>
                                                 </div>
                                                 
                                                 <div class="form-group" id="notification-types-section">
-                                                    <label><strong>Enabled Notification Types</strong></label>
+                                                    <label><strong>{{ _('Enabled Notification Types') }}</strong></label>
                                                     <div class="row" id="notification-types-list">
                                                         <!-- Notification types will be loaded here -->
                                                     </div>
-                                                    <small class="form-text text-muted">Select which notification types can be sent via Telegram</small>
+                                                    <small class="form-text text-muted">{{ _('Select which notification types can be sent via Telegram') }}</small>
                                                 </div>
                                                 
                                                 <div class="row">
@@ -301,7 +301,7 @@
                                                 <div class="card-body">
                                                     <h6 class="card-title">{{ _('Bot Status') }}</h6>
                                                     <div id="telegram-bot-status">
-                                                        <span class="badge badge-secondary">Not Configured</span>
+                                                        <span class="badge badge-secondary">{{ _('Not Configured') }}</span>
                                                     </div>
                                                     
                                                     <hr>
@@ -332,23 +332,23 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="smtp-server"><strong>SMTP Server</strong></label>
+                                                    <label for="smtp-server"><strong>{{ _('SMTP Server') }}</strong></label>
                                                     <input type="text" class="form-control" id="smtp-server" placeholder="{{ _('smtp.example.com') }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
                                                 <div class="form-group">
-                                                    <label for="smtp-port"><strong>SMTP Port</strong></label>
+                                                    <label for="smtp-port"><strong>{{ _('SMTP Port') }}</strong></label>
                                                     <input type="number" class="form-control" id="smtp-port" value="587">
                                                 </div>
                                             </div>
                                             <div class="col-md-3">
                                                 <div class="form-group">
-                                                    <label for="smtp-encryption"><strong>Encryption</strong></label>
+                                                    <label for="smtp-encryption"><strong>{{ _('Encryption') }}</strong></label>
                                                     <select class="form-control" id="smtp-encryption">
-                                                        <option>None</option>
-                                                        <option selected>TLS</option>
-                                                        <option>SSL</option>
+                                                        <optionNone>{{ _('None') }}</option>
+                                                        <option selected>{{ _('TLS') }}</option>
+                                                        <optionNone>{{ _('SSL') }}</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -356,13 +356,13 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="smtp-username"><strong>Username</strong></label>
+                                                    <label for="smtp-username"><strong>{{ _('Username') }}</strong></label>
                                                     <input type="text" class="form-control" id="smtp-username" placeholder="{{ _('your-email@example.com') }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="smtp-password"><strong>Password</strong></label>
+                                                    <label for="smtp-password"><strong>{{ _('Password') }}</strong></label>
                                                     <input type="password" class="form-control" id="smtp-password" placeholder="••••••••">
                                                 </div>
                                             </div>
@@ -370,13 +370,13 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="from-email"><strong>From Email</strong></label>
+                                                    <label for="from-email"><strong>{{ _('From Email') }}</strong></label>
                                                     <input type="email" class="form-control" id="from-email" placeholder="{{ _('noreply@university.edu') }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="from-name"><strong>From Name</strong></label>
+                                                    <label for="from-name"><strong>{{ _('From Name') }}</strong></label>
                                                     <input type="text" class="form-control" id="from-name" placeholder="{{ _('SuperviseMe System') }}">
                                                 </div>
                                             </div>
@@ -617,9 +617,9 @@ SuperviseMe Team</textarea>
             // Update status
             const statusEl = document.getElementById('telegram-bot-status');
             if (telegramConfig.bot_token && telegramConfig.is_active) {
-                statusEl.innerHTML = '<span class="badge badge-success">Active</span>';
+                statusEl.innerHTML = '<span class="badge badge-success">{{ _('Active') }}</span>';
             } else {
-                statusEl.innerHTML = '<span class="badge badge-secondary">Not Configured</span>';
+                statusEl.innerHTML = '<span class="badge badge-secondary">{{ _('Not Configured') }}</span>';
             }
         }
 
@@ -667,7 +667,7 @@ SuperviseMe Team</textarea>
                 if (data.success) {
                     showAlert('success', `Bot test successful!<br>${data.message}`);
                     const statusEl = document.getElementById('telegram-bot-status');
-                    statusEl.innerHTML = '<span class="badge badge-success">Connected</span>';
+                    statusEl.innerHTML = '<span class="badge badge-success">{{ _('Connected') }}</span>';
                 } else {
                     showAlert('danger', `Bot test failed:<br>${data.message}`);
                 }

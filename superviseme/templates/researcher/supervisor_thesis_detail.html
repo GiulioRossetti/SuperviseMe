@@ -55,15 +55,15 @@
                                     <p class="text-gray-700">{{ thesis.description }}</p>
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <strong>Level:</strong> {{ thesis.level|title if thesis.level else 'Not specified' }}
+                                            <strong>{{ _('Level:') }}</strong> {{ thesis.level|title if thesis.level else 'Not specified' }}
                                         </div>
                                         <div class="col-md-6">
-                                            <strong>Created:</strong> {{ dt(thesis.created_at).strftime('%B %d, %Y') if thesis.created_at else 'Unknown' }}
+                                            <strong>{{ _('Created:') }}</strong> {{ dt(thesis.created_at).strftime('%B %d, %Y') if thesis.created_at else 'Unknown' }}
                                         </div>
                                     </div>
                                     {% if author %}
                                     <div class="mt-3">
-                                        <strong>Student:</strong> {{ author.name }} {{ author.surname }}
+                                        <strong>{{ _('Student:') }}</strong> {{ author.name }} {{ author.surname }}
                                         <br><small class="text-muted">{{ author.email }}</small>
                                         <div class="mt-2">
                                             <form method="POST" action="{{ url_for('researcher.unassign_thesis', thesis_id=thesis.id) }}" style="display: inline;">
@@ -76,16 +76,16 @@
                                     </div>
                                     {% else %}
                                     <div class="mt-3">
-                                        <span class="badge badge-warning">No student assigned</span>
+                                        <span class="badge badge-warning">{{ _('No student assigned') }}</span>
                                         {% if available_students %}
                                         <div class="mt-3">
-                                            <strong>Assign Student:</strong>
+                                            <strong>{{ _('Assign Student:') }}</strong>
                                             <form method="POST" action="{{ url_for('researcher.assign_thesis') }}" class="mt-2">
                                                 <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                                                 <div class="form-row">
                                                     <div class="col-md-8">
                                                         <select name="student_id" class="form-control form-control-sm" required>
-                                                            <option value="">Select a student...</option>
+                                                            <option value="">{{ _('Select a student...') }}</option>
                                                             {% for student in available_students %}
                                                             <option value="{{ student.id }}">{{ student.name }} {{ student.surname }} ({{ student.email }})</option>
                                                             {% endfor %}
@@ -101,7 +101,7 @@
                                         </div>
                                         {% else %}
                                         <div class="mt-2">
-                                            <small class="text-muted">No available students (all students have active thesis assignments)</small>
+                                            <small class="text-muted">{{ _('No available students (all students have active thesis assignments)') }}</small>
                                         </div>
                                         {% endif %}
                                     </div>
@@ -109,7 +109,7 @@
                                     
                                     {% if thesis_tags %}
                                     <div class="mt-3">
-                                        <strong>Tags:</strong>
+                                        <strong>{{ _('Tags:') }}</strong>
                                         {% for tag in thesis_tags %}
                                             <span class="badge badge-secondary mr-1">{{ tag.tag }}</span>
                                         {% endfor %}
@@ -207,7 +207,7 @@
                                         </div>
                                         {% endif %}
                                     {% else %}
-                                        <p class="text-muted">No status set yet. Use the "Set Status" button to assign an advancement status.</p>
+                                        <p class="text-muted">{{ _('No status set yet. Use the "Set Status" button to assign an advancement status.') }}</p>
                                     {% endif %}
                                 </div>
                             </div>
@@ -233,7 +233,7 @@
                                                     <h6 class="font-weight-bold">{{ objective.title }}</h6>
                                                     <div class="d-flex align-items-center">
                                                         {% if objective.frozen %}
-                                                            <span class="badge badge-warning mr-2">Frozen</span>
+                                                            <span class="badge badge-warning mr-2">{{ _('Frozen') }}</span>
                                                              <form method="POST" action="{{ url_for('researcher.supervisor_unfreeze_objective', objective_id=objective.id) }}" class="d-inline">
                                                                 <button type="submit" class="btn btn-sm btn-outline-success" 
                                                                         onclick="return confirm('Unfreeze this objective?')">
@@ -271,7 +271,7 @@
                                     {% else %}
                                         <div class="text-center py-4">
                                             <i class="fas fa-bullseye fa-2x text-gray-300 mb-3"></i>
-                                            <p class="text-muted">No objectives defined yet. <a href="#" data-toggle="modal" data-target="#addObjectiveModal">Add the first objective!</a></p>
+                                            <p class="text-muted">No objectives defined yet. <a href="#" data-toggle="modal" data-target="#addObjectiveModal">{{ _('Add the first objective!') }}</a></p>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -298,7 +298,7 @@
                                                     <h6 class="font-weight-bold">{{ hypothesis.title }}</h6>
                                                     <div class="d-flex align-items-center">
                                                         {% if hypothesis.frozen %}
-                                                            <span class="badge badge-warning mr-2">Frozen</span>
+                                                            <span class="badge badge-warning mr-2">{{ _('Frozen') }}</span>
                                                             <form method="POST" action="{{ url_for('researcher.supervisor_unfreeze_hypothesis', hypothesis_id=hypothesis.id) }}" class="d-inline">
                                                                 <button type="submit" class="btn btn-sm btn-outline-success"
                                                                         onclick="return confirm('Unfreeze this hypothesis?')">
@@ -336,7 +336,7 @@
                                     {% else %}
                                         <div class="text-center py-4">
                                             <i class="fas fa-lightbulb fa-2x text-gray-300 mb-3"></i>
-                                            <p class="text-muted">No hypotheses defined yet. <a href="#" data-toggle="modal" data-target="#addHypothesisModal">Add the first hypothesis!</a></p>
+                                            <p class="text-muted">No hypotheses defined yet. <a href="#" data-toggle="modal" data-target="#addHypothesisModal">{{ _('Add the first hypothesis!') }}</a></p>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -369,10 +369,10 @@
                                                                     <strong class="text-primary">{{ author.name if author else 'Student' }}</strong>
                                                                 {% elif update.update_type == 'supervisor_update' %}
                                                                     <i class="fas fa-user-tie text-info mr-2"></i>
-                                                                    <strong class="text-info">You (Supervisor)</strong>
+                                                                    <strong class="text-info">{{ _('You (Supervisor)') }}</strong>
                                                                 {% elif update.update_type == 'supervisor_comment' %}
                                                                     <i class="fas fa-comment text-warning mr-2"></i>
-                                                                    <strong class="text-warning">You (Comment)</strong>
+                                                                    <strong class="text-warning">{{ _('You (Comment)') }}</strong>
                                                                 {% endif %}
                                                                 <small class="text-gray-500 ml-2">
                                                                     {{ dt(update.created_at).strftime('%B %d, %Y at %I:%M %p') if update.created_at else 'Unknown time' }}
@@ -386,7 +386,7 @@
                                                             <!-- Todo References -->
                                                             {% if update.todo_references %}
                                                             <div class="mt-2">
-                                                                <small class="text-muted">Referenced Todos:</small>
+                                                                <small class="text-muted">{{ _('Referenced Todos:') }}</small>
                                                                 {% for ref in update.todo_references %}
                                                                 <a href="{{ url_for('researcher.supervisor_todo_detail', todo_id=ref.todo.id) }}"
                                                                    class="badge badge-primary ml-1" title="{{ ref.todo.title }}">
@@ -443,7 +443,7 @@
                                                             <h6 class="text-warning">{{ _('Comments:') }}</h6>
                                                             {% for comment in child_comments %}
                                                             <div class="bg-light p-2 rounded mb-2">
-                                                                <strong class="text-warning">You:</strong>
+                                                                <strong class="text-warning">{{ _('You:') }}</strong>
                                                                 <small class="text-muted">{{ dt(comment.created_at).strftime('%B %d, %Y at %I:%M %p') if comment.created_at else 'Unknown' }}</small>
                                                                 <div class="mt-1">{{ comment.content|replace('\n', '<br>')|safe }}</div>
                                                             </div>
@@ -456,7 +456,7 @@
                                         {% endfor %}
 
                                     {% else %}
-                                        <p class="text-gray-500 text-center">No updates yet.</p>
+                                        <p class="text-gray-500 text-center">{{ _('No updates yet.') }}</p>
                                     {% endif %}
                                 </div>
                             </div>
@@ -505,7 +505,7 @@
                                                         <!-- Todo References -->
                                                         {% if note.todo_references %}
                                                         <div class="mt-2">
-                                                            <small class="text-muted">Referenced Todos:</small>
+                                                            <small class="text-muted">{{ _('Referenced Todos:') }}</small>
                                                             {% for ref in note.todo_references %}
                                                             <a href="{{ url_for('researcher.supervisor_todo_detail', todo_id=ref.todo.id) }}" 
                                                                class="badge badge-primary ml-1" title="{{ ref.todo.title }}">
@@ -569,7 +569,7 @@
                                     {% else %}
                                     <div class="text-center py-4">
                                         <i class="fas fa-sticky-note fa-2x text-gray-300 mb-3"></i>
-                                        <p class="text-muted">No meeting notes yet. <a href="#" data-toggle="modal" data-target="#addMeetingNoteModal">Add your first meeting note!</a></p>
+                                        <p class="text-muted">No meeting notes yet. <a href="#" data-toggle="modal" data-target="#addMeetingNoteModal">{{ _('Add your first meeting note!') }}</a></p>
                                     </div>
                                     {% endif %}
                                 </div>
@@ -624,14 +624,14 @@
                                                         {% if todo.due_date %}
                                                             {{ dt(todo.due_date).strftime('%Y-%m-%d') }}
                                                         {% else %}
-                                                            <span class="text-muted">No due date</span>
+                                                            <span class="text-muted">{{ _('No due date') }}</span>
                                                         {% endif %}
                                                     </td>
                                                     <td>
                                                         {% if todo.author %}
                                                             {{ todo.author.name }} {{ todo.author.surname }}
                                                         {% else %}
-                                                            <span class="text-muted">Unknown</span>
+                                                            <span class="text-muted">{{ _('Unknown') }}</span>
                                                         {% endif %}
                                                     </td>
                                                 </tr>
@@ -693,7 +693,7 @@
                                     {% else %}
                                         <div class="text-center py-4">
                                             <i class="fas fa-folder fa-2x text-gray-300 mb-3"></i>
-                                            <p class="text-muted">No resources added yet. <a href="#" data-toggle="modal" data-target="#addResourceModal">Add the first resource!</a></p>
+                                            <p class="text-muted">No resources added yet. <a href="#" data-toggle="modal" data-target="#addResourceModal">{{ _('Add the first resource!') }}</a></p>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -710,7 +710,7 @@
                                 </div>
                                 <div class="card-body">
                                     {% if thesis.publisher_id != current_user.id %}
-                                        <p class="text-muted mb-0">Only the thesis publisher can handle expressions of interest.</p>
+                                        <p class="text-muted mb-0">{{ _('Only the thesis publisher can handle expressions of interest.') }}</p>
                                     {% elif interests %}
                                         {% for interest in interests %}
                                             <div class="border rounded p-2 mb-2">
@@ -733,7 +733,7 @@
                                             </div>
                                         {% endfor %}
                                     {% else %}
-                                        <p class="text-muted mb-0">No expressions of interest yet.</p>
+                                        <p class="text-muted mb-0">{{ _('No expressions of interest yet.') }}</p>
                                     {% endif %}
                                 </div>
                             </div>
@@ -773,7 +773,7 @@
                             <label for="content">{{ _('Feedback Content:') }}</label>
                             <textarea class="form-control" name="content" rows="5" required placeholder="{{ _('Provide feedback to the student...') }}"></textarea>
                             <small class="form-text text-muted">
-                                <strong>Todo References:</strong> Use @todo:ID or #todo-ID to reference todos. 
+                                <strong>{{ _('Todo References:') }}</strong> Use @todo:ID or #todo-ID to reference todos. 
                                 {% if todos %}Available todos: 
                                 {% for todo in todos[:3] %}@todo:{{ todo.id }} ({{ todo.title[:20] }}{% if todo.title|length > 20 %}...{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
                                 {% if todos|length > 3 %}... and {{ todos|length - 3 }} more{% endif %}
@@ -791,7 +791,7 @@
                                 </label>
                                 {% endfor %}
                             </div>
-                            <small class="form-text text-muted">Click buttons above to insert todo references into your feedback.</small>
+                            <small class="form-text text-muted">{{ _('Click buttons above to insert todo references into your feedback.') }}</small>
                         </div>
                         {% endif %}
                     </div>
@@ -874,7 +874,7 @@
                         <div class="form-group">
                             <label for="tag">{{ _('Tag:') }}</label>
                             <input type="text" class="form-control" name="tag" required placeholder="{{ _('Enter a tag (e.g., \'needs-revision\', \'excellent\', \'clarify\')') }}">
-                            <small class="form-text text-muted">Use short, descriptive tags to categorize updates.</small>
+                            <small class="form-text text-muted">{{ _('Use short, descriptive tags to categorize updates.') }}</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -902,13 +902,13 @@
                         <div class="form-group">
                             <label for="status">{{ _('Advancement Status:') }}</label>
                             <select class="form-control" name="status" required>
-                                <option value="in-progress">In Progress</option>
-                                <option value="needs-revision">Needs Revision</option>
-                                <option value="approved">Approved</option>
-                                <option value="suspended">Suspended</option>
-                                <option value="completed">Completed</option>
+                                <option value="in-progress">{{ _('In Progress') }}</option>
+                                <option value="needs-revision">{{ _('Needs Revision') }}</option>
+                                <option value="approved">{{ _('Approved') }}</option>
+                                <option value="suspended">{{ _('Suspended') }}</option>
+                                <option value="completed">{{ _('Completed') }}</option>
                             </select>
-                            <small class="form-text text-muted">Set the current advancement status of this thesis.</small>
+                            <small class="form-text text-muted">{{ _('Set the current advancement status of this thesis.') }}</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -946,9 +946,9 @@
                                 <div class="form-group">
                                     <label for="priority">{{ _('Priority:') }}</label>
                                     <select class="form-control" name="priority">
-                                        <option value="low">Low</option>
-                                        <option value="medium" selected>Medium</option>
-                                        <option value="high">High</option>
+                                        <option value="low">{{ _('Low') }}</option>
+                                        <option value="medium" selected>{{ _('Medium') }}</option>
+                                        <option value="high">{{ _('High') }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -962,7 +962,7 @@
                         <div class="form-group">
                             <label for="assigned_to_id">{{ _('Assign to:') }}</label>
                             <select class="form-control" name="assigned_to_id">
-                                <option value="">Select assignee (optional)</option>
+                                <option value="">{{ _('Select assignee (optional)') }}</option>
                                 {% if author %}
                                     <option value="{{ author.id }}">{{ author.name }} {{ author.surname }} (Student)</option>
                                 {% endif %}
@@ -1090,8 +1090,8 @@
                             <textarea class="form-control" name="content" id="meetingNoteContent" rows="8" required 
                                       placeholder="Write your meeting notes using markdown. You can reference todos using @todo:ID syntax."></textarea>
                             <small class="form-text text-muted">
-                                <strong>Markdown supported:</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
-                                <strong>Todo References:</strong> Use @todo:ID to reference todos. 
+                                <strong>{{ _('Markdown supported:') }}</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
+                                <strong>{{ _('Todo References:') }}</strong> Use @todo:ID to reference todos. 
                                 {% if todos %}Available todos: 
                                 {% for todo in todos[:3] %}@todo:{{ todo.id }} ({{ todo.title[:20] }}{% if todo.title|length > 20 %}...{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
                                 {% if todos|length > 3 %}... and {{ todos|length - 3 }} more{% endif %}
@@ -1109,7 +1109,7 @@
                                 </label>
                                 {% endfor %}
                             </div>
-                            <small class="form-text text-muted">Click buttons above to insert todo references into your meeting notes.</small>
+                            <small class="form-text text-muted">{{ _('Click buttons above to insert todo references into your meeting notes.') }}</small>
                         </div>
                         {% endif %}
                     </div>
@@ -1142,8 +1142,8 @@
                             <label for="editMeetingNoteContent">{{ _('Meeting Notes:') }}</label>
                             <textarea class="form-control" name="content" id="editMeetingNoteContent" rows="8" required></textarea>
                             <small class="form-text text-muted">
-                                <strong>Markdown supported:</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
-                                <strong>Todo References:</strong> Use @todo:ID to reference todos.
+                                <strong>{{ _('Markdown supported:') }}</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
+                                <strong>{{ _('Todo References:') }}</strong> Use @todo:ID to reference todos.
                             </small>
                         </div>
                         {% if todos %}
@@ -1349,13 +1349,13 @@
                         <div class="form-group">
                             <label for="resourceType">{{ _('Resource Type:') }}</label>
                             <select class="form-control" name="resource_type" id="resourceType" required>
-                                <option value="">Select type...</option>
-                                <option value="document">Document</option>
-                                <option value="link">Link</option>
-                                <option value="book">Book</option>
-                                <option value="paper">Paper</option>
-                                <option value="video">Video</option>
-                                <option value="other">Other</option>
+                                <option value="">{{ _('Select type...') }}</option>
+                                <option value="document">{{ _('Document') }}</option>
+                                <option value="link">{{ _('Link') }}</option>
+                                <option value="book">{{ _('Book') }}</option>
+                                <option value="paper">{{ _('Paper') }}</option>
+                                <option value="video">{{ _('Video') }}</option>
+                                <option value="other">{{ _('Other') }}</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1391,12 +1391,12 @@
                         <div class="form-group">
                             <label for="editResourceType">{{ _('Resource Type:') }}</label>
                             <select class="form-control" name="resource_type" id="editResourceType" required>
-                                <option value="document">Document</option>
-                                <option value="link">Link</option>
-                                <option value="book">Book</option>
-                                <option value="paper">Paper</option>
-                                <option value="video">Video</option>
-                                <option value="other">Other</option>
+                                <option value="document">{{ _('Document') }}</option>
+                                <option value="link">{{ _('Link') }}</option>
+                                <option value="book">{{ _('Book') }}</option>
+                                <option value="paper">{{ _('Paper') }}</option>
+                                <option value="video">{{ _('Video') }}</option>
+                                <option value="other">{{ _('Other') }}</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -1465,10 +1465,10 @@
                         <div class="form-group">
                             <label for="thesisLevel">{{ _('Level:') }}</label>
                             <select class="form-control" name="level" id="thesisLevel">
-                                <option value="">Select level...</option>
-                                <option value="bachelor" {% if thesis.level == 'bachelor' %}selected{% endif %}>Bachelor</option>
-                                <option value="master" {% if thesis.level == 'master' %}selected{% endif %}>Master</option>
-                                <option value="phd" {% if thesis.level == 'phd' %}selected{% endif %}>PhD</option>
+                                <option value="">{{ _('Select level...') }}</option>
+                                <option value="bachelor" {% if thesis.level == 'bachelor' %}selected{% endif %}>{{ _('Bachelor') }}</option>
+                                <option value="master" {% if thesis.level == 'master' %}selected{% endif %}>{{ _('Master') }}</option>
+                                <option value="phd" {% if thesis.level == 'phd' %}selected{% endif %}>{{ _('PhD') }}</option>
                             </select>
                         </div>
                     </div>

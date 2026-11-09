@@ -54,25 +54,25 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="row mb-2">
-                                        <div class="col-sm-4"><strong>Created:</strong></div>
+                                        <div class="col-sm-4"><strong>{{ _('Created:') }}</strong></div>
                                         <div class="col-sm-8">{{ dt(meeting_note.created_at).strftime('%B %d, %Y at %I:%M %p') if meeting_note.created_at else 'Unknown' }}</div>
                                     </div>
                                     {% if meeting_note.updated_at != meeting_note.created_at %}
                                     <div class="row mb-2">
-                                        <div class="col-sm-4"><strong>Updated:</strong></div>
+                                        <div class="col-sm-4"><strong>{{ _('Updated:') }}</strong></div>
                                         <div class="col-sm-8">{{ dt(meeting_note.updated_at).strftime('%B %d, %Y at %I:%M %p') if meeting_note.updated_at else 'Unknown' }}</div>
                                     </div>
                                     {% endif %}
                                     <div class="row mb-3">
-                                        <div class="col-sm-3"><strong>Added by:</strong></div>
+                                        <div class="col-sm-3"><strong>{{ _('Added by:') }}</strong></div>
                                         <div class="col-sm-9">{{ meeting_note.author.name }} {{ meeting_note.author.surname }}</div>
                                     </div>
                                     <div class="row mb-3">
-                                        <div class="col-sm-3"><strong>Created:</strong></div>
+                                        <div class="col-sm-3"><strong>{{ _('Created:') }}</strong></div>
                                         <div class="col-sm-9">{{ dt(meeting_note.created_at).strftime('%B %d, %Y at %I:%M %p') }}</div>
                                     </div>
                                     <hr>
-                                    <h6><strong>Meeting Content:</strong></h6>
+                                    <h6><strong>{{ _('Meeting Content:') }}</strong></h6>
                                     <div class="mt-3">
                                         {{ meeting_note.content|replace('\n', '<br>')|safe }}
                                     </div>

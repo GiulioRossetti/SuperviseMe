@@ -8,7 +8,7 @@
             <div class="container-fluid">
                 <div class="d-sm-flex align-items-center justify-content-between mb-4">
                     <h1 class="h3 mb-0 text-gray-800">{{ _('My Expressed Interests') }}</h1>
-                    <a href="{{ url_for('public.public_thesis_dashboard') }}" class="btn btn-sm btn-primary">Browse Public Theses</a>
+                    <a href="{{ url_for('public.public_thesis_dashboard') }}" class="btn btn-sm btn-primary">{{ _('Browse Public Theses') }}</a>
                 </div>
 
                 {% if interests %}
@@ -39,11 +39,11 @@
                                                     </td>
                                                     <td>
                                                         {% if interest.status == 'pending' %}
-                                                            <span class="badge badge-warning">Pending</span>
+                                                            <span class="badge badge-warning">{{ _('Pending') }}</span>
                                                         {% elif interest.status == 'accepted' %}
-                                                            <span class="badge badge-success">Accepted</span>
+                                                            <span class="badge badge-success">{{ _('Accepted') }}</span>
                                                         {% elif interest.status == 'declined' %}
-                                                            <span class="badge badge-danger">Declined</span>
+                                                            <span class="badge badge-danger">{{ _('Declined') }}</span>
                                                         {% else %}
                                                             <span class="badge badge-secondary">{{ interest.status|title }}</span>
                                                         {% endif %}

@@ -45,19 +45,19 @@
                                     
                                     <div class="row mt-4">
                                         <div class="col-md-3">
-                                            <strong>Status:</strong>
+                                            <strong>{{ _('Status:') }}</strong>
                                             <span class="badge {% if todo.status == 'completed' %}badge-success{% elif todo.status == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">
                                                 {{ todo.status|title }}
                                             </span>
                                         </div>
                                         <div class="col-md-3">
-                                            <strong>Priority:</strong>
+                                            <strong>{{ _('Priority:') }}</strong>
                                             <span class="badge {% if todo.priority == 'high' %}badge-danger{% elif todo.priority == 'medium' %}badge-warning{% else %}badge-secondary{% endif %}">
                                                 {{ todo.priority|title }}
                                             </span>
                                         </div>
                                         <div class="col-md-3">
-                                            <strong>Due Date:</strong>
+                                            <strong>{{ _('Due Date:') }}</strong>
                                             <span class="text-gray-700">
                                                 {% if todo.due_date %}
                                                     {{ dt(todo.due_date).strftime('%Y-%m-%d') }}
@@ -67,22 +67,22 @@
                                             </span>
                                         </div>
                                         <div class="col-md-3">
-                                            <strong>Created:</strong>
+                                            <strong>{{ _('Created:') }}</strong>
                                             <span class="text-gray-700">{{ dt(todo.created_at).strftime('%Y-%m-%d %H:%M') }}</span>
                                         </div>
                                     </div>
 
                                     <div class="row mt-3">
                                         <div class="col-md-6">
-                                            <strong>Assigned To:</strong>
+                                            <strong>{{ _('Assigned To:') }}</strong>
                                             {% if todo.assigned_to %}
                                                 <span class="text-gray-700">{{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}</span>
                                             {% else %}
-                                                <span class="text-muted">Not assigned</span>
+                                                <span class="text-muted">{{ _('Not assigned') }}</span>
                                             {% endif %}
                                         </div>
                                         <div class="col-md-6">
-                                            <strong>Created By:</strong>
+                                            <strong>{{ _('Created By:') }}</strong>
                                             <span class="text-gray-700">{{ todo.author.name }} {{ todo.author.surname }}</span>
                                         </div>
                                     </div>

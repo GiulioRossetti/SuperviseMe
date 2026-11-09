@@ -51,14 +51,14 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h6><strong>Status:</strong> 
+                                            <h6><strong>{{ _('Status:') }}</strong> 
                                                 <span class="badge badge-{{ 'success' if scheduler_status.status == 'running' else 'danger' }}">
                                                     {{ scheduler_status.status.title() }}
                                                 </span>
                                             </h6>
                                             
                                             {% if scheduler_status.jobs %}
-                                                <h6 class="mt-3"><strong>Scheduled Jobs:</strong></h6>
+                                                <h6 class="mt-3"><strong>{{ _('Scheduled Jobs:') }}</strong></h6>
                                                 <div class="table-responsive">
                                                     <table class="table table-sm">
                                                         <thead>
@@ -105,7 +105,7 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h6><strong>Select Supervisor to Preview Email:</strong></h6>
+                                            <h6><strong>{{ _('Select Supervisor to Preview Email:') }}</strong></h6>
                                             <div class="form-group">
                                                 <select class="form-control" id="supervisorSelect" onchange="previewEmail()">
                                                     <option value="">-- Select Supervisor --</option>
@@ -127,13 +127,13 @@
                                             </div>
                                             <div class="card-body">
                                                 <div class="mb-3">
-                                                    <strong>To:</strong> <span id="previewRecipient"></span>
+                                                    <strong>{{ _('To:') }}</strong> <span id="previewRecipient"></span>
                                                 </div>
                                                 <div class="mb-3">
-                                                    <strong>Subject:</strong> <span id="previewSubject"></span>
+                                                    <strong>{{ _('Subject:') }}</strong> <span id="previewSubject"></span>
                                                 </div>
                                                 <div class="mb-3">
-                                                    <strong>Body:</strong>
+                                                    <strong>{{ _('Body:') }}</strong>
                                                     <pre id="previewBody" class="bg-light p-3" style="white-space: pre-wrap; font-family: inherit; max-height: 400px; overflow-y: auto;"></pre>
                                                 </div>
                                             </div>
@@ -153,15 +153,15 @@
                                 </div>
                                 <div class="card-body">
                                     <ul>
-                                        <li><strong>Automatic Schedule:</strong> Weekly reports are sent every Monday morning at 9:00 AM</li>
-                                        <li><strong>Content:</strong> Each supervisor receives a summary of their students' weekly activity</li>
-                                        <li><strong>Inactive Students:</strong> Students inactive for more than 2 weeks are highlighted</li>
-                                        <li><strong>Activity Tracking:</strong> Students' activity is tracked when they log in, post updates, or interact with the system</li>
-                                        <li><strong>Last Activity Location:</strong> The system tracks where students were last active (e.g., "student_dashboard", "posting_thesis_update")</li>
+                                        <li><strong>{{ _('Automatic Schedule:') }}</strong> Weekly reports are sent every Monday morning at 9:00 AM</li>
+                                        <li><strong>{{ _('Content:') }}</strong> Each supervisor receives a summary of their students' weekly activity</li>
+                                        <li><strong>{{ _('Inactive Students:') }}</strong> Students inactive for more than 2 weeks are highlighted</li>
+                                        <li><strong>{{ _('Activity Tracking:') }}</strong> Students' activity is tracked when they log in, post updates, or interact with the system</li>
+                                        <li><strong>{{ _('Last Activity Location:') }}</strong> The system tracks where students were last active (e.g., "student_dashboard", "posting_thesis_update")</li>
                                     </ul>
                                     
                                     <div class="alert alert-info mt-3">
-                                        <strong>Note:</strong> Only supervisors with assigned students will receive weekly reports. 
+                                        <strong>{{ _('Note:') }}</strong> Only supervisors with assigned students will receive weekly reports. 
                                         Supervisors with no students are automatically excluded from the weekly email batch.
                                     </div>
                                 </div>

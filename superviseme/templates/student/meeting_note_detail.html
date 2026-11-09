@@ -83,7 +83,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="row mb-2">
-                                        <div class="col-sm-4"><strong>Thesis:</strong></div>
+                                        <div class="col-sm-4"><strong>{{ _('Thesis:') }}</strong></div>
                                         <div class="col-sm-8">
                                             <a href="{{ url_for('student.thesis_data') }}">
                                                 {{ thesis.title }}
@@ -91,7 +91,7 @@
                                         </div>
                                     </div>
                                     <div class="row mb-2">
-                                        <div class="col-sm-4"><strong>Author:</strong></div>
+                                        <div class="col-sm-4"><strong>{{ _('Author:') }}</strong></div>
                                         <div class="col-sm-8">
                                             {{ meeting_note.author.name }} {{ meeting_note.author.surname }}
                                             {% if meeting_note.author.user_type == 'supervisor' %}
@@ -102,12 +102,12 @@
                                         </div>
                                     </div>
                                     <div class="row mb-2">
-                                        <div class="col-sm-4"><strong>Created:</strong></div>
+                                        <div class="col-sm-4"><strong>{{ _('Created:') }}</strong></div>
                                         <div class="col-sm-8">{{ dt(meeting_note.created_at).strftime('%B %d, %Y at %I:%M %p') if meeting_note.created_at else 'Unknown' }}</div>
                                     </div>
                                     {% if meeting_note.updated_at != meeting_note.created_at %}
                                     <div class="row mb-2">
-                                        <div class="col-sm-4"><strong>Updated:</strong></div>
+                                        <div class="col-sm-4"><strong>{{ _('Updated:') }}</strong></div>
                                         <div class="col-sm-8">{{ dt(meeting_note.updated_at).strftime('%B %d, %Y at %I:%M %p') if meeting_note.updated_at else 'Unknown' }}</div>
                                     </div>
                                     {% endif %}
@@ -175,8 +175,8 @@
                             <label for="editMeetingNoteContent">{{ _('Meeting Notes:') }}</label>
                             <textarea class="form-control" name="content" id="editMeetingNoteContent" rows="12" required></textarea>
                             <small class="form-text text-muted">
-                                <strong>Markdown supported:</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
-                                <strong>Todo References:</strong> Use @todo:ID to reference todos. 
+                                <strong>{{ _('Markdown supported:') }}</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
+                                <strong>{{ _('Todo References:') }}</strong> Use @todo:ID to reference todos. 
                                 {% if todos %}Available todos: 
                                 {% for todo in todos[:3] %}@todo:{{ todo.id }} ({{ todo.title[:20] }}{% if todo.title|length > 20 %}...{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
                                 {% if todos|length > 3 %}... and {{ todos|length - 3 }} more{% endif %}
@@ -194,7 +194,7 @@
                                 </label>
                                 {% endfor %}
                             </div>
-                            <small class="form-text text-muted">Click buttons above to insert todo references into your meeting notes.</small>
+                            <small class="form-text text-muted">{{ _('Click buttons above to insert todo references into your meeting notes.') }}</small>
                         </div>
                         {% endif %}
                     </div>
@@ -230,8 +230,8 @@
                             <textarea class="form-control" name="content" id="meetingNoteContent" rows="8" required 
                                       placeholder="Write your meeting notes using markdown. You can reference todos using @todo:ID syntax."></textarea>
                             <small class="form-text text-muted">
-                                <strong>Markdown supported:</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
-                                <strong>Todo References:</strong> Use @todo:ID to reference todos. 
+                                <strong>{{ _('Markdown supported:') }}</strong> **bold**, *italic*, `code`, [link](url), etc. <br>
+                                <strong>{{ _('Todo References:') }}</strong> Use @todo:ID to reference todos. 
                                 {% if todos %}Available todos: 
                                 {% for todo in todos[:3] %}@todo:{{ todo.id }} ({{ todo.title[:20] }}{% if todo.title|length > 20 %}...{% endif %}){% if not loop.last %}, {% endif %}{% endfor %}
                                 {% if todos|length > 3 %}... and {{ todos|length - 3 }} more{% endif %}
@@ -249,7 +249,7 @@
                                 </label>
                                 {% endfor %}
                             </div>
-                            <small class="form-text text-muted">Click buttons above to insert todo references into your meeting notes.</small>
+                            <small class="form-text text-muted">{{ _('Click buttons above to insert todo references into your meeting notes.') }}</small>
                         </div>
                         {% endif %}
                     </div>

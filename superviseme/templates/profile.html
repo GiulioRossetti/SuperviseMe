@@ -145,9 +145,9 @@
                                                 <div class="form-group">
                                                     <label for="gender">{{ _('Gender') }}</label>
                                                     <select class="form-control" id="gender" name="gender">
-                                                        <option value="">Not specified</option>
-                                                        <option value="male" {% if user.gender == 'male' %}selected{% endif %}>Male</option>
-                                                        <option value="female" {% if user.gender == 'female' %}selected{% endif %}>Female</option>
+                                                        <option value="">{{ _('Not specified') }}</option>
+                                                        <option value="male" {% if user.gender == 'male' %}selected{% endif %}>{{ _('Male') }}</option>
+                                                        <option value="female" {% if user.gender == 'female' %}selected{% endif %}>{{ _('Female') }}</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -207,17 +207,17 @@
                                     {% if user.orcid_id %}
                                         <span class="badge badge-success mr-2">Connected: {{ user.orcid_id }}</span>
                                     {% else %}
-                                        <span class="badge badge-secondary mr-2">Not Connected</span>
+                                        <span class="badge badge-secondary mr-2">{{ _('Not Connected') }}</span>
                                     {% endif %}
                                 </div>
                                 <div class="card-body">
                                     {% if user.orcid_id %}
-                                        <p class="mb-3">Manage synchronization and export from the dedicated ORCID publications page.</p>
+                                        <p class="mb-3">{{ _('Manage synchronization and export from the dedicated ORCID publications page.') }}</p>
                                         <a href="{{ url_for('profile.orcid_publications') }}" class="btn btn-primary btn-sm">
                                             <i class="fas fa-book-open"></i> Open ORCID Publications
                                         </a>
                                     {% else %}
-                                        <p class="mb-3">Link your ORCID account to sync and export publications.</p>
+                                        <p class="mb-3">{{ _('Link your ORCID account to sync and export publications.') }}</p>
                                         <a href="{{ url_for('profile.connect_orcid') }}" class="btn btn-success btn-sm">
                                             <i class="fab fa-orcid"></i> Connect ORCID
                                         </a>
@@ -238,23 +238,23 @@
                                             <div class="alert alert-info mb-4">
                                                 <h6><i class="fas fa-info-circle mr-2"></i>Setup Instructions</h6>
                                                 <ol class="mb-0">
-                                                    <li>Start a chat with the SuperviseMe bot on Telegram</li>
-                                                    <li>Send any message to the bot (e.g., "Hello")</li>
-                                                    <li>The bot will reply with your Telegram User ID</li>
-                                                    <li>Enter your User ID below and test the connection</li>
+                                                    <li>{{ _('Start a chat with the SuperviseMe bot on Telegram') }}</li>
+                                                    <li>{{ _('Send any message to the bot (e.g., "Hello")') }}</li>
+                                                    <li>{{ _('The bot will reply with your Telegram User ID') }}</li>
+                                                    <li>{{ _('Enter your User ID below and test the connection') }}</li>
                                                 </ol>
                                                 <hr>
-                                                <p class="mb-0"><strong>Bot:</strong> <span id="bot-info">Loading...</span></p>
+                                                <p class="mb-0"><strong>{{ _('Bot:') }}</strong> <span id="bot-info">{{ _('Loading...') }}</span></p>
                                             </div>
 
                                             <form id="telegramNotificationSettings">
                                                 <div class="row">
                                                     <div class="col-md-8">
                                                         <div class="form-group">
-                                                            <label for="telegram-user-id"><strong>Telegram User ID</strong></label>
+                                                            <label for="telegram-user-id"><strong>{{ _('Telegram User ID') }}</strong></label>
                                                             <input type="text" class="form-control" id="telegram-user-id" 
                                                                    placeholder="123456789" pattern="[0-9]+">
-                                                            <small class="form-text text-muted">Your numeric Telegram User ID (not username)</small>
+                                                            <small class="form-text text-muted">{{ _('Your numeric Telegram User ID (not username)') }}</small>
                                                         </div>
                                                     </div>
                                                     <div class="col-md-4">
@@ -272,16 +272,16 @@
                                                 <div class="custom-control custom-switch mb-3">
                                                     <input type="checkbox" class="custom-control-input" id="telegram-notifications-enabled">
                                                     <label class="custom-control-label" for="telegram-notifications-enabled">
-                                                        <strong>Enable Telegram Notifications</strong>
+                                                        <strong>{{ _('Enable Telegram Notifications') }}</strong>
                                                     </label>
                                                 </div>
                                                 
                                                 <div class="form-group" id="telegram-notification-types-section" style="display: none;">
-                                                    <label><strong>Notification Types</strong></label>
+                                                    <label><strong>{{ _('Notification Types') }}</strong></label>
                                                     <div class="row" id="telegram-notification-types-list">
                                                         <!-- Notification types will be loaded here -->
                                                     </div>
-                                                    <small class="form-text text-muted">Select which notifications you want to receive via Telegram</small>
+                                                    <small class="form-text text-muted">{{ _('Select which notifications you want to receive via Telegram') }}</small>
                                                 </div>
                                                 
                                                 <div class="row">
@@ -304,7 +304,7 @@
                                                 <div class="card-body">
                                                     <h6 class="card-title">{{ _('Connection Status') }}</h6>
                                                     <div id="telegram-connection-status">
-                                                        <span class="badge badge-secondary">Not Connected</span>
+                                                        <span class="badge badge-secondary">{{ _('Not Connected') }}</span>
                                                     </div>
                                                     
                                                     <hr>
@@ -383,18 +383,18 @@
                                     {% if user.user_type == "student" %}
                                         <div class="border-bottom mb-3 pb-3">
                                             <h4 class="text-primary">{{ authored_theses|length }}</h4>
-                                            <p class="mb-0">My Theses</p>
+                                            <p class="mb-0">{{ _('My Theses') }}</p>
                                         </div>
                                     {% elif user.user_type == "supervisor" %}
                                         <div class="border-bottom mb-3 pb-3">
                                             <h4 class="text-primary">{{ supervised_theses|length }}</h4>
-                                            <p class="mb-0">Supervised Theses</p>
+                                            <p class="mb-0">{{ _('Supervised Theses') }}</p>
                                         </div>
                                     {% endif %}
                                     
                                     <div class="border-bottom mb-3 pb-3">
                                         <h4 class="text-success">{{ _('Active') }}</h4>
-                                        <p class="mb-0">Account Status</p>
+                                        <p class="mb-0">{{ _('Account Status') }}</p>
                                     </div>
                                     
                                     <div>
@@ -419,7 +419,7 @@
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
-                        <span>SuperviseMe - 2025</span>
+                        <span>{{ _('SuperviseMe - 2025') }}</span>
                     </div>
                 </div>
             </footer>
@@ -527,9 +527,9 @@
             // Update status
             const statusEl = document.getElementById('telegram-connection-status');
             if (telegramUserConfig.telegram_enabled && telegramUserConfig.telegram_user_id) {
-                statusEl.innerHTML = '<span class="badge badge-success">Connected</span>';
+                statusEl.innerHTML = '<span class="badge badge-success">{{ _('Connected') }}</span>';
             } else {
-                statusEl.innerHTML = '<span class="badge badge-secondary">Not Connected</span>';
+                statusEl.innerHTML = '<span class="badge badge-secondary">{{ _('Not Connected') }}</span>';
             }
         }
 
@@ -586,7 +586,7 @@
                 if (data.success) {
                     showProfileAlert('success', `Verification successful! ${data.message}`);
                     const statusEl = document.getElementById('telegram-connection-status');
-                    statusEl.innerHTML = '<span class="badge badge-success">Verified</span>';
+                    statusEl.innerHTML = '<span class="badge badge-success">{{ _('Verified') }}</span>';
                 } else {
                     showProfileAlert('danger', `Verification failed: ${data.message}`);
                 }

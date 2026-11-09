@@ -51,9 +51,9 @@
                                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                                     <h6 class="m-0 font-weight-bold text-primary">{{ _('Thesis Information') }}</h6>
                                     {% if thesis.frozen %}
-                                        <span class="badge badge-warning">Archived</span>
+                                        <span class="badge badge-warning">{{ _('Archived') }}</span>
                                     {% else %}
-                                        <span class="badge badge-success">Active</span>
+                                        <span class="badge badge-success">{{ _('Active') }}</span>
                                     {% endif %}
                                 </div>
                                 <div class="card-body">
@@ -97,9 +97,9 @@
                                         <div class="form-group">
                                             <label for="level">{{ _('Level') }}</label>
                                             <select class="form-control" id="level" name="level">
-                                                <option value="bachelor" {% if thesis.level == 'bachelor' %}selected{% endif %}>Bachelor</option>
-                                                <option value="master" {% if thesis.level == 'master' %}selected{% endif %}>Master</option>
-                                                <option value="other" {% if thesis.level == 'other' %}selected{% endif %}>Other</option>
+                                                <option value="bachelor" {% if thesis.level == 'bachelor' %}selected{% endif %}>{{ _('Bachelor') }}</option>
+                                                <option value="master" {% if thesis.level == 'master' %}selected{% endif %}>{{ _('Master') }}</option>
+                                                <option value="other" {% if thesis.level == 'other' %}selected{% endif %}>{{ _('Other') }}</option>
                                             </select>
                                         </div>
                                         
@@ -122,14 +122,14 @@
                                                 {% if author %}
                                                     <p class="mb-2"><strong>{{ author.name }} {{ author.surname }}</strong> ({{ author.cdl }})</p>
                                                 {% else %}
-                                                    <p class="mb-2 text-muted">No student assigned</p>
+                                                    <p class="mb-2 text-muted">{{ _('No student assigned') }}</p>
                                                 {% endif %}
                                             </div>
                                         </div>
                                         <div class="form-group row">
                                             <div class="col-sm-8">
                                                 <select name="student_id" class="form-control">
-                                                    <option value="">Unassign student</option>
+                                                    <option value="">{{ _('Unassign student') }}</option>
                                                     {% for student in students %}
                                                         <option value="{{ student.id }}" {% if author and student.id == author.id %}selected{% endif %}>
                                                             {{ student.name }} {{ student.surname }} ({{ student.cdl }})
@@ -167,7 +167,7 @@
                                             {% endfor %}
                                         </div>
                                     {% else %}
-                                        <p class="text-muted mb-3">No supervisors assigned</p>
+                                        <p class="text-muted mb-3">{{ _('No supervisors assigned') }}</p>
                                     {% endif %}
 
                                     <!-- Add Supervisor -->
@@ -176,7 +176,7 @@
                                         <div class="form-group row">
                                             <div class="col-sm-8">
                                                 <select name="supervisor_id" class="form-control" required>
-                                                    <option value="">Select supervisor to add</option>
+                                                    <option value="">{{ _('Select supervisor to add') }}</option>
                                                     {% for supervisor in all_supervisors %}
                                                         {% if supervisor not in supervisors %}
                                                             <option value="{{ supervisor.id }}">{{ supervisor.name }} {{ supervisor.surname }}</option>
@@ -299,15 +299,15 @@
                                                                 <div class="form-group">
                                                                     <label for="status{{ status.id }}">{{ _('Status') }}</label>
                                                                     <select class="form-control" id="status{{ status.id }}" name="status" required>
-                                                                        <option value="thesis proposed" {% if status.status == 'thesis proposed' %}selected{% endif %}>Thesis Proposed</option>
-                                                                        <option value="thesis accepted" {% if status.status == 'thesis accepted' %}selected{% endif %}>Thesis Accepted</option>
-                                                                        <option value="in progress" {% if status.status == 'in progress' %}selected{% endif %}>In Progress</option>
-                                                                        <option value="writing phase" {% if status.status == 'writing phase' %}selected{% endif %}>Writing Phase</option>
-                                                                        <option value="review phase" {% if status.status == 'review phase' %}selected{% endif %}>Review Phase</option>
-                                                                        <option value="final review" {% if status.status == 'final review' %}selected{% endif %}>Final Review</option>
-                                                                        <option value="completed" {% if status.status == 'completed' %}selected{% endif %}>Completed</option>
-                                                                        <option value="suspended" {% if status.status == 'suspended' %}selected{% endif %}>Suspended</option>
-                                                                        <option value="cancelled" {% if status.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                                                                        <option value="thesis proposed" {% if status.status == 'thesis proposed' %}selected{% endif %}>{{ _('Thesis Proposed') }}</option>
+                                                                        <option value="thesis accepted" {% if status.status == 'thesis accepted' %}selected{% endif %}>{{ _('Thesis Accepted') }}</option>
+                                                                        <option value="in progress" {% if status.status == 'in progress' %}selected{% endif %}>{{ _('In Progress') }}</option>
+                                                                        <option value="writing phase" {% if status.status == 'writing phase' %}selected{% endif %}>{{ _('Writing Phase') }}</option>
+                                                                        <option value="review phase" {% if status.status == 'review phase' %}selected{% endif %}>{{ _('Review Phase') }}</option>
+                                                                        <option value="final review" {% if status.status == 'final review' %}selected{% endif %}>{{ _('Final Review') }}</option>
+                                                                        <option value="completed" {% if status.status == 'completed' %}selected{% endif %}>{{ _('Completed') }}</option>
+                                                                        <option value="suspended" {% if status.status == 'suspended' %}selected{% endif %}>{{ _('Suspended') }}</option>
+                                                                        <option value="cancelled" {% if status.status == 'cancelled' %}selected{% endif %}>{{ _('Cancelled') }}</option>
                                                                     </select>
                                                                 </div>
                                                             </div>
@@ -321,7 +321,7 @@
                                             </div>
                                         {% endfor %}
                                     {% else %}
-                                        <p class="text-muted">No status history available</p>
+                                        <p class="text-muted">{{ _('No status history available') }}</p>
                                     {% endif %}
                                     
                                     <!-- Add New Status -->
@@ -332,16 +332,16 @@
                                                 <label for="newStatus">{{ _('Add New Status') }}</label>
                                                 <div class="input-group">
                                                     <select class="form-control" id="newStatus" name="status" required>
-                                                        <option value="">Select a status...</option>
-                                                        <option value="thesis proposed">Thesis Proposed</option>
-                                                        <option value="thesis accepted">Thesis Accepted</option>
-                                                        <option value="in progress">In Progress</option>
-                                                        <option value="writing phase">Writing Phase</option>
-                                                        <option value="review phase">Review Phase</option>
-                                                        <option value="final review">Final Review</option>
-                                                        <option value="completed">Completed</option>
-                                                        <option value="suspended">Suspended</option>
-                                                        <option value="cancelled">Cancelled</option>
+                                                        <option value="">{{ _('Select a status...') }}</option>
+                                                        <option value="thesis proposed">{{ _('Thesis Proposed') }}</option>
+                                                        <option value="thesis accepted">{{ _('Thesis Accepted') }}</option>
+                                                        <option value="in progress">{{ _('In Progress') }}</option>
+                                                        <option value="writing phase">{{ _('Writing Phase') }}</option>
+                                                        <option value="review phase">{{ _('Review Phase') }}</option>
+                                                        <option value="final review">{{ _('Final Review') }}</option>
+                                                        <option value="completed">{{ _('Completed') }}</option>
+                                                        <option value="suspended">{{ _('Suspended') }}</option>
+                                                        <option value="cancelled">{{ _('Cancelled') }}</option>
                                                     </select>
                                                     <div class="input-group-append">
                                                         <button type="submit" class="btn btn-success">{{ _('Add Status') }}</button>
@@ -428,7 +428,7 @@
                 <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">{{ _('Cancel') }}</button>
-                    <a class="btn btn-primary" href="login.html">Logout</a>
+                    <a class="btn btn-primary" href="login.html">{{ _('Logout') }}</a>
                                 </div>
                             </div>
 
@@ -460,7 +460,7 @@
                                             </div>
                                         {% endfor %}
                                     {% else %}
-                                        <p class="text-muted mb-0">No expressions of interest yet.</p>
+                                        <p class="text-muted mb-0">{{ _('No expressions of interest yet.') }}</p>
                                     {% endif %}
                                 </div>
                             </div>

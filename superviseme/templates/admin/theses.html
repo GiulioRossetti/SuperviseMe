@@ -115,7 +115,7 @@ function renderFallbackTable(thesesData) {
       <td><span class="badge badge-info">${thesis.level || ''}</span></td>
       <td>
         <div style="display: flex; gap: 8px; justify-content: center;">
-          <a href="/admin/thesis/${thesis.thesis_id}" class="btn btn-success btn-sm">Details</a>
+          <a href="/admin/thesis/${thesis.thesis_id}" class="btn btn-success btn-sm">{{ _('Details') }}</a>
           <button class="btn btn-danger btn-sm delete-button" data-id="${thesis.thesis_id}">Delete</button>
         </div>
       </td>
@@ -414,9 +414,9 @@ try {
                                             <div class="col-sm-4 mb-3 mb-sm-0">
                                                 Level
                                                 <select name="level" class="form-control form-select form-select-user">
-                                                    <option value="bachelor">Bachelor</option>
-                                                    <option value="master">Master</option>
-                                                    <option value="other">Other</option>
+                                                    <option value="bachelor">{{ _('Bachelor') }}</option>
+                                                    <option value="master">{{ _('Master') }}</option>
+                                                    <option value="other">{{ _('Other') }}</option>
                                                 </select>
 
                                             </div>
@@ -478,7 +478,7 @@ try {
                 <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">{{ _('Cancel') }}</button>
-                    <a class="btn btn-primary" href="login.html">Logout</a>
+                    <a class="btn btn-primary" href="login.html">{{ _('Logout') }}</a>
                 </div>
             </div>
         </div>

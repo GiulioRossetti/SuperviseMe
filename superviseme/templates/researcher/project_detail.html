@@ -58,18 +58,18 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <p><strong>Level:</strong> {{ project.level|title if project.level else 'Not specified' }}</p>
-                                            <p><strong>Created:</strong> {{ dt(project.created_at).strftime('%B %d, %Y') }}</p>
-                                            <p><strong>Principal Researcher:</strong> {{ project.researcher.name }} {{ project.researcher.surname }}</p>
+                                            <p><strong>{{ _('Level:') }}</strong> {{ project.level|title if project.level else 'Not specified' }}</p>
+                                            <p><strong>{{ _('Created:') }}</strong> {{ dt(project.created_at).strftime('%B %d, %Y') }}</p>
+                                            <p><strong>{{ _('Principal Researcher:') }}</strong> {{ project.researcher.name }} {{ project.researcher.surname }}</p>
                                         </div>
                                         <div class="col-md-6">
                                             {% if current_status %}
-                                            <p><strong>Current Status:</strong> 
+                                            <p><strong>{{ _('Current Status:') }}</strong> 
                                                 <span class="badge badge-info">{{ current_status.status|title }}</span>
                                             </p>
-                                            <p><strong>Status Updated:</strong> {{ dt(current_status.updated_at).strftime('%B %d, %Y') }}</p>
+                                            <p><strong>{{ _('Status Updated:') }}</strong> {{ dt(current_status.updated_at).strftime('%B %d, %Y') }}</p>
                                             {% else %}
-                                            <p><strong>Status:</strong> <span class="badge badge-secondary">Not set</span></p>
+                                            <p><strong>{{ _('Status:') }}</strong> <span class="badge badge-secondary">{{ _('Not set') }}</span></p>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -83,7 +83,7 @@
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                                     <h6 class="m-0 font-weight-bold text-primary">{{ _('Project Statistics') }}</h6>
-                                    <small class="text-muted">Real-time overview</small>
+                                    <small class="text-muted">{{ _('Real-time overview') }}</small>
                                 </div>
                                 <div class="card-body">
                                     <!-- Primary Stats Row -->
@@ -266,7 +266,7 @@
                                         {% if not loop.last %}<hr>{% endif %}
                                         {% endfor %}
                                     {% else %}
-                                        <p class="text-muted">No collaborators yet</p>
+                                        <p class="text-muted">{{ _('No collaborators yet') }}</p>
                                     {% endif %}
                                 </div>
                             </div>
@@ -293,9 +293,9 @@
                                             {% if not loop.last %}<hr>{% endif %}
                                         </div>
                                         {% endfor %}
-                                        <a href="{{ url_for('researcher.project_updates', project_id=project.id) }}" class="btn btn-outline-primary btn-sm">View All Updates</a>
+                                        <a href="{{ url_for('researcher.project_updates', project_id=project.id) }}" class="btn btn-outline-primary btn-sm">{{ _('View All Updates') }}</a>
                                     {% else %}
-                                        <p class="text-muted">No updates yet</p>
+                                        <p class="text-muted">{{ _('No updates yet') }}</p>
                                         <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addUpdateModal">{{ _('Add First Update') }}</button>
                                     {% endif %}
                                 </div>
@@ -325,9 +325,9 @@
                                             {% if not loop.last %}<hr>{% endif %}
                                         </div>
                                         {% endfor %}
-                                        <a href="{{ url_for('researcher.project_todos', project_id=project.id) }}" class="btn btn-outline-warning btn-sm">View All Todos</a>
+                                        <a href="{{ url_for('researcher.project_todos', project_id=project.id) }}" class="btn btn-outline-warning btn-sm">{{ _('View All Todos') }}</a>
                                     {% else %}
-                                        <p class="text-muted">No todos yet</p>
+                                        <p class="text-muted">{{ _('No todos yet') }}</p>
                                         <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#addTodoModal">{{ _('Add First Todo') }}</button>
                                     {% endif %}
                                 </div>
@@ -352,9 +352,9 @@
                                         <div class="form-group">
                                             <label>{{ _('Update Type') }}</label>
                                             <select name="update_type" class="form-control">
-                                                <option value="progress">Progress Update</option>
-                                                <option value="feedback">Feedback</option>
-                                                <option value="milestone">Milestone</option>
+                                                <option value="progress">{{ _('Progress Update') }}</option>
+                                                <option value="feedback">{{ _('Feedback') }}</option>
+                                                <option value="milestone">{{ _('Milestone') }}</option>
                                             </select>
                                         </div>
                                         <div class="form-group">
@@ -396,9 +396,9 @@
                                                 <div class="form-group">
                                                     <label>{{ _('Priority') }}</label>
                                                     <select name="priority" class="form-control">
-                                                        <option value="low">Low</option>
-                                                        <option value="medium" selected>Medium</option>
-                                                        <option value="high">High</option>
+                                                        <option value="low">{{ _('Low') }}</option>
+                                                        <option value="medium" selected>{{ _('Medium') }}</option>
+                                                        <option value="high">{{ _('High') }}</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -412,7 +412,7 @@
                                         <div class="form-group">
                                             <label>{{ _('Assign To') }}</label>
                                             <select name="assigned_to_id" class="form-control">
-                                                <option value="">No assignment</option>
+                                                <option value="">{{ _('No assignment') }}</option>
                                                 <option value="{{ project.researcher.id }}">{{ project.researcher.name }} {{ project.researcher.surname }} (Principal Researcher)</option>
                                                 {% for collab in collaborators %}
                                                 <option value="{{ collab.user.id }}">{{ collab.user.name }} {{ collab.user.surname }} ({{ collab.role|title }})</option>
@@ -448,15 +448,15 @@
                                             <label for="collaborator_email">{{ _('Collaborator Email:') }}</label>
                                             <input type="email" class="form-control" name="collaborator_email" required 
                                                    placeholder="{{ _('Enter the email of the person you want to add') }}">
-                                            <small class="form-text text-muted">The person must have an account in the system</small>
+                                            <small class="form-text text-muted">{{ _('The person must have an account in the system') }}</small>
                                         </div>
                                         <div class="form-group">
                                             <label for="role">{{ _('Role:') }}</label>
                                             <select class="form-control" name="role">
-                                                <option value="collaborator">Collaborator</option>
-                                                <option value="co-investigator">Co-Investigator</option>
-                                                <option value="research-assistant">Research Assistant</option>
-                                                <option value="advisor">Advisor</option>
+                                                <option value="collaborator">{{ _('Collaborator') }}</option>
+                                                <option value="co-investigator">{{ _('Co-Investigator') }}</option>
+                                                <option value="research-assistant">{{ _('Research Assistant') }}</option>
+                                                <option value="advisor">{{ _('Advisor') }}</option>
                                             </select>
                                         </div>
                                     </div>

@@ -54,7 +54,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="row mb-3">
-                                        <div class="col-sm-3"><strong>Update Type:</strong></div>
+                                        <div class="col-sm-3"><strong>{{ _('Update Type:') }}</strong></div>
                                         <div class="col-sm-9">
                                             <span class="badge {% if update.update_type == 'progress' %}badge-primary{% elif update.update_type == 'milestone' %}badge-success{% elif update.update_type == 'issue' %}badge-warning{% else %}badge-secondary{% endif %}">
                                                 {{ update.update_type|title }}
@@ -62,15 +62,15 @@
                                         </div>
                                     </div>
                                     <div class="row mb-3">
-                                        <div class="col-sm-3"><strong>Author:</strong></div>
+                                        <div class="col-sm-3"><strong>{{ _('Author:') }}</strong></div>
                                         <div class="col-sm-9">{{ update.author.name }} {{ update.author.surname }}</div>
                                     </div>
                                     <div class="row mb-3">
-                                        <div class="col-sm-3"><strong>Created:</strong></div>
+                                        <div class="col-sm-3"><strong>{{ _('Created:') }}</strong></div>
                                         <div class="col-sm-9">{{ dt(update.created_at).strftime('%B %d, %Y at %I:%M %p') }}</div>
                                     </div>
                                     <hr>
-                                    <h6><strong>Update Content:</strong></h6>
+                                    <h6><strong>{{ _('Update Content:') }}</strong></h6>
                                     <div class="mt-3" style="white-space: pre-wrap;">
                                         {{ update.content }}
                                     </div>
@@ -162,7 +162,7 @@
                                     <h6 class="m-0 font-weight-bold text-primary">{{ _('Project Todos') }}</h6>
                                 </div>
                                 <div class="card-body">
-                                    <small class="text-muted">Recent todos in this project:</small>
+                                    <small class="text-muted">{{ _('Recent todos in this project:') }}</small>
                                     {% for todo in todos[:5] %}
                                     <div class="mt-2">
                                         <a href="{{ url_for('researcher.project_todo_detail', todo_id=todo.id) }}" class="text-decoration-none">
@@ -212,11 +212,11 @@
                         <div class="form-group">
                             <label for="editUpdateType">{{ _('Update Type:') }}</label>
                             <select class="form-control" name="update_type" id="editUpdateType" required>
-                                <option value="progress">Progress</option>
-                                <option value="milestone">Milestone</option>
-                                <option value="issue">Issue</option>
-                                <option value="meeting">Meeting</option>
-                                <option value="general">General</option>
+                                <option value="progress">{{ _('Progress') }}</option>
+                                <option value="milestone">{{ _('Milestone') }}</option>
+                                <option value="issue">{{ _('Issue') }}</option>
+                                <option value="meeting">{{ _('Meeting') }}</option>
+                                <option value="general">{{ _('General') }}</option>
                             </select>
                         </div>
                         <div class="form-group">

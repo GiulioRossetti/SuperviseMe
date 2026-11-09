@@ -60,22 +60,22 @@
                                                                 {{ thesis.author.name }} {{ thesis.author.surname }}
                                                                 <br><small class="text-muted">{{ thesis.author.email }}</small>
                                                             {% else %}
-                                                                <span class="text-warning">Not assigned</span>
+                                                                <span class="text-warning">{{ _('Not assigned') }}</span>
                                                             {% endif %}
                                                         </td>
                                                         <td>
                                                             {% if thesis.level %}
                                                                 <span class="badge badge-info">{{ thesis.level|title }}</span>
                                                             {% else %}
-                                                                <span class="badge badge-secondary">Not specified</span>
+                                                                <span class="badge badge-secondary">{{ _('Not specified') }}</span>
                                                             {% endif %}
                                                         </td>
                                                         <td>{{ dt(thesis.created_at).strftime('%b %d, %Y') if thesis.created_at else 'Unknown' }}</td>
                                                         <td>
                                                             {% if thesis.frozen %}
-                                                                <span class="badge badge-danger">Frozen</span>
+                                                                <span class="badge badge-danger">{{ _('Frozen') }}</span>
                                                             {% else %}
-                                                                <span class="badge badge-success">Active</span>
+                                                                <span class="badge badge-success">{{ _('Active') }}</span>
                                                             {% endif %}
                                                         </td>
                                                         <td>
@@ -112,7 +112,7 @@
                                     {% else %}
                                         <div class="text-center">
                                             <i class="fas fa-book fa-3x text-gray-300 mb-3"></i>
-                                            <p class="text-gray-500">No theses found. Create your first thesis to get started.</p>
+                                            <p class="text-gray-500">{{ _('No theses found. Create your first thesis to get started.') }}</p>
                                         </div>
                                     {% endif %}
                                 </div>
@@ -184,11 +184,11 @@
                         <div class="form-group">
                             <label for="level">{{ _('Level:') }}</label>
                             <select class="form-control" name="level" required>
-                                <option value="">Select Level</option>
-                                <option value="bachelor">Bachelor</option>
-                                <option value="master">Master</option>
-                                <option value="phd">PhD</option>
-                                <option value="other">Other</option>
+                                <option value="">{{ _('Select Level') }}</option>
+                                <option value="bachelor">{{ _('Bachelor') }}</option>
+                                <option value="master">{{ _('Master') }}</option>
+                                <option value="phd">{{ _('PhD') }}</option>
+                                <option value="other">{{ _('Other') }}</option>
                             </select>
                         </div>
                     </div>

@@ -43,12 +43,12 @@
                                     <h6 class="m-0 font-weight-bold text-danger">{{ _('Debug Information') }}</h6>
                                 </div>
                                 <div class="card-body">
-                                    <p><strong>Error Type:</strong> {{ error.__class__.__name__ }}</p>
-                                    <p><strong>Error Message:</strong> {{ error }}</p>
-                                    <p><strong>URL:</strong> {{ request.url }}</p>
-                                    <p><strong>Method:</strong> {{ request.method }}</p>
-                                    <p><strong>User Agent:</strong> {{ request.headers.get('User-Agent', 'N/A') }}</p>
-                                    <p><strong>Timestamp:</strong> {{ moment().format('YYYY-MM-DD HH:mm:ss') }}</p>
+                                    <p><strong>{{ _('Error Type:') }}</strong> {{ error.__class__.__name__ }}</p>
+                                    <p><strong>{{ _('Error Message:') }}</strong> {{ error }}</p>
+                                    <p><strong>{{ _('URL:') }}</strong> {{ request.url }}</p>
+                                    <p><strong>{{ _('Method:') }}</strong> {{ request.method }}</p>
+                                    <p><strong>{{ _('User Agent:') }}</strong> {{ request.headers.get('User-Agent', 'N/A') }}</p>
+                                    <p><strong>{{ _('Timestamp:') }}</strong> {{ moment().format('YYYY-MM-DD HH:mm:ss') }}</p>
                                 </div>
                             </div>
                         </div>

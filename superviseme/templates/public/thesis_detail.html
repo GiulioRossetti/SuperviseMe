@@ -41,7 +41,7 @@
             <li class="nav-item active">
                 <a class="nav-link public-sidebar-link active" href="{{ url_for('public.public_thesis_dashboard') }}">
                     <i class="fas fa-fw fa-book-open"></i>
-                    <span>Available Theses</span>
+                    <span>{{ _('Available Theses') }}</span>
                 </a>
             </li>
 
@@ -49,16 +49,16 @@
 
             {% if current_user.is_authenticated %}
                 {% if current_user.user_type == 'admin' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>{{ _('Dashboard') }}</span></a></li>
                 {% elif current_user.user_type == 'supervisor' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('supervisor.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('supervisor.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>{{ _('Dashboard') }}</span></a></li>
                 {% elif current_user.user_type == 'researcher' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('researcher.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('researcher.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>{{ _('Dashboard') }}</span></a></li>
                 {% endif %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('profile.profile_page') }}"><i class="fas fa-fw fa-user"></i><span>Profile</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/notifications"><i class="fas fa-fw fa-bell"></i><span>Notifications</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('profile.profile_page') }}"><i class="fas fa-fw fa-user"></i><span>{{ _('Profile') }}</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="/notifications"><i class="fas fa-fw fa-bell"></i><span>{{ _('Notifications') }}</span></a></li>
             {% else %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-fw fa-sign-in-alt"></i><span>Sign in / Sign up</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-fw fa-sign-in-alt"></i><span>{{ _('Sign in / Sign up') }}</span></a></li>
             {% endif %}
 
             <hr class="sidebar-divider d-none d-md-block">
@@ -75,7 +75,7 @@
                 {% include 'admin/components/topbar.html' %}
             {% else %}
                 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-                    <span class="navbar-brand mb-0 h6 text-gray-700">Public Thesis Board</span>
+                    <span class="navbar-brand mb-0 h6 text-gray-700">{{ _('Public Thesis Board') }}</span>
                 </nav>
             {% endif %}
 
@@ -83,7 +83,7 @@
 
                 <div class="d-sm-flex align-items-center justify-content-between mb-4">
                     <h1 class="h3 mb-0 text-gray-800">{{ thesis.title }}</h1>
-                    <a href="{{ url_for('public.public_thesis_dashboard') }}" class="btn btn-sm btn-secondary">Back to thesis list</a>
+                    <a href="{{ url_for('public.public_thesis_dashboard') }}" class="btn btn-sm btn-secondary">{{ _('Back to thesis list') }}</a>
                 </div>
 
                 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -101,10 +101,10 @@
                                 <h6 class="m-0 font-weight-bold text-primary">{{ _('Thesis Information') }}</h6>
                             </div>
                             <div class="card-body">
-                                <p><strong>Topic:</strong> {{ thesis.topic or 'Not specified' }}</p>
-                                <p><strong>Short description</strong><br>{{ thesis.short_description or thesis.description }}</p>
-                                <p><strong>Long description</strong><br>{{ thesis.long_description or thesis.description }}</p>
-                                <p><strong>Prerequisites</strong><br>{{ thesis.prerequisites or 'Not specified' }}</p>
+                                <p><strong>{{ _('Topic:') }}</strong> {{ thesis.topic or 'Not specified' }}</p>
+                                <p><strong>{{ _('Short description') }}</strong><br>{{ thesis.short_description or thesis.description }}</p>
+                                <p><strong>{{ _('Long description') }}</strong><br>{{ thesis.long_description or thesis.description }}</p>
+                                <p><strong>{{ _('Prerequisites') }}</strong><br>{{ thesis.prerequisites or 'Not specified' }}</p>
                             </div>
                         </div>
                     </div>
