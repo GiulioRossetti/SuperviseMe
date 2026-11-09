@@ -1,54 +1,49 @@
+{# Supervisor Sidebar — active state driven by request.endpoint #}
+<script>document.documentElement.dataset.role = 'supervisor';</script>
+
 <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
 
-    <!-- Brand -->
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('supervisor.dashboard') }}">
-        <div class="sidebar-brand-icon">
-            <i class="fas fa-user-tie"></i>
-        </div>
+        <div class="sidebar-brand-icon"><i class="fas fa-graduation-cap"></i></div>
         <div class="sidebar-brand-text mx-3">SuperviseMe</div>
     </a>
 
     <hr class="sidebar-divider my-0">
 
-    <li class="nav-item active">
+    <li class="nav-item{% if request.endpoint == 'supervisor.dashboard' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('supervisor.dashboard') }}">
-            <i class="fas fa-fw fa-chart-pie"></i>
-            <span>Dashboard</span>
+            <i class="fas fa-fw fa-chart-pie"></i><span>Dashboard</span>
         </a>
     </li>
 
     <hr class="sidebar-divider">
-    <div class="sidebar-heading">My Work</div>
+    <div class="sidebar-heading">Supervision</div>
 
-    <li class="nav-item">
+    <li class="nav-item{% if request.endpoint == 'supervisor.theses_data' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('supervisor.theses_data') }}">
-            <i class="fas fa-fw fa-book-open"></i>
-            <span>My Theses</span>
+            <i class="fas fa-fw fa-book-open"></i><span>Theses</span>
         </a>
     </li>
 
-    <li class="nav-item">
+    <li class="nav-item{% if request.endpoint == 'supervisor.supervisee_data' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('supervisor.supervisee_data') }}">
-            <i class="fas fa-fw fa-user-graduate"></i>
-            <span>My Students</span>
+            <i class="fas fa-fw fa-user-graduate"></i><span>Students</span>
         </a>
     </li>
 
     <hr class="sidebar-divider">
     <div class="sidebar-heading">Account</div>
 
-    <li class="nav-item">
+    <li class="nav-item{% if request.endpoint == 'profile.profile_page' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('profile.profile_page') }}">
-            <i class="fas fa-fw fa-user-circle"></i>
-            <span>Profile</span>
+            <i class="fas fa-fw fa-user-circle"></i><span>Profile</span>
         </a>
     </li>
 
     {% if current_user.orcid_id %}
-    <li class="nav-item">
+    <li class="nav-item{% if request.endpoint == 'profile.orcid_publications' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('profile.orcid_publications') }}">
-            <i class="fab fa-fw fa-orcid"></i>
-            <span>ORCID Publications</span>
+            <i class="fab fa-fw fa-orcid"></i><span>ORCID Publications</span>
         </a>
     </li>
     {% endif %}
@@ -57,5 +52,4 @@
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>
-
 </ul>

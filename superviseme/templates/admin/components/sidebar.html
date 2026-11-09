@@ -1,61 +1,64 @@
+{# Admin Sidebar — active state driven by request.endpoint #}
+{# Sets body[data-role="admin"] for the indigo palette #}
+<script>document.documentElement.dataset.role = 'admin';</script>
+
 <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
 
-    <!-- Brand -->
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('admin.dashboard') }}">
-        <div class="sidebar-brand-icon">
-            <i class="fas fa-graduation-cap"></i>
-        </div>
+        <div class="sidebar-brand-icon"><i class="fas fa-graduation-cap"></i></div>
         <div class="sidebar-brand-text mx-3">SuperviseMe</div>
     </a>
 
     <hr class="sidebar-divider my-0">
 
-    <!-- Dashboard -->
-    <li class="nav-item active">
+    <li class="nav-item{% if request.endpoint == 'admin.dashboard' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
-            <i class="fas fa-fw fa-chart-pie"></i>
-            <span>Dashboard</span>
+            <i class="fas fa-fw fa-chart-pie"></i><span>Dashboard</span>
         </a>
     </li>
 
     <hr class="sidebar-divider">
     <div class="sidebar-heading">Management</div>
 
-    <li class="nav-item">
+    <li class="nav-item{% if request.endpoint == 'admin.users' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('admin.users') }}">
-            <i class="fas fa-fw fa-users"></i>
-            <span>Users</span>
+            <i class="fas fa-fw fa-users"></i><span>Users</span>
         </a>
     </li>
 
-    <li class="nav-item">
+    <li class="nav-item{% if request.endpoint == 'admin.theses' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('admin.theses') }}">
-            <i class="fas fa-fw fa-book-open"></i>
-            <span>Theses</span>
+            <i class="fas fa-fw fa-book-open"></i><span>Theses</span>
         </a>
     </li>
 
     <hr class="sidebar-divider">
     <div class="sidebar-heading">System</div>
 
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseSystem"
-            aria-expanded="false" aria-controls="collapseSystem">
-            <i class="fas fa-fw fa-cogs"></i>
-            <span>Settings</span>
+    <li class="nav-item{% if request.endpoint in ['admin.theses_settings','admin.notify_settings','admin.notifications','admin.misc'] %} active{% endif %}">
+        <a class="nav-link{% if request.endpoint not in ['admin.theses_settings','admin.notify_settings','admin.notifications','admin.misc'] %} collapsed{% endif %}"
+           href="#" data-toggle="collapse" data-target="#collapseSystem"
+           aria-expanded="{{ 'true' if request.endpoint in ['admin.theses_settings','admin.notify_settings','admin.notifications','admin.misc'] else 'false' }}"
+           aria-controls="collapseSystem">
+            <i class="fas fa-fw fa-cogs"></i><span>Settings</span>
         </a>
-        <div id="collapseSystem" class="collapse" aria-labelledby="headingSystem" data-parent="#accordionSidebar">
+        <div id="collapseSystem" class="collapse{% if request.endpoint in ['admin.theses_settings','admin.notify_settings','admin.notifications','admin.misc'] %} show{% endif %}"
+             data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{ url_for('admin.theses_settings') }}">
+                <a class="collapse-item{% if request.endpoint == 'admin.theses_settings' %} active{% endif %}"
+                   href="{{ url_for('admin.theses_settings') }}">
                     <i class="fas fa-fw fa-sliders-h"></i> General Settings
                 </a>
-                <a class="collapse-item" href="{{ url_for('admin.notify_settings') }}">
+                <a class="collapse-item{% if request.endpoint == 'admin.notify_settings' %} active{% endif %}"
+                   href="{{ url_for('admin.notify_settings') }}">
                     <i class="fas fa-fw fa-bell"></i> Notifications
                 </a>
-                <a class="collapse-item" href="{{ url_for('admin.notifications') }}">
+                <a class="collapse-item{% if request.endpoint == 'admin.notifications' %} active{% endif %}"
+                   href="{{ url_for('admin.notifications') }}">
                     <i class="fas fa-fw fa-envelope"></i> Email Reports
                 </a>
-                <a class="collapse-item" href="{{ url_for('admin.misc') }}">
+                <a class="collapse-item{% if request.endpoint == 'admin.misc' %} active{% endif %}"
+                   href="{{ url_for('admin.misc') }}">
                     <i class="fas fa-fw fa-tools"></i> Miscellaneous
                 </a>
             </div>
@@ -65,26 +68,22 @@
     <hr class="sidebar-divider">
     <div class="sidebar-heading">Account</div>
 
-    <li class="nav-item">
+    <li class="nav-item{% if request.endpoint == 'profile.profile_page' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('profile.profile_page') }}">
-            <i class="fas fa-fw fa-user-circle"></i>
-            <span>Profile</span>
+            <i class="fas fa-fw fa-user-circle"></i><span>Profile</span>
         </a>
     </li>
 
     {% if current_user.orcid_id %}
-    <li class="nav-item">
+    <li class="nav-item{% if request.endpoint == 'profile.orcid_publications' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('profile.orcid_publications') }}">
-            <i class="fab fa-fw fa-orcid"></i>
-            <span>ORCID Publications</span>
+            <i class="fab fa-fw fa-orcid"></i><span>ORCID Publications</span>
         </a>
     </li>
     {% endif %}
 
     <hr class="sidebar-divider d-none d-md-block">
-
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>
-
 </ul>

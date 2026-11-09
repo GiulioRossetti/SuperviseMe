@@ -1,94 +1,54 @@
+{# Student Sidebar — active state driven by request.endpoint #}
+<script>document.documentElement.dataset.role = 'student';</script>
+
 <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
 
-    <!-- Brand -->
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('student.dashboard') }}">
-        <div class="sidebar-brand-icon">
-            <i class="fas fa-graduation-cap"></i>
-        </div>
+        <div class="sidebar-brand-icon"><i class="fas fa-graduation-cap"></i></div>
         <div class="sidebar-brand-text mx-3">SuperviseMe</div>
     </a>
 
     <hr class="sidebar-divider my-0">
 
-    <li class="nav-item active">
+    <li class="nav-item{% if request.endpoint == 'student.dashboard' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('student.dashboard') }}">
-            <i class="fas fa-fw fa-chart-pie"></i>
-            <span>Dashboard</span>
+            <i class="fas fa-fw fa-chart-pie"></i><span>Dashboard</span>
         </a>
     </li>
 
     <hr class="sidebar-divider">
     <div class="sidebar-heading">My Thesis</div>
 
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseThesis"
-           aria-expanded="false" aria-controls="collapseThesis">
-            <i class="fas fa-fw fa-book"></i>
-            <span>Thesis</span>
+    <li class="nav-item{% if request.endpoint in ['student.thesis_data','public.public_thesis_dashboard'] %} active{% endif %}">
+        <a class="nav-link{% if request.endpoint not in ['student.thesis_data','public.public_thesis_dashboard'] %} collapsed{% endif %}"
+           href="#" data-toggle="collapse" data-target="#collapseThesis"
+           aria-expanded="{{ 'true' if request.endpoint in ['student.thesis_data','public.public_thesis_dashboard'] else 'false' }}"
+           aria-controls="collapseThesis">
+            <i class="fas fa-fw fa-book-open"></i><span>Thesis</span>
         </a>
-        <div id="collapseThesis" class="collapse" aria-labelledby="headingThesis" data-parent="#accordionSidebar">
+        <div id="collapseThesis" class="collapse{% if request.endpoint in ['student.thesis_data','public.public_thesis_dashboard'] %} show{% endif %}"
+             data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <h6 class="collapse-header">Thesis Management</h6>
-                <a class="collapse-item" href="{{ url_for('student.thesis_data') }}">
-                    <i class="fas fa-fw fa-home"></i> Overview
+                <a class="collapse-item{% if request.endpoint == 'student.thesis_data' %} active{% endif %}"
+                   href="{{ url_for('student.thesis_data') }}">
+                    <i class="fas fa-fw fa-file-alt"></i> My Thesis
                 </a>
-                <a class="collapse-item" href="{{ url_for('student.thesis_data') }}#objectives">
-                    <i class="fas fa-fw fa-bullseye"></i> Objectives
-                </a>
-                <a class="collapse-item" href="{{ url_for('student.thesis_data') }}#hypotheses">
-                    <i class="fas fa-fw fa-lightbulb"></i> Hypotheses
-                </a>
-                <a class="collapse-item" href="{{ url_for('student.thesis_data') }}#updates">
-                    <i class="fas fa-fw fa-edit"></i> Updates
-                </a>
-                <a class="collapse-item" href="{{ url_for('student.thesis_data') }}#todos">
-                    <i class="fas fa-fw fa-tasks"></i> To-Do List
-                </a>
-                <a class="collapse-item" href="{{ url_for('student.thesis_data') }}#resources">
-                    <i class="fas fa-fw fa-folder-open"></i> Resources
+                <a class="collapse-item{% if request.endpoint == 'public.public_thesis_dashboard' %} active{% endif %}"
+                   href="{{ url_for('public.public_thesis_dashboard') }}">
+                    <i class="fas fa-fw fa-search"></i> Browse Theses
                 </a>
             </div>
         </div>
     </li>
 
-    <li class="nav-item">
+    <li class="nav-item{% if request.endpoint == 'student.interests' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('student.interests') }}">
-            <i class="fas fa-fw fa-heart"></i>
-            <span>My Interests</span>
+            <i class="fas fa-fw fa-heart"></i><span>Interests</span>
         </a>
     </li>
-
-    {% if not current_user.thesis %}
-    <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('public.public_thesis_dashboard') }}">
-            <i class="fas fa-fw fa-search"></i>
-            <span>Browse Theses</span>
-        </a>
-    </li>
-    {% endif %}
-
-    <hr class="sidebar-divider">
-    <div class="sidebar-heading">Account</div>
-
-    <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('profile.profile_page') }}">
-            <i class="fas fa-fw fa-user-circle"></i>
-            <span>Profile</span>
-        </a>
-    </li>
-
-    {% if current_user.orcid_id %}
-    <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('profile.orcid_publications') }}">
-            <i class="fab fa-fw fa-orcid"></i>
-            <span>ORCID Publications</span>
-        </a>
-    </li>
-    {% endif %}
 
     <hr class="sidebar-divider d-none d-md-block">
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>
-
 </ul>
