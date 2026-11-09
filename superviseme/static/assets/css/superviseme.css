@@ -491,3 +491,31 @@ label { font-size: 0.82rem; font-weight: 600; color: var(--sm-text-muted); }
   .row > [class*="col-"] { animation: none; }
   * { transition-duration: 0.01ms !important; }
 }
+
+/* ── 19. SIDEBAR COLLAPSED — icon-only, no text ──────────── */
+/* SB Admin 2 default shows tiny text below icons when toggled;
+   override to show only the icon for a cleaner look.          */
+.sidebar.toggled .nav-item .nav-link span {
+  display: none !important;
+}
+
+/* Keep icon centred and normal size */
+.sidebar.toggled .nav-item .nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: .85rem 1rem;
+}
+
+/* Logo: when collapsed, hide the brand text (SB Admin already does
+   this for the icon variant; ensure our img variant also works)   */
+.sidebar.toggled .sidebar-brand-text {
+  display: none !important;
+}
+
+/* Sidebar-heading labels also disappear when collapsed */
+.sidebar.toggled .sidebar-heading {
+  display: none !important;
+}
+
+/* HR dividers are still fine — keep them */
