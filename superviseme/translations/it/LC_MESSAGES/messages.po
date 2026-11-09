@@ -3792,3 +3792,33 @@ msgstr "Nessun risultato"
 
 msgid "Updates"
 msgstr "Aggiornamenti"
+
+msgid "Thesis report"
+msgstr "Report della tesi"
+
+msgid "Reports"
+msgstr "Report"
+
+msgid "Reports and archive"
+msgstr "Report e archivio"
+
+msgid "Export thesis history as PDF or CSV and browse concluded theses"
+msgstr "Esporta la storia delle tesi in PDF o CSV e consulta le tesi concluse"
+
+msgid "Activity export"
+msgstr "Esportazione attività"
+
+msgid "From"
+msgstr "Dal"
+
+msgid "To"
+msgstr "Al"
+
+msgid "Concluded"
+msgstr "Concluse"
+
+msgid "Concluded theses (archive)"
+msgstr "Tesi concluse (archivio)"
+
+msgid "Nothing here yet"
+msgstr "Ancora niente"

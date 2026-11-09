@@ -665,3 +665,35 @@ def test_global_search_is_role_scoped(client, admin_user, supervisor_user, resea
     assert r.status_code == 200 and b"Kickoff" in r.data
     assert client.get("/search?q=%25").status_code == 200
     assert b'action="/search"' in client.get("/profile").data
+
+
+def test_reports_csv_pdf_and_archive(client, supervisor_user, student_user, researcher_user):
+    from superviseme.models import Thesis_Update
+    from superviseme.utils.reports import is_concluded, safe_cell
+    assert safe_cell("=1+1") == "'=1+1" and safe_cell("ok") == "ok"
+    t = _assign(student_user, supervisor_user)
+    other = _assign(_make_student("rep_other"), researcher_user)
+    db.session.add(Thesis_Update(thesis_id=t.id, author_id=student_user.id, update_type="progress", content="=cmd|' /C calc'!A0",
+                                 created_at=int(time.time())))
+    db.session.add(Thesis_Status(thesis_id=t.id, status="completed", updated_at=int(time.time())))
+    db.session.commit()
+    assert is_concluded(t)
+    login(client, supervisor_user)
+    r = client.get(f"/thesis/{t.id}/report.csv")
+    assert r.status_code == 200 and r.mimetype == "text/csv" and b"'=cmd" in r.data
+    r = client.get(f"/thesis/{t.id}/report.pdf")
+    assert r.status_code == 200 and r.data[:4] == b"%PDF"
+    assert client.get(f"/thesis/{other.id}/report.csv").status_code == 403
+    assert client.get("/thesis/1/report.exe").status_code == 404
+    page = client.get("/reports")
+    assert page.status_code == 200 and b"Concluded theses" in page.data
+    assert client.get("/reports/activity.csv?scope=concluded&from=2000-01-01").status_code == 200
+    client.post("/logout")
+    login(client, student_user)
+    assert client.get("/reports").status_code == 403
+    assert client.get(f"/thesis/{t.id}/report.pdf").status_code == 200
+
+
+def _make_student(name):
+    from tests.conftest import _make_user
+    return _make_user("student", name, f"{name}@test.com")

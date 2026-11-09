@@ -1,7 +1,7 @@
 """Workflow features: milestones (and, in later commits, meetings, documents, checklist, ...)."""
 import time
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, Response, abort, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
 
@@ -634,3 +634,65 @@ def search():
     return render_template("workflow/search.html", term=term, results=results, theses=theses, total=total,
                            note_url=note_url, thesis_link=thesis_link, snippet=search_utils.snippet,
                            min_len=search_utils.MIN_LEN, thesis_url=thesis_url)
+
+
+# ---------------------------------------------------------------- reports and archive
+from superviseme.utils import reports as rp  # noqa: E402
+
+
+def _period():
+    since, until = parse_date(request.args.get("from")), parse_date(request.args.get("to"))
+    if until is not None:
+        until += 86400  # inclusive end day
+    return since, until
+
+
+def _download(body, mimetype, filename):
+    resp = Response(body, mimetype=mimetype)
+    resp.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    return resp
+
+
+@workflow.route("/thesis/<int:thesis_id>/report.<fmt>")
+@login_required
+def thesis_report(thesis_id, fmt):
+    if fmt not in ("csv", "pdf"):
+        abort(404)
+    thesis, _role = load_thesis_or_403(current_user, thesis_id)
+    since, until = _period()
+    data = rp.thesis_report(thesis, since, until)
+    name = f"thesis-{thesis.id}-report.{fmt}"
+    if fmt == "csv":
+        return _download(rp.report_csv(data), "text/csv; charset=utf-8", name)
+    try:
+        return _download(rp.report_pdf(data), "application/pdf", name)
+    except ImportError:
+        abort(501)
+
+
+@workflow.route("/reports")
+@login_required
+def reports():
+    if current_user.user_type not in ("admin", "supervisor", "researcher"):
+        abort(403)
+    theses = rp.theses_for_reports(current_user)
+    concluded = [t for t in theses if rp.is_concluded(t)]
+    active = [t for t in theses if t not in concluded]
+    return render_template("workflow/reports.html", active=active, concluded=concluded, status=rp.latest_status,
+                           dt=datetime.fromtimestamp)
+
+
+@workflow.route("/reports/activity.csv")
+@login_required
+def activity_report():
+    if current_user.user_type not in ("admin", "supervisor", "researcher"):
+        abort(403)
+    since, until = _period()
+    only = (request.args.get("scope") or "all")
+    theses = rp.theses_for_reports(current_user)
+    if only == "concluded":
+        theses = [t for t in theses if rp.is_concluded(t)]
+    elif only == "active":
+        theses = [t for t in theses if not rp.is_concluded(t)]
+    return _download(rp.activity_csv([rp.thesis_report(t, since, until) for t in theses]), "text/csv; charset=utf-8", "activity-report.csv")

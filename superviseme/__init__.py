@@ -605,6 +605,11 @@ def create_app(db_type="sqlite", skip_user_init=False):
 
     app.jinja_env.globals.update(_team_helpers())
 
+    @app.template_filter("user_by_id")
+    def _user_by_id(user_id):
+        from superviseme.models import User_mgmt
+        return User_mgmt.query.get(user_id) if user_id else None
+
     @app.context_processor
     def _dashboard_context():
         import time as _t

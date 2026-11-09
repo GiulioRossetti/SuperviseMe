@@ -1,0 +1,33 @@
+{% extends 'public/base_public.html' %}
+{% from 'components/dash.html' import hero, panel with context %}
+{% block page_content %}
+{% call hero(_('Reports and archive'), _('Export thesis history as PDF or CSV and browse concluded theses'), 'fa-file-export') %}{% endcall %}
+{% call panel(_('Activity export'), 'fa-file-csv') %}
+<form method="GET" action="{{ url_for('workflow.activity_report') }}" class="form-row align-items-end">
+    <div class="col-md-3 mb-2"><label class="small mb-0">{{ _('From') }}</label><input type="date" class="form-control form-control-sm" name="from"></div>
+    <div class="col-md-3 mb-2"><label class="small mb-0">{{ _('To') }}</label><input type="date" class="form-control form-control-sm" name="to"></div>
+    <div class="col-md-3 mb-2"><label class="small mb-0">{{ _('Theses') }}</label>
+        <select class="form-control form-control-sm" name="scope"><option value="all">{{ _('All') }}</option><option value="active">{{ _('Active') }}</option><option value="concluded">{{ _('Concluded') }}</option></select></div>
+    <div class="col-md-3 mb-2"><button class="btn btn-primary btn-sm btn-block"><i class="fas fa-download"></i> CSV</button></div>
+</form>
+{% endcall %}
+<div class="row">
+{% for title, rows, icon in ((_('Concluded theses (archive)'), concluded, 'fa-archive'), (_('Active theses'), active, 'fa-book-open')) %}
+<div class="col-xl-6">
+{% call panel(title, icon) %}
+    {% if rows %}<div class="doc-list">
+        {% for t in rows %}
+        <div class="doc-item">
+            <span class="doc-ic"><i class="fas fa-book"></i></span>
+            <span class="doc-main"><strong>{{ t.title }}</strong><small>{{ status(t) or '' }}{% if t.author_id %} · {{ user_link(t.author_id|user_by_id) }}{% endif %}</small></span>
+            <a class="btn btn-outline-primary btn-sm mr-1" href="{{ url_for('workflow.thesis_report', thesis_id=t.id, fmt='pdf') }}">PDF</a>
+            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('workflow.thesis_report', thesis_id=t.id, fmt='csv') }}">CSV</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}<div class="dash-empty"><i class="fas {{ icon }}"></i>{{ _('Nothing here yet') }}</div>{% endif %}
+{% endcall %}
+</div>
+{% endfor %}
+</div>
+{% endblock %}

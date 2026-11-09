@@ -26,6 +26,11 @@
             </form>
         </div>
         {% endif %}
+        <div class="mb-3 small">
+            <i class="fas fa-file-export text-muted"></i> {{ _('Thesis report') }}:
+            <a href="{{ url_for('workflow.thesis_report', thesis_id=thesis.id, fmt='pdf') }}">PDF</a> ·
+            <a href="{{ url_for('workflow.thesis_report', thesis_id=thesis.id, fmt='csv') }}">CSV</a>
+        </div>
         <ul class="list-unstyled mb-0">
             {% for ts in tm.supervisors %}
             <li class="d-flex align-items-center justify-content-between mb-2">
