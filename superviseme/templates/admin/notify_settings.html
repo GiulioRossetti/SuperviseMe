@@ -35,7 +35,7 @@
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                Total Users</div>
+                                                {{ _('Total Users') }}</div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.total_users }}</div>
                                         </div>
                                         <div class="col-auto">
@@ -52,7 +52,7 @@
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                Active Supervisors</div>
+                                                {{ _('Active Supervisors') }}</div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.active_supervisors }}</div>
                                         </div>
                                         <div class="col-auto">
@@ -69,7 +69,7 @@
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                                Enrolled Students</div>
+                                                {{ _('Enrolled Students') }}</div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.enrolled_students }}</div>
                                         </div>
                                         <div class="col-auto">
@@ -86,7 +86,7 @@
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                Pending Notifications</div>
+                                                {{ _('Pending Notifications') }}</div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.pending_notifications }}</div>
                                         </div>
                                         <div class="col-auto">
@@ -196,9 +196,9 @@
                                         <div class="form-group">
                                             <label for="max-annotation-length"><strong>{{ _('Maximum Annotation Length') }}</strong></label>
                                             <select class="form-control" id="max-annotation-length">
-                                                <option>500 characters</option>
-                                                <option selected>1000 characters</option>
-                                                <option>2000 characters</option>
+                                                <option>{{ _('500 characters') }}</option>
+                                                <option selected>{{ _('1000 characters') }}</option>
+                                                <option>{{ _('2000 characters') }}</option>
                                                 <optionNone>{{ _('No limit') }}</option>
                                             </select>
                                         </div>
@@ -230,17 +230,17 @@
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
                                     <h6 class="m-0 font-weight-bold text-primary">
-                                        <i class="fab fa-telegram-plane mr-2"></i>Telegram Bot Configuration
+                                        <i class="fab fa-telegram-plane mr-2"></i>{{ _('Telegram Bot Configuration') }}
                                     </h6>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-8">
                                             <div class="alert alert-info mb-4">
-                                                <h6><i class="fas fa-info-circle mr-2"></i>Setup Instructions</h6>
+                                                <h6><i class="fas fa-info-circle mr-2"></i>{{ _('Setup Instructions') }}</h6>
                                                 <ol class="mb-0">
-                                                    <li>Create a bot by messaging <a href="https://t.me/BotFather" target="_blank">@BotFather</a> on Telegram</li>
-                                                    <li>Send <code>/newbot</code> and follow the instructions</li>
+                                                    <li>{{ _('Create a bot by messaging') }} <a href="https://t.me/BotFather" target="_blank">@BotFather</a> {{ _('on Telegram') }}</li>
+                                                    <li>{{ _('Send') }} <code>/newbot</code> {{ _('and follow the instructions') }}</li>
                                                     <li>{{ _('Copy your bot token and paste it below') }}</li>
                                                     <li>{{ _('Users can then configure their Telegram notifications in their profiles') }}</li>
                                                 </ol>
@@ -284,12 +284,12 @@
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <button type="button" class="btn btn-info" id="test-telegram-bot">
-                                                            <i class="fab fa-telegram-plane"></i> Test Bot Connection
+                                                            <i class="fab fa-telegram-plane"></i> {{ _('Test Bot Connection') }}
                                                         </button>
                                                     </div>
                                                     <div class="col-md-6 text-right">
                                                         <button type="submit" class="btn btn-success">
-                                                            <i class="fas fa-save"></i> Save Telegram Configuration
+                                                            <i class="fas fa-save"></i> {{ _('Save Telegram Configuration') }}
                                                         </button>
                                                     </div>
                                                 </div>
@@ -308,8 +308,8 @@
                                                     
                                                     <h6 class="card-title">{{ _('Usage Statistics') }}</h6>
                                                     <div class="small">
-                                                        <div>Users with Telegram: <span id="telegram-users-count">-</span></div>
-                                                        <div>Messages sent today: <span id="telegram-messages-today">-</span></div>
+                                                        <div>{{ _('Users with Telegram:') }} <span id="telegram-users-count">-</span></div>
+                                                        <div>{{ _('Messages sent today:') }} <span id="telegram-messages-today">-</span></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -385,12 +385,12 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <button type="button" class="btn btn-outline-primary" onclick="testEmailConnection()">
-                                                    <i class="fas fa-paper-plane"></i> Test Connection
+                                                    <i class="fas fa-paper-plane"></i> {{ _('Test Connection') }}
                                                 </button>
                                             </div>
                                             <div class="col-md-6 text-right">
                                                 <button type="submit" class="btn btn-success">
-                                                    <i class="fas fa-save"></i> Save Configuration
+                                                    <i class="fas fa-save"></i> {{ _('Save Configuration') }}
                                                 </button>
                                             </div>
                                         </div>
@@ -412,16 +412,16 @@
                                         <div class="col-md-3">
                                             <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                                                 <a class="nav-link active" id="v-pills-assignment-tab" data-toggle="pill" href="#v-pills-assignment" role="tab">
-                                                    Thesis Assignment
+                                                    {{ _('Thesis Assignment') }}
                                                 </a>
                                                 <a class="nav-link" id="v-pills-status-tab" data-toggle="pill" href="#v-pills-status" role="tab">
-                                                    Status Change
+                                                    {{ _('Status Change') }}
                                                 </a>
                                                 <a class="nav-link" id="v-pills-deadline-tab" data-toggle="pill" href="#v-pills-deadline" role="tab">
-                                                    Deadline Reminder
+                                                    {{ _('Deadline Reminder') }}
                                                 </a>
                                                 <a class="nav-link" id="v-pills-welcome-tab" data-toggle="pill" href="#v-pills-welcome" role="tab">
-                                                    Welcome Message
+                                                    {{ _('Welcome Message') }}
                                                 </a>
                                             </div>
                                         </div>
@@ -516,7 +516,7 @@ SuperviseMe Team</textarea>
                                             </div>
                                             <div class="text-right mt-3">
                                                 <button class="btn btn-success">
-                                                    <i class="fas fa-save"></i> Save Templates
+                                                    <i class="fas fa-save"></i> {{ _('Save Templates') }}
                                                 </button>
                                             </div>
                                         </div>

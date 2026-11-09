@@ -13,7 +13,7 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="input-group">
                             <input type="text" class="form-control bg-light border-0 small" 
-                                   placeholder="Search for..." 
+                                   placeholder="{{ _('Search for...') }}" 
                                    name="search_term"
                                    required
                                    minlength="1"
@@ -44,7 +44,7 @@
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <div class="input-group">
                                         <input type="text" class="form-control bg-light border-0 small"
-                                            placeholder="Search for..." aria-label="Search"
+                                            placeholder="{{ _('Search for...') }}" aria-label="Search"
                                             name="search_term"
                                             required
                                             minlength="1"
@@ -71,9 +71,9 @@
                             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="alertsDropdown">
                                 <h6 class="dropdown-header">
-                                    Notifications Center
+                                    {{ _('Notifications Center') }}
                                     <button class="btn btn-link btn-sm float-right text-muted" onclick="markAllAsRead()">
-                                        <i class="fas fa-check-double"></i> Mark all read
+                                        <i class="fas fa-check-double"></i> {{ _('Mark all read') }}
                                     </button>
                                 </h6>
                                 <div id="notifications-list">
@@ -84,7 +84,7 @@
                                     </div>
                                 </div>
                                 <a class="dropdown-item text-center small text-gray-500" href="/notifications">
-                                    <i class="fas fa-eye"></i> Show All Notifications
+                                    <i class="fas fa-eye"></i> {{ _('Show All Notifications') }}
                                 </a>
                             </div>
                         </li>
@@ -125,14 +125,14 @@
                                 aria-labelledby="userDropdown">
                                 <a class="dropdown-item" href="/profile">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Profile
+                                    {{ _('Profile') }}
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <form method="POST" action="{{ url_for('auth.logout') }}" class="m-0 p-0">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="dropdown-item">
                                         <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                        Logout
+                                        {{ _('Logout') }}
                                     </button>
                                 </form>
                             </div>

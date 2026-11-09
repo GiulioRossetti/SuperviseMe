@@ -101,10 +101,10 @@
                                 <h6 class="m-0 font-weight-bold text-primary">{{ _('Thesis Information') }}</h6>
                             </div>
                             <div class="card-body">
-                                <p><strong>{{ _('Topic:') }}</strong> {{ thesis.topic or 'Not specified' }}</p>
+                                <p><strong>{{ _('Topic:') }}</strong> {{ thesis.topic or _("Not specified") }}</p>
                                 <p><strong>{{ _('Short description') }}</strong><br>{{ thesis.short_description or thesis.description }}</p>
                                 <p><strong>{{ _('Long description') }}</strong><br>{{ thesis.long_description or thesis.description }}</p>
-                                <p><strong>{{ _('Prerequisites') }}</strong><br>{{ thesis.prerequisites or 'Not specified' }}</p>
+                                <p><strong>{{ _('Prerequisites') }}</strong><br>{{ thesis.prerequisites or _("Not specified") }}</p>
                             </div>
                         </div>
                     </div>
@@ -120,7 +120,7 @@
                                         <div>{{ supervisor.name }} {{ supervisor.surname }}</div>
                                     {% endfor %}
                                 {% else %}
-                                    <div class="text-muted">Not specified</div>
+                                    <div class="text-muted">{{ _('Not specified') }}</div>
                                 {% endif %}
                             </div>
                         </div>
@@ -147,7 +147,7 @@
                             <div class="card-body">
                                 {% if current_user.is_authenticated and current_user.user_type == 'student' %}
                                     {% if existing_interest %}
-                                        <div class="alert alert-info mb-0">You already expressed interest in this thesis.</div>
+                                        <div class="alert alert-info mb-0">{{ _('You already expressed interest in this thesis.') }}</div>
                                     {% else %}
                                         <form method="POST" action="{{ url_for('student.express_interest', thesis_id=thesis.id) }}">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -159,9 +159,9 @@
                                         </form>
                                     {% endif %}
                                 {% elif current_user.is_authenticated %}
-                                    <div class="alert alert-secondary mb-0">Only students can express interest.</div>
+                                    <div class="alert alert-secondary mb-0">{{ _('Only students can express interest.') }}</div>
                                 {% else %}
-                                    <div class="text-muted">Log in as a student to express interest.</div>
+                                    <div class="text-muted">{{ _('Log in as a student to express interest.') }}</div>
                                 {% endif %}
                             </div>
                         </div>

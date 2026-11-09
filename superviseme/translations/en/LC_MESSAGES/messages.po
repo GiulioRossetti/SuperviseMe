@@ -2245,3 +2245,335 @@ msgstr "You:"
 
 msgid "Your numeric Telegram User ID (not username)"
 msgstr "Your numeric Telegram User ID (not username)"
+
+
+msgid "-- Select Supervisor --"
+msgstr "-- Select Supervisor --"
+
+
+msgid "1000 characters"
+msgstr "1000 characters"
+
+
+msgid "2000 characters"
+msgstr "2000 characters"
+
+
+msgid "500 characters"
+msgstr "500 characters"
+
+
+msgid "Active Supervisors"
+msgstr "Active Supervisors"
+
+
+msgid "Add New User"
+msgstr "Add New User"
+
+
+msgid "Add progress updates"
+msgstr "Add progress updates"
+
+
+msgid "Are you sure you want to delete student"
+msgstr "Are you sure you want to delete student"
+
+
+msgid "Are you sure you want to trigger weekly reports now? This will send emails to all supervisors."
+msgstr "Are you sure you want to trigger weekly reports now? This will send emails to all supervisors."
+
+
+msgid "Back to Users"
+msgstr "Back to Users"
+
+
+msgid "Browse thesis opportunities"
+msgstr "Browse thesis opportunities"
+
+
+msgid "Check if you typed the URL correctly"
+msgstr "Check if you typed the URL correctly"
+
+
+msgid "Clear All"
+msgstr "Clear All"
+
+
+msgid "Collaborate with supervisors"
+msgstr "Collaborate with supervisors"
+
+
+msgid "Communicate with your supervisor"
+msgstr "Communicate with your supervisor"
+
+
+msgid "Complete Your Profile"
+msgstr "Complete Your Profile"
+
+
+msgid "Contact support if the problem persists"
+msgstr "Contact support if the problem persists"
+
+
+msgid "Create a bot by messaging"
+msgstr "Create a bot by messaging"
+
+
+msgid "Deadline Reminder"
+msgstr "Deadline Reminder"
+
+
+msgid "Degree Enrolled"
+msgstr "Degree Enrolled"
+
+
+msgid "Delete"
+msgstr "Delete"
+
+
+msgid "Delete notification"
+msgstr "Delete notification"
+
+
+msgid "Description of the thesis"
+msgstr "Description of the thesis"
+
+
+msgid "Enrolled Students"
+msgstr "Enrolled Students"
+
+
+msgid "Export Data"
+msgstr "Export Data"
+
+
+msgid "Go Back"
+msgstr "Go Back"
+
+
+msgid "Go Home"
+msgstr "Go Home"
+
+
+msgid "Go back to the previous page and try again"
+msgstr "Go back to the previous page and try again"
+
+
+msgid "Google User"
+msgstr "Google User"
+
+
+msgid "Log in as a student to express interest."
+msgstr "Log in as a student to express interest."
+
+
+msgid "Main Supervisor"
+msgstr "Main Supervisor"
+
+
+msgid "Manage objectives &amp; milestones"
+msgstr "Manage objectives &amp; milestones"
+
+
+msgid "Mark All Read"
+msgstr "Mark All Read"
+
+
+msgid "Mark all read"
+msgstr "Mark all read"
+
+
+msgid "Messages sent today:"
+msgstr "Messages sent today:"
+
+
+msgid "Next ›"
+msgstr "Next ›"
+
+
+msgid "No interests expressed yet."
+msgstr "No interests expressed yet."
+
+
+msgid "No public available theses match your filters."
+msgstr "No public available theses match your filters."
+
+
+msgid "Not scheduled"
+msgstr "Not scheduled"
+
+
+msgid "Notifications Center"
+msgstr "Notifications Center"
+
+
+msgid "ORCID &amp; Google login supported"
+msgstr "ORCID &amp; Google login supported"
+
+
+msgid "ORCID User"
+msgstr "ORCID User"
+
+
+msgid "Only students can express interest."
+msgstr "Only students can express interest."
+
+
+msgid "Page Not Found"
+msgstr "Page Not Found"
+
+
+msgid "Pending Notifications"
+msgstr "Pending Notifications"
+
+
+msgid "Please provide one so we can contact you."
+msgstr "Please provide one so we can contact you."
+
+
+msgid "Public catalog of currently unassigned theses."
+msgstr "Public catalog of currently unassigned theses."
+
+
+msgid "Refresh Status"
+msgstr "Refresh Status"
+
+
+msgid "Register Account"
+msgstr "Register Account"
+
+
+msgid "Save Configuration"
+msgstr "Save Configuration"
+
+
+msgid "Save Settings"
+msgstr "Save Settings"
+
+
+msgid "Save Telegram Configuration"
+msgstr "Save Telegram Configuration"
+
+
+msgid "Save Templates"
+msgstr "Save Templates"
+
+
+msgid "Search for..."
+msgstr "Search for..."
+
+
+msgid "Send"
+msgstr "Send"
+
+
+msgid "Setup Instructions"
+msgstr "Setup Instructions"
+
+
+msgid "Show All Notifications"
+msgstr "Show All Notifications"
+
+
+msgid "Sign In"
+msgstr "Sign In"
+
+
+msgid "Sign in with Google"
+msgstr "Sign in with Google"
+
+
+msgid "Sign in with ORCID"
+msgstr "Sign in with ORCID"
+
+
+msgid "Status Change"
+msgstr "Status Change"
+
+
+msgid "Students inactive for more than 2 weeks are highlighted"
+msgstr "Students inactive for more than 2 weeks are highlighted"
+
+
+msgid "System Stats"
+msgstr "System Stats"
+
+
+msgid "Telegram Bot Configuration"
+msgstr "Telegram Bot Configuration"
+
+
+msgid "Test Bot Connection"
+msgstr "Test Bot Connection"
+
+
+msgid "Test Connection"
+msgstr "Test Connection"
+
+
+msgid "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+msgstr "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+
+
+msgid "Thesis Assignment"
+msgstr "Thesis Assignment"
+
+
+msgid "Total Users"
+msgstr "Total Users"
+
+
+msgid "Track thesis progress in real time"
+msgstr "Track thesis progress in real time"
+
+
+msgid "Track your thesis progress"
+msgstr "Track your thesis progress"
+
+
+msgid "Trigger Weekly Reports Now"
+msgstr "Trigger Weekly Reports Now"
+
+
+msgid "Upload and manage resources"
+msgstr "Upload and manage resources"
+
+
+msgid "Users with Telegram:"
+msgstr "Users with Telegram:"
+
+
+msgid "View All Theses"
+msgstr "View All Theses"
+
+
+msgid "Weekly reports are sent every Monday morning at 9:00 AM"
+msgstr "Weekly reports are sent every Monday morning at 9:00 AM"
+
+
+msgid "Welcome Message"
+msgstr "Welcome Message"
+
+
+msgid "You already expressed interest in this thesis."
+msgstr "You already expressed interest in this thesis."
+
+
+msgid "and follow the instructions"
+msgstr "and follow the instructions"
+
+
+msgid "female"
+msgstr "female"
+
+
+msgid "male"
+msgstr "male"
+
+
+msgid "on Telegram"
+msgstr "on Telegram"
+
+
+msgid "or continue with"
+msgstr "or continue with"

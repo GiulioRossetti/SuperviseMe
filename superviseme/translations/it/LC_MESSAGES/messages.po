@@ -2245,3 +2245,335 @@ msgstr "Tu:"
 
 msgid "Your numeric Telegram User ID (not username)"
 msgstr "Il tuo ID Utente Telegram numerico (non il nome utente)"
+
+
+msgid "-- Select Supervisor --"
+msgstr "-- Seleziona Supervisore --"
+
+
+msgid "1000 characters"
+msgstr "1000 caratteri"
+
+
+msgid "2000 characters"
+msgstr "2000 caratteri"
+
+
+msgid "500 characters"
+msgstr "500 caratteri"
+
+
+msgid "Active Supervisors"
+msgstr "Supervisori Attivi"
+
+
+msgid "Add New User"
+msgstr "Aggiungi Nuovo Utente"
+
+
+msgid "Add progress updates"
+msgstr "Aggiungi aggiornamenti sul progresso"
+
+
+msgid "Are you sure you want to delete student"
+msgstr "Sei sicuro di voler eliminare lo studente"
+
+
+msgid "Are you sure you want to trigger weekly reports now? This will send emails to all supervisors."
+msgstr "Sei sicuro di voler generare i report settimanali ora? Verranno inviate email a tutti i supervisori."
+
+
+msgid "Back to Users"
+msgstr "Torna agli Utenti"
+
+
+msgid "Browse thesis opportunities"
+msgstr "Sfoglia le opportunità di tesi"
+
+
+msgid "Check if you typed the URL correctly"
+msgstr "Verifica di aver digitato l'URL correttamente"
+
+
+msgid "Clear All"
+msgstr "Cancella Tutto"
+
+
+msgid "Collaborate with supervisors"
+msgstr "Collabora con i supervisori"
+
+
+msgid "Communicate with your supervisor"
+msgstr "Comunica con il tuo supervisore"
+
+
+msgid "Complete Your Profile"
+msgstr "Completa il Tuo Profilo"
+
+
+msgid "Contact support if the problem persists"
+msgstr "Contatta il supporto se il problema persiste"
+
+
+msgid "Create a bot by messaging"
+msgstr "Crea un bot inviando un messaggio a"
+
+
+msgid "Deadline Reminder"
+msgstr "Promemoria Scadenza"
+
+
+msgid "Degree Enrolled"
+msgstr "Corso di Studi"
+
+
+msgid "Delete"
+msgstr "Elimina"
+
+
+msgid "Delete notification"
+msgstr "Elimina notifica"
+
+
+msgid "Description of the thesis"
+msgstr "Descrizione della tesi"
+
+
+msgid "Enrolled Students"
+msgstr "Studenti Iscritti"
+
+
+msgid "Export Data"
+msgstr "Esporta Dati"
+
+
+msgid "Go Back"
+msgstr "Torna Indietro"
+
+
+msgid "Go Home"
+msgstr "Vai alla Home"
+
+
+msgid "Go back to the previous page and try again"
+msgstr "Torna alla pagina precedente e riprova"
+
+
+msgid "Google User"
+msgstr "Utente Google"
+
+
+msgid "Log in as a student to express interest."
+msgstr "Accedi come studente per esprimere interesse."
+
+
+msgid "Main Supervisor"
+msgstr "Supervisore Principale"
+
+
+msgid "Manage objectives &amp; milestones"
+msgstr "Gestisci obiettivi e traguardi"
+
+
+msgid "Mark All Read"
+msgstr "Segna tutto come letto"
+
+
+msgid "Mark all read"
+msgstr "Segna tutti come letti"
+
+
+msgid "Messages sent today:"
+msgstr "Messaggi inviati oggi:"
+
+
+msgid "Next ›"
+msgstr "Successivo ›"
+
+
+msgid "No interests expressed yet."
+msgstr "Nessun interesse espresso finora."
+
+
+msgid "No public available theses match your filters."
+msgstr "Nessuna tesi pubblica disponibile corrisponde ai tuoi filtri."
+
+
+msgid "Not scheduled"
+msgstr "Non pianificato"
+
+
+msgid "Notifications Center"
+msgstr "Centro Notifiche"
+
+
+msgid "ORCID &amp; Google login supported"
+msgstr "Login con ORCID e Google supportati"
+
+
+msgid "ORCID User"
+msgstr "Utente ORCID"
+
+
+msgid "Only students can express interest."
+msgstr "Solo gli studenti possono esprimere interesse."
+
+
+msgid "Page Not Found"
+msgstr "Pagina Non Trovata"
+
+
+msgid "Pending Notifications"
+msgstr "Notifiche in Attesa"
+
+
+msgid "Please provide one so we can contact you."
+msgstr "Forniscine uno in modo che possiamo contattarti."
+
+
+msgid "Public catalog of currently unassigned theses."
+msgstr "Catalogo pubblico delle tesi attualmente non assegnate."
+
+
+msgid "Refresh Status"
+msgstr "Aggiorna Stato"
+
+
+msgid "Register Account"
+msgstr "Registra Account"
+
+
+msgid "Save Configuration"
+msgstr "Salva Configurazione"
+
+
+msgid "Save Settings"
+msgstr "Salva Impostazioni"
+
+
+msgid "Save Telegram Configuration"
+msgstr "Salva Configurazione Telegram"
+
+
+msgid "Save Templates"
+msgstr "Salva Modelli"
+
+
+msgid "Search for..."
+msgstr "Cerca..."
+
+
+msgid "Send"
+msgstr "Invia"
+
+
+msgid "Setup Instructions"
+msgstr "Istruzioni per la Configurazione"
+
+
+msgid "Show All Notifications"
+msgstr "Mostra Tutte le Notifiche"
+
+
+msgid "Sign In"
+msgstr "Accedi"
+
+
+msgid "Sign in with Google"
+msgstr "Accedi con Google"
+
+
+msgid "Sign in with ORCID"
+msgstr "Accedi con ORCID"
+
+
+msgid "Status Change"
+msgstr "Cambio di Stato"
+
+
+msgid "Students inactive for more than 2 weeks are highlighted"
+msgstr "Gli studenti inattivi per più di 2 settimane vengono evidenziati"
+
+
+msgid "System Stats"
+msgstr "Statistiche di Sistema"
+
+
+msgid "Telegram Bot Configuration"
+msgstr "Configurazione Bot Telegram"
+
+
+msgid "Test Bot Connection"
+msgstr "Testa Connessione Bot"
+
+
+msgid "Test Connection"
+msgstr "Testa Connessione"
+
+
+msgid "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+msgstr "La pagina che stai cercando potrebbe essere stata rimossa, rinominata o è temporaneamente non disponibile."
+
+
+msgid "Thesis Assignment"
+msgstr "Assegnazione Tesi"
+
+
+msgid "Total Users"
+msgstr "Utenti Totali"
+
+
+msgid "Track thesis progress in real time"
+msgstr "Monitora il progresso della tesi in tempo reale"
+
+
+msgid "Track your thesis progress"
+msgstr "Monitora il progresso della tua tesi"
+
+
+msgid "Trigger Weekly Reports Now"
+msgstr "Genera Report Settimanali Ora"
+
+
+msgid "Upload and manage resources"
+msgstr "Carica e gestisci le risorse"
+
+
+msgid "Users with Telegram:"
+msgstr "Utenti con Telegram:"
+
+
+msgid "View All Theses"
+msgstr "Visualizza Tutte le Tesi"
+
+
+msgid "Weekly reports are sent every Monday morning at 9:00 AM"
+msgstr "I report settimanali vengono inviati ogni lunedì mattina alle 9:00"
+
+
+msgid "Welcome Message"
+msgstr "Messaggio di Benvenuto"
+
+
+msgid "You already expressed interest in this thesis."
+msgstr "Hai già espresso interesse per questa tesi."
+
+
+msgid "and follow the instructions"
+msgstr "e segui le istruzioni"
+
+
+msgid "female"
+msgstr "femmina"
+
+
+msgid "male"
+msgstr "maschio"
+
+
+msgid "on Telegram"
+msgstr "su Telegram"
+
+
+msgid "or continue with"
+msgstr "o continua con"

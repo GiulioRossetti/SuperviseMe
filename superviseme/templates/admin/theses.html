@@ -116,7 +116,7 @@ function renderFallbackTable(thesesData) {
       <td>
         <div style="display: flex; gap: 8px; justify-content: center;">
           <a href="/admin/thesis/${thesis.thesis_id}" class="btn btn-success btn-sm">{{ _('Details') }}</a>
-          <button class="btn btn-danger btn-sm delete-button" data-id="${thesis.thesis_id}">Delete</button>
+          <button class="btn btn-danger btn-sm delete-button" data-id="${thesis.thesis_id}">{{ _('Delete') }}</button>
         </div>
       </td>
     `;
@@ -361,7 +361,7 @@ try {
                                         </div>
                                         <div class="form-group row">
                                             <div class="col-sm-12">
-                                                <textarea type="text" class="form-control form-control-user" id="description" name="description">Description of the thesis</textarea>
+                                                <textarea type="text" class="form-control form-control-user" id="description" name="description">{{ _('Description of the thesis') }}</textarea>
                                             </div>
                                         </div>
                                         <div class="form-group row">
@@ -392,7 +392,7 @@ try {
                                         </div>
                                         <div class="form-group row">
                                             <div class="col-sm-4 mb-3 mb-sm-0">
-                                                Student
+                                                {{ _('Student') }}
                                                 <select name="student_id" class="form-control form-select form-select-user">
                                                     <option value=""></option>
                                                     {% for student in students %}
@@ -402,7 +402,7 @@ try {
 
                                             </div>
                                             <div class="col-sm-4 mb-3 mb-sm-0">
-                                                Main Supervisor
+                                                {{ _('Main Supervisor') }}
                                                 <select name="supervisor_id" class="form-control form-select form-select-user">
                                                     <option value=""> </option>
                                                     {% for supervisor in supervisors %}
@@ -412,7 +412,7 @@ try {
                                             </div>
 
                                             <div class="col-sm-4 mb-3 mb-sm-0">
-                                                Level
+                                                {{ _('Level') }}
                                                 <select name="level" class="form-control form-select form-select-user">
                                                     <option value="bachelor">{{ _('Bachelor') }}</option>
                                                     <option value="master">{{ _('Master') }}</option>
@@ -433,7 +433,7 @@ try {
 
 
                                 <button class="btn btn-primary btn-user btn-block">
-                                    Create Thesis
+                                    {{ _('Create Thesis') }}
                                 </button>
                             </form>
                                 </div>
@@ -475,7 +475,7 @@ try {
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-body">{{ _('Select "Logout" below if you are ready to end your current session.') }}</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">{{ _('Cancel') }}</button>
                     <a class="btn btn-primary" href="login.html">{{ _('Logout') }}</a>

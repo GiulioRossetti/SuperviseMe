@@ -72,7 +72,7 @@
                                                             {% for job in scheduler_status.jobs %}
                                                             <tr>
                                                                 <td>{{ job.name }}</td>
-                                                                <td>{{ job.next_run_time or 'Not scheduled' }}</td>
+                                                                <td>{{ job.next_run_time or '{{ _("Not scheduled") }}' }}</td>
                                                                 <td><small>{{ job.trigger }}</small></td>
                                                             </tr>
                                                             {% endfor %}
@@ -83,10 +83,10 @@
                                         </div>
                                         <div class="col-md-6 text-right">
                                             <button class="btn btn-primary" onclick="triggerWeeklyReports()">
-                                                <i class="fas fa-paper-plane"></i> Trigger Weekly Reports Now
+                                                <i class="fas fa-paper-plane"></i> {{ _('Trigger Weekly Reports Now') }}
                                             </button>
                                             <button class="btn btn-info ml-2" onclick="refreshStatus()">
-                                                <i class="fas fa-sync-alt"></i> Refresh Status
+                                                <i class="fas fa-sync-alt"></i> {{ _('Refresh Status') }}
                                             </button>
                                         </div>
                                     </div>
@@ -108,7 +108,7 @@
                                             <h6><strong>{{ _('Select Supervisor to Preview Email:') }}</strong></h6>
                                             <div class="form-group">
                                                 <select class="form-control" id="supervisorSelect" onchange="previewEmail()">
-                                                    <option value="">-- Select Supervisor --</option>
+                                                    <option value="">{{ _('-- Select Supervisor --') }}</option>
                                                     {% for supervisor in supervisors %}
                                                         <option value="{{ supervisor.id }}">
                                                             {{ supervisor.name }} {{ supervisor.surname }} ({{ supervisor.email }})
@@ -153,10 +153,10 @@
                                 </div>
                                 <div class="card-body">
                                     <ul>
-                                        <li><strong>{{ _('Automatic Schedule:') }}</strong> Weekly reports are sent every Monday morning at 9:00 AM</li>
-                                        <li><strong>{{ _('Content:') }}</strong> Each supervisor receives a summary of their students' weekly activity</li>
-                                        <li><strong>{{ _('Inactive Students:') }}</strong> Students inactive for more than 2 weeks are highlighted</li>
-                                        <li><strong>{{ _('Activity Tracking:') }}</strong> Students' activity is tracked when they log in, post updates, or interact with the system</li>
+                                        <li><strong>{{ _('Automatic Schedule:') }}</strong> {{ _('Weekly reports are sent every Monday morning at 9:00 AM') }}</li>
+                                        <li><strong>{{ _('Content:') }}</strong> {{ _("Each supervisor receives a summary of their students' weekly activity") }}</li>
+                                        <li><strong>{{ _('Inactive Students:') }}</strong> {{ _('Students inactive for more than 2 weeks are highlighted') }}</li>
+                                        <li><strong>{{ _('Activity Tracking:') }}</strong> {{ _("Students' activity is tracked when they log in, post updates, or interact with the system") }}</li>
                                         <li><strong>{{ _('Last Activity Location:') }}</strong> The system tracks where students were last active (e.g., "student_dashboard", "posting_thesis_update")</li>
                                     </ul>
                                     
@@ -193,7 +193,7 @@
     <!-- JavaScript -->
     <script>
         function triggerWeeklyReports() {
-            if (confirm('Are you sure you want to trigger weekly reports now? This will send emails to all supervisors.')) {
+            if (confirm('{{ _('Are you sure you want to trigger weekly reports now? This will send emails to all supervisors.') }}')) {
                 // Show loading state
                 const btn = event.target;
                 const originalText = btn.innerHTML;

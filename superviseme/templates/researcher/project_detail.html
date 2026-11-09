@@ -148,7 +148,7 @@
                                                 <div class="card-body">
                                                     <div class="row no-gutters align-items-center">
                                                         <div class="col mr-2">
-                                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Resources</div>
+                                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">{{ _('Resources') }}</div>
                                                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ resources_count }}</div>
                                                         </div>
                                                         <div class="col-auto">
@@ -163,7 +163,7 @@
                                                 <div class="card-body">
                                                     <div class="row no-gutters align-items-center">
                                                         <div class="col mr-2">
-                                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Objectives</div>
+                                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{{ _('Objectives') }}</div>
                                                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ objectives_count }}</div>
                                                         </div>
                                                         <div class="col-auto">
@@ -178,7 +178,7 @@
                                                 <div class="card-body">
                                                     <div class="row no-gutters align-items-center">
                                                         <div class="col mr-2">
-                                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Hypotheses</div>
+                                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">{{ _('Hypotheses') }}</div>
                                                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ hypotheses_count }}</div>
                                                         </div>
                                                         <div class="col-auto">
@@ -193,7 +193,7 @@
                                                 <div class="card-body">
                                                     <div class="row no-gutters align-items-center">
                                                         <div class="col mr-2">
-                                                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">Meeting Notes</div>
+                                                            <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">{{ _('Meeting Notes') }}</div>
                                                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ meeting_notes_count }}</div>
                                                         </div>
                                                         <div class="col-auto">
@@ -224,16 +224,16 @@
                                             <i class="fas fa-tasks text-warning"></i> Manage Todos ({{ todos_count }})
                                         </a>
                                         <a href="{{ url_for('researcher.project_resources', project_id=project.id) }}" class="list-group-item list-group-item-action">
-                                            <i class="fas fa-file-alt text-secondary"></i> Resources ({{ resources_count }})
+                                            <i class="fas fa-file-alt text-secondary"></i> {{ _('Resources') }} ({{ resources_count }})
                                         </a>
                                         <a href="{{ url_for('researcher.project_objectives', project_id=project.id) }}" class="list-group-item list-group-item-action">
-                                            <i class="fas fa-bullseye text-success"></i> Objectives ({{ objectives_count }})
+                                            <i class="fas fa-bullseye text-success"></i> {{ _('Objectives') }} ({{ objectives_count }})
                                         </a>
                                         <a href="{{ url_for('researcher.project_hypotheses', project_id=project.id) }}" class="list-group-item list-group-item-action">
-                                            <i class="fas fa-lightbulb text-info"></i> Hypotheses ({{ hypotheses_count }})
+                                            <i class="fas fa-lightbulb text-info"></i> {{ _('Hypotheses') }} ({{ hypotheses_count }})
                                         </a>
                                         <a href="{{ url_for('researcher.project_meeting_notes', project_id=project.id) }}" class="list-group-item list-group-item-action">
-                                            <i class="fas fa-clipboard text-dark"></i> Meeting Notes ({{ meeting_notes_count }})
+                                            <i class="fas fa-clipboard text-dark"></i> {{ _('Meeting Notes') }} ({{ meeting_notes_count }})
                                         </a>
                                     </div>
                                 </div>

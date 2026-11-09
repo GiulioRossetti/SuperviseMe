@@ -10,7 +10,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <meta name="description" content="">
         <meta name="author" content="">
-        <title>SuperviseMe - Profile</title>
+        <title>SuperviseMe - {{ _('Profile') }}</title>
         <!-- Custom fonts for this template-->
         <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
         <!-- Custom styles for this template-->
@@ -236,7 +236,7 @@
                                     <div class="row">
                                         <div class="col-md-8">
                                             <div class="alert alert-info mb-4">
-                                                <h6><i class="fas fa-info-circle mr-2"></i>Setup Instructions</h6>
+                                                <h6><i class="fas fa-info-circle mr-2"></i>{{ _('Setup Instructions') }}</h6>
                                                 <ol class="mb-0">
                                                     <li>{{ _('Start a chat with the SuperviseMe bot on Telegram') }}</li>
                                                     <li>{{ _('Send any message to the bot (e.g., "Hello")') }}</li>

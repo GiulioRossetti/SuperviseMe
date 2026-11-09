@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>SuperviseMe — Complete Your Profile</title>
+    <title>SuperviseMe — {{ _('Complete Your Profile') }}</title>
     <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
 </head>
@@ -17,10 +17,10 @@
                 <div class="card-body p-0">
                     <div class="p-5">
                         <div class="text-center">
-                            <h1 class="h4 text-gray-900 mb-4">Complete Your Profile</h1>
+                            <h1 class="h4 text-gray-900 mb-4">{{ _('Complete Your Profile') }}</h1>
                             <p class="mb-4 text-muted">
-                                Your ORCID account doesn't share an email address.<br>
-                                Please provide one so we can contact you.
+                                {{ _("Your ORCID account doesn't share an email address.") }}<br>
+                                {{ _('Please provide one so we can contact you.') }}
                             </p>
                         </div>
                         {% if error %}

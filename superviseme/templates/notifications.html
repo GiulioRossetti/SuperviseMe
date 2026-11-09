@@ -31,7 +31,7 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">
-                            <i class="fas fa-bell mr-2"></i>Notifications
+                            <i class="fas fa-bell mr-2"></i>{{ _('Notifications') }}
                             {% if unread_count > 0 %}
                                 <span class="badge badge-danger badge-pill ml-2">{{ unread_count }} unread</span>
                             {% endif %}
@@ -39,10 +39,10 @@
                         {% if notifications %}
                         <div>
                             <button class="btn btn-secondary btn-sm mr-2" onclick="markAllAsRead()">
-                                <i class="fas fa-check-double"></i> Mark All Read
+                                <i class="fas fa-check-double"></i> {{ _('Mark All Read') }}
                             </button>
                             <button class="btn btn-danger btn-sm" onclick="clearAllNotifications()">
-                                <i class="fas fa-trash"></i> Clear All
+                                <i class="fas fa-trash"></i> {{ _('Clear All') }}
                             </button>
                         </div>
                         {% endif %}
@@ -136,7 +136,7 @@
                                                     <div class="col-auto">
                                                         <button class="btn btn-link btn-sm text-muted" 
                                                                 onclick="event.stopPropagation(); deleteNotification({{ notification.id }})"
-                                                                title="Delete notification">
+                                                                title="{{ _('Delete notification') }}">
                                                             <i class="fas fa-times"></i>
                                                         </button>
                                                     </div>

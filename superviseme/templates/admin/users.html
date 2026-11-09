@@ -133,13 +133,13 @@ function renderFallbackTable(usersData) {
         </button>
       </td>
       <td>
-          ${user.google_id ? '<i class="fab fa-google" title="Google User"></i>' : ''}
-          ${user.orcid_id ? '<i class="fab fa-orcid" title="ORCID User"></i>' : ''}
+          ${user.google_id ? '<i class="fab fa-google" title="{{ _('Google User') }}"></i>' : ''}
+          ${user.orcid_id ? '<i class="fab fa-orcid" title="{{ _('ORCID User') }}"></i>' : ''}
       </td>
       <td>
         <div style="display: flex; gap: 8px; justify-content: center;">
           <a href="/admin/user/${user.id}" class="btn btn-success btn-sm">{{ _('Details') }}</a>
-          <button class="btn btn-danger btn-sm delete-button" data-id="${user.id}">Delete</button>
+          <button class="btn btn-danger btn-sm delete-button" data-id="${user.id}">{{ _('Delete') }}</button>
         </div>
       </td>
     `;
@@ -275,11 +275,11 @@ try {
               <div style="display: flex; gap: 8px; justify-content: center;">
                 <a href="/admin/user/${id}"
                    style="background-color: #28a745; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.85rem;">
-                  Details
+                  {{ _('Details') }}
                 </a>
                 <button class="delete-button" data-id="${id}"
                   style="background-color: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">
-                  Delete
+                  {{ _('Delete') }}
                 </button>
               </div>
             `);
@@ -478,15 +478,15 @@ try {
 
                                             </div>
                                             <div class="col-sm-4 mb-3 mb-sm-0">
-                                                Gender
+                                                {{ _('Gender') }}
                                                 <select name="gender" class="form-control form-select form-select-user">
                                                     <option value=""> </option>
-                                                    <option value="male">male</option>
-                                                    <option value="female">female</option>
+                                                    <option value="male">{{ _('male') }}</option>
+                                                    <option value="female">{{ _('female') }}</option>
                                                 </select>
                                             </div>
                                             <div class="col-sm-4">
-                                                Degree Enrolled
+                                                {{ _('Degree Enrolled') }}
                                                 <select name="cdl" class="form-control form-select form-select-user">
                                                     <option value=""></option>
                                                     <option value="computer science">{{ _('Computer Science') }}</option>
@@ -509,7 +509,7 @@ try {
                                             </div>
                                         </div>
                                 <button class="btn btn-primary btn-user btn-block">
-                                    Register Account
+                                    {{ _('Register Account') }}
                                 </button>
                             </form>
                                 </div>
@@ -551,7 +551,7 @@ try {
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-body">{{ _('Select "Logout" below if you are ready to end your current session.') }}</div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">{{ _('Cancel') }}</button>
                     <a class="btn btn-primary" href="login.html">{{ _('Logout') }}</a>

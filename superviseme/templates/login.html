@@ -8,7 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>SuperviseMe — Sign In</title>
+    <title>SuperviseMe — {{ _('Sign In') }}</title>
 
     <!-- Icons & Fonts -->
     <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
@@ -295,10 +295,10 @@
                 <h1>{{ _('SuperviseMe') }}</h1>
                 <p>{{ _('Thesis management platform for supervisors, researchers and students.') }}</p>
                 <ul class="feature-list">
-                    <li><i class="fas fa-check-circle"></i> Track thesis progress in real time</li>
-                    <li><i class="fas fa-check-circle"></i> Collaborate with supervisors</li>
-                    <li><i class="fas fa-check-circle"></i> Manage objectives &amp; milestones</li>
-                    <li><i class="fas fa-check-circle"></i> ORCID &amp; Google login supported</li>
+                    <li><i class="fas fa-check-circle"></i> {{ _('Track thesis progress in real time') }}</li>
+                    <li><i class="fas fa-check-circle"></i> {{ _('Collaborate with supervisors') }}</li>
+                    <li><i class="fas fa-check-circle"></i> {{ _('Manage objectives &amp; milestones') }}</li>
+                    <li><i class="fas fa-check-circle"></i> {{ _('ORCID &amp; Google login supported') }}</li>
                 </ul>
             </div>
         </div>
@@ -343,28 +343,28 @@
                 </div>
 
                 <button type="submit" class="btn-login">
-                    <i class="fas fa-sign-in-alt mr-1"></i> Sign In
+                    <i class="fas fa-sign-in-alt mr-1"></i> {{ _('Sign In') }}
                 </button>
 
                 {% if google_enabled or orcid_enabled %}
-                <div class="divider">or continue with</div>
+                <div class="divider">{{ _('or continue with') }}</div>
                 {% endif %}
 
                 {% if google_enabled %}
                 <a href="{{ url_for('auth.google_login') }}" class="btn-oauth google">
-                    <i class="fab fa-google"></i> Sign in with Google
+                    <i class="fab fa-google"></i> {{ _('Sign in with Google') }}
                 </a>
                 {% endif %}
 
                 {% if orcid_enabled %}
                 <a href="{{ url_for('auth.orcid_login') }}" class="btn-oauth orcid">
-                    <i class="fab fa-orcid"></i> Sign in with ORCID
+                    <i class="fab fa-orcid"></i> {{ _('Sign in with ORCID') }}
                 </a>
                 {% endif %}
 
                 <div class="login-links">
                     <a href="{{ url_for('public.public_thesis_dashboard') }}">
-                        <i class="fas fa-search mr-1"></i>Browse thesis opportunities
+                        <i class="fas fa-search mr-1"></i>{{ _('Browse thesis opportunities') }}
                     </a>
                     <a href="forgot-password.html">{{ _('Forgot password?') }}</a>
                 </div>
