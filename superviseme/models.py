@@ -7,8 +7,8 @@ class User_mgmt(UserMixin, db.Model):
     __tablename__ = "user_mgmt"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), nullable=False, unique=True)
-    name = db.Column(db.String(15))
-    surname = db.Column(db.String(15))
+    name = db.Column(db.String(50))
+    surname = db.Column(db.String(50))
     cdl = db.Column(db.String(15))
     email = db.Column(db.String(50), nullable=False, unique=True)
     password = db.Column(db.String(80), nullable=False)

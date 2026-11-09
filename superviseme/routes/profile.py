@@ -10,6 +10,9 @@ from superviseme.utils.orcid_client import fetch_orcid_activities
 from superviseme.utils.bibtex_generator import generate_bibtex
 from superviseme.utils.miscellanea import user_has_supervisor_role
 from urllib.parse import urljoin
+import logging
+
+logger = logging.getLogger(__name__)
 
 profile = Blueprint("profile", __name__)
 
@@ -244,7 +247,8 @@ def telegram_config():
         if current_user.telegram_notification_types:
             try:
                 notification_types = json.loads(current_user.telegram_notification_types)
-            except:
+            except (json.JSONDecodeError, TypeError) as exc:
+                logger.warning("Failed to parse telegram_notification_types for user %s: %s", current_user.id, exc)
                 notification_types = []
         
         return jsonify({
@@ -393,3 +397,34 @@ def get_notification_types():
             "success": False, 
             "message": f"Error getting notification types: {str(e)}"
         }), 500
+
+
+@profile.route("/profile/complete-email", methods=["GET", "POST"])
+@login_required
+def complete_email():
+    """
+    For users who signed up via ORCID and have a placeholder email,
+    this route lets them set a real email address.
+    """
+    PLACEHOLDER_DOMAIN = "@orcid.placeholder.local"
+
+    if not current_user.email.endswith(PLACEHOLDER_DOMAIN):
+        # Already has a real email — redirect to profile
+        return redirect(url_for("profile.profile_page"))
+
+    error = None
+    if request.method == "POST":
+        new_email = request.form.get("email", "").strip().lower()
+        if not new_email or "@" not in new_email or new_email.endswith(PLACEHOLDER_DOMAIN):
+            error = "Please enter a valid email address."
+        else:
+            existing = User_mgmt.query.filter_by(email=new_email).first()
+            if existing:
+                error = "This email address is already in use."
+            else:
+                current_user.email = new_email
+                db.session.commit()
+                flash("Email updated successfully. Your account is pending admin approval.")
+                return redirect(url_for("profile.profile_page"))
+
+    return render_template("complete_email.html", user=current_user, error=error)

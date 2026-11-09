@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>SuperviseMe — Complete Your Profile</title>
+    <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
+</head>
+<body class="bg-gradient-primary">
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-xl-6 col-lg-7 col-md-9">
+            <div class="card o-hidden border-0 shadow-lg my-5">
+                <div class="card-body p-0">
+                    <div class="p-5">
+                        <div class="text-center">
+                            <h1 class="h4 text-gray-900 mb-4">Complete Your Profile</h1>
+                            <p class="mb-4 text-muted">
+                                Your ORCID account doesn't share an email address.<br>
+                                Please provide one so we can contact you.
+                            </p>
+                        </div>
+                        {% if error %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                        {% endif %}
+                        <form class="user" method="POST" action="{{ url_for('profile.complete_email') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="form-group">
+                                <input type="email" name="email" class="form-control form-control-user"
+                                    placeholder="Enter your email address" required autofocus>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-user btn-block">
+                                Save Email &amp; Continue
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

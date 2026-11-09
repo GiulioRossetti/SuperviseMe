@@ -1,4 +1,7 @@
 from flask import Blueprint, request, render_template, abort, redirect, url_for, jsonify, flash
+import logging
+
+logger = logging.getLogger(__name__)
 from flask_login import login_required, current_user
 from sqlalchemy import select, and_, func, or_
 from superviseme.utils.miscellanea import check_privileges, user_has_supervisor_role
@@ -3466,8 +3469,8 @@ def project_todo_detail(todo_id):
             .join(ResearchProject_TodoReference)\
             .filter(ResearchProject_TodoReference.todo_id == todo_id)\
             .order_by(ResearchProject_Update.created_at.desc()).all()
-    except:
-        pass  # In case TodoReference relationship doesn't exist yet
+    except Exception as exc:
+        logger.warning("TodoReference query failed for todo_id=%s: %s", todo_id, exc)
 
     return render_template(
         "researcher/project_todo_detail.html",
@@ -3521,8 +3524,8 @@ def project_update_detail(update_id):
             .join(ResearchProject_TodoReference)\
             .filter(ResearchProject_TodoReference.update_id == update_id)\
             .order_by(ResearchProject_Todo.created_at.desc()).all()
-    except:
-        pass  # In case TodoReference relationship doesn't exist yet
+    except Exception as exc:
+        logger.warning("TodoReference query failed for update_id=%s: %s", update_id, exc)
 
     return render_template(
         "researcher/project_update_detail.html",

@@ -61,6 +61,38 @@ def _configure_secret_key(app):
     app.config["SECRET_KEY"] = secret_key
 
 
+def _validate_startup_env(app):
+    """
+    Warn on startup when known required environment variables are missing.
+    Raises RuntimeError for critical vars in production; logs warnings otherwise.
+    """
+    is_prod = _is_production_environment()
+
+    # Critical in all environments: AUTH providers if OAuth routes are registered
+    # We only warn here — routes degrade gracefully if keys are absent.
+    optional_warnings = [
+        ("ORCID_CLIENT_ID", "ORCID OAuth login will be unavailable"),
+        ("ORCID_CLIENT_SECRET", "ORCID OAuth login will be unavailable"),
+        ("GOOGLE_CLIENT_ID", "Google OAuth login will be unavailable"),
+        ("GOOGLE_CLIENT_SECRET", "Google OAuth login will be unavailable"),
+    ]
+    # Critical in production
+    production_required = [
+        "ADMIN_BOOTSTRAP_PASSWORD",
+    ]
+
+    for var, hint in optional_warnings:
+        if not os.getenv(var):
+            app.logger.warning("Missing env var %s — %s", var, hint)
+
+    if is_prod:
+        missing = [v for v in production_required if not os.getenv(v)]
+        if missing:
+            raise RuntimeError(
+                f"Missing required environment variables for production: {', '.join(missing)}"
+            )
+
+
 def _validate_postgres_dbname(dbname):
     """
     Keep dbname constrained to safe SQL identifier characters to avoid SQL injection
@@ -252,6 +284,7 @@ def create_app(db_type="sqlite", skip_user_init=False):
         skip_user_init = True
 
     _configure_secret_key(app)
+    _validate_startup_env(app)
     app.config["BASE_URL"] = (os.getenv("BASE_URL") or "").strip()
     app.config["ORCID_SCOPE"] = (os.getenv("ORCID_SCOPE") or "/authenticate").strip()
 

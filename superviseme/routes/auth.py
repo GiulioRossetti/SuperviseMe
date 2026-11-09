@@ -258,20 +258,22 @@ def orcid_callback():
         new_user = User_mgmt(
             email=email,
             username=username,
-            name=given_name[:15], # Limit to 15 chars as per model
-            surname=family_name[:15],
+            name=given_name[:50],
+            surname=family_name[:50],
             password=generate_password_hash(password, method="pbkdf2:sha256"),
-            user_type="student", # Default to student
+            user_type="student",  # Default to student
             joined_on=int(time.time()),
             orcid_id=orcid_id,
             orcid_access_token=token.get('access_token'),
             orcid_refresh_token=token.get('refresh_token'),
-            is_enabled=False # Disabled by default
+            is_enabled=False  # Disabled by default — awaiting admin approval
         )
         db.session.add(new_user)
         db.session.commit()
-        flash("Account created via ORCID. Please update your email after admin approval.")
-        return redirect(url_for("auth.login"))
+        from flask_login import login_user
+        login_user(new_user)
+        flash("Account created via ORCID. Please provide your email address to complete registration.")
+        return redirect(url_for("profile.complete_email"))
 
     else:
         # Update tokens on login
