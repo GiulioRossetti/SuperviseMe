@@ -1,0 +1,129 @@
+{% extends 'public/base_public.html' %}
+{% from 'components/dash.html' import hero, panel, empty, avatar with context %}
+{% block page_content %}
+{% call hero(_('Agenda'), _('Meetings with your supervisor or students, and bookable office hours.') if not is_sup else _('Your meetings and the office-hour slots students can book.'), 'fa-calendar-alt') %}
+    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('workflow.calendar_ics') }}"><i class="fas fa-download"></i> {{ _('Export calendar (.ics)') }}</a>
+{% endcall %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}{% for cat, message in messages %}
+    <div class="alert alert-{{ 'success' if cat == 'success' else ('info' if cat == 'info' else 'danger') }} alert-dismissible fade show">{{ message }}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button></div>
+{% endfor %}{% endwith %}
+
+<div class="row">
+<div class="col-xl-8">
+    {% call panel(_('Upcoming meetings'), 'fa-calendar-check') %}
+        {% if upcoming %}
+        <div class="ag-list">
+            {% for m in upcoming %}
+            {% set other = m.student if current_user.id == m.supervisor_id else m.supervisor %}
+            <div class="ag-item">
+                <div class="ag-date"><span class="d">{{ dt(m.start_ts).strftime('%d') }}</span><span class="m">{{ dt(m.start_ts).strftime('%b') }}</span></div>
+                <div class="ag-main">
+                    <strong>{{ m.title }}</strong>
+                    <div class="ag-meta">
+                        <span><i class="far fa-clock"></i> {{ dt(m.start_ts).strftime('%H:%M') }}–{{ dt(m.end_ts).strftime('%H:%M') }}</span>
+                        {% if m.location %}<span><i class="fas fa-map-marker-alt"></i> {{ m.location }}</span>{% endif %}
+                        {% if other %}<span><i class="far fa-user"></i> {{ user_link(other) }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="ag-actions">
+                    <a class="btn btn-light btn-sm border" href="{{ url_for('workflow.meeting_ics', meeting_id=m.id) }}" title="{{ _('Add to calendar') }}"><i class="far fa-calendar-plus"></i></a>
+                    <a class="btn btn-light btn-sm border" href="{{ thesis_url(current_user, m.thesis) }}" title="{{ _('Thesis & notes') }}"><i class="fas fa-book-open"></i></a>
+                    <form method="POST" action="{{ url_for('workflow.cancel_meeting', meeting_id=m.id) }}" onsubmit="return confirm({{ _('Cancel this meeting?')|tojson|forceescape }});" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-light btn-sm border text-danger" title="{{ _('Cancel') }}" aria-label="{{ _('Cancel') }}"><i class="fas fa-times"></i></button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            {{ empty('far fa-calendar', _('No upcoming meetings'), _('Book an office-hour slot or schedule a meeting.') ) }}
+        {% endif %}
+    {% endcall %}
+
+    {% if past %}
+    {% call panel(_('Past meetings'), 'fa-history') %}
+        <ul class="dash-feed">
+            {% for m in past %}
+            <li><span class="sm-avatar" style="flex:none"><i class="far fa-calendar" style="font-size:.7rem"></i></span>
+                <div class="tx"><strong>{{ m.title }}</strong><small>{{ dt(m.start_ts).strftime('%d %b %Y, %H:%M') }} · <a href="{{ thesis_url(current_user, m.thesis) }}">{{ _('Notes & thesis') }}</a></small></div></li>
+            {% endfor %}
+        </ul>
+    {% endcall %}
+    {% endif %}
+</div>
+
+<div class="col-xl-4">
+    {% if current_user.user_type == 'student' %}
+    {% call panel(_('Book office hours'), 'fa-user-clock') %}
+        {% if bookable %}
+            {% set ns = namespace(day=None) %}
+            {% for s in bookable %}
+                {% set day = dt(s.start_ts).strftime('%A %d %b') %}
+                {% if day != ns.day %}{% if ns.day %}</div>{% endif %}<div class="ag-day">{{ day }}</div><div class="ag-slots">{% set ns.day = day %}{% endif %}
+                <form method="POST" action="{{ url_for('workflow.book_slot', slot_id=s.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="ag-slot" title="{{ s.supervisor.name }} {{ s.supervisor.surname }}{% if s.location %} · {{ s.location }}{% endif %}">{{ dt(s.start_ts).strftime('%H:%M') }}<small>{{ s.supervisor.surname }}</small></button>
+                </form>
+            {% endfor %}</div>
+        {% elif has_thesis %}
+            {{ empty('far fa-calendar-times', _('No free slots right now'), _('Your supervisor has not published office hours yet.')) }}
+        {% else %}
+            {{ empty('fas fa-book', _('No thesis assigned yet')) }}
+        {% endif %}
+    {% endcall %}
+    {% endif %}
+
+    {% if is_sup %}
+    {% call panel(_('Publish office hours'), 'fa-clock') %}
+        <form method="POST" action="{{ url_for('workflow.add_slots') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-row">
+                <div class="form-group col-7"><label class="small mb-1">{{ _('Date') }}</label><input type="date" name="date" class="form-control form-control-sm" required></div>
+                <div class="form-group col-5"><label class="small mb-1">{{ _('Time') }}</label><input type="time" name="time" class="form-control form-control-sm" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-4"><label class="small mb-1">{{ _('Minutes') }}</label><input type="number" name="duration" min="10" max="240" value="30" class="form-control form-control-sm"></div>
+                <div class="form-group col-4"><label class="small mb-1">{{ _('Slots') }}</label><input type="number" name="count" min="1" max="8" value="1" class="form-control form-control-sm"></div>
+                <div class="form-group col-4"><label class="small mb-1">{{ _('Weeks') }}</label><input type="number" name="repeat" min="1" max="12" value="1" class="form-control form-control-sm"></div>
+            </div>
+            <div class="form-group"><label class="small mb-1">{{ _('Location or link') }}</label><input name="location" maxlength="200" class="form-control form-control-sm" placeholder="{{ current_user.office_location or '' }}"></div>
+            <button class="btn btn-primary btn-sm btn-block">{{ _('Publish') }}</button>
+        </form>
+        {% if slots %}
+        <hr><div class="small text-muted mb-2">{{ _('Your upcoming slots') }}</div>
+        <div class="ag-slots">
+            {% for s in slots %}
+            <span class="ag-chip {{ 'booked' if s.booked_by }}" title="{{ s.location or '' }}">{{ dt(s.start_ts).strftime('%d %b %H:%M') }}
+                {% if not s.booked_by %}<form method="POST" action="{{ url_for('workflow.delete_slot', slot_id=s.id) }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button aria-label="{{ _('Delete') }}">&times;</button></form>{% else %}<i class="fas fa-lock"></i>{% endif %}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endcall %}
+
+    {% if schedulable %}
+    {% call panel(_('Schedule a meeting'), 'fa-calendar-plus') %}
+        <form method="POST" action="{{ url_for('workflow.add_meeting') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group"><label class="small mb-1">{{ _('Student') }}</label>
+                <select name="thesis_id" class="form-control form-control-sm" required>
+                    {% for t in schedulable %}<option value="{{ t.id }}">{{ t.author.name }} {{ t.author.surname }} — {{ t.title[:40] }}</option>{% endfor %}
+                </select></div>
+            <div class="form-row">
+                <div class="form-group col-7"><input type="date" name="date" class="form-control form-control-sm" required></div>
+                <div class="form-group col-5"><input type="time" name="time" class="form-control form-control-sm" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-4"><input type="number" name="duration" min="10" max="480" value="45" class="form-control form-control-sm" aria-label="{{ _('Minutes') }}"></div>
+                <div class="form-group col-8"><input name="location" maxlength="200" class="form-control form-control-sm" placeholder="{{ _('Location or link') }}"></div>
+            </div>
+            <div class="form-group"><input name="title" maxlength="200" class="form-control form-control-sm" placeholder="{{ _('Title (optional)') }}"></div>
+            <button class="btn btn-outline-primary btn-sm btn-block">{{ _('Schedule') }}</button>
+        </form>
+    {% endcall %}
+    {% endif %}
+    {% endif %}
+</div>
+</div>
+{% endblock %}

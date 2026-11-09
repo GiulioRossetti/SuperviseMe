@@ -42,6 +42,8 @@
                         </div>
                     </div>
 
+                    {% with can_create_actions=True %}{% include 'components/note_actions.html' %}{% endwith %}
+
                     <div class="row">
                         <!-- Main Content -->
                         <div class="col-lg-8">

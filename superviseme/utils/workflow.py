@@ -51,3 +51,22 @@ def parse_date(value):
 
 def now():
     return int(time.time())
+
+
+def parse_local_datetime(date_str, time_str):
+    """Server-local 'YYYY-MM-DD' + 'HH:MM' -> unix timestamp, or None."""
+    try:
+        return int(datetime.strptime(f"{(date_str or '').strip()} {(time_str or '').strip()}", "%Y-%m-%d %H:%M").timestamp())
+    except ValueError:
+        return None
+
+
+def thesis_url(user, thesis):
+    """Role-appropriate URL of a thesis page."""
+    if user.user_type == "student":
+        return url_for("student.thesis_data")
+    if user.user_type == "researcher":
+        return url_for("researcher.supervisor_thesis_detail", thesis_id=thesis.id)
+    if user.user_type == "admin":
+        return url_for("admin.thesis_detail", thesis_id=thesis.id) if "admin.thesis_detail" in __import__("flask").current_app.view_functions else url_for("public.public_thesis_detail", thesis_id=thesis.id)
+    return url_for("supervisor.thesis_detail", thesis_id=thesis.id)

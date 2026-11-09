@@ -934,3 +934,22 @@ a.dash-card:hover { transform: translateY(-3px); box-shadow: var(--sm-shadow-md)
 .ms-list li.is-done .ms-body strong { text-decoration: line-through; opacity: .6; }
 .ms-date { font-size: .78rem; font-weight: 600; color: var(--sm-text-muted); white-space: nowrap; }
 .ms-date.late { color: #e74a3b; }
+
+/* ── Agenda ─────────────────────────────────────────────── */
+.ag-list { display: grid; gap: .6rem; }
+.ag-item { display: flex; align-items: center; gap: .9rem; background: var(--sm-bg); border: 1px solid var(--sm-border); border-radius: var(--sm-radius-sm); padding: .65rem .8rem; flex-wrap: wrap; }
+.ag-date { flex: none; width: 3.1rem; height: 3.4rem; border-radius: .8rem; background: linear-gradient(135deg, var(--sm-primary), #7c3aed); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+.ag-date .d { font-size: 1.3rem; font-weight: 800; } .ag-date .m { font-size: .62rem; text-transform: uppercase; letter-spacing: .06em; margin-top: .15rem; }
+.ag-main { flex: 1; min-width: 0; }
+.ag-meta { display: flex; flex-wrap: wrap; gap: .2rem .9rem; font-size: .8rem; color: var(--sm-text-muted); margin-top: .15rem; }
+.ag-meta i { margin-right: .25rem; color: var(--sm-primary); }
+.ag-actions { display: flex; gap: .3rem; }
+.ag-day { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--sm-text-muted); margin: .7rem 0 .35rem; }
+.ag-day:first-child { margin-top: 0; }
+.ag-slots { display: flex; flex-wrap: wrap; gap: .4rem; }
+.ag-slot { border: 1px solid var(--sm-primary); background: var(--sm-surface); color: var(--sm-primary); border-radius: .6rem; padding: .3rem .65rem; font-weight: 700; font-size: .85rem; cursor: pointer; line-height: 1.1; text-align: center; }
+.ag-slot small { display: block; font-weight: 500; font-size: .65rem; color: var(--sm-text-muted); }
+.ag-slot:hover { background: var(--sm-primary); color: #fff; } .ag-slot:hover small { color: #fff; }
+.ag-chip { display: inline-flex; align-items: center; gap: .35rem; background: var(--sm-bg); border: 1px solid var(--sm-border); border-radius: 999px; padding: .15rem .6rem; font-size: .75rem; }
+.ag-chip.booked { background: #e6f7ef; border-color: transparent; color: #0f9d63; }
+.ag-chip button { border: 0; background: none; padding: 0; line-height: 1; color: var(--sm-text-muted); cursor: pointer; }

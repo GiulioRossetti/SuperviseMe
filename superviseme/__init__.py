@@ -572,6 +572,9 @@ def create_app(db_type="sqlite", skip_user_init=False):
     app.jinja_env.globals["user_link"] = user_link
     app.jinja_env.globals["can_view_profile"] = can_view_profile
 
+    from superviseme.utils.action_items import extract_action_items
+    app.jinja_env.globals["action_items"] = extract_action_items
+
     @app.context_processor
     def _dashboard_context():
         import time as _t

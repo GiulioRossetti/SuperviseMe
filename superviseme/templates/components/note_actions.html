@@ -1,0 +1,26 @@
+{# Action items detected in a meeting note. Expects: meeting_note, thesis. #}
+{% from 'components/dash.html' import panel with context %}
+{% set items = action_items(meeting_note.content) %}
+{% if items or can_create_actions %}
+{% call panel(_('Action items'), 'fa-bolt') %}
+    {% if items %}
+        <ul class="list-unstyled mb-3">
+            {% for it in items %}
+            <li class="d-flex align-items-center py-1 {{ 'text-muted' if it.done }}">
+                <i class="far {{ 'fa-check-square text-success' if it.done else 'fa-square' }} mr-2"></i>
+                <span class="flex-grow-1 {{ 'text-decoration-line-through' if it.done }}">{{ it.title }}</span>
+                {% if it.due %}<span class="chip small text-muted mr-2"><i class="far fa-calendar"></i> {{ dt(it.due).strftime('%d %b') }}</span>{% endif %}
+                <span class="badge badge-light border">{{ _(it.priority|title) }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        <form method="POST" action="{{ url_for('workflow.note_action_items', note_id=meeting_note.id) }}" class="d-flex align-items-center flex-wrap">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ request.path }}">
+            <button class="btn btn-primary btn-sm mr-3"><i class="fas fa-tasks"></i> {{ _('Create tasks from action items') }}</button>
+            <small class="text-muted">{{ _('Unchecked items become tasks; already existing ones are skipped.') }}</small>
+        </form>
+    {% else %}
+        <div class="text-muted small">{{ _('Write checklist lines in the note to turn them into tasks, e.g.') }} <code>- [ ] Send draft @due:2026-12-01 @student !high</code></div>
+    {% endif %}
+{% endcall %}
+{% endif %}

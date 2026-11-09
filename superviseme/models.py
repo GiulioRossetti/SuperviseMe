@@ -508,3 +508,38 @@ class ReminderLog(db.Model):
     ref_id = db.Column(db.Integer, nullable=False)
     bucket = db.Column(db.String(30), nullable=False)
     sent_at = db.Column(db.Integer, nullable=False)
+
+
+class Availability_Slot(db.Model):
+    """A bookable office-hour slot published by a supervisor."""
+    __tablename__ = "availability_slot"
+    id = db.Column(db.Integer, primary_key=True)
+    supervisor_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False, index=True)
+    start_ts = db.Column(db.Integer, nullable=False)
+    end_ts = db.Column(db.Integer, nullable=False)
+    location = db.Column(db.String(200), nullable=True)
+    booked_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)  # student id once booked
+    created_at = db.Column(db.Integer, nullable=False)
+
+    supervisor = db.relationship("User_mgmt", foreign_keys=[supervisor_id], lazy=True)
+
+
+class Meeting(db.Model):
+    """A scheduled supervisor/student meeting, optionally created by booking a slot."""
+    __tablename__ = "meeting"
+    id = db.Column(db.Integer, primary_key=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False, index=True)
+    supervisor_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
+    title = db.Column(db.String(200), nullable=False)
+    start_ts = db.Column(db.Integer, nullable=False)
+    end_ts = db.Column(db.Integer, nullable=False)
+    location = db.Column(db.String(200), nullable=True)
+    status = db.Column(db.String(20), nullable=False, default="scheduled")  # "scheduled" | "cancelled"
+    slot_id = db.Column(db.Integer, db.ForeignKey("availability_slot.id"), nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    thesis = db.relationship("Thesis", backref=db.backref("meetings", lazy=True))
+    supervisor = db.relationship("User_mgmt", foreign_keys=[supervisor_id], lazy=True)
+    student = db.relationship("User_mgmt", foreign_keys=[student_id], lazy=True)

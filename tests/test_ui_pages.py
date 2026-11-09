@@ -453,3 +453,74 @@ def test_email_preferences(client, student_user):
     db.session.refresh(student_user)
     assert student_user.email_notifications is False and student_user.weekly_digest is True
     assert b"email_notifications" in client.get("/profile").data
+
+
+# ── agenda / meetings / action items ────────────────────────────────────────
+def test_action_item_parsing():
+    from superviseme.utils.action_items import extract_action_items
+    items = extract_action_items("Intro\n- [ ] Write related work @due:2030-02-01 @student !high\n- [x] Done thing\n* [ ] Plain task\n- not a task")
+    assert [i["title"] for i in items] == ["Write related work", "Done thing", "Plain task"]
+    assert items[0]["priority"] == "high" and items[0]["who"] == "student" and items[0]["due"]
+    assert items[1]["done"] and items[2]["priority"] == "medium"
+
+
+def test_ics_escaping_and_folding():
+    from superviseme.utils.ics import build_calendar
+    out = build_calendar([{"uid": 1, "title": "A, B; C\nD", "start": 1900000000, "end": 1900003600,
+                           "location": "Room " + "x" * 120, "description": "é" * 60}])
+    assert "SUMMARY:A\\, B\\; C\\nD" in out and out.endswith("END:VCALENDAR\r\n")
+    assert all(len(l.encode()) <= 75 for l in out.split("\r\n"))
+
+
+def test_note_action_items_create_tasks_once(client, supervisor_user, student_user):
+    from superviseme.models import MeetingNote, Todo
+    t = _assign(student_user, supervisor_user)
+    n = MeetingNote(thesis_id=t.id, author_id=supervisor_user.id, title="Kickoff", created_at=int(time.time()), updated_at=int(time.time()),
+                    content="- [ ] Read paper A @due:2030-03-01 @student !high\n- [ ] Prepare outline")
+    db.session.add(n)
+    db.session.commit()
+    login(client, supervisor_user)
+    page = client.get(f"/supervisor/meeting_note/{n.id}")
+    assert page.status_code == 200 and b"Create tasks from action items" in page.data
+    client.post(f"/meeting-notes/{n.id}/action-items", data={"next": "/agenda"})
+    todos = Todo.query.filter_by(thesis_id=t.id).all()
+    assert {x.title for x in todos} == {"Read paper A", "Prepare outline"}
+    assert next(x for x in todos if x.title == "Read paper A").assigned_to_id == student_user.id
+    client.post(f"/meeting-notes/{n.id}/action-items", data={"next": "/agenda"})
+    assert Todo.query.filter_by(thesis_id=t.id).count() == 2  # idempotent
+
+
+def test_agenda_booking_flow(client, supervisor_user, student_user, researcher_user):
+    from superviseme.models import Availability_Slot, Meeting
+    _assign(student_user, supervisor_user)
+    login(client, supervisor_user)
+    r = client.post("/agenda/slots/add", data={"date": "2031-05-05", "time": "10:00", "duration": "30", "count": "2", "repeat": "1", "location": "Room 1"})
+    assert r.status_code == 302 and Availability_Slot.query.count() == 2
+    assert client.post("/agenda/slots/add", data={"date": "2001-01-01", "time": "10:00"}).status_code == 302
+    assert Availability_Slot.query.count() == 2  # past dates rejected
+    assert client.get("/agenda").status_code == 200
+    client.post("/logout")
+
+    login(client, student_user)
+    page = client.get("/agenda")
+    assert page.status_code == 200 and b"ag-slot" in page.data
+    slot = Availability_Slot.query.order_by(Availability_Slot.start_ts).first()
+    client.post(f"/agenda/slots/{slot.id}/book")
+    m = Meeting.query.one()
+    assert m.student_id == student_user.id and m.supervisor_id == supervisor_user.id
+    client.post(f"/agenda/slots/{slot.id}/book")  # double booking refused
+    assert Meeting.query.count() == 1
+    ics = client.get(f"/agenda/meetings/{m.id}.ics")
+    assert ics.status_code == 200 and ics.mimetype == "text/calendar" and b"BEGIN:VEVENT" in ics.data
+    assert b"BEGIN:VEVENT" in client.get("/agenda/calendar.ics").data
+    client.post("/logout")
+
+    login(client, researcher_user)  # stranger: cannot read or cancel
+    assert client.get(f"/agenda/meetings/{m.id}.ics").status_code == 403
+    assert client.post(f"/agenda/meetings/{m.id}/cancel").status_code == 403
+    client.post("/logout")
+
+    login(client, student_user)
+    client.post(f"/agenda/meetings/{m.id}/cancel")
+    db.session.refresh(slot)
+    assert slot.booked_by is None  # slot is free again

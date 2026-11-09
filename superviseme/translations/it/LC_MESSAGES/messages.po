@@ -3366,3 +3366,141 @@ msgstr "Ricevi il riepilogo settimanale ogni lunedì"
 
 msgid "Save"
 msgstr "Salva"
+
+msgid "Workflow"
+msgstr "Flusso di lavoro"
+
+msgid "Agenda"
+msgstr "Agenda"
+
+msgid "Meetings with your supervisor or students, and bookable office hours."
+msgstr "Incontri con il relatore o gli studenti e ricevimenti prenotabili."
+
+msgid "Your meetings and the office-hour slots students can book."
+msgstr "I tuoi incontri e gli slot di ricevimento prenotabili dagli studenti."
+
+msgid "Export calendar (.ics)"
+msgstr "Esporta calendario (.ics)"
+
+msgid "Upcoming meetings"
+msgstr "Prossimi incontri"
+
+msgid "Add to calendar"
+msgstr "Aggiungi al calendario"
+
+msgid "Thesis & notes"
+msgstr "Tesi e verbali"
+
+msgid "Cancel this meeting?"
+msgstr "Annullare questo incontro?"
+
+msgid "No upcoming meetings"
+msgstr "Nessun incontro in programma"
+
+msgid "Book an office-hour slot or schedule a meeting."
+msgstr "Prenota uno slot di ricevimento o fissa un incontro."
+
+msgid "Past meetings"
+msgstr "Incontri passati"
+
+msgid "Notes & thesis"
+msgstr "Verbali e tesi"
+
+msgid "Book office hours"
+msgstr "Prenota un ricevimento"
+
+msgid "No free slots right now"
+msgstr "Nessuno slot libero al momento"
+
+msgid "Your supervisor has not published office hours yet."
+msgstr "Il tuo relatore non ha ancora pubblicato i ricevimenti."
+
+msgid "No thesis assigned yet"
+msgstr "Nessuna tesi assegnata"
+
+msgid "Publish office hours"
+msgstr "Pubblica ricevimenti"
+
+msgid "Date"
+msgstr "Data"
+
+msgid "Time"
+msgstr "Ora"
+
+msgid "Minutes"
+msgstr "Minuti"
+
+msgid "Slots"
+msgstr "Slot"
+
+msgid "Weeks"
+msgstr "Settimane"
+
+msgid "Location or link"
+msgstr "Luogo o link"
+
+msgid "Publish"
+msgstr "Pubblica"
+
+msgid "Your upcoming slots"
+msgstr "I tuoi prossimi slot"
+
+msgid "Schedule a meeting"
+msgstr "Fissa un incontro"
+
+msgid "Title (optional)"
+msgstr "Titolo (facoltativo)"
+
+msgid "Choose a valid date and time in the future."
+msgstr "Scegli una data e un'ora valide nel futuro."
+
+msgid "%(n)d slots published."
+msgstr "%(n)d slot pubblicati."
+
+msgid "This slot is booked: cancel the meeting instead."
+msgstr "Questo slot è prenotato: annulla l'incontro."
+
+msgid "Sorry, this slot is no longer available."
+msgstr "Spiacente, questo slot non è più disponibile."
+
+msgid "New meeting booked"
+msgstr "Nuovo incontro prenotato"
+
+msgid "%(s)s booked a meeting on %(w)s."
+msgstr "%(s)s ha prenotato un incontro il %(w)s."
+
+msgid "Meeting booked."
+msgstr "Incontro prenotato."
+
+msgid "Choose a valid date and time."
+msgstr "Scegli una data e un'ora valide."
+
+msgid "Meeting scheduled: %(t)s"
+msgstr "Incontro fissato: %(t)s"
+
+msgid "Meeting scheduled."
+msgstr "Incontro fissato."
+
+msgid "Meeting cancelled: %(t)s"
+msgstr "Incontro annullato: %(t)s"
+
+msgid "Meeting cancelled."
+msgstr "Incontro annullato."
+
+msgid "%(n)d tasks created from the meeting note."
+msgstr "%(n)d attività create dal verbale."
+
+msgid "No new action items found (use lines like “- [ ] Task @due:2026-12-01 @student”)."
+msgstr "Nessuna nuova azione trovata (usa righe come “- [ ] Attività @due:2026-12-01 @student”)."
+
+msgid "Action items"
+msgstr "Azioni"
+
+msgid "Create tasks from action items"
+msgstr "Crea attività dalle azioni"
+
+msgid "Unchecked items become tasks; already existing ones are skipped."
+msgstr "Le voci non spuntate diventano attività; quelle già esistenti vengono saltate."
+
+msgid "Write checklist lines in the note to turn them into tasks, e.g."
+msgstr "Scrivi righe di checklist nel verbale per trasformarle in attività, ad es."

@@ -1,0 +1,6 @@
+{# Shared "workflow" sidebar entries (agenda, search...). #}
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">{{ _('Workflow') }}</div>
+    <li class="nav-item{% if request.endpoint == 'workflow.agenda' %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('workflow.agenda') }}"><i class="fas fa-fw fa-calendar-alt"></i><span>{{ _('Agenda') }}</span></a>
+    </li>
