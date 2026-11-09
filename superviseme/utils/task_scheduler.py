@@ -60,6 +60,20 @@ def _weekly_reports_job():
             logger.error("APScheduler: weekly reports failed: %s", exc, exc_info=True)
 
 
+def _reminders_job():
+    """Daily automatic reminders (tasks, milestones, inactive students, meetings)."""
+    app = _flask_app
+    if app is None:
+        logger.error("APScheduler: _flask_app not set; skipping reminders job")
+        return
+    with app.app_context():
+        try:
+            from superviseme.utils.reminders import run_reminders
+            logger.info("APScheduler: reminders done: %s", run_reminders())
+        except Exception as exc:
+            logger.error("APScheduler: reminders failed: %s", exc, exc_info=True)
+
+
 # ---------------------------------------------------------------------------
 # Scheduler lifecycle
 # ---------------------------------------------------------------------------
@@ -118,6 +132,14 @@ def init_scheduler(app):
         trigger=CronTrigger(day_of_week="mon", hour=9, minute=0),
         id="weekly_supervisor_reports",
         name="Send weekly supervisor reports",
+        replace_existing=True,
+    )
+
+    scheduler.add_job(
+        func="superviseme.utils.task_scheduler:_reminders_job",
+        trigger=CronTrigger(hour=8, minute=0),
+        id="daily_reminders",
+        name="Send automatic reminders",
         replace_existing=True,
     )
 

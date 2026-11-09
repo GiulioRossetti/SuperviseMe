@@ -41,6 +41,10 @@ class User_mgmt(UserMixin, db.Model):
     telegram_enabled = db.Column(db.Boolean, default=False, nullable=False)  # Enable/disable Telegram notifications
     telegram_notification_types = db.Column(db.Text, nullable=True)  # JSON string of enabled notification types
 
+    # Email notification channel (a copy of in-app notifications + weekly digest)
+    email_notifications = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
+    weekly_digest = db.Column(db.Boolean, default=True, nullable=False, server_default="1")
+
     # ORCID Integration
     orcid_access_token = db.Column(db.String(255), nullable=True)
     orcid_refresh_token = db.Column(db.String(255), nullable=True)
@@ -473,3 +477,34 @@ class OrcidActivity(db.Model):
     updated_at = db.Column(db.Integer, nullable=False)
 
     user = db.relationship("User_mgmt", backref="orcid_activities", lazy=True)
+
+
+class Thesis_Milestone(db.Model):
+    """A dated step of the thesis roadmap (proposal, chapter draft, submission, graduation...)."""
+    __tablename__ = "thesis_milestone"
+    id = db.Column(db.Integer, primary_key=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False, index=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    due_date = db.Column(db.Integer, nullable=False)  # Unix timestamp (start of the due day, UTC)
+    status = db.Column(db.String(20), nullable=False, default="pending")  # "pending" | "done"
+    completed_at = db.Column(db.Integer, nullable=True)
+    created_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    thesis = db.relationship(
+        "Thesis",
+        backref=db.backref("milestones", cascade="all, delete-orphan", order_by="Thesis_Milestone.due_date", lazy=True),
+    )
+
+
+class ReminderLog(db.Model):
+    """Remembers which automatic reminders were already sent, so they are never repeated."""
+    __tablename__ = "reminder_log"
+    __table_args__ = (db.UniqueConstraint("user_id", "kind", "ref_id", "bucket", name="uq_reminder_once"),)
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    kind = db.Column(db.String(40), nullable=False)
+    ref_id = db.Column(db.Integer, nullable=False)
+    bucket = db.Column(db.String(30), nullable=False)
+    sent_at = db.Column(db.Integer, nullable=False)

@@ -7,6 +7,7 @@ from sqlalchemy.orm import joinedload
 from superviseme.models import (
     Resource,
     Thesis,
+    Thesis_Milestone,
     Thesis_Status,
     Thesis_Supervisor,
     Thesis_Update,
@@ -79,7 +80,14 @@ def supervisor_overview(user):
         key = c["status"] or ("open" if c["state"] == "open" else "no-status")
         pipeline[key] = pipeline.get(key, 0) + 1
 
+    upcoming = (
+        Thesis_Milestone.query.filter(Thesis_Milestone.thesis_id.in_(ids), Thesis_Milestone.status == "pending")
+        .order_by(Thesis_Milestone.due_date.asc()).limit(6).all()
+        if ids else []
+    )
+    titles = {t.id: t.title for t in theses}
     return {
+        "milestones": [{"m": m, "thesis_title": titles.get(m.thesis_id, "")} for m in upcoming],
         "stats": {
             "students": len(assigned),
             "theses": len(active),
@@ -132,6 +140,9 @@ def student_overview(user, thesis, todos):
         "overdue": len([t for t in pending if t.due_date and t.due_date < now]),
         "progress": int(round(100 * len(done) / countable)) if countable else None,
         "keywords": [t.tag for t in thesis.tags],
+        "milestones": [m for m in thesis.milestones if m.status == "pending"][:4],
+        "milestones_done": len([m for m in thesis.milestones if m.status == "done"]),
+        "milestones_total": len(thesis.milestones),
         "recent": _recent_updates([thesis.id], limit=5),
         "resources": Resource.query.filter_by(thesis_id=thesis.id).count(),
     }

@@ -114,6 +114,7 @@
                     </div>
 
                     {% with uid='stu' %}{% include 'components/thesis_media_view.html' %}{% endwith %}
+                    {% with mm_role='student', mm_next=url_for('student.thesis_data') %}{% include 'components/milestones.html' %}{% endwith %}
 
                     <!-- Thesis Status Timeline -->
                     <div class="row">

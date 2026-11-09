@@ -3306,3 +3306,63 @@ msgstr "L'amministratore non ha ancora configurato un bot Telegram per questa in
 
 msgid "Unavailable"
 msgstr "Non disponibile"
+
+msgid "A title and a valid due date are required."
+msgstr "Servono un titolo e una scadenza valida."
+
+msgid "Too many milestones for this thesis."
+msgstr "Troppe milestone per questa tesi."
+
+msgid "New milestone: %(t)s"
+msgstr "Nuova milestone: %(t)s"
+
+msgid "A new milestone was added to your thesis roadmap."
+msgstr "È stata aggiunta una nuova milestone alla roadmap della tua tesi."
+
+msgid "Milestone added."
+msgstr "Milestone aggiunta."
+
+msgid "Milestone removed."
+msgstr "Milestone rimossa."
+
+msgid "Roadmap"
+msgstr "Roadmap"
+
+msgid "Add milestone"
+msgstr "Aggiungi milestone"
+
+msgid "e.g. First chapter draft"
+msgstr "es. Bozza del primo capitolo"
+
+msgid "Description (optional)"
+msgstr "Descrizione (facoltativa)"
+
+msgid "Toggle milestone"
+msgstr "Cambia stato milestone"
+
+msgid "Delete this milestone?"
+msgstr "Eliminare questa milestone?"
+
+msgid "No milestones yet"
+msgstr "Ancora nessuna milestone"
+
+msgid "Milestones give the thesis a roadmap with dates."
+msgstr "Le milestone danno alla tesi una roadmap con delle date."
+
+msgid "Upcoming milestones"
+msgstr "Prossime milestone"
+
+msgid "Email preferences saved"
+msgstr "Preferenze email salvate"
+
+msgid "Email notifications"
+msgstr "Notifiche via email"
+
+msgid "Receive an email copy of notifications and reminders"
+msgstr "Ricevi una copia email di notifiche e promemoria"
+
+msgid "Receive the weekly summary every Monday"
+msgstr "Ricevi il riepilogo settimanale ogni lunedì"
+
+msgid "Save"
+msgstr "Salva"

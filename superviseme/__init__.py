@@ -470,6 +470,9 @@ def create_app(db_type="sqlite", skip_user_init=False):
     from superviseme.routes.media import media as media_blueprint
     app.register_blueprint(media_blueprint)
 
+    from superviseme.routes.workflow import workflow as workflow_blueprint
+    app.register_blueprint(workflow_blueprint)
+
     from superviseme.routes.public import public as public_blueprint
     app.register_blueprint(public_blueprint)
 

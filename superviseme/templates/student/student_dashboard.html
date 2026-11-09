@@ -101,6 +101,17 @@
                                 {% endfor %}
                             {% endcall %}
 
+                            {% call panel(_('Upcoming milestones'), 'fa-flag-checkered', url_for('student.thesis_data') ~ '#milestones', _('Roadmap')) %}
+                                {% if ov.milestones %}
+                                <ul class="dash-feed">
+                                    {% for m in ov.milestones %}
+                                    <li><span class="sm-avatar" style="flex:none"><i class="fas fa-flag" style="font-size:.7rem"></i></span>
+                                        <div class="tx"><strong>{{ m.title }}</strong><small class="{{ 'text-danger' if m.due_date < ov.now }}">{{ dt(m.due_date).strftime('%d %b %Y') }}</small></div></li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}{{ empty('fas fa-flag-checkered', _('No milestones yet')) }}{% endif %}
+                            {% endcall %}
+
                             {% call panel(_('Recent Updates'), 'fa-history', url_for('student.thesis_data') ~ '#updates', _('View All')) %}
                                 {% if ov.recent %}
                                 <ul class="dash-feed">

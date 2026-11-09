@@ -27,6 +27,10 @@ def send_weekly_supervisor_report(supervisor_id):
             logger.error(f"Invalid supervisor ID: {supervisor_id}")
             return False
         
+        if not supervisor.weekly_digest:
+            logger.info(f"Supervisor {supervisor.username} opted out of the weekly digest")
+            return True
+
         # Get activity summary for this supervisor
         activity_summary = get_weekly_activity_summary(supervisor_id)
         
@@ -115,6 +119,51 @@ This is an automated weekly report sent every Monday morning.
         return False
 
 
+def send_weekly_student_digest(student_id):
+    """Weekly digest for a student: open tasks, upcoming milestones and recent feedback."""
+    import time
+    from superviseme.models import Thesis, Thesis_Milestone, Thesis_Update, Todo
+
+    student = User_mgmt.query.get(student_id)
+    if not student or student.user_type != "student" or not student.weekly_digest:
+        return False
+    if student.email.endswith("@orcid.placeholder.local"):
+        return False
+    thesis = Thesis.query.filter_by(author_id=student.id).first()
+    if not thesis or thesis.frozen:
+        return False
+    now = int(time.time())
+    todos = Todo.query.filter_by(thesis_id=thesis.id, status="pending").order_by(Todo.due_date.asc()).all()
+    milestones = [m for m in thesis.milestones if m.status == "pending"][:5]
+    feedback = Thesis_Update.query.filter(
+        Thesis_Update.thesis_id == thesis.id, Thesis_Update.update_type == "supervisor_update",
+        Thesis_Update.created_at >= now - 7 * 86400).count()
+
+    def fmt(ts):
+        return datetime.utcfromtimestamp(ts).strftime("%d %b %Y")
+
+    lines = [f"Hello {student.name},", "", f"Your weekly summary for \"{thesis.title}\":", ""]
+    lines.append(f"Open tasks: {len(todos)}")
+    for t in todos[:5]:
+        lines.append(f"  - {t.title}" + (f" (due {fmt(t.due_date)})" if t.due_date else ""))
+    lines.append("")
+    lines.append(f"Upcoming milestones: {len(milestones)}")
+    for m in milestones:
+        lines.append(f"  - {m.title} ({fmt(m.due_date)})")
+    lines += ["", f"New feedback from your supervisor this week: {feedback}", "", "— SuperviseMe"]
+    return send_email(f"Your weekly thesis summary - {datetime.now().strftime('%B %d, %Y')}", student.email, "\n".join(lines))
+
+
+def send_all_weekly_student_digests():
+    sent = 0
+    for student in User_mgmt.query.filter_by(user_type="student", weekly_digest=True).all():
+        try:
+            sent += 1 if send_weekly_student_digest(student.id) else 0
+        except Exception as exc:  # one failing address must not stop the batch
+            logger.error("Student digest failed for %s: %s", student.id, exc)
+    return {"student_digests_sent": sent}
+
+
 def send_all_weekly_supervisor_reports():
     """
     Send weekly reports to all supervisors who have active students
@@ -149,6 +198,7 @@ def send_all_weekly_supervisor_reports():
                 results['supervisors_without_students'] += 1
                 logger.info(f"Supervisor {supervisor.username} has no students, skipping email")
         
+        results.update(send_all_weekly_student_digests())
         logger.info(f"Weekly report batch completed: {results}")
         return results
         

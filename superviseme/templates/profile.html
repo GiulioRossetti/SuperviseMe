@@ -190,6 +190,25 @@
                             </div>
                             <div class="tab-pane fade" id="tabIntegrations" role="tabpanel">
 
+                            <!-- Email notifications -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-envelope mr-2"></i>{{ _('Email notifications') }}</h6></div>
+                                <div class="card-body">
+                                    <form action="{{ url_for('profile.update_email_preferences') }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="custom-control custom-switch mb-2">
+                                            <input type="checkbox" class="custom-control-input" id="email_notifications" name="email_notifications" {% if user.email_notifications %}checked{% endif %}>
+                                            <label class="custom-control-label" for="email_notifications">{{ _('Receive an email copy of notifications and reminders') }}</label>
+                                        </div>
+                                        <div class="custom-control custom-switch mb-3">
+                                            <input type="checkbox" class="custom-control-input" id="weekly_digest" name="weekly_digest" {% if user.weekly_digest %}checked{% endif %}>
+                                            <label class="custom-control-label" for="weekly_digest">{{ _('Receive the weekly summary every Monday') }}</label>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary btn-sm">{{ _('Save') }}</button>
+                                    </form>
+                                </div>
+                            </div>
+
                             <!-- ORCID Integration -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">

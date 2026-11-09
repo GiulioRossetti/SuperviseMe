@@ -293,4 +293,4 @@ def get_notification_types() -> Dict[str, Dict]:
 
 def get_default_notification_types() -> List[str]:
     """Get default enabled notification types for new users"""
-    return ['new_update', 'new_feedback', 'todo_assigned', 'thesis_status_change', 'thesis_interest']
+    return ['new_update', 'new_feedback', 'todo_assigned', 'thesis_status_change', 'thesis_interest', 'deadline_reminder']

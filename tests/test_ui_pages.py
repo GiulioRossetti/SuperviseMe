@@ -405,3 +405,51 @@ def test_researcher_supervisor_dashboard_and_anonymous_supervisor_link(client, r
     assert r.status_code == 200 and f"/users/{supervisor_user.id}".encode() in r.data
     r = client.get("/theses")
     assert f"/users/{supervisor_user.id}".encode() in r.data
+
+
+# ── milestones, reminders, email prefs ──────────────────────────────────────
+def test_milestones_flow_and_permissions(client, supervisor_user, student_user, researcher_user):
+    from superviseme.models import Thesis_Milestone
+    t = _assign(student_user, supervisor_user)
+    login(client, supervisor_user)
+    r = client.post(f"/thesis/{t.id}/milestones/add", data={"title": "Draft", "due_date": "2030-01-15", "next": f"/supervisor/thesis/{t.id}"}, follow_redirects=True)
+    assert r.status_code == 200 and b"Draft" in r.data
+    m = Thesis_Milestone.query.filter_by(thesis_id=t.id).one()
+    # invalid input and open redirect are rejected
+    client.post(f"/thesis/{t.id}/milestones/add", data={"title": "", "due_date": "bad"})
+    assert Thesis_Milestone.query.count() == 1
+    r = client.post(f"/thesis/{t.id}/milestones/add", data={"title": "x", "due_date": "2030-01-01", "next": "https://evil.example/"})
+    assert r.status_code == 302 and "evil.example" not in r.headers["Location"]
+    client.post("/logout")
+    # the student can tick it off but not add or delete
+    login(client, student_user)
+    assert client.get("/student/thesis").status_code == 200
+    client.post(f"/milestones/{m.id}/toggle")
+    db.session.refresh(m)
+    assert m.status == "done" and m.completed_at
+    assert client.post(f"/thesis/{t.id}/milestones/add", data={"title": "no", "due_date": "2030-01-01"}).status_code == 403
+    assert client.post(f"/milestones/{m.id}/delete").status_code == 403
+    client.post("/logout")
+    # unrelated users cannot touch it
+    login(client, researcher_user)
+    assert client.post(f"/milestones/{m.id}/toggle").status_code == 403
+
+
+def test_reminders_are_sent_once(app, supervisor_user, student_user):
+    from superviseme.models import Notification, Thesis_Milestone
+    from superviseme.utils.reminders import run_reminders
+    t = _assign(student_user, supervisor_user)
+    db.session.add(Thesis_Milestone(thesis_id=t.id, title="Soon", due_date=int(time.time()) + 3600, created_at=int(time.time())))
+    db.session.commit()
+    first = run_reminders()
+    assert first["milestone"] == 2  # student + supervisor
+    assert run_reminders()["milestone"] == 0  # never repeated
+    assert Notification.query.filter_by(notification_type="deadline_reminder").count() >= 2
+
+
+def test_email_preferences(client, student_user):
+    login(client, student_user)
+    client.post("/profile/email-preferences", data={"weekly_digest": "on"})
+    db.session.refresh(student_user)
+    assert student_user.email_notifications is False and student_user.weekly_digest is True
+    assert b"email_notifications" in client.get("/profile").data

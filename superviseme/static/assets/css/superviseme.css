@@ -921,3 +921,16 @@ a.dash-card:hover { transform: translateY(-3px); box-shadow: var(--sm-shadow-md)
 .dash-quick a { display: flex; align-items: center; gap: .6rem; padding: .7rem .85rem; background: var(--sm-bg); border: 1px solid var(--sm-border); border-radius: var(--sm-radius-sm); color: var(--sm-text); font-weight: 600; text-decoration: none !important; }
 .dash-quick a:hover { border-color: var(--sm-primary); color: var(--sm-primary); }
 .dash-quick a i { color: var(--sm-primary); width: 1.1rem; text-align: center; }
+
+/* ── Milestones roadmap ─────────────────────────────────── */
+.ms-list { list-style: none; margin: 0; padding: 0 0 0 .2rem; position: relative; }
+.ms-list::before { content: ""; position: absolute; left: 1.05rem; top: .8rem; bottom: .8rem; width: 2px; background: var(--sm-border); }
+.ms-list li { position: relative; display: flex; align-items: center; gap: .8rem; padding: .45rem 0; }
+.ms-dot { position: relative; z-index: 1; width: 1.7rem; height: 1.7rem; border-radius: 50%; border: 2px solid var(--sm-border); background: var(--sm-surface); color: transparent; font-size: .65rem; padding: 0; cursor: pointer; }
+.ms-dot:hover { border-color: #1cc88a; color: #1cc88a; }
+.ms-list li.is-done .ms-dot { background: #1cc88a; border-color: #1cc88a; color: #fff; }
+.ms-list li.is-late .ms-dot { border-color: #e74a3b; }
+.ms-body { flex: 1; min-width: 0; } .ms-body small { display: block; color: var(--sm-text-muted); }
+.ms-list li.is-done .ms-body strong { text-decoration: line-through; opacity: .6; }
+.ms-date { font-size: .78rem; font-weight: 600; color: var(--sm-text-muted); white-space: nowrap; }
+.ms-date.late { color: #e74a3b; }

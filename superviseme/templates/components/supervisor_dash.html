@@ -91,6 +91,18 @@
             {% else %}{{ empty('fas fa-stream', _('No theses yet')) }}{% endif %}
         {% endcall %}
 
+        {% call panel(_('Upcoming milestones'), 'fa-flag-checkered') %}
+            {% if ov.milestones %}
+            <ul class="dash-feed">
+                {% for r in ov.milestones %}
+                <li><span class="sm-avatar" style="flex:none"><i class="fas fa-flag" style="font-size:.7rem"></i></span>
+                    <div class="tx"><strong>{{ r.m.title }}</strong>
+                        <small class="{{ 'text-danger' if r.m.due_date < ov.now }}">{{ dt(r.m.due_date).strftime('%d %b %Y') }} · {{ r.thesis_title }}</small></div></li>
+                {% endfor %}
+            </ul>
+            {% else %}{{ empty('fas fa-flag-checkered', _('No milestones yet')) }}{% endif %}
+        {% endcall %}
+
         {% call panel(_('Recent activity'), 'fa-history') %}
             {% if ov.recent %}
             <ul class="dash-feed">

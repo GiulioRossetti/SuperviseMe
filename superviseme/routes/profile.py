@@ -169,6 +169,17 @@ def update_picture():
     return redirect(url_for("profile.profile_page"))
 
 
+@profile.route("/profile/email-preferences", methods=["POST"])
+@login_required
+def update_email_preferences():
+    """Toggle the email copy of notifications and the weekly digest."""
+    current_user.email_notifications = request.form.get("email_notifications") == "on"
+    current_user.weekly_digest = request.form.get("weekly_digest") == "on"
+    db.session.commit()
+    flash(_("Email preferences saved"), "success")
+    return redirect(url_for("profile.profile_page") + "#tabIntegrations")
+
+
 @profile.route("/profile/change_password", methods=["POST"])
 @login_required
 def change_password():

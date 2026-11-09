@@ -183,7 +183,30 @@ def create_notification(recipient_id, actor_id, notification_type, title, messag
     except Exception as e:
         logger.error(f"Failed to send Telegram notification: {e}")
     
+    _send_email_copy(notification)
     return notification
+
+
+def _send_email_copy(notification):
+    """Email copy of an in-app notification, when the recipient enabled it and mail is configured."""
+    try:
+        from flask import current_app
+        from superviseme.models import User_mgmt
+        from superviseme.utils.email_service import send_email
+
+        if current_app.config.get("TESTING") or not current_app.config.get("MAIL_USERNAME"):
+            return False
+        user = User_mgmt.query.get(notification.recipient_id)
+        if not user or not user.email_notifications or user.email.endswith("@orcid.placeholder.local"):
+            return False
+        body = f"{notification.message}\n"
+        if notification.action_url:
+            body += f"\n{notification.action_url}\n"
+        body += "\n— SuperviseMe (you can turn off email notifications from your profile)"
+        return send_email(f"[SuperviseMe] {notification.title}", [user.email], body)
+    except Exception as exc:  # never let email break the in-app notification
+        logger.error("Email copy failed: %s", exc)
+        return False
 
 
 def create_thesis_update_notification(thesis_id, student_id, update_content):
