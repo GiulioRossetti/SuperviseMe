@@ -1,0 +1,41 @@
+{% extends 'public/base_public.html' %}
+{% from 'components/dash.html' import hero, panel with context %}
+{% block page_content %}
+{% call hero(_('Search'), _('Theses, people, updates, tasks, notes and documents you can access'), 'fa-search') %}{% endcall %}
+<form method="GET" action="{{ url_for('workflow.search') }}" class="mb-4">
+    <div class="input-group">
+        <input type="search" class="form-control" name="q" value="{{ term }}" minlength="{{ min_len }}" required autofocus placeholder="{{ _('Search for...') }}">
+        <div class="input-group-append"><button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button></div>
+    </div>
+</form>
+{% if term|length < min_len %}
+    <div class="dash-empty"><i class="fas fa-search"></i>{{ _('Type at least %(n)d characters', n=min_len) }}</div>
+{% elif not total %}
+    <div class="dash-empty"><i class="fas fa-search"></i>{{ _('No results') }}</div>
+{% else %}
+<div class="row">
+<div class="col-xl-6">
+    {% if results.theses %}{% call panel(_('Theses'), 'fa-book') %}<div class="doc-list">
+        {% for t in results.theses %}<a class="doc-item" href="{{ thesis_link(t) }}"><span class="doc-ic"><i class="fas fa-book"></i></span><span class="doc-main"><strong>{{ t.title }}</strong><small>{{ snippet(t.description, term) }}</small></span></a>{% endfor %}
+    </div>{% endcall %}{% endif %}
+    {% if results.updates %}{% call panel(_('Updates'), 'fa-stream') %}<div class="doc-list">
+        {% for u in results.updates %}<a class="doc-item" href="{{ thesis_url(current_user, theses[u.thesis_id]) }}"><span class="doc-ic"><i class="far fa-comment-dots"></i></span><span class="doc-main"><strong>{{ theses[u.thesis_id].title }}</strong><small>{{ snippet(u.content, term) }}</small></span></a>{% endfor %}
+    </div>{% endcall %}{% endif %}
+    {% if results.notes %}{% call panel(_('Meeting notes'), 'fa-clipboard-list') %}<div class="doc-list">
+        {% for n in results.notes %}<a class="doc-item" href="{{ note_url(n) }}"><span class="doc-ic"><i class="fas fa-clipboard-list"></i></span><span class="doc-main"><strong>{{ n.title }}</strong><small>{{ snippet(n.content, term) }}</small></span></a>{% endfor %}
+    </div>{% endcall %}{% endif %}
+</div>
+<div class="col-xl-6">
+    {% if results.people %}{% call panel(_('People'), 'fa-users') %}
+        {% for p in results.people %}<div class="mb-2">{{ user_link(p) }} <small class="text-muted">· {{ p.user_type }}</small></div>{% endfor %}
+    {% endcall %}{% endif %}
+    {% if results.tasks %}{% call panel(_('Tasks'), 'fa-tasks') %}<div class="doc-list">
+        {% for t in results.tasks %}<a class="doc-item" href="{{ thesis_url(current_user, theses[t.thesis_id]) }}"><span class="doc-ic"><i class="fas fa-check-square"></i></span><span class="doc-main"><strong>{{ t.title }}</strong><small>{{ theses[t.thesis_id].title }} · {{ t.status }}</small></span></a>{% endfor %}
+    </div>{% endcall %}{% endif %}
+    {% if results.documents %}{% call panel(_('Documents'), 'fa-file-pdf') %}<div class="doc-list">
+        {% for d in results.documents %}<a class="doc-item" href="{{ url_for('workflow.document_detail', doc_id=d.id) }}"><span class="doc-ic"><i class="fas fa-file-pdf"></i></span><span class="doc-main"><strong>{{ d.title }}</strong><small>{{ theses[d.thesis_id].title }}</small></span></a>{% endfor %}
+    </div>{% endcall %}{% endif %}
+</div>
+</div>
+{% endif %}
+{% endblock %}

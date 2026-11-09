@@ -3780,3 +3780,15 @@ msgstr "Un passaggio per riga, opzionalmente seguito da | e dal numero di giorni
 
 msgid "Create"
 msgstr "Crea"
+
+msgid "Theses, people, updates, tasks, notes and documents you can access"
+msgstr "Tesi, persone, aggiornamenti, attività, note e documenti a cui hai accesso"
+
+msgid "Type at least %(n)d characters"
+msgstr "Digita almeno %(n)d caratteri"
+
+msgid "No results"
+msgstr "Nessun risultato"
+
+msgid "Updates"
+msgstr "Aggiornamenti"

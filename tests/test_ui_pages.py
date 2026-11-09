@@ -638,3 +638,30 @@ def test_graduation_checklist_flow(client, admin_user, supervisor_user, student_
     client.post(f"/checklist/{first.id}/toggle")
     assert Thesis_Checklist_Item.query.get(first.id).status == "done"
     assert client.post(f"/checklist/{first.id}/delete").status_code == 403
+
+
+def test_global_search_is_role_scoped(client, admin_user, supervisor_user, researcher_user, student_user):
+    from tests.conftest import _make_user
+    from superviseme.models import MeetingNote
+    from superviseme.utils.search import _like, search
+    other = _make_user("student", "other_stud", "other_stud@test.com")
+    t = _assign(student_user, supervisor_user)
+    t.title = "Quantum widgets"
+    secret = _assign(other, researcher_user)
+    secret.title = "Quantum secrets"
+    db.session.add(MeetingNote(thesis_id=t.id, author_id=supervisor_user.id, title="Kickoff", content="discussed zebra topic",
+                               created_at=1, updated_at=1))
+    db.session.commit()
+    sup = search(supervisor_user, "quantum")
+    assert [x.title for x in sup["theses"]] == ["Quantum widgets"]
+    assert [n.title for n in search(supervisor_user, "zebra")["notes"]] == ["Kickoff"]
+    assert not search(researcher_user, "zebra")["notes"]
+    assert len(search(admin_user, "quantum")["theses"]) == 2
+    assert not search(student_user, "other_stud")["people"]  # another student's profile is private
+    assert search(supervisor_user, "x")["theses"] == []  # too short
+    assert _like("50%_") == "%50\\%\\_%"
+    login(client, supervisor_user)
+    r = client.get("/search?q=zebra")
+    assert r.status_code == 200 and b"Kickoff" in r.data
+    assert client.get("/search?q=%25").status_code == 200
+    assert b'action="/search"' in client.get("/profile").data

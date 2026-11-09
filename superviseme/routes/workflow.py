@@ -608,3 +608,29 @@ def delete_checklist_item(item_id):
     db.session.delete(item)
     db.session.commit()
     return _team_back(thesis)
+
+
+# ---------------------------------------------------------------- global search
+@workflow.route("/search")
+@login_required
+def search():
+    from superviseme.utils import search as search_utils
+    term = (request.args.get("q") or "").strip()[:100]
+    results = search_utils.search(current_user, term)
+    thesis_ids = {x.thesis_id for key in ("updates", "tasks", "notes", "documents") for x in results[key]}
+    theses = {t.id: t for t in Thesis.query.filter(Thesis.id.in_(thesis_ids)).all()} if thesis_ids else {}
+
+    def note_url(note):
+        endpoint = {"student": "student.meeting_note_detail", "supervisor": "supervisor.meeting_note_detail",
+                    "researcher": "researcher.supervisor_meeting_note_detail"}.get(current_user.user_type)
+        return url_for(endpoint, note_id=note.id) if endpoint else thesis_url(current_user, theses[note.thesis_id])
+
+    def thesis_link(t):
+        if thesis_role(current_user, t):
+            return thesis_url(current_user, t)
+        return url_for("public.public_thesis_detail", thesis_id=t.id)
+
+    total = sum(len(v) for v in results.values())
+    return render_template("workflow/search.html", term=term, results=results, theses=theses, total=total,
+                           note_url=note_url, thesis_link=thesis_link, snippet=search_utils.snippet,
+                           min_len=search_utils.MIN_LEN, thesis_url=thesis_url)
