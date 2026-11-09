@@ -44,6 +44,8 @@ def test_project_update_detail_xss_fix():
     mock_request.endpoint = ''
     mock_request.args = {}
     env.globals['request'] = mock_request
+    # Flask-Babel translation function: templates now use {{ _('...') }}
+    env.globals['_'] = lambda s: s
 
     try:
         template = env.get_template('researcher/project_update_detail.html')

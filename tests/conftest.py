@@ -25,16 +25,36 @@ from unittest.mock import MagicMock
 def pytest_configure(config):
     """Snapshot ALL of sys.modules before test files are collected."""
     # Force lazy submodules to load now so their real versions are captured.
-    try:
-        import flask.globals          # noqa: F401
-        import flask_login            # noqa: F401
-        import sqlalchemy.dialects.sqlite  # noqa: F401
-        import werkzeug.security      # noqa: F401
-        import flask_migrate          # noqa: F401
-        import flask_sqlalchemy.cli   # noqa: F401
-        import superviseme.models     # noqa: F401
-    except Exception:
-        pass
+    # Import each module individually so a single failure does not prevent the
+    # rest from being snapshotted.
+    for _mod in [
+        "flask.globals",
+        "flask_login",
+        "sqlalchemy",
+        "sqlalchemy.engine",
+        "sqlalchemy.engine.create",
+        "sqlalchemy.engine.url",
+        "sqlalchemy.dialects",
+        "sqlalchemy.dialects.sqlite",
+        "sqlalchemy.dialects.sqlite.base",
+        "sqlalchemy.exc",
+        "sqlalchemy.event",
+        "sqlalchemy.orm",
+        "sqlalchemy.pool",
+        "sqlalchemy.util",
+        "sqlalchemy.util.langhelpers",
+        "werkzeug",
+        "werkzeug.security",
+        "flask_migrate",
+        "flask_sqlalchemy",
+        "flask_sqlalchemy.extension",   # ensures .sa binding is set before any mock
+        "flask_sqlalchemy.cli",
+        "superviseme.models",
+    ]:
+        try:
+            __import__(_mod)
+        except Exception:
+            pass
 
     # Full snapshot after submodules are loaded.
     config._real_modules_snapshot = dict(sys.modules)
@@ -64,6 +84,26 @@ def _restore_real_modules(request):
     for key in list(sys.modules.keys()):
         if key not in snapshot and isinstance(sys.modules.get(key), MagicMock):
             del sys.modules[key]
+
+    # Defensive: if flask_sqlalchemy.extension was imported while sqlalchemy
+    # was mocked, its module-level bindings (sa, sa_event, sa_exc, sa_orm)
+    # will be MagicMocks. Reload the module so they re-bind to the real ones.
+    try:
+        _real_sa = sys.modules.get("sqlalchemy")
+        _fse = sys.modules.get("flask_sqlalchemy.extension")
+        if (
+            _fse is not None
+            and _real_sa is not None
+            and not isinstance(_real_sa, MagicMock)
+            and any(
+                isinstance(getattr(_fse, _a, None), MagicMock)
+                for _a in ("sa", "sa_event", "sa_exc", "sa_orm")
+            )
+        ):
+            import importlib as _il
+            _il.reload(_fse)
+    except Exception:
+        pass
 
     yield
 
