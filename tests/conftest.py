@@ -14,7 +14,10 @@ Strategy:
    that were created while the mocks were active.
 """
 
+import os
 import sys
+import time
+import tempfile
 import pytest
 from unittest.mock import MagicMock
 
@@ -63,3 +66,80 @@ def _restore_real_modules(request):
             del sys.modules[key]
 
     yield
+
+
+# ---------------------------------------------------------------------------
+# Fixtures for integration / end-to-end / authorization tests
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def app():
+    """Create an isolated Flask app backed by an in-memory SQLite database."""
+    from superviseme import create_app, db as _db
+
+    db_fd, db_path = tempfile.mkstemp(suffix=".db")
+    os.environ["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+    os.environ["WTF_CSRF_ENABLED"] = "False"
+    os.environ.setdefault("FLASK_ENV", "testing")
+
+    flask_app = create_app(db_type="sqlite", skip_user_init=True)
+    flask_app.config["TESTING"] = True
+    flask_app.config["WTF_CSRF_ENABLED"] = False
+
+    with flask_app.app_context():
+        _db.create_all()
+        yield flask_app
+        _db.session.remove()
+
+    os.close(db_fd)
+    os.unlink(db_path)
+
+
+@pytest.fixture
+def client(app):
+    return app.test_client()
+
+
+@pytest.fixture
+def runner(app):
+    return app.test_cli_runner()
+
+
+def _make_user(user_type, username, email):
+    from superviseme import db
+    from superviseme.models import User_mgmt
+    from werkzeug.security import generate_password_hash
+
+    user = User_mgmt(
+        username=username,
+        name=username.capitalize(),
+        surname="Test",
+        email=email,
+        password=generate_password_hash("password"),
+        user_type=user_type,
+        joined_on=int(time.time()),
+        is_enabled=True,
+    )
+    db.session.add(user)
+    db.session.commit()
+    return user
+
+
+@pytest.fixture
+def admin_user(app):
+    return _make_user("admin", "admin_test", "admin@test.com")
+
+
+@pytest.fixture
+def supervisor_user(app):
+    return _make_user("supervisor", "supervisor_test", "supervisor@test.com")
+
+
+@pytest.fixture
+def researcher_user(app):
+    return _make_user("researcher", "researcher_test", "researcher@test.com")
+
+
+@pytest.fixture
+def student_user(app):
+    return _make_user("student", "student_test", "student@test.com")
