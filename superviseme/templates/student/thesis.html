@@ -48,7 +48,7 @@
                                     <div class="mt-3">
                                         <strong>{{ _('Supervisors:') }}</strong>
                                         {% for supervisor in supervisors %}
-                                            <span class="badge badge-info mr-1">{{ supervisor.name }} {{ supervisor.surname }}</span>
+                                            <span class="badge badge-info mr-1">{{ user_link(supervisor) }}</span>
                                         {% endfor %}
                                     </div>
                                     {% endif %}
@@ -113,36 +113,74 @@
                         </div>
                     </div>
 
-                    <!-- Thesis Status Section -->
+                    {% with uid='stu' %}{% include 'components/thesis_media_view.html' %}{% endwith %}
+
+                    <!-- Thesis Status Timeline -->
                     <div class="row">
                         <div class="col-12">
                             <div class="card shadow mb-4">
-                                <div class="card-header py-3">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
                                     <h6 class="m-0 font-weight-bold text-primary" id="status">{{ _('Thesis Status') }}</h6>
+                                    {% set _cur = status_timeline|selectattr('state','equalto','current')|list %}
+                                    {% if _cur %}<span class="badge badge-{{ _cur[0].color }} px-3 py-2"><i class="fas {{ _cur[0].icon }} mr-1"></i>{{ _cur[0].label }}</span>{% endif %}
                                 </div>
                                 <div class="card-body">
-                                    {% if thesis_statuses %}
-                                        <div class="timeline">
-                                            {% for status in thesis_statuses %}
-                                            <div class="timeline-item mb-3 p-3 bg-light border-left-primary">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div class="status-info">
-                                                        <h6 class="mb-1 text-primary">{{ status.status|title }}</h6>
-                                                        <small class="text-muted">
-                                                            {{ dt(status.updated_at).strftime('%B %d, %Y at %I:%M %p') if status.updated_at else 'Unknown time' }}
-                                                        </small>
+                                    <div class="sm-timeline">
+                                        {% for step in status_timeline %}
+                                        <div class="sm-step {{ step.state }}">
+                                            <div class="sm-dot bg-{{ step.color }}"><i class="fas {{ step.icon }}"></i></div>
+                                            <div class="sm-label">{{ _(step.label) }}</div>
+                                            <div class="sm-date">
+                                                {% if step.date %}{{ dt(step.date).strftime('%b %d, %Y') }}{% else %}{{ _('Upcoming') }}{% endif %}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% if not thesis_statuses %}
+                                        <p class="text-muted small text-center mb-0 mt-3">{{ _('Your supervisor has not set a status yet.') }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Calendar -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap">
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('My Activity') }}</h6>
+                                    <small class="text-muted">
+                                        {{ activity_calendar.total }} {{ _('contributions in the last year') }} ·
+                                        {{ _('current streak') }}: {{ activity_calendar.current_streak }}d ·
+                                        {{ _('longest streak') }}: {{ activity_calendar.longest_streak }}d
+                                    </small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="sm-heat-scroll">
+                                        <div class="sm-heat">
+                                            <div class="sm-heat-months">
+                                                {% for m in activity_calendar.months %}<span>{{ m }}</span>{% endfor %}
+                                            </div>
+                                            <div class="sm-heat-body">
+                                                <div class="sm-heat-days"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span></div>
+                                                <div class="sm-heat-grid">
+                                                    {% for col in activity_calendar.columns %}
+                                                    <div class="sm-heat-col">
+                                                        {% for cell in col %}
+                                                            {% if cell %}<i class="sm-cell l{{ cell.level }}" title="{{ cell.count }} {{ _('contributions') }} · {{ cell.date }}"></i>{% else %}<i class="sm-cell empty"></i>{% endif %}
+                                                        {% endfor %}
                                                     </div>
-                                                    <span class="badge badge-primary">{{ status.status }}</span>
+                                                    {% endfor %}
                                                 </div>
                                             </div>
-                                            {% endfor %}
                                         </div>
-                                    {% else %}
-                                        <div class="text-center py-4">
-                                            <i class="fas fa-info-circle fa-2x text-gray-300 mb-3"></i>
-                                            <p class="text-muted">{{ _('No status updates yet.') }}</p>
-                                        </div>
-                                    {% endif %}
+                                    </div>
+                                    <div class="sm-heat-legend">
+                                        <span>{{ _('Less') }}</span>
+                                        <i class="sm-cell l0"></i><i class="sm-cell l1"></i><i class="sm-cell l2"></i><i class="sm-cell l3"></i><i class="sm-cell l4"></i>
+                                        <span>{{ _('More') }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -431,7 +469,7 @@
                                                     <td>
                                                         <small class="text-muted">
                                                             {% if note.author %}
-                                                                {{ note.author.name }} {{ note.author.surname }}
+                                                                {{ user_link(note.author) }}
                                                                 {% if note.author.user_type == 'supervisor' %}
                                                                     <i class="fas fa-chalkboard-teacher text-primary" title="Supervisor"></i>
                                                                 {% else %}
@@ -603,7 +641,7 @@
                                                 <tbody>
                                                     {% for resource in resources %}
                                                     <tr>
-                                                        <td><span class="badge badge-secondary">{{ resource.resource_type|title }}</span></td>
+                                                        <td>{% set _m = resource_meta(resource.resource_type) %}<span class="badge badge-{{ _m[2] }}"><i class="{{ _m[1] }} mr-1"></i>{{ _m[0] }}</span></td>
                                                         <td><a href="{{ resource.resource_url }}" target="_blank" class="text-primary">{{ resource.resource_url }}</a></td>
                                                         <td>{{ resource.description or 'No description' }}</td>
                                                         <td>
@@ -710,6 +748,14 @@
                         <div class="form-group">
                             <label for="resource_type">{{ _('Resource Type:') }}</label>
                             <select class="form-control" name="resource_type" required>
+                                <option value="github">{{ _('GitHub repository') }}</option>
+                                <option value="overleaf">{{ _('Overleaf project') }}</option>
+                                <option value="gdrive">{{ _('Google Drive folder') }}</option>
+                                <option value="gitlab">{{ _('GitLab repository') }}</option>
+                                <option value="dropbox">{{ _('Dropbox') }}</option>
+                                <option value="onedrive">{{ _('OneDrive / SharePoint') }}</option>
+                                <option value="notion">{{ _('Notion') }}</option>
+                                <option value="hf">{{ _('Hugging Face') }}</option>
                                 <option value="document">{{ _('Document') }}</option>
                                 <option value="link">{{ _('Web Link') }}</option>
                                 <option value="paper">{{ _('Research Paper') }}</option>
@@ -902,6 +948,14 @@
                         <div class="form-group">
                             <label for="editResourceType">{{ _('Resource Type:') }}</label>
                             <select class="form-control" name="resource_type" id="editResourceType" required>
+                                <option value="github">{{ _('GitHub repository') }}</option>
+                                <option value="overleaf">{{ _('Overleaf project') }}</option>
+                                <option value="gdrive">{{ _('Google Drive folder') }}</option>
+                                <option value="gitlab">{{ _('GitLab repository') }}</option>
+                                <option value="dropbox">{{ _('Dropbox') }}</option>
+                                <option value="onedrive">{{ _('OneDrive / SharePoint') }}</option>
+                                <option value="notion">{{ _('Notion') }}</option>
+                                <option value="hf">{{ _('Hugging Face') }}</option>
                                 <option value="document">{{ _('Document') }}</option>
                                 <option value="link">{{ _('Link') }}</option>
                                 <option value="paper">{{ _('Paper') }}</option>

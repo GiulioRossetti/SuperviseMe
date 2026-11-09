@@ -120,7 +120,7 @@
                                             <div class="col-sm-8">
                                                 <label>{{ _('Current Student:') }}</label>
                                                 {% if author %}
-                                                    <p class="mb-2"><strong>{{ author.name }} {{ author.surname }}</strong> ({{ author.cdl }})</p>
+                                                    <p class="mb-2"><strong>{{ user_link(author) }}</strong> ({{ author.cdl }})</p>
                                                 {% else %}
                                                     <p class="mb-2 text-muted">{{ _('No student assigned') }}</p>
                                                 {% endif %}
@@ -157,7 +157,7 @@
                                             <label>{{ _('Current Supervisors:') }}</label>
                                             {% for supervisor in supervisors %}
                                                 <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
-                                                    <span>{{ supervisor.name }} {{ supervisor.surname }}</span>
+                                                    <span>{{ user_link(supervisor) }}</span>
                                                     <form action="/admin/remove_supervisor" method="POST" class="d-inline">
                                                         <input type="hidden" name="thesis_id" value="{{ thesis.id }}">
                                                         <input type="hidden" name="supervisor_id" value="{{ supervisor.id }}">
@@ -441,7 +441,7 @@
                                     {% if interests %}
                                         {% for interest in interests %}
                                             <div class="border rounded p-2 mb-2">
-                                                <div><strong>{{ interest.student.name }} {{ interest.student.surname }}</strong> ({{ interest.student.email }})</div>
+                                                <div><strong>{{ user_link(interest.student) }}</strong> ({{ interest.student.email }})</div>
                                                 {% if interest.message %}
                                                     <div class="small text-muted mt-1">{{ interest.message }}</div>
                                                 {% endif %}

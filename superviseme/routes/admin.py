@@ -93,7 +93,8 @@ def dashboard():
 
     return render_template("/admin/admin_dashboard.html", current_user=current_user,
                            user_counts=user_counts, thesis_counts=thesis_counts,
-                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses, supervisors=supervisors, datetime=datetime, dt=datetime.datetime.fromtimestamp, str=str)
+                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses, supervisors=supervisors,
+                           greeting=__import__("superviseme.utils.dashboard_data", fromlist=["greeting_key"]).greeting_key(), datetime=datetime, dt=datetime.datetime.fromtimestamp, str=str)
 
 
 @admin.route("/admin/users")

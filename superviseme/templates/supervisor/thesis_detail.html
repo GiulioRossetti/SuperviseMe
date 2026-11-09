@@ -63,7 +63,7 @@
                                     </div>
                                     {% if author %}
                                     <div class="mt-3">
-                                        <strong>{{ _('Student:') }}</strong> {{ author.name }} {{ author.surname }}
+                                        <strong>{{ _('Student:') }}</strong> {{ user_link(author) }}
                                         <br><small class="text-muted">{{ author.email }}</small>
                                         <div class="mt-2">
                                             <form method="POST" action="{{ url_for('supervisor.unassign_thesis', thesis_id=thesis.id) }}" style="display: inline;">
@@ -263,7 +263,7 @@
                                                 <p class="text-gray-700">{{ objective.description }}</p>
                                                 <small class="text-muted">
                                                     Created: {{ dt(objective.created_at).strftime('%B %d, %Y at %I:%M %p') if objective.created_at else 'Unknown' }}
-                                                    {% if objective.author %}by {{ objective.author.name }} {{ objective.author.surname }}{% endif %}
+                                                    {% if objective.author %}by {{ user_link(objective.author) }}{% endif %}
                                                 </small>
                                             </div>
                                         </div>
@@ -328,7 +328,7 @@
                                                 <p class="text-gray-700">{{ hypothesis.description }}</p>
                                                 <small class="text-muted">
                                                     Created: {{ dt(hypothesis.created_at).strftime('%B %d, %Y at %I:%M %p') if hypothesis.created_at else 'Unknown' }}
-                                                    {% if hypothesis.author %}by {{ hypothesis.author.name }} {{ hypothesis.author.surname }}{% endif %}
+                                                    {% if hypothesis.author %}by {{ user_link(hypothesis.author) }}{% endif %}
                                                 </small>
                                             </div>
                                         </div>
@@ -519,7 +519,7 @@
                                                     <td>
                                                         <small class="text-muted">
                                                             {% if note.author %}
-                                                                {{ note.author.name }} {{ note.author.surname }}
+                                                                {{ user_link(note.author) }}
                                                                 {% if note.author.user_type == 'supervisor' %}
                                                                     <i class="fas fa-chalkboard-teacher text-primary" title="Supervisor"></i>
                                                                 {% else %}
@@ -630,7 +630,7 @@
                                                     </td>
                                                     <td>
                                                         {% if todo.author %}
-                                                            {{ todo.author.name }} {{ todo.author.surname }}
+                                                            {{ user_link(todo.author) }}
                                                         {% else %}
                                                             <span class="text-muted">{{ _('Unknown') }}</span>
                                                         {% endif %}
@@ -645,6 +645,8 @@
                         </div>
                     </div>
                     {% endif %}
+
+                    {% with bp='supervisor' %}{% include 'components/thesis_media_manage.html' %}{% endwith %}
 
                     <!-- Resources Section -->
                     <div class="row">
@@ -671,7 +673,7 @@
                                                 <tbody>
                                                     {% for resource in resources %}
                                                     <tr>
-                                                        <td><span class="badge badge-secondary">{{ resource.resource_type|title }}</span></td>
+                                                        <td>{% set _m = resource_meta(resource.resource_type) %}<span class="badge badge-{{ _m[2] }}"><i class="{{ _m[1] }} mr-1"></i>{{ _m[0] }}</span></td>
                                                         <td><a href="{{ resource.resource_url }}" target="_blank" class="text-primary">{{ resource.resource_url }}</a></td>
                                                         <td>{{ resource.description or 'No description' }}</td>
                                                         <td>
@@ -715,7 +717,7 @@
                                     {% elif interests %}
                                         {% for interest in interests %}
                                             <div class="border rounded p-2 mb-2">
-                                                <div><strong>{{ interest.student.name }} {{ interest.student.surname }}</strong> ({{ interest.student.email }})</div>
+                                                <div><strong>{{ user_link(interest.student) }}</strong> ({{ interest.student.email }})</div>
                                                 {% if interest.message %}
                                                     <div class="small text-muted mt-1">{{ interest.message }}</div>
                                                 {% endif %}
@@ -1351,6 +1353,14 @@
                             <label for="resourceType">{{ _('Resource Type:') }}</label>
                             <select class="form-control" name="resource_type" id="resourceType" required>
                                 <option value="">{{ _('Select type...') }}</option>
+                                <option value="github">{{ _('GitHub repository') }}</option>
+                                <option value="overleaf">{{ _('Overleaf project') }}</option>
+                                <option value="gdrive">{{ _('Google Drive folder') }}</option>
+                                <option value="gitlab">{{ _('GitLab repository') }}</option>
+                                <option value="dropbox">{{ _('Dropbox') }}</option>
+                                <option value="onedrive">{{ _('OneDrive / SharePoint') }}</option>
+                                <option value="notion">{{ _('Notion') }}</option>
+                                <option value="hf">{{ _('Hugging Face') }}</option>
                                 <option value="document">{{ _('Document') }}</option>
                                 <option value="link">{{ _('Link') }}</option>
                                 <option value="book">{{ _('Book') }}</option>
@@ -1392,6 +1402,14 @@
                         <div class="form-group">
                             <label for="editResourceType">{{ _('Resource Type:') }}</label>
                             <select class="form-control" name="resource_type" id="editResourceType" required>
+                                <option value="github">{{ _('GitHub repository') }}</option>
+                                <option value="overleaf">{{ _('Overleaf project') }}</option>
+                                <option value="gdrive">{{ _('Google Drive folder') }}</option>
+                                <option value="gitlab">{{ _('GitLab repository') }}</option>
+                                <option value="dropbox">{{ _('Dropbox') }}</option>
+                                <option value="onedrive">{{ _('OneDrive / SharePoint') }}</option>
+                                <option value="notion">{{ _('Notion') }}</option>
+                                <option value="hf">{{ _('Hugging Face') }}</option>
                                 <option value="document">{{ _('Document') }}</option>
                                 <option value="link">{{ _('Link') }}</option>
                                 <option value="book">{{ _('Book') }}</option>

@@ -91,7 +91,7 @@
                                     <div class="row mb-2">
                                         <div class="col-sm-4"><strong>{{ _('Author:') }}</strong></div>
                                         <div class="col-sm-8">
-                                            {{ meeting_note.author.name }} {{ meeting_note.author.surname }}
+                                            {{ user_link(meeting_note.author) }}
                                             {% if meeting_note.author.user_type == 'supervisor' %}
                                                 <i class="fas fa-chalkboard-teacher text-primary" title="Supervisor"></i>
                                             {% else %}

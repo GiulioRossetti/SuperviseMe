@@ -22,261 +22,104 @@
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
 
-                    <!-- Page Heading -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">{{ _('Student Dashboard') }}</h1>
-                    </div>
+                    {% from 'components/dash.html' import hero, tile, panel, empty, avatar, task_row with context %}
+                    {% set greet = {'morning': _('Good morning, %(name)s', name=current_user.name), 'afternoon': _('Good afternoon, %(name)s', name=current_user.name), 'evening': _('Good evening, %(name)s', name=current_user.name)}[ov.greeting] %}
+                    {% call hero(greet, _('Your thesis at a glance: progress, next deadlines and news from your supervisor.') if thesis else _('Welcome! Once a thesis is assigned to you, your progress will show up here.'), 'fa-graduation-cap') %}
+                        {% if thesis %}
+                            <a href="{{ url_for('student.thesis_data') }}" class="btn btn-primary btn-sm"><i class="fas fa-book-open"></i> {{ _('Open my thesis') }}</a>
+                            <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#addTodoModal"><i class="fas fa-plus"></i> {{ _('Add Todo') }}</button>
+                        {% else %}
+                            <a href="{{ url_for('public.public_thesis_dashboard') }}" class="btn btn-primary btn-sm"><i class="fas fa-search"></i> {{ _('Browse available theses') }}</a>
+                        {% endif %}
+                    {% endcall %}
 
-                    <!-- Content Row -->
-                    <div class="row">
+                    {% with messages = get_flashed_messages() %}{% for message in messages %}
+                        <div class="alert alert-info alert-dismissible fade show">{{ message }}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button></div>
+                    {% endfor %}{% endwith %}
 
-                        <!-- Updates Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-primary shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                My Updates</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ thesis_stats['updates_count'] }}</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-edit fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Supervisor Comments Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-info shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                                Supervisor Feedback</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ thesis_stats['supervisor_comments'] }}</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-comments fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Resources Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-success shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                Resources</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ thesis_stats['resources_count'] }}</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-folder fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Thesis Status Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-warning shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                Thesis Status</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                {% if thesis %}
-                                                    Active
-                                                {% else %}
-                                                    Not Assigned
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-book fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Content Row -->
                     {% if thesis %}
+                    <div class="dash-tiles">
+                        {{ tile('fa-edit', 'indigo', thesis_stats['updates_count'], _('My updates')) }}
+                        {{ tile('fa-comments', 'sky', thesis_stats['supervisor_comments'], _('Supervisor feedback')) }}
+                        {{ tile('fa-folder-open', 'green', thesis_stats['resources_count'], _('Resources')) }}
+                        {{ tile('fa-tasks', 'amber', ov.pending|length, _('Open tasks'), (ov.overdue ~ ' ' ~ _('overdue')) if ov.overdue else None) }}
+                    </div>
+
                     <div class="row">
-
-                        <!-- Thesis Info Card -->
-                        <div class="col-xl-8 col-lg-7">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('My Thesis') }}</h6>
-                                    <div class="dropdown no-arrow">
-                                        <a class="dropdown-toggle" href="{{ url_for('student.thesis_data') }}" role="button">
-                                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <h4 class="h5 text-gray-900">{{ thesis.title }}</h4>
-                                    <p class="text-gray-700">{{ thesis.description }}</p>
-                                    <div class="mt-3">
-                                        <span class="badge badge-primary">{{ thesis.level|title if thesis.level else 'No Level' }}</span>
-                                        <span class="badge badge-info">Created: {{ dt(thesis.created_at).strftime('%B %d, %Y') if thesis.created_at else 'Unknown' }}</span>
-                                    </div>
-                                    <div class="mt-3">
-                                        <a href="{{ url_for('student.thesis_data') }}" class="btn btn-primary">{{ _('View Details') }}</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Recent Updates -->
-                        <div class="col-xl-4 col-lg-5">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Recent Updates') }}</h6>
-                                    <a href="{{ url_for('student.thesis_data') }}#updates" class="btn btn-sm btn-primary">{{ _('View All') }}</a>
-                                </div>
-                                <div class="card-body">
-                                    {% if recent_updates %}
-                                        {% for update in recent_updates %}
-                                        <div class="mb-3">
-                                            <div class="small text-gray-500">{{ dt(update.created_at).strftime('%m/%d/%Y') if update.created_at else 'Unknown time' }}</div>
-                                            <div class="font-weight-bold">
-                                                {% if update.update_type == 'student_update' %}
-                                                    <i class="fas fa-user text-primary"></i> You
-                                                {% elif update.update_type == 'supervisor_update' %}
-                                                    <i class="fas fa-user-tie text-info"></i> Supervisor
-                                                {% endif %}
-                                            </div>
-                                            <div class="text-truncate">{{ update.content[:100] }}{% if update.content|length > 100 %}...{% endif %}</div>
+                        <div class="col-xl-8">
+                            {% call panel(_('My Thesis'), 'fa-book', url_for('student.thesis_data'), _('View Details')) %}
+                                <div class="dash-thesis">
+                                    <span class="thumb g{{ thesis.id % 6 }}"><i class="fas fa-book-open"></i></span>
+                                    <div class="flex-grow-1 min-w-0" style="min-width:0">
+                                        <h5 class="font-weight-bold mb-1">{{ thesis.title }}</h5>
+                                        <div class="mb-2">
+                                            {% if thesis.level %}<span class="badge badge-primary">{{ _(thesis.level|title) }}</span>{% endif %}
+                                            {% if ov.status %}<span class="badge badge-info">{{ _(ov.status|replace('-', ' ')|capitalize) }}</span>{% endif %}
+                                            {% for k in ov.keywords[:4] %}<span class="badge badge-light border">{{ k }}</span>{% endfor %}
                                         </div>
-                                        {% if not loop.last %}<hr>{% endif %}
+                                        <p class="dash-clamp mb-0">{{ thesis.description }}</p>
+                                    </div>
+                                    <div class="dash-ring d-none d-md-flex" style="--p: {{ ov.progress or 0 }}"><span>{% if ov.progress is not none %}{{ ov.progress }}%{% else %}—{% endif %}<small>{{ _('Tasks done') }}</small></span></div>
+                                </div>
+                            {% endcall %}
+
+                            <div class="dash-panel">
+                                <header>
+                                    <h6><i class="fas fa-tasks"></i> {{ _('Todo List') }}</h6>
+                                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addTodoModal"><i class="fas fa-plus"></i> {{ _('Add Todo') }}</button>
+                                </header>
+                                <div class="dash-panel-body">
+                                    {% if ov.pending %}
+                                        <div class="dash-tasks">
+                                        {% for todo in ov.pending[:8] %}
+                                            {{ task_row(todo, {'detail': url_for('student.todo_detail', todo_id=todo.id), 'toggle': url_for('student.toggle_todo', todo_id=todo.id), 'delete': url_for('student.delete_todo', todo_id=todo.id) if todo.author_id == current_user.id else None}) }}
                                         {% endfor %}
+                                        </div>
+                                        {% if ov.pending|length > 8 %}<div class="text-muted small mt-2">{{ _('Showing the next 8 tasks.') }}</div>{% endif %}
                                     {% else %}
-                                        <p class="text-gray-500">{{ _('No recent updates.') }}</p>
+                                        {{ empty('fas fa-clipboard-check', _('No open tasks'), _('Create your first todo to get organized!') if not ov.done_count else _('Great job, everything is done!')) }}
                                     {% endif %}
+                                    {% if ov.done_count %}<div class="small text-muted mt-3"><i class="fas fa-check-circle text-success"></i> {{ ov.done_count }} {{ _('completed') }}</div>{% endif %}
                                 </div>
                             </div>
                         </div>
 
-                    </div>
-                    
-                    <!-- Todo List Section -->
-                    <div class="row">
-                        <div class="col-xl-12 col-lg-12">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Todo List') }}</h6>
-                                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addTodoModal">
-                                        <i class="fas fa-plus fa-sm text-white-50"></i> Add Todo
-                                    </button>
+                        <div class="col-xl-4">
+                            {% call panel(_('Supervisors'), 'fa-chalkboard-teacher') %}
+                                {% for sup in ov.supervisors %}
+                                <div class="dash-sup">
+                                    {{ avatar(sup) }}
+                                    <div class="min-w-0" style="min-width:0">
+                                        <strong>{{ user_link(sup) }}</strong>
+                                        <div class="meta"><i class="fas fa-envelope"></i> <a href="mailto:{{ sup.contact_email or sup.email }}">{{ sup.contact_email or sup.email }}</a></div>
+                                        {% if sup.phone %}<div class="meta"><i class="fas fa-phone"></i> {{ sup.phone }}</div>{% endif %}
+                                        {% if sup.office_location %}<div class="meta"><i class="fas fa-map-marker-alt"></i> {{ sup.office_location }}</div>{% endif %}
+                                    </div>
                                 </div>
-                                <div class="card-body">
-                                    {% if todos %}
-                                        <div class="row">
-                                            {% for todo in todos %}
-                                            {% if todo.status != 'completed' %}
-                                            <div class="col-md-6 col-lg-4 mb-3">
-                                                <div class="card border-left-{% if todo.priority == 'high' %}danger{% elif todo.priority == 'medium' %}warning{% else %}info{% endif %} h-100">
-                                                    <div class="card-body">
-                                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                                            <a href="{{ url_for('student.todo_detail', todo_id=todo.id) }}" class="text-decoration-none">
-                                                                <h6 class="font-weight-bold text-gray-900">
-                                                                    {{ todo.title }}
-                                                                </h6>
-                                                            </a>
-                                                            <div class="dropdown no-arrow">
-                                                                <a class="dropdown-toggle" href="#" role="button" id="todoDropdown{{ todo.id }}" data-toggle="dropdown">
-                                                                    <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                                                                </a>
-                                                                <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in">
-                                                                    <form method="POST" action="{{ url_for('student.toggle_todo', todo_id=todo.id) }}">
-                                                                        <button type="submit" class="dropdown-item">
-                                                                        {% if todo.status == 'pending' %}
-                                                                            <i class="fas fa-check fa-sm fa-fw mr-2 text-success"></i> Mark Complete
-                                                                        {% else %}
-                                                                            <i class="fas fa-undo fa-sm fa-fw mr-2 text-info"></i> Mark Pending
-                                                                        {% endif %}
-                                                                        </button>
-                                                                    </form>
-                                                                    {% if todo.author_id == current_user.id %}
-                                                                    <form method="POST" action="{{ url_for('student.delete_todo', todo_id=todo.id) }}" onsubmit="return confirm('Are you sure you want to delete this todo?');">
-                                                                        <button type="submit" class="dropdown-item text-danger">
-                                                                            <i class="fas fa-trash fa-sm fa-fw mr-2 text-gray-400"></i> Delete
-                                                                        </button>
-                                                                    </form>
-                                                                    {% endif %}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        {% if todo.description %}
-                                                        <p class="text-gray-700 small mb-2">{{ todo.description }}</p>
-                                                        {% endif %}
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <div>
-                                                                <span class="badge badge-{% if todo.priority == 'high' %}danger{% elif todo.priority == 'medium' %}warning{% else %}info{% endif %} badge-pill">
-                                                                    {{ todo.priority|title }}
-                                                                </span>
-                                                            </div>
-                                                            {% if todo.due_date %}
-                                                            <small class="text-muted">
-                                                                Due: {{ dt(todo.due_date).strftime('%m/%d/%Y') }}
-                                                            </small>
-                                                            {% endif %}
-                                                        </div>
-                                                        {% if todo.assigned_to %}
-                                                        <div class="mt-2">
-                                                            <small class="text-info">
-                                                                <i class="fas fa-user fa-sm mr-1"></i>
-                                                                Assigned to: {{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}
-                                                            </small>
-                                                        </div>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {% endif %}
-                                            {% endfor %}
-                                        </div>
-                                    {% else %}
-                                        <div class="text-center py-4">
-                                            <i class="fas fa-clipboard-list fa-3x text-gray-300 mb-3"></i>
-                                            <h5 class="text-gray-500">{{ _('No todos yet') }}</h5>
-                                            <p class="text-gray-400">{{ _('Create your first todo to get organized!') }}</p>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
+                                {% else %}
+                                    {{ empty('fas fa-user-tie', _('Not specified')) }}
+                                {% endfor %}
+                            {% endcall %}
+
+                            {% call panel(_('Recent Updates'), 'fa-history', url_for('student.thesis_data') ~ '#updates', _('View All')) %}
+                                {% if ov.recent %}
+                                <ul class="dash-feed">
+                                    {% for r in ov.recent %}
+                                    <li>{% if r.author %}{{ avatar(r.author) }}{% endif %}
+                                        <div class="tx"><strong>{% if r.author and r.author.id == current_user.id %}{{ _('You') }}{% else %}{{ user_link(r.author) }}{% endif %}</strong> <small class="d-inline text-muted">· {{ dt(r.update.created_at).strftime('%d %b') }}</small>
+                                            <span class="snip">{{ r.update.content }}</span></div></li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}{{ empty('far fa-comments', _('No recent updates.')) }}{% endif %}
+                            {% endcall %}
                         </div>
                     </div>
-                    
                     {% else %}
-                    <!-- No Thesis Assigned -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-warning">{{ _('No Thesis Assigned') }}</h6>
-                                </div>
-                                <div class="card-body text-center">
-                                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                                    <h5>{{ _('You don\'t have a thesis assigned yet') }}</h5>
-                                    <p class="text-gray-600">{{ _('Please contact your supervisor or administrator to get assigned to a thesis project.') }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        <div class="dash-panel"><div class="dash-panel-body">
+                            {{ empty('fas fa-compass', _("You don't have a thesis assigned yet"), _('Please contact your supervisor or administrator to get assigned to a thesis project.')) }}
+                            <div class="text-center pb-3"><a href="{{ url_for('public.public_thesis_dashboard') }}" class="btn btn-primary"><i class="fas fa-search"></i> {{ _('Browse available theses') }}</a></div>
+                        </div></div>
                     {% endif %}
-
                 </div>
                 <!-- /.container-fluid -->
 

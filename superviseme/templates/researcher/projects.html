@@ -86,7 +86,7 @@
                                                             {% if collaborators %}
                                                                 {% for collab in collaborators[:2] %}
                                                                     <span class="badge badge-secondary mr-1">
-                                                                        {{ collab.user.name }} {{ collab.user.surname }}
+                                                                        {{ user_link(collab.user) }}
                                                                         <small>({{ collab.role }})</small>
                                                                     </span>
                                                                 {% endfor %}

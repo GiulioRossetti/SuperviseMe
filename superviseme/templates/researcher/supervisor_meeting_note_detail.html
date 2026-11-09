@@ -121,7 +121,7 @@
                                     <div class="mb-3">
                                         <strong>{{ _('Student:') }}</strong><br>
                                         {% if thesis.author %}
-                                            {{ thesis.author.name }} {{ thesis.author.surname }}
+                                            {{ user_link(thesis.author) }}
                                         {% else %}
                                             <span class="text-muted">{{ _('No student assigned') }}</span>
                                         {% endif %}

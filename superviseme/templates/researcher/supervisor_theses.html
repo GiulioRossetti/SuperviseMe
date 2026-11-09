@@ -30,95 +30,7 @@
                         </button>
                     </div>
 
-                    <!-- Content Row -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Supervised Theses') }}</h6>
-                                </div>
-                                <div class="card-body">
-                                    {% if theses %}
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>{{ _('Title') }}</th>
-                                                        <th>{{ _('Student') }}</th>
-                                                        <th>{{ _('Level') }}</th>
-                                                        <th>{{ _('Created') }}</th>
-                                                        <th>{{ _('Status') }}</th>
-                                                        <th>{{ _('Actions') }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {% for thesis in theses %}
-                                                    <tr>
-                                                        <td><strong>{{ thesis.title }}</strong></td>
-                                                        <td>
-                                                            {% if thesis.author %}
-                                                                {{ thesis.author.name }} {{ thesis.author.surname }}
-                                                                <br><small class="text-muted">{{ thesis.author.email }}</small>
-                                                            {% else %}
-                                                                <span class="text-warning">{{ _('Not assigned') }}</span>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td>
-                                                            {% if thesis.level %}
-                                                                <span class="badge badge-info">{{ thesis.level|title }}</span>
-                                                            {% else %}
-                                                                <span class="badge badge-secondary">{{ _('Not specified') }}</span>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td>{{ dt(thesis.created_at).strftime('%b %d, %Y') if thesis.created_at else 'Unknown' }}</td>
-                                                        <td>
-                                                            {% if thesis.frozen %}
-                                                                <span class="badge badge-danger">{{ _('Frozen') }}</span>
-                                                            {% else %}
-                                                                <span class="badge badge-success">{{ _('Active') }}</span>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td>
-                                                            <div class="dropdown">
-                                                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-toggle="dropdown">
-                                                                    Actions
-                                                                </button>
-                                                                <div class="dropdown-menu">
-                                                                    <a class="dropdown-item" href="{{ url_for('researcher.supervisor_thesis_detail', thesis_id=thesis.id) }}">
-                                                                        <i class="fas fa-eye"></i> View Details
-                                                                    </a>
-                                                                    <div class="dropdown-divider"></div>
-                                                                    {% if thesis.frozen %}
-                                                                        <a class="dropdown-item" href="#" onclick="unfreezeThesis({{ thesis.id }})">
-                                                                            <i class="fas fa-unlock text-success"></i> Unfreeze
-                                                                        </a>
-                                                                    {% else %}
-                                                                        <a class="dropdown-item" href="#" onclick="freezeThesis({{ thesis.id }})">
-                                                                            <i class="fas fa-lock text-warning"></i> Freeze
-                                                                        </a>
-                                                                    {% endif %}
-                                                                    <div class="dropdown-divider"></div>
-                                                                    <a class="dropdown-item text-danger" href="#" onclick="deleteThesis({{ thesis.id }})">
-                                                                        <i class="fas fa-trash"></i> Delete
-                                                                    </a>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    {% else %}
-                                        <div class="text-center">
-                                            <i class="fas fa-book fa-3x text-gray-300 mb-3"></i>
-                                            <p class="text-gray-500">{{ _('No theses found. Create your first thesis to get started.') }}</p>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {% with detail_endpoint='researcher.supervisor_thesis_detail' %}{% include 'components/theses_board.html' %}{% endwith %}
 
                 </div>
                 <!-- /.container-fluid -->
@@ -178,8 +90,8 @@
                             <input type="text" class="form-control" name="keywords" placeholder="{{ _('ux, user studies, prototyping') }}">
                         </div>
                         <div class="form-group form-check">
-                            <input type="checkbox" class="form-check-input" id="researcher_publish_create" name="is_public" value="1">
-                            <label class="form-check-label" for="researcher_publish_create">{{ _('Publish publicly when thesis is unassigned') }}</label>
+                            <input type="checkbox" class="form-check-input" id="researcher_publish_create" name="is_public" value="1" checked>
+                            <label class="form-check-label" for="researcher_publish_create">{{ _('Publish in the public catalog (students can find it and express interest)') }}</label>
                         </div>
                         <div class="form-group">
                             <label for="level">{{ _('Level:') }}</label>

@@ -1,0 +1,126 @@
+{# Supervisor dashboard body. Expects: ov (supervisor_overview), ep (endpoint names). #}
+{% from 'components/dash.html' import hero, tile, panel, empty, avatar, task_row with context %}
+{% set s = ov.stats %}
+{% set greet = {'morning': _('Good morning, %(name)s', name=current_user.name), 'afternoon': _('Good afternoon, %(name)s', name=current_user.name), 'evening': _('Good evening, %(name)s', name=current_user.name)}[ov.greeting] %}
+{% call hero(greet, _('Here is what needs your attention across your theses and students today.')) %}
+    <a href="{{ url_for(ep.theses_list) }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> {{ _('Manage theses') }}</a>
+    <a href="{{ url_for(ep.students) }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-user-graduate"></i> {{ _('My students') }}</a>
+{% endcall %}
+
+{% with messages = get_flashed_messages() %}{% for message in messages %}
+    <div class="alert alert-info alert-dismissible fade show">{{ message }}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button></div>
+{% endfor %}{% endwith %}
+
+<div class="dash-tiles">
+    {{ tile('fa-user-graduate', 'indigo', s.students, _('Active students'), href=url_for(ep.students)) }}
+    {{ tile('fa-book', 'sky', s.theses, _('Active theses'), href=url_for(ep.theses_list)) }}
+    {{ tile('fa-door-open', 'green', s.open, _('Open opportunities'), (s.pending_interests ~ ' ' ~ _('interested students')) if s.pending_interests else None, url_for(ep.theses_list)) }}
+    {{ tile('fa-tasks', 'amber', s.open_todos, _('Open tasks'), (s.overdue ~ ' ' ~ _('overdue')) if s.overdue else None) }}
+</div>
+
+<div class="row">
+    <div class="col-xl-8">
+        {% call panel(_('Needs attention'), 'fa-bell') %}
+            {% set n = ov.overdue|length + ov.inactive|length + (1 if s.pending_interests else 0) %}
+            {% if n == 0 %}
+                <div class="dash-allclear"><i class="fas fa-check-circle fa-lg"></i> {{ _('All clear — nothing needs your attention right now.') }}</div>
+            {% endif %}
+            <div class="mx-n3 my-n3">
+            {% if s.pending_interests %}
+                <a class="dash-alert" href="{{ url_for(ep.theses_list) }}"><span class="ic blue"><i class="fas fa-heart"></i></span>
+                    <span class="tx"><strong>{{ s.pending_interests }} {{ _('pending student interests') }}</strong><small>{{ _('Students asked to work on your open theses.') }}</small></span><i class="fas fa-chevron-right text-muted"></i></a>
+            {% endif %}
+            {% for t in ov.overdue[:4] %}
+                <a class="dash-alert" href="{{ url_for(ep.todo, todo_id=t.id) }}"><span class="ic red"><i class="far fa-clock"></i></span>
+                    <span class="tx"><strong>{{ t.title }}</strong><small>{{ _('Overdue since') }} {{ dt(t.due_date).strftime('%d %b %Y') }}</small></span><i class="fas fa-chevron-right text-muted"></i></a>
+            {% endfor %}
+            {% for d in ov.inactive[:4] %}
+                <a class="dash-alert" href="{{ url_for(ep.thesis, thesis_id=d.thesis.id) }}"><span class="ic amber"><i class="fas fa-user-clock"></i></span>
+                    <span class="tx"><strong>{{ d.student.name }} {{ d.student.surname }}</strong>
+                    <small>{% if d.days_inactive is none %}{{ _('Has never logged in') }}{% else %}{{ _('Inactive for %(n)d days', n=d.days_inactive) }}{% endif %}</small></span><i class="fas fa-chevron-right text-muted"></i></a>
+            {% endfor %}
+            </div>
+        {% endcall %}
+
+        {% call panel(_('My students'), 'fa-user-graduate', url_for(ep.students), _('View all')) %}
+            {% if ov.assigned %}
+            <div class="dash-people">
+                {% for c in ov.assigned[:6] %}
+                    <a class="dash-person" href="{{ url_for(ep.thesis, thesis_id=c.thesis.id) }}">
+                        <div class="top">{{ avatar(c.student) }}<div class="min-w-0" style="min-width:0"><div class="nm">{{ c.student.name }} {{ c.student.surname }}</div><div class="th" title="{{ c.thesis.title }}">{{ c.thesis.title }}</div></div></div>
+                        <div class="progress"><div class="progress-bar" style="width: {{ c.progress or 0 }}%"></div></div>
+                        <div class="foot">
+                            <span><span class="dash-dot {{ 'never' if c.days_inactive is none else ('idle' if c.days_inactive > 14 else '') }}"></span>{% if c.days_inactive is none %}{{ _('Never logged in') }}{% elif c.days_inactive == 0 %}{{ _('Active today') }}{% else %}{{ _('%(n)d d ago', n=c.days_inactive) }}{% endif %}</span>
+                            <span>{% if c.status %}{{ _(c.status|replace('-', ' ')|capitalize) }}{% else %}{{ c.todos_done }}/{{ c.todos_total }} {{ _('tasks') }}{% endif %}</span>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+            {% else %}
+                {{ empty('fas fa-user-graduate', _('No assigned students yet'), _('Students appear here once a thesis is assigned.')) }}
+            {% endif %}
+        {% endcall %}
+
+        {% call panel(_('Open thesis opportunities'), 'fa-door-open', url_for(ep.theses_list), _('Manage')) %}
+            {% if ov.open_cards %}
+            <div class="dash-cards">
+                {% for c in ov.open_cards[:6] %}
+                    {% set t = c.thesis %}
+                    {% set lvl = (t.level or '')|lower %}
+                    {% set icon = {'bachelor': 'fa-seedling', 'master': 'fa-graduation-cap', 'phd': 'fa-microscope'}.get(lvl, 'fa-book-open') %}
+                    <a class="dash-card" href="{{ url_for(ep.thesis, thesis_id=t.id) }}">
+                        <span class="cv {% if not t.images %}g{{ t.id % 6 }}{% endif %}">{% if t.images %}<img src="{{ url_for('media.thesis_image', filename=t.images[0].filename[7:]) }}" alt="" loading="lazy">{% else %}<i class="fas {{ icon }}"></i>{% endif %}
+                            {% if c.pending_interests %}<span class="pill"><i class="fas fa-heart"></i> {{ c.pending_interests }}</span>{% endif %}</span>
+                        <span class="bd"><strong>{{ t.title }}</strong><small>{{ t.topic or (_(t.level|title) if t.level else '') }}</small></span>
+                        <span class="ft"><span>{% if t.is_public %}<i class="fas fa-globe"></i> {{ _('Public') }}{% else %}<i class="fas fa-eye-slash"></i> {{ _('Private') }}{% endif %}</span><span>{{ dt(t.created_at).strftime('%d %b') }}</span></span>
+                    </a>
+                {% endfor %}
+            </div>
+            {% else %}
+                {{ empty('far fa-folder-open', _('No open theses at the moment.')) }}
+            {% endif %}
+        {% endcall %}
+    </div>
+
+    <div class="col-xl-4">
+        {% call panel(_('Thesis pipeline'), 'fa-stream') %}
+            {% if ov.pipeline %}
+                {% set total = ov.pipeline|sum(attribute=1) %}
+                <div class="dash-bar">{% for k, v in ov.pipeline %}<span class="pc{{ loop.index0 % 6 }}" style="width: {{ 100 * v / total }}%" title="{{ k }}: {{ v }}"></span>{% endfor %}</div>
+                <div class="dash-legend">{% for k, v in ov.pipeline %}<span><i class="pc{{ loop.index0 % 6 }}"></i>{{ _(k|replace('-', ' ')|capitalize) }} · {{ v }}</span>{% endfor %}</div>
+            {% else %}{{ empty('fas fa-stream', _('No theses yet')) }}{% endif %}
+        {% endcall %}
+
+        {% call panel(_('Recent activity'), 'fa-history') %}
+            {% if ov.recent %}
+            <ul class="dash-feed">
+                {% for r in ov.recent %}
+                <li>{% if r.author %}{{ avatar(r.author) }}{% endif %}
+                    <div class="tx"><strong>{{ user_link(r.author) }}</strong> <small class="d-inline text-muted">· {{ dt(r.update.created_at).strftime('%d %b') }}</small>
+                        <small>{{ r.thesis_title }}</small><span class="snip">{{ r.update.content }}</span></div></li>
+                {% endfor %}
+            </ul>
+            {% else %}{{ empty('far fa-comments', _('No recent updates.')) }}{% endif %}
+        {% endcall %}
+    </div>
+</div>
+
+<div class="dash-panel">
+    <header>
+        <h6><i class="fas fa-tasks"></i> {{ _('Shared Todo Lists') }}</h6>
+        {% if ov.assignable %}<button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addTodoModal"><i class="fas fa-plus"></i> {{ _('Add Todo') }}</button>{% endif %}
+    </header>
+    <div class="dash-panel-body">
+        {% if ov.todos %}
+            <div class="dash-tasks">
+            {% for todo in ov.todos[:12] %}
+                {% set st = ov.students_by_thesis.get(todo.thesis_id) %}
+                {{ task_row(todo, {'detail': url_for(ep.todo, todo_id=todo.id), 'toggle': url_for(ep.toggle, todo_id=todo.id), 'delete': url_for(ep.delete, todo_id=todo.id)}, (st.name ~ ' ' ~ st.surname) if st else None) }}
+            {% endfor %}
+            </div>
+            {% if ov.todos|length > 12 %}<div class="text-muted small mt-2">{{ _('Showing the first 12 tasks.') }}</div>{% endif %}
+        {% else %}
+            {{ empty('fas fa-clipboard-list', _('No shared todos yet'), _('Create todos to collaborate with your students!')) }}
+        {% endif %}
+    </div>
+</div>

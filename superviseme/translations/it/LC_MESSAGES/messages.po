@@ -2583,3 +2583,726 @@ msgstr "Il sistema registra dove gli studenti sono stati attivi l'ultima volta (
 
 msgid "Only supervisors with assigned students will receive weekly reports. Supervisors with no students are automatically excluded from the weekly email batch."
 msgstr "Solo i supervisori con studenti assegnati riceveranno i report settimanali. I supervisori senza studenti vengono automaticamente esclusi dall'invio email settimanale."
+
+# --- New UI strings (profile, theses, timeline, supervisees) ---
+msgid "Public"
+msgstr "Pubblico"
+
+msgid "Select \"Logout\" below if you are ready to end your current session."
+msgstr "Seleziona \"Esci\" qui sotto se vuoi terminare la sessione corrente."
+
+msgid "You're all caught up! New notifications will appear here."
+msgstr "Sei in pari! Le nuove notifiche compariranno qui."
+
+msgid "You have %(n)s unassigned thesis(es) that are not public or are frozen, so students cannot see them here. Enable \"Publish publicly\" in the thesis settings to make them available."
+msgstr "Hai %(n)s tesi non assegnate che non sono pubbliche o sono congelate, quindi gli studenti non possono vederle qui. Attiva \"Pubblica\" nelle impostazioni della tesi per renderle disponibili."
+
+msgid "Publish in the public catalog (students can find it and express interest)"
+msgstr "Pubblica nel catalogo pubblico (gli studenti possono trovarla ed esprimere interesse)"
+
+msgid "Enter a tag (e.g., 'needs-revision', 'excellent', 'clarify')"
+msgstr "Inserisci un tag (ad es. 'da-rivedere', 'ottimo', 'chiarire')"
+
+msgid "GitHub repository"
+msgstr "Repository GitHub"
+
+msgid "Overleaf project"
+msgstr "Progetto Overleaf"
+
+msgid "Google Drive folder"
+msgstr "Cartella Google Drive"
+
+msgid "GitLab repository"
+msgstr "Repository GitLab"
+
+msgid "Dropbox"
+msgstr "Dropbox"
+
+msgid "OneDrive / SharePoint"
+msgstr "OneDrive / SharePoint"
+
+msgid "Notion"
+msgstr "Notion"
+
+msgid "Hugging Face"
+msgstr "Hugging Face"
+
+msgid "You don't have a thesis assigned yet"
+msgstr "Non hai ancora una tesi assegnata"
+
+msgid "Once a thesis is assigned to you, you'll be able to:"
+msgstr "Quando ti verrà assegnata una tesi, potrai:"
+
+msgid "Upcoming"
+msgstr "In arrivo"
+
+msgid "Your supervisor has not set a status yet."
+msgstr "Il tuo relatore non ha ancora impostato uno stato."
+
+msgid "My Activity"
+msgstr "La mia attività"
+
+msgid "contributions in the last year"
+msgstr "contributi nell'ultimo anno"
+
+msgid "current streak"
+msgstr "serie attuale"
+
+msgid "longest streak"
+msgstr "serie più lunga"
+
+msgid "contributions"
+msgstr "contributi"
+
+msgid "Less"
+msgstr "Meno"
+
+msgid "More"
+msgstr "Più"
+
+msgid "Search by name, email, thesis, topic or keyword..."
+msgstr "Cerca per nome, email, tesi, argomento o parola chiave..."
+
+msgid "All"
+msgstr "Tutti"
+
+msgid "Inactive"
+msgstr "Inattivi"
+
+msgid "Advanced search"
+msgstr "Ricerca avanzata"
+
+msgid "Any"
+msgstr "Qualsiasi"
+
+msgid "Thesis status"
+msgstr "Stato della tesi"
+
+msgid "No status set"
+msgstr "Nessuno stato impostato"
+
+msgid "Last seen"
+msgstr "Ultimo accesso"
+
+msgid "Any time"
+msgstr "In qualsiasi momento"
+
+msgid "Within 7 days"
+msgstr "Negli ultimi 7 giorni"
+
+msgid "Within 14 days"
+msgstr "Negli ultimi 14 giorni"
+
+msgid "Within 30 days"
+msgstr "Negli ultimi 30 giorni"
+
+msgid "More than 30 days ago"
+msgstr "Più di 30 giorni fa"
+
+msgid "Never logged in"
+msgstr "Mai acceduto"
+
+msgid "Task progress"
+msgstr "Avanzamento attività"
+
+msgid "No tasks yet"
+msgstr "Nessuna attività"
+
+msgid "Below"
+msgstr "Sotto il"
+
+msgid "Topic / keyword"
+msgstr "Argomento / parola chiave"
+
+msgid "e.g. deep learning"
+msgstr "es. deep learning"
+
+msgid "Thesis title"
+msgstr "Titolo della tesi"
+
+msgid "Sort by"
+msgstr "Ordina per"
+
+msgid "Reset"
+msgstr "Reimposta"
+
+msgid "Tasks"
+msgstr "Attività"
+
+msgid "Last online"
+msgstr "Ultimo accesso online"
+
+msgid "days ago"
+msgstr "giorni fa"
+
+msgid "Previous"
+msgstr "Precedente"
+
+msgid "No students match your search."
+msgstr "Nessuno studente corrisponde alla ricerca."
+
+msgid "students"
+msgstr "studenti"
+
+msgid "Student Profile"
+msgstr "Profilo dello studente"
+
+msgid "Back to My Students"
+msgstr "Torna ai miei studenti"
+
+msgid "Last activity"
+msgstr "Ultima attività"
+
+msgid "View Thesis"
+msgstr "Vedi tesi"
+
+msgid "Profile Details"
+msgstr "Dettagli del profilo"
+
+msgid "Editing unlocked"
+msgstr "Modifica sbloccata"
+
+msgid "Lock"
+msgstr "Blocca"
+
+msgid "Unlock editing"
+msgstr "Sblocca la modifica"
+
+msgid "Leave blank to keep the current password."
+msgstr "Lascia vuoto per mantenere la password attuale."
+
+msgid "Save changes"
+msgstr "Salva modifiche"
+
+msgid "Joined"
+msgstr "Iscritto dal"
+
+msgid "To change this profile, unlock editing with your own password."
+msgstr "Per modificare questo profilo, sblocca la modifica con la tua password."
+
+msgid "Student Activity"
+msgstr "Attività dello studente"
+
+msgid "Overview"
+msgstr "Panoramica"
+
+msgid "Updates posted"
+msgstr "Aggiornamenti pubblicati"
+
+msgid "Meeting notes"
+msgstr "Note di riunione"
+
+msgid "Tasks completed"
+msgstr "Attività completate"
+
+msgid "Recent updates"
+msgstr "Aggiornamenti recenti"
+
+msgid "Confirm your password"
+msgstr "Conferma la tua password"
+
+msgid "For security, enter your own password to edit this student's profile. Editing stays unlocked for 10 minutes."
+msgstr "Per sicurezza, inserisci la tua password per modificare il profilo di questo studente. La modifica resta sbloccata per 10 minuti."
+
+msgid "Thesis accepted"
+msgstr "Tesi accettata"
+
+msgid "In progress"
+msgstr "In corso"
+
+msgid "Needs revision"
+msgstr "Da rivedere"
+
+msgid "Phd"
+msgstr "Dottorato"
+
+# --- Uploads, thesis media, flash messages ---
+msgid "Profile Picture"
+msgstr "Foto del profilo"
+
+msgid "Choose an image..."
+msgstr "Scegli un'immagine..."
+
+msgid "Upload picture"
+msgstr "Carica foto"
+
+msgid "PNG, JPEG, GIF or WEBP, max 2 MB."
+msgstr "PNG, JPEG, GIF o WEBP, max 2 MB."
+
+msgid "Remove picture"
+msgstr "Rimuovi foto"
+
+msgid "Open thesis details"
+msgstr "Apri i dettagli della tesi"
+
+msgid "Presentation: images & references"
+msgstr "Presentazione: immagini e riferimenti"
+
+msgid "Shown on the thesis card when it is published."
+msgstr "Mostrato nella scheda della tesi quando viene pubblicata."
+
+msgid "Images"
+msgstr "Immagini"
+
+msgid "Remove this image?"
+msgstr "Rimuovere questa immagine?"
+
+msgid "No images yet."
+msgstr "Nessuna immagine."
+
+msgid "Choose one or more images..."
+msgstr "Scegli una o più immagini..."
+
+msgid "Caption (optional, applied to all selected images)"
+msgstr "Didascalia (facoltativa, applicata a tutte le immagini selezionate)"
+
+msgid "Upload"
+msgstr "Carica"
+
+msgid "PNG, JPEG, GIF or WEBP, max 5 MB each."
+msgstr "PNG, JPEG, GIF o WEBP, max 5 MB ciascuna."
+
+msgid "External references"
+msgstr "Riferimenti esterni"
+
+msgid "No links yet."
+msgstr "Nessun link."
+
+msgid "Label (e.g. Related paper)"
+msgstr "Etichetta (es. Articolo correlato)"
+
+msgid "Add link"
+msgstr "Aggiungi link"
+
+msgid "files"
+msgstr "file"
+
+msgid "Close"
+msgstr "Chiudi"
+
+msgid "No file selected."
+msgstr "Nessun file selezionato."
+
+msgid "The file is empty."
+msgstr "Il file è vuoto."
+
+msgid "The image is too large (max %(mb)d MB)."
+msgstr "L'immagine è troppo grande (max %(mb)d MB)."
+
+msgid "Unsupported image format. Use PNG, JPEG, GIF or WEBP."
+msgstr "Formato immagine non supportato. Usa PNG, JPEG, GIF o WEBP."
+
+msgid "The image could not be processed."
+msgstr "Impossibile elaborare l'immagine."
+
+msgid "At most %(n)d images per thesis."
+msgstr "Al massimo %(n)d immagini per tesi."
+
+msgid "Please provide a valid http(s) link."
+msgstr "Inserisci un link http(s) valido."
+
+msgid "At most %(n)d links per thesis."
+msgstr "Al massimo %(n)d link per tesi."
+
+msgid "%(n)d image(s) added."
+msgstr "%(n)d immagine/i aggiunta/e."
+
+msgid "Reference link added."
+msgstr "Link di riferimento aggiunto."
+
+msgid "Profile picture removed"
+msgstr "Foto del profilo rimossa"
+
+msgid "Profile picture updated"
+msgstr "Foto del profilo aggiornata"
+
+msgid "Image removed."
+msgstr "Immagine rimossa."
+
+msgid "Image not found."
+msgstr "Immagine non trovata."
+
+msgid "Link removed."
+msgstr "Link rimosso."
+
+msgid "Link not found."
+msgstr "Link non trovato."
+
+msgid "Thesis not found or not managed by you"
+msgstr "Tesi non trovata o non gestita da te"
+
+msgid "Student not found or not supervised by you"
+msgstr "Studente non trovato o non seguito da te"
+
+msgid "Please confirm your password to edit this student's profile."
+msgstr "Conferma la tua password per modificare il profilo di questo studente."
+
+msgid "Too many failed attempts. Please try again in a few minutes."
+msgstr "Troppi tentativi falliti. Riprova tra qualche minuto."
+
+msgid "Incorrect password."
+msgstr "Password errata."
+
+msgid "Editing unlocked for 10 minutes."
+msgstr "Modifica sbloccata per 10 minuti."
+
+# --- Contacts and read-only profiles ---
+msgid "Please enter a valid contact email."
+msgstr "Inserisci un'email di contatto valida."
+
+msgid "Please enter a valid phone number."
+msgstr "Inserisci un numero di telefono valido."
+
+msgid "Office & contacts"
+msgstr "Ufficio e contatti"
+
+msgid "Visible to students on your thesis cards and on your profile page."
+msgstr "Visibile agli studenti nelle schede delle tue tesi e nella tua pagina di profilo."
+
+msgid "Office location"
+msgstr "Ubicazione dell'ufficio"
+
+msgid "e.g. Building A, room 12, second floor"
+msgstr "es. Edificio A, stanza 12, secondo piano"
+
+msgid "Contact email"
+msgstr "Email di contatto"
+
+msgid "Leave blank to show your account email."
+msgstr "Lascia vuoto per mostrare l'email del tuo account."
+
+msgid "Phone"
+msgstr "Telefono"
+
+msgid "Administrator"
+msgstr "Amministratore"
+
+msgid "Back"
+msgstr "Indietro"
+
+msgid "Contacts"
+msgstr "Contatti"
+
+msgid "No further contact details provided."
+msgstr "Nessun altro recapito indicato."
+
+msgid "Open theses"
+msgstr "Tesi aperte"
+
+msgid "Assigned theses"
+msgstr "Tesi assegnate"
+
+msgid "Archived theses"
+msgstr "Tesi archiviate"
+
+msgid "research projects"
+msgstr "progetti di ricerca"
+
+msgid "Open thesis opportunities"
+msgstr "Opportunità di tesi aperte"
+
+msgid "No open theses at the moment."
+msgstr "Nessuna tesi aperta al momento."
+
+msgid "No thesis assigned yet."
+msgstr "Nessuna tesi ancora assegnata."
+
+msgid "Active theses"
+msgstr "Tesi attive"
+
+msgid "Open"
+msgstr "Aperte"
+
+msgid "Pending interests"
+msgstr "Interessi in sospeso"
+
+msgid "Search by title, student, topic or keyword..."
+msgstr "Cerca per titolo, studente, argomento o parola chiave..."
+
+msgid "Visibility"
+msgstr "Visibilità"
+
+msgid "Published in the public catalog"
+msgstr "Pubblicate nel catalogo pubblico"
+
+msgid "Not published"
+msgstr "Non pubblicate"
+
+msgid "Student interest"
+msgstr "Interesse degli studenti"
+
+msgid "With pending interests"
+msgstr "Con interessi in sospeso"
+
+msgid "Newest"
+msgstr "Più recenti"
+
+msgid "Freeze"
+msgstr "Congela"
+
+msgid "Private"
+msgstr "Privata"
+
+msgid "interested"
+msgstr "interessati"
+
+msgid "No theses match your search."
+msgstr "Nessuna tesi corrisponde alla ricerca."
+
+msgid "Archived (frozen) theses"
+msgstr "Tesi archiviate (congelate)"
+
+msgid "Unfreeze"
+msgstr "Scongela"
+
+msgid "Security"
+msgstr "Sicurezza"
+
+msgid "Integrations"
+msgstr "Integrazioni"
+
+msgid "Change profile picture"
+msgstr "Cambia foto profilo"
+
+msgid "Change"
+msgstr "Cambia"
+
+msgid "Profile picture"
+msgstr "Foto profilo"
+
+msgid "Drag an image here or click to choose"
+msgstr "Trascina un'immagine qui o clicca per sceglierla"
+
+msgid "Drag to reposition, use the slider to zoom."
+msgstr "Trascina per riposizionare, usa il cursore per ingrandire."
+
+msgid "Rotate"
+msgstr "Ruota"
+
+msgid "Choose another"
+msgstr "Scegli un'altra"
+
+msgid "Save picture"
+msgstr "Salva foto"
+
+msgid "Unsupported file type."
+msgstr "Tipo di file non supportato."
+
+msgid "The image is too large (max 2 MB)."
+msgstr "L'immagine è troppo grande (max 2 MB)."
+
+msgid "Could not read this image."
+msgstr "Impossibile leggere questa immagine."
+
+msgid "Could not process the image."
+msgstr "Impossibile elaborare l'immagine."
+
+msgid "Upload failed. Please try again."
+msgstr "Caricamento non riuscito. Riprova."
+
+msgid "Back to Dashboard"
+msgstr "Torna alla dashboard"
+
+msgid "Call"
+msgstr "Chiama"
+
+msgid "View profile"
+msgstr "Vedi profilo"
+
+msgid "Good morning, %(name)s"
+msgstr "Buongiorno, %(name)s"
+
+msgid "Good afternoon, %(name)s"
+msgstr "Buon pomeriggio, %(name)s"
+
+msgid "Good evening, %(name)s"
+msgstr "Buonasera, %(name)s"
+
+msgid "Here is what needs your attention across your theses and students today."
+msgstr "Ecco cosa richiede la tua attenzione oggi su tesi e studenti."
+
+msgid "Manage theses"
+msgstr "Gestisci tesi"
+
+msgid "My students"
+msgstr "I miei studenti"
+
+msgid "Active students"
+msgstr "Studenti attivi"
+
+msgid "Open opportunities"
+msgstr "Opportunità aperte"
+
+msgid "interested students"
+msgstr "studenti interessati"
+
+msgid "Open tasks"
+msgstr "Attività aperte"
+
+msgid "overdue"
+msgstr "in ritardo"
+
+msgid "Needs attention"
+msgstr "Da seguire"
+
+msgid "All clear — nothing needs your attention right now."
+msgstr "Tutto a posto: al momento nulla richiede la tua attenzione."
+
+msgid "pending student interests"
+msgstr "interessi degli studenti in sospeso"
+
+msgid "Students asked to work on your open theses."
+msgstr "Studenti che vogliono lavorare alle tue tesi aperte."
+
+msgid "Overdue since"
+msgstr "In ritardo dal"
+
+msgid "Has never logged in"
+msgstr "Non ha mai effettuato l'accesso"
+
+msgid "Inactive for %(n)d days"
+msgstr "Inattivo da %(n)d giorni"
+
+msgid "Active today"
+msgstr "Attivo oggi"
+
+msgid "%(n)d d ago"
+msgstr "%(n)d g fa"
+
+msgid "tasks"
+msgstr "attività"
+
+msgid "View all"
+msgstr "Vedi tutti"
+
+msgid "No assigned students yet"
+msgstr "Nessuno studente assegnato"
+
+msgid "Students appear here once a thesis is assigned."
+msgstr "Gli studenti compaiono qui quando una tesi viene assegnata."
+
+msgid "Manage"
+msgstr "Gestisci"
+
+msgid "Thesis pipeline"
+msgstr "Avanzamento delle tesi"
+
+msgid "No theses yet"
+msgstr "Nessuna tesi"
+
+msgid "Recent activity"
+msgstr "Attività recente"
+
+msgid "Showing the first 12 tasks."
+msgstr "Mostro le prime 12 attività."
+
+msgid "Mark Pending"
+msgstr "Segna come da fare"
+
+msgid "Mark Complete"
+msgstr "Segna come completata"
+
+msgid "Toggle task"
+msgstr "Cambia stato"
+
+msgid "Are you sure you want to delete this todo?"
+msgstr "Sei sicuro di voler eliminare questa attività?"
+
+msgid "Your thesis at a glance: progress, next deadlines and news from your supervisor."
+msgstr "La tua tesi in sintesi: avanzamento, prossime scadenze e novità dal relatore."
+
+msgid "Welcome! Once a thesis is assigned to you, your progress will show up here."
+msgstr "Benvenuto! Quando ti verrà assegnata una tesi, qui vedrai i tuoi progressi."
+
+msgid "Open my thesis"
+msgstr "Apri la mia tesi"
+
+msgid "Browse available theses"
+msgstr "Sfoglia le tesi disponibili"
+
+msgid "My updates"
+msgstr "I miei aggiornamenti"
+
+msgid "Supervisor feedback"
+msgstr "Feedback del relatore"
+
+msgid "Tasks done"
+msgstr "Completate"
+
+msgid "Showing the next 8 tasks."
+msgstr "Mostro le prossime 8 attività."
+
+msgid "No open tasks"
+msgstr "Nessuna attività aperta"
+
+msgid "Great job, everything is done!"
+msgstr "Ottimo lavoro, è tutto fatto!"
+
+msgid "completed"
+msgstr "completate"
+
+msgid "Your research projects, collaborations and supervision at a glance."
+msgstr "Progetti di ricerca, collaborazioni e supervisioni in sintesi."
+
+msgid "Manage Projects"
+msgstr "Gestisci progetti"
+
+msgid "Supervisor Dashboard"
+msgstr "Dashboard supervisore"
+
+msgid "active"
+msgstr "attivi"
+
+msgid "Collaborations"
+msgstr "Collaborazioni"
+
+msgid "No collaborations yet"
+msgstr "Nessuna collaborazione"
+
+msgid "Platform overview: people, supervision workload and the thesis catalog."
+msgstr "Panoramica della piattaforma: persone, carico di supervisione e catalogo tesi."
+
+msgid "Manage users"
+msgstr "Gestisci utenti"
+
+msgid "Students"
+msgstr "Studenti"
+
+msgid "Researchers"
+msgstr "Ricercatori"
+
+msgid "Admins"
+msgstr "Amministratori"
+
+msgid "open"
+msgstr "aperte"
+
+msgid "Supervision workload"
+msgstr "Carico di supervisione"
+
+msgid "assigned theses"
+msgstr "tesi assegnate"
+
+msgid "No supervisors yet"
+msgstr "Nessun relatore"
+
+msgid "Open thesis catalog"
+msgstr "Catalogo tesi aperte"
+
+msgid "Shortcuts"
+msgstr "Scorciatoie"
+
+msgid "System stats"
+msgstr "Statistiche di sistema"
+
+msgid "Export data"
+msgstr "Esporta dati"
+
+msgid "Start a chat with the bot of this installation on Telegram"
+msgstr "Avvia una chat su Telegram con il bot di questa installazione"
+
+msgid "The administrator has not configured a Telegram bot for this installation yet."
+msgstr "L'amministratore non ha ancora configurato un bot Telegram per questa installazione."
+
+msgid "Unavailable"
+msgstr "Non disponibile"

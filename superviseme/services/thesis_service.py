@@ -49,7 +49,10 @@ def get_public_theses(
     keyword:   optional free-text filter on title / description / topic.
     level:     optional filter on ``Thesis.level``.
     """
-    query = Thesis.query.filter_by(is_public=True, frozen=False)
+    query = Thesis.query.filter(
+        Thesis.is_public.is_(True),
+        or_(Thesis.frozen.is_(False), Thesis.frozen.is_(None)),
+    )
 
     if keyword:
         kw = f"%{keyword}%"

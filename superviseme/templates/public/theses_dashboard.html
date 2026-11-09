@@ -1,116 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
-
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="description" content="Public available theses">
-    <meta name="author" content="SuperviseMe">
-    <title>SuperviseMe - Available Theses</title>
-
-    <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
-    <link href="{{ url_for('static', filename='assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
-
-    <style>
-        .public-sidebar-link.active {
-            background-color: rgba(255,255,255,.16);
-            border-radius: .35rem;
-        }
-        .thesis-grid {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            gap: .75rem;
-        }
-        .thesis-card {
-            min-height: 220px;
-            display: flex;
-            flex-direction: column;
-        }
-        .thesis-desc {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .chip {
-            display: inline-block;
-            margin: 0 .35rem .35rem 0;
-        }
-        @media (max-width: 1700px) { .thesis-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-        @media (max-width: 1350px) { .thesis-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-        @media (max-width: 992px) { .thesis-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-        @media (max-width: 576px) { .thesis-grid { grid-template-columns: 1fr; } }
+{% extends 'public/base_public.html' %}
+{% block page_content %}
+<style>
+        .thesis-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.25rem; }
+        .thesis-card { display: flex; flex-direction: column; border: 1px solid var(--sm-border); border-radius: 14px; overflow: hidden;
+            background: var(--sm-surface); transition: transform .18s ease, box-shadow .18s ease; }
+        .thesis-card:hover { transform: translateY(-4px); box-shadow: 0 .75rem 1.5rem rgba(15,23,42,.14) !important; }
+        .thesis-cover { position: relative; display: block; height: 160px; overflow: hidden; color: #fff; text-decoration: none !important; }
+        .thesis-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform .35s ease; display: block; }
+        .thesis-card:hover .thesis-cover img { transform: scale(1.06); }
+        .thesis-cover.placeholder { display: flex; align-items: center; justify-content: center; }
+        .thesis-cover.placeholder::before { content: ""; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(255,255,255,.22), transparent 45%), radial-gradient(circle at 85% 90%, rgba(255,255,255,.16), transparent 40%); }
+        .thesis-cover.placeholder > i { position: relative; font-size: 3.2rem; opacity: .92; text-shadow: 0 4px 14px rgba(0,0,0,.25); }
+        .thesis-cover.g0 { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+        .thesis-cover.g1 { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
+        .thesis-cover.g2 { background: linear-gradient(135deg, #10b981, #0d9488); }
+        .thesis-cover.g3 { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+        .thesis-cover.g4 { background: linear-gradient(135deg, #ec4899, #8b5cf6); }
+        .thesis-cover.g5 { background: linear-gradient(135deg, #14b8a6, #3b82f6); }
+        .thesis-cover::after { content: ""; position: absolute; inset: auto 0 0 0; height: 55%; background: linear-gradient(to top, rgba(0,0,0,.45), transparent); pointer-events: none; }
+        .thesis-level { position: absolute; top: .7rem; left: .7rem; z-index: 2; background: rgba(255,255,255,.92); color: #1e293b;
+            font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; border-radius: 999px; padding: .2rem .65rem; }
+        .thesis-photos { position: absolute; top: .7rem; right: .7rem; z-index: 2; background: rgba(0,0,0,.55); color: #fff; font-size: .7rem; border-radius: 999px; padding: .2rem .55rem; }
+        .thesis-topic { position: absolute; left: .8rem; right: .8rem; bottom: .6rem; z-index: 2; font-size: .75rem; font-weight: 600;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .thesis-title { font-size: 1.02rem; font-weight: 700; line-height: 1.3; color: var(--sm-text); margin-bottom: .5rem;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.65rem; }
+        .thesis-title a { color: inherit; text-decoration: none; }
+        .thesis-title a:hover { color: var(--sm-primary); }
+        .thesis-desc { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: .85rem; color: var(--sm-text-muted); }
+        .thesis-sups { display: flex; align-items: center; gap: .5rem; font-size: .8rem; color: var(--sm-text-muted); margin-bottom: .6rem; }
+        .thesis-sups .stack { display: flex; }
+        .thesis-sups .mini { width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--sm-primary-muted); color: var(--sm-primary); border: 2px solid var(--sm-surface);
+            font-size: .62rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-left: -.45rem; text-transform: uppercase; }
+        .thesis-sups .mini:first-child { margin-left: 0; }
+        .thesis-sups .names { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chip { display: inline-block; margin: 0 .3rem .3rem 0; font-weight: 600; border-radius: 999px; padding: .28rem .6rem; background: var(--sm-primary-muted); color: var(--sm-primary); font-size: .7rem; }
+        .chip.more { background: var(--sm-bg); color: var(--sm-text-muted); border: 1px solid var(--sm-border); }
+        .thesis-foot { margin-top: auto; padding-top: .75rem; border-top: 1px solid var(--sm-border); display: flex; align-items: center; justify-content: space-between; }
+        .thesis-foot small { color: var(--sm-text-muted); }
     </style>
-</head>
-
-<body id="page-top">
-<div id="wrapper">
-
-    {% if current_user.is_authenticated and current_user.user_type == 'student' %}
-        {% include 'student/components/sidebar.html' %}
-    {% else %}
-        <ul class="navbar-nav bg-gradient-success sidebar sidebar-dark accordion" id="accordionSidebar">
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('public.public_thesis_dashboard') }}">
-<div class="sidebar-brand-icon"><img src="{{ url_for('static', filename='assets/img/logo.svg') }}" alt="SuperviseMe" width="32" height="32" style="filter:brightness(1) drop-shadow(0 1px 2px rgba(0,0,0,.3));"></div>
-                <div class="sidebar-brand-text mx-3">SuperviseMe</div>
-            </a>
-
-            <hr class="sidebar-divider my-0">
-
-            <li class="nav-item active">
-                <a class="nav-link public-sidebar-link active" href="{{ url_for('public.public_thesis_dashboard') }}">
-                    <i class="fas fa-fw fa-book-open"></i>
-                    <span>{{ _('Available Theses') }}</span>
-                </a>
-            </li>
-
-            <hr class="sidebar-divider">
-
-            {% if current_user.is_authenticated %}
-                {% if current_user.user_type == 'admin' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>{{ _('Dashboard') }}</span></a></li>
-                {% elif current_user.user_type == 'supervisor' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('supervisor.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>{{ _('Dashboard') }}</span></a></li>
-                {% elif current_user.user_type == 'researcher' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('researcher.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>{{ _('Dashboard') }}</span></a></li>
-                {% endif %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('profile.profile_page') }}"><i class="fas fa-fw fa-user"></i><span>{{ _('Profile') }}</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/notifications"><i class="fas fa-fw fa-bell"></i><span>{{ _('Notifications') }}</span></a></li>
-            {% else %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-fw fa-sign-in-alt"></i><span>{{ _('Sign in / Sign up') }}</span></a></li>
-            {% endif %}
-
-            <hr class="sidebar-divider d-none d-md-block">
-
-            <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
-            </div>
-        </ul>
-    {% endif %}
-
-    <div id="content-wrapper" class="d-flex flex-column">
-        <div id="content">
-            {% if current_user.is_authenticated %}
-                {% include 'admin/components/topbar.html' %}
-            {% else %}
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-                    <span class="navbar-brand mb-0 h6 text-gray-700">{{ _('Public Thesis Board') }}</span>
-                </nav>
-            {% endif %}
-
-            <div class="container-fluid">
-
                 <div class="d-sm-flex align-items-center justify-content-between mb-4">
                     <div>
                         <h1 class="h3 mb-0 text-gray-800">{{ _('Available Thesis Opportunities') }}</h1>
                         <div class="small text-muted">{{ _('Public catalog of currently unassigned theses.') }}</div>
                     </div>
                 </div>
+
+                {% if hidden_own_theses %}
+                <div class="alert alert-warning d-flex align-items-center">
+                    <i class="fas fa-eye-slash mr-2"></i>
+                    <div>{{ _('You have %(n)s unassigned thesis(es) that are not public or are frozen, so students cannot see them here. Enable "Publish publicly" in the thesis settings to make them available.', n=hidden_own_theses) }}</div>
+                </div>
+                {% endif %}
 
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
@@ -146,38 +88,47 @@
                 {% if theses %}
                     <div class="thesis-grid">
                         {% for thesis in theses %}
+                            {% set sup_list = supervisors_by_thesis.get(thesis.id, []) %}
+                            {% set kw = tags_by_thesis.get(thesis.id, []) %}
+                            {% set lvl = (thesis.level or '')|lower %}
+                            {% set icon = {'bachelor': 'fa-seedling', 'master': 'fa-graduation-cap', 'phd': 'fa-microscope'}.get(lvl, 'fa-book-open') %}
                             <div class="card shadow thesis-card">
+                                <a class="thesis-cover {% if not thesis.images %}placeholder g{{ thesis.id % 6 }}{% endif %}"
+                                   href="{{ url_for('public.public_thesis_detail', thesis_id=thesis.id) }}" aria-label="{{ thesis.title }}">
+                                    {% if thesis.images %}
+                                        <img src="{{ url_for('media.thesis_image', filename=thesis.images[0].filename[7:]) }}" alt="{{ thesis.title }}" loading="lazy">
+                                    {% else %}
+                                        <i class="fas {{ icon }}"></i>
+                                    {% endif %}
+                                    {% if thesis.level %}<span class="thesis-level">{{ _(thesis.level|title) }}</span>{% endif %}
+                                    {% if thesis.images|length > 1 %}<span class="thesis-photos"><i class="fas fa-images"></i> {{ thesis.images|length }}</span>{% endif %}
+                                    {% if thesis.topic %}<span class="thesis-topic"><i class="fas fa-tag mr-1"></i>{{ thesis.topic }}</span>{% endif %}
+                                </a>
                                 <div class="card-body d-flex flex-column">
-                                    <h5 class="font-weight-bold text-gray-900 mb-2">{{ thesis.title }}</h5>
-                                    <div class="small text-muted mb-1"><strong>{{ _('Topic:') }}</strong> {{ thesis.topic or _("Not specified") }}</div>
-                                    <div class="small text-muted mb-2">
-                                        <strong>{{ _('Supervisor:') }}</strong>
-                                        {% set sup_list = supervisors_by_thesis.get(thesis.id, []) %}
+                                    <h5 class="thesis-title"><a href="{{ url_for('public.public_thesis_detail', thesis_id=thesis.id) }}">{{ thesis.title }}</a></h5>
+
+                                    <div class="thesis-sups">
                                         {% if sup_list %}
-                                            {% for sup in sup_list %}
-                                                {{ sup.name }} {{ sup.surname }}{% if not loop.last %}, {% endif %}
-                                            {% endfor %}
+                                            <div class="stack">
+                                                {% for sup in sup_list[:3] %}<span class="mini" title="{{ sup.name }} {{ sup.surname }}">{{ (sup.name or '?')[:1] }}{{ (sup.surname or '')[:1] }}</span>{% endfor %}
+                                            </div>
+                                            <span class="names">{% for sup in sup_list %}{{ user_link(sup) }}{% if not loop.last %}, {% endif %}{% endfor %}</span>
                                         {% else %}
-                                            {{ _('Not specified') }}
+                                            <span>{{ _('Not specified') }}</span>
                                         {% endif %}
                                     </div>
 
-                                    <p class="text-gray-700 thesis-desc mb-2">{{ thesis.short_description or thesis.description }}</p>
+                                    <p class="thesis-desc mb-3">{{ thesis.short_description or thesis.description }}</p>
 
                                     <div class="mb-2">
-                                        {% set kw = tags_by_thesis.get(thesis.id, []) %}
-                                        {% if kw %}
-                                            {% for tag in kw %}
-                                                <span class="badge badge-info chip">{{ tag }}</span>
-                                            {% endfor %}
-                                        {% else %}
-                                            <span class="badge badge-secondary chip">{{ _('No keywords') }}</span>
-                                        {% endif %}
+                                        {% for tag in kw[:3] %}<span class="chip">{{ tag }}</span>{% endfor %}
+                                        {% if kw|length > 3 %}<span class="chip more">+{{ kw|length - 3 }}</span>{% endif %}
                                     </div>
 
-                                    <div class="mt-auto text-right">
+                                    <div class="thesis-foot">
+                                        <small>{% if thesis.links %}<i class="fas fa-link"></i> {{ thesis.links|length }}{% endif %}</small>
                                         <a href="{{ url_for('public.public_thesis_detail', thesis_id=thesis.id) }}" class="btn btn-sm btn-primary">
-                                            Open thesis details
+                                            {{ _('Open thesis details') }} <i class="fas fa-arrow-right ml-1"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -213,14 +164,4 @@
                     <p class="text-center text-muted small">Showing {{ theses|length }} of {{ pagination.total }} theses</p>
                 </nav>
                 {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
-<script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
-<script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
-</body>
-</html>
+{% endblock %}

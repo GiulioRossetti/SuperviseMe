@@ -79,7 +79,7 @@
                                     {% if todo.assigned_to %}
                                     <div class="row mb-3">
                                         <div class="col-sm-3"><strong>{{ _('Assigned To:') }}</strong></div>
-                                        <div class="col-sm-9">{{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}</div>
+                                        <div class="col-sm-9">{{ user_link(todo.assigned_to) }}</div>
                                     </div>
                                     {% endif %}
                                     {% if todo.due_date %}
@@ -90,7 +90,7 @@
                                     {% endif %}
                                     <div class="row mb-3">
                                         <div class="col-sm-3"><strong>{{ _('Created By:') }}</strong></div>
-                                        <div class="col-sm-9">{{ todo.author.name }} {{ todo.author.surname }}</div>
+                                        <div class="col-sm-9">{{ user_link(todo.author) }}</div>
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col-sm-3"><strong>{{ _('Created:') }}</strong></div>

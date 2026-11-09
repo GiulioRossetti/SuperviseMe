@@ -56,7 +56,7 @@
                                         </div>
                                         <p class="card-text">{{ objective.description }}</p>
                                         <div class="text-sm text-muted">
-                                            <i class="fas fa-user"></i> Added by {{ objective.author.name }} {{ objective.author.surname }}
+                                            <i class="fas fa-user"></i> Added by {{ user_link(objective.author) }}
                                             on {{ dt(objective.created_at).strftime('%B %d, %Y') }}
                                         </div>
                                     </div>

@@ -54,7 +54,7 @@
                                                     </span>
                                                 </h6>
                                                 <small class="text-muted">
-                                                    By {{ update.author.name }} {{ update.author.surname }} on {{ dt(update.created_at).strftime('%B %d, %Y at %I:%M %p') }}
+                                                    By {{ user_link(update.author) }} on {{ dt(update.created_at).strftime('%B %d, %Y at %I:%M %p') }}
                                                 </small>
                                             </div>
                                             <a href="{{ url_for('researcher.project_update_detail', update_id=update.id) }}" class="btn btn-sm btn-outline-primary">

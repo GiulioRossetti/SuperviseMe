@@ -1,86 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
-
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="description" content="Public thesis details">
-    <meta name="author" content="SuperviseMe">
-    <title>SuperviseMe - Thesis Detail</title>
-
-    <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
-    <link href="{{ url_for('static', filename='assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
-
-    <style>
-        .public-sidebar-link.active {
-            background-color: rgba(255,255,255,.16);
-            border-radius: .35rem;
-        }
-    </style>
-</head>
-
-<body id="page-top">
-<div id="wrapper">
-
-    {% if current_user.is_authenticated and current_user.user_type == 'student' %}
-        {% include 'student/components/sidebar.html' %}
-    {% else %}
-        <ul class="navbar-nav bg-gradient-success sidebar sidebar-dark accordion" id="accordionSidebar">
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('public.public_thesis_dashboard') }}">
-                <div class="sidebar-brand-icon"><img src="{{ url_for('static', filename='assets/img/logo.svg') }}" alt="SuperviseMe" width="32" height="32" style="filter:brightness(1) drop-shadow(0 1px 2px rgba(0,0,0,.3));"></div>
-                <div class="sidebar-brand-text mx-3">SuperviseMe</div>
-            </a>
-
-            <hr class="sidebar-divider my-0">
-
-            <li class="nav-item active">
-                <a class="nav-link public-sidebar-link active" href="{{ url_for('public.public_thesis_dashboard') }}">
-                    <i class="fas fa-fw fa-book-open"></i>
-                    <span>{{ _('Available Theses') }}</span>
-                </a>
-            </li>
-
-            <hr class="sidebar-divider">
-
-            {% if current_user.is_authenticated %}
-                {% if current_user.user_type == 'admin' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>{{ _('Dashboard') }}</span></a></li>
-                {% elif current_user.user_type == 'supervisor' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('supervisor.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>{{ _('Dashboard') }}</span></a></li>
-                {% elif current_user.user_type == 'researcher' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('researcher.dashboard') }}"><i class="fas fa-fw fa-tachometer-alt"></i><span>{{ _('Dashboard') }}</span></a></li>
-                {% endif %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('profile.profile_page') }}"><i class="fas fa-fw fa-user"></i><span>{{ _('Profile') }}</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/notifications"><i class="fas fa-fw fa-bell"></i><span>{{ _('Notifications') }}</span></a></li>
-            {% else %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-fw fa-sign-in-alt"></i><span>{{ _('Sign in / Sign up') }}</span></a></li>
-            {% endif %}
-
-            <hr class="sidebar-divider d-none d-md-block">
-
-            <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
-            </div>
-        </ul>
-    {% endif %}
-
-    <div id="content-wrapper" class="d-flex flex-column">
-        <div id="content">
-            {% if current_user.is_authenticated %}
-                {% include 'admin/components/topbar.html' %}
-            {% else %}
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-                    <span class="navbar-brand mb-0 h6 text-gray-700">{{ _('Public Thesis Board') }}</span>
-                </nav>
-            {% endif %}
-
-            <div class="container-fluid">
-
+{% extends 'public/base_public.html' %}
+{% block page_content %}
                 <div class="d-sm-flex align-items-center justify-content-between mb-4">
                     <h1 class="h3 mb-0 text-gray-800">{{ thesis.title }}</h1>
                     <a href="{{ url_for('public.public_thesis_dashboard') }}" class="btn btn-sm btn-secondary">{{ _('Back to thesis list') }}</a>
@@ -96,6 +15,7 @@
 
                 <div class="row">
                     <div class="col-xl-8 col-lg-7">
+                        {% with uid='pub' %}{% include 'components/thesis_media_view.html' %}{% endwith %}
                         <div class="card shadow mb-4">
                             <div class="card-header py-3">
                                 <h6 class="m-0 font-weight-bold text-primary">{{ _('Thesis Information') }}</h6>
@@ -117,7 +37,20 @@
                             <div class="card-body">
                                 {% if supervisors %}
                                     {% for supervisor in supervisors %}
-                                        <div>{{ supervisor.name }} {{ supervisor.surname }}</div>
+                                        <div class="sup-contact {% if not loop.last %}mb-3 pb-3 border-bottom{% endif %}">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <a href="{{ url_for('public.user_profile', user_id=supervisor.id) }}" class="mr-2" aria-label="{{ _('View profile') }}">{% if supervisor.profile_pic and current_user.is_authenticated %}<img class="sm-avatar" src="{{ avatar_url(supervisor) }}" alt="">{% else %}<span class="sm-avatar">{{ (supervisor.name or '?')[:1] }}{{ (supervisor.surname or '')[:1] }}</span>{% endif %}</a>
+                                                <strong class="flex-grow-1">{{ user_link(supervisor) }}</strong>
+                                                <a href="{{ url_for('public.user_profile', user_id=supervisor.id) }}" class="btn btn-outline-primary btn-sm py-0 px-2"><i class="far fa-id-card"></i> {{ _('Profile') }}</a>
+                                            </div>
+                                            {% if current_user.is_authenticated %}
+                                            <ul class="list-unstyled small mb-0 text-gray-700 pl-1">
+                                                {% if supervisor.office_location %}<li><i class="fas fa-map-marker-alt fa-fw text-primary"></i> {{ supervisor.office_location }}</li>{% endif %}
+                                                <li><i class="fas fa-envelope fa-fw text-primary"></i> <a href="mailto:{{ supervisor.contact_email or supervisor.email }}">{{ supervisor.contact_email or supervisor.email }}</a></li>
+                                                {% if supervisor.phone %}<li><i class="fas fa-phone fa-fw text-primary"></i> <a href="tel:{{ supervisor.phone|replace(' ', '') }}">{{ supervisor.phone }}</a></li>{% endif %}
+                                            </ul>
+                                            {% endif %}
+                                        </div>
                                     {% endfor %}
                                 {% else %}
                                     <div class="text-muted">{{ _('Not specified') }}</div>
@@ -167,14 +100,4 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
-<script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
-<script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
-</body>
-</html>
+{% endblock %}

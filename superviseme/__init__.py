@@ -467,6 +467,9 @@ def create_app(db_type="sqlite", skip_user_init=False):
     from superviseme.routes.notifications import notifications as notifications_blueprint
     app.register_blueprint(notifications_blueprint)
 
+    from superviseme.routes.media import media as media_blueprint
+    app.register_blueprint(media_blueprint)
+
     from superviseme.routes.public import public as public_blueprint
     app.register_blueprint(public_blueprint)
 
@@ -545,6 +548,37 @@ def create_app(db_type="sqlite", skip_user_init=False):
         )
 
     # Register template filters
+    from superviseme.utils.thesis_resources import resource_meta, is_workspace
+
+    app.jinja_env.globals["resource_meta"] = resource_meta
+    app.jinja_env.globals["is_workspace"] = is_workspace
+
+    def avatar_url(user):
+        """Custom upload, external (e.g. Google) picture, or the default placeholder."""
+        from flask import url_for
+        pic = getattr(user, "profile_pic", None)
+        if pic and pic.startswith("avatars/"):
+            return url_for("media.avatar", filename=pic[len("avatars/"):])
+        if pic and pic.startswith(("http://", "https://")):
+            return pic
+        return url_for("static", filename="assets/img/undraw_profile.svg")
+
+    app.jinja_env.globals["avatar_url"] = avatar_url
+
+    from superviseme.utils.profile_access import can_view_profile, user_link
+    app.jinja_env.globals["user_link"] = user_link
+    app.jinja_env.globals["can_view_profile"] = can_view_profile
+
+    @app.context_processor
+    def _dashboard_context():
+        import time as _t
+        from flask_babel import format_date
+        from datetime import date as _d
+        return {"now_ts": int(_t.time()), "now_label": format_date(_d.today(), "full")}
+    app.config.setdefault("MAX_CONTENT_LENGTH", 40 * 1024 * 1024)
+    if os.environ.get("UPLOAD_FOLDER"):
+        app.config["UPLOAD_FOLDER"] = os.environ["UPLOAD_FOLDER"]
+
     @app.template_filter('format_todo_links')
     def format_todo_links_filter(text, user_type='supervisor'):
         from superviseme.utils.todo_parser import format_text_with_todo_links

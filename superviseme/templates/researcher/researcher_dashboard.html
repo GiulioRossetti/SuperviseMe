@@ -22,187 +22,66 @@
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
 
-                    <!-- Page Heading -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">{{ _('Researcher Dashboard') }}</h1>
+                    {% from 'components/dash.html' import hero, tile, panel, empty, avatar with context %}
+                    {% set greet = {'morning': _('Good morning, %(name)s', name=current_user.name), 'afternoon': _('Good afternoon, %(name)s', name=current_user.name), 'evening': _('Good evening, %(name)s', name=current_user.name)}[greeting] %}
+                    {% call hero(greet, _('Your research projects, collaborations and supervision at a glance.'), 'fa-flask') %}
+                        <a href="{{ url_for('researcher.projects') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> {{ _('Manage Projects') }}</a>
+                        {% if has_supervisor_role %}<a href="{{ url_for('researcher.supervisor_dashboard') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-chalkboard-teacher"></i> {{ _('Supervisor Dashboard') }}</a>{% endif %}
+                    {% endcall %}
+
+                    {% with messages = get_flashed_messages() %}{% for message in messages %}
+                        <div class="alert alert-info alert-dismissible fade show">{{ message }}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button></div>
+                    {% endfor %}{% endwith %}
+
+                    {% set active_projects = research_projects|rejectattr('frozen')|list %}
+                    <div class="dash-tiles">
+                        {{ tile('fa-project-diagram', 'green', project_counts.total, _('Research Projects'), (active_projects|length ~ ' ' ~ _('active')), url_for('researcher.projects')) }}
+                        {{ tile('fa-users', 'sky', current_user.collaborated_projects|length, _('Collaborations')) }}
+                        {% if has_supervisor_role %}{{ tile('fa-book', 'indigo', supervised_thesis_count, _('Supervised Theses'), href=url_for('researcher.supervisor_theses')) }}{% endif %}
                     </div>
 
-                    <!-- Flash Messages -->
-                    {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert alert-info alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-
-                    <!-- Content Row -->
                     <div class="row">
-
-                        <!-- Research Projects Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-success shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                Research Projects</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ project_counts.total }}</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-project-diagram fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {% if has_supervisor_role %}
-                        <!-- Supervised Theses Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-primary shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                Supervised Theses</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ supervised_thesis_count }}</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-book fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <!-- Collaborations Card -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-info shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                                Collaborations</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                {{ current_user.collaborated_projects|length }}
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Recent Research Projects -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-success">{{ _('Recent Research Projects') }}</h6>
-                                    <a href="{{ url_for('researcher.projects') }}" class="btn btn-success btn-sm">
-                                        <i class="fas fa-plus"></i> Manage Projects
+                        <div class="col-xl-8">
+                            {% call panel(_('Recent Research Projects'), 'fa-project-diagram', url_for('researcher.projects'), _('Manage Projects')) %}
+                                {% if research_projects %}
+                                <div class="dash-cards">
+                                    {% for project in (research_projects|sort(attribute='created_at', reverse=True))[:6] %}
+                                    <a class="dash-card" href="{{ url_for('researcher.project_detail', project_id=project.id) }}">
+                                        <span class="cv g{{ project.id % 6 }}"><i class="fas fa-flask"></i></span>
+                                        <span class="bd"><strong>{{ project.title }}</strong><small>{{ project.level or _('Not specified') }}</small></span>
+                                        <span class="ft"><span>{% if project.frozen %}<i class="fas fa-snowflake"></i> {{ _('Frozen') }}{% else %}<i class="fas fa-circle text-success" style="font-size:.5rem"></i> {{ _('Active') }}{% endif %}</span><span><i class="fas fa-users"></i> {{ project.collaborators|length }} · {{ dt(project.created_at).strftime('%d %b %Y') }}</span></span>
                                     </a>
+                                    {% endfor %}
                                 </div>
-                                <div class="card-body">
-                                    {% if research_projects %}
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered" width="100%" cellspacing="0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>{{ _('Title') }}</th>
-                                                        <th>{{ _('Level') }}</th>
-                                                        <th>{{ _('Created') }}</th>
-                                                        <th>{{ _('Status') }}</th>
-                                                        <th>{{ _('Actions') }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {% for project in research_projects[:5] %}
-                                                    <tr>
-                                                        <td>
-                                                            <a href="{{ url_for('researcher.project_detail', project_id=project.id) }}">
-                                                                {{ project.title }}
-                                                            </a>
-                                                        </td>
-                                                        <td>
-                                                            <span class="badge badge-info">{{ project.level or 'Not specified' }}</span>
-                                                        </td>
-                                                        <td>{{ dt(project.created_at).strftime('%Y-%m-%d') }}</td>
-                                                        <td>
-                                                            {% if project.frozen %}
-                                                                <span class="badge badge-warning">{{ _('Frozen') }}</span>
-                                                            {% else %}
-                                                                <span class="badge badge-success">{{ _('Active') }}</span>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td>
-                                                            <a href="{{ url_for('researcher.project_detail', project_id=project.id) }}" 
-                                                               class="btn btn-sm btn-outline-primary">
-                                                                <i class="fas fa-eye"></i> View
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                    {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    {% else %}
-                                        <div class="text-center py-4">
-                                            <i class="fas fa-project-diagram fa-3x text-gray-300 mb-3"></i>
-                                            <p class="text-gray-500">{{ _('No research projects yet. Create your first project to get started!') }}</p>
-                                            <a href="{{ url_for('researcher.projects') }}" class="btn btn-success">
-                                                <i class="fas fa-plus"></i> Create Project
-                                            </a>
-                                        </div>
-                                    {% endif %}
+                                {% else %}
+                                    {{ empty('fas fa-project-diagram', _('No research projects yet. Create your first project to get started!')) }}
+                                    <div class="text-center"><a href="{{ url_for('researcher.projects') }}" class="btn btn-success btn-sm"><i class="fas fa-plus"></i> {{ _('Create Project') }}</a></div>
+                                {% endif %}
+                            {% endcall %}
+                        </div>
+                        <div class="col-xl-4">
+                            {% call panel(_('Collaborations'), 'fa-users') %}
+                                {% if current_user.collaborated_projects %}
+                                <ul class="dash-feed">
+                                    {% for c in current_user.collaborated_projects[:6] %}
+                                    <li>{% if c.project and c.project.researcher %}{{ avatar(c.project.researcher) }}{% endif %}
+                                        <div class="tx"><a href="{{ url_for('researcher.project_detail', project_id=c.project.id) }}"><strong>{{ c.project.title }}</strong></a>
+                                            <small>{{ _(c.role|replace('-', ' ')|capitalize) }}{% if c.project.researcher %} · {{ user_link(c.project.researcher) }}{% endif %}</small></div></li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}{{ empty('fas fa-users', _('No collaborations yet')) }}{% endif %}
+                            {% endcall %}
+                            {% if has_supervisor_role %}
+                            {% call panel(_('Supervisor Functions'), 'fa-chalkboard-teacher') %}
+                                <div class="dash-quick">
+                                    <a href="{{ url_for('researcher.supervisor_dashboard') }}"><i class="fas fa-tachometer-alt"></i> {{ _('Supervisor Dashboard') }}</a>
+                                    <a href="{{ url_for('researcher.supervisor_theses') }}"><i class="fas fa-book"></i> {{ _('Supervised Theses') }}</a>
+                                    <a href="{{ url_for('researcher.supervisor_students') }}"><i class="fas fa-user-graduate"></i> {{ _('My Students') }}</a>
                                 </div>
-                            </div>
+                            {% endcall %}
+                            {% endif %}
                         </div>
                     </div>
-
-                    {% if has_supervisor_role %}
-                    <!-- Quick Access to Supervisor Functions -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Supervisor Functions') }}</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <a href="{{ url_for('supervisor.dashboard') }}" class="btn btn-primary btn-block">
-                                                <i class="fas fa-tachometer-alt"></i> Supervisor Dashboard
-                                            </a>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <a href="{{ url_for('supervisor.theses_data') }}" class="btn btn-outline-primary btn-block">
-                                                <i class="fas fa-book"></i> Supervised Theses
-                                            </a>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <a href="{{ url_for('supervisor.supervisee_data') }}" class="btn btn-outline-primary btn-block">
-                                                <i class="fas fa-user-graduate"></i> My Students
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-
                 </div>
                 <!-- /.container-fluid -->
 

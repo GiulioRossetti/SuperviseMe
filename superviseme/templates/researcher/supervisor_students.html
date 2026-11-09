@@ -50,7 +50,7 @@
                                                                     Student{% if supervisee_info.is_inactive %} - INACTIVE{% endif %}
                                                                 </div>
                                                                 <div class="h6 mb-0 font-weight-bold text-gray-800">
-                                                                    {{ supervisee_info.student.name }} {{ supervisee_info.student.surname }}
+                                                                    {{ user_link(supervisee_info.student) }}
                                                                 </div>
                                                                 <div class="text-xs text-gray-500 mb-2">
                                                                     {{ supervisee_info.student.email }}
@@ -181,7 +181,7 @@
                                                 {% for supervisee_info in past_supervisees %}
                                                 <tr>
                                                     <td>
-                                                        <strong>{{ supervisee_info.student.name }} {{ supervisee_info.student.surname }}</strong>
+                                                        <strong>{{ user_link(supervisee_info.student) }}</strong>
                                                         {% if supervisee_info.is_inactive %}
                                                             {% if supervisee_info.days_inactive == 'Unknown' or supervisee_info.days_inactive is none %}
                                                                 <br><small class="text-warning">

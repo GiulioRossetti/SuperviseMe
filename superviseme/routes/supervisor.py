@@ -1,8 +1,9 @@
-from flask import Blueprint, request, render_template, abort, redirect, url_for, jsonify, flash
+from flask import Blueprint, request, render_template, abort, redirect, url_for, jsonify, flash, session
 from flask_login import login_required, current_user
 from sqlalchemy import select, and_, func, or_
 from sqlalchemy.orm import joinedload
 from superviseme.utils.miscellanea import check_privileges
+from superviseme.utils.thesis_resources import normalize_resource_url, resolve_resource_type
 from superviseme.utils.activity_tracker import get_inactive_students
 from superviseme.utils.thesis_management import delete_thesis_with_dependencies
 from superviseme.utils.thesis_interest import (
@@ -18,8 +19,10 @@ from superviseme.utils.thesis_public import (
 from superviseme.models import *
 from superviseme import db
 from datetime import datetime
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
+from superviseme.utils.thesis_timeline import build_status_timeline, build_activity_calendar
 import time
+from flask_babel import gettext as _
 
 supervisor = Blueprint("supervisor", __name__)
 
@@ -35,64 +38,9 @@ def dashboard():
     if privilege_check is not True:
         return privilege_check
 
-    user_counts = {
-        "students": db.session.execute(
-                    select(func.count())
-                    .select_from(User_mgmt)
-                    .join(Thesis, Thesis.author_id == User_mgmt.id)
-                    .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)
-                    .where(Thesis_Supervisor.supervisor_id == current_user.id)
-                ).scalar_one()
-    }
-
-    # count all theses by their status
-    thesis_counts = {
-        "total": Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).count(),
-    }
-
-
-    # for each supervisor get list of theses assigned to them along with the name of the student
-
-    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id)\
-        .options(joinedload(Thesis_Supervisor.thesis).joinedload(Thesis.author))\
-        .all()
-
-    theses_by_supervisor = [
-        {
-            "thesis": ts.thesis,
-            "student": ts.thesis.author
-        }
-        for ts in thesis_supervisors
-        if ts.thesis and ts.thesis.author
-    ]
-
-    available_theses_by_supervisor = db.session.execute(
-            select(Thesis)
-            .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)
-            .where(Thesis_Supervisor.supervisor_id == current_user.id, Thesis.author_id.is_(None))
-
-        ).scalars().all()
-
-    # Get todos for supervised theses
-    supervised_thesis_ids = [ts.thesis_id for ts in thesis_supervisors]
-    todos = []
-    students_info = {}
-    if supervised_thesis_ids:
-        todos = Todo.query.filter(Todo.thesis_id.in_(supervised_thesis_ids)).order_by(
-            Todo.status.asc(),  # pending first
-            Todo.priority.desc(),  # high priority first
-            Todo.created_at.desc()
-        ).all()
-        
-        # Get student information for each thesis
-        for ts in theses_by_supervisor:
-            if ts["student"]:
-                students_info[ts["thesis"].id] = ts["student"]
-
+    from superviseme.utils.dashboard_data import supervisor_overview
     return render_template("/supervisor/supervisor_dashboard.html", current_user=current_user,
-                           user_counts=user_counts, thesis_counts=thesis_counts,
-                           theses_by_supervisor=theses_by_supervisor, available_theses=available_theses_by_supervisor, 
-                           todos=todos, students_info=students_info, dt=datetime.fromtimestamp, str=str)
+                           ov=supervisor_overview(current_user), dt=datetime.fromtimestamp, str=str)
 
 @supervisor.route("/supervisor/supervisee")
 @login_required
@@ -116,32 +64,173 @@ def supervisee_data():
     inactive_data = get_inactive_students(current_user.id)
     inactive_dict = {data['student'].id: data for data in inactive_data}
     
+    now = int(time.time())
     for ts in thesis_supervisors:
         if ts.thesis and ts.thesis.author:
             student_data = inactive_dict.get(ts.thesis.author.id, {})
-            
+            thesis = ts.thesis
+            latest_status = (
+                Thesis_Status.query.filter_by(thesis_id=thesis.id)
+                .order_by(Thesis_Status.updated_at.desc()).first()
+            )
+            todos_total = Todo.query.filter_by(thesis_id=thesis.id).count()
+            todos_done = Todo.query.filter_by(thesis_id=thesis.id, status="completed").count()
+            last_update = (
+                Thesis_Update.query.filter_by(thesis_id=thesis.id, author_id=thesis.author.id)
+                .order_by(Thesis_Update.created_at.desc()).first()
+            )
+
             supervisee_info = {
-                'student': ts.thesis.author,
-                'thesis': ts.thesis,
+                'student': thesis.author,
+                'thesis': thesis,
                 'is_inactive': student_data.get('is_inactive', False),
                 'days_inactive': student_data.get('days_inactive'),
-                'last_activity_location': student_data.get('last_activity_location')
+                'last_activity_location': student_data.get('last_activity_location'),
+                'status': latest_status.status if latest_status else None,
+                'todos_total': todos_total,
+                'todos_done': todos_done,
+                'progress': int(round(100 * todos_done / todos_total)) if todos_total else None,
+                'last_update_at': last_update.created_at if last_update else None,
+                'never_logged': thesis.author.last_activity is None,
+                'topic': thesis.topic,
+                'keywords': [t.tag for t in thesis.tags],
             }
-            
+
             # Separate active and archived/frozen theses
             if ts.thesis.frozen:
                 past_supervisees.append(supervisee_info)
             else:
                 active_supervisees.append(supervisee_info)
-    
+
     # Fix "Inactive for None days" issue by providing a default value
     for supervisee in active_supervisees + past_supervisees:
         if supervisee['days_inactive'] is None:
             supervisee['days_inactive'] = 'Unknown'
-    
+
+    active_supervisees.sort(key=lambda i: ((i['student'].surname or '').lower(), (i['student'].name or '').lower()))
+
     return render_template("supervisor/supervisees.html", 
                          supervisees=active_supervisees, 
                          past_supervisees=past_supervisees)
+
+
+# --- Student profile (supervisor view) --------------------------------------
+
+STUDENT_EDIT_UNLOCK_SECONDS = 10 * 60
+UNLOCK_MAX_FAILURES = 5
+UNLOCK_LOCKOUT_SECONDS = 5 * 60
+
+
+def _supervised_student_or_none(student_id):
+    """Return the student only if they author a thesis supervised by the current user."""
+    return User_mgmt.query.join(Thesis, Thesis.author_id == User_mgmt.id).join(
+        Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id
+    ).filter(
+        User_mgmt.id == student_id,
+        User_mgmt.user_type == "student",
+        Thesis_Supervisor.supervisor_id == current_user.id,
+    ).first()
+
+
+def _student_edit_unlocked(student_id):
+    expiry = (session.get("student_edit_unlock") or {}).get(str(student_id))
+    return bool(expiry and expiry > time.time())
+
+
+@supervisor.route("/supervisor/student/<int:student_id>")
+@login_required
+def student_profile(student_id):
+    """Read-only profile of a supervised student (editing requires password confirmation)."""
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
+
+    student = _supervised_student_or_none(student_id)
+    if not student:
+        flash(_("Student not found or not supervised by you"))
+        return redirect(url_for('supervisor.supervisee_data'))
+
+    theses = (
+        Thesis.query.join(Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id)
+        .filter(Thesis.author_id == student.id, Thesis_Supervisor.supervisor_id == current_user.id)
+        .order_by(Thesis.created_at.desc()).all()
+    )
+    thesis_ids = [t.id for t in theses]
+    updates = Thesis_Update.query.filter(Thesis_Update.thesis_id.in_(thesis_ids)).all() if thesis_ids else []
+    todos = Todo.query.filter(Todo.thesis_id.in_(thesis_ids)).all() if thesis_ids else []
+    notes = MeetingNote.query.filter(MeetingNote.thesis_id.in_(thesis_ids)).all() if thesis_ids else []
+    events = [u.created_at for u in updates if u.author_id == student.id]
+    events += [n.created_at for n in notes if n.author_id == student.id]
+    events += [t.created_at for t in todos if t.author_id == student.id]
+    events += [t.completed_at for t in todos if t.completed_at and t.assigned_to_id in (None, student.id)]
+
+    statuses = {}
+    for t in theses:
+        sts = Thesis_Status.query.filter_by(thesis_id=t.id).all()
+        statuses[t.id] = build_status_timeline(sts)
+
+    now = int(time.time())
+    expiry = (session.get("student_edit_unlock") or {}).get(str(student.id), 0)
+    return render_template(
+        "supervisor/student_profile.html",
+        student=student,
+        theses=theses,
+        statuses=statuses,
+        recent_updates=sorted([u for u in updates if u.author_id == student.id and u.parent_id is None],
+                              key=lambda u: u.created_at, reverse=True)[:5],
+        todos_total=len(todos),
+        todos_done=len([t for t in todos if t.status == "completed"]),
+        notes_count=len(notes),
+        updates_count=len([u for u in updates if u.author_id == student.id]),
+        activity_calendar=build_activity_calendar(events),
+        unlocked=expiry > now,
+        unlock_remaining=max(0, int((expiry - now) / 60)) if expiry > now else 0,
+        dt=datetime.fromtimestamp,
+    )
+
+
+@supervisor.route("/supervisor/student/<int:student_id>/unlock", methods=["POST"])
+@login_required
+def unlock_student_edit(student_id):
+    """Re-authenticate the supervisor with their own password to enable editing for a few minutes."""
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
+    if not _supervised_student_or_none(student_id):
+        flash(_("Student not found or not supervised by you"))
+        return redirect(url_for('supervisor.supervisee_data'))
+
+    now = time.time()
+    lock_until = session.get("student_unlock_lock_until", 0)
+    if lock_until > now:
+        flash(_("Too many failed attempts. Please try again in a few minutes."))
+        return redirect(url_for('supervisor.student_profile', student_id=student_id))
+
+    password = request.form.get("password") or ""
+    if not check_password_hash(current_user.password, password):
+        failures = session.get("student_unlock_failures", 0) + 1
+        session["student_unlock_failures"] = failures
+        if failures >= UNLOCK_MAX_FAILURES:
+            session["student_unlock_lock_until"] = now + UNLOCK_LOCKOUT_SECONDS
+            session["student_unlock_failures"] = 0
+        flash(_("Incorrect password."))
+        return redirect(url_for('supervisor.student_profile', student_id=student_id))
+
+    session["student_unlock_failures"] = 0
+    unlocks = dict(session.get("student_edit_unlock") or {})
+    unlocks[str(student_id)] = now + STUDENT_EDIT_UNLOCK_SECONDS
+    session["student_edit_unlock"] = unlocks
+    flash(_("Editing unlocked for 10 minutes."))
+    return redirect(url_for('supervisor.student_profile', student_id=student_id))
+
+
+@supervisor.route("/supervisor/student/<int:student_id>/lock", methods=["POST"])
+@login_required
+def lock_student_edit(student_id):
+    unlocks = dict(session.get("student_edit_unlock") or {})
+    unlocks.pop(str(student_id), None)
+    session["student_edit_unlock"] = unlocks
+    return redirect(url_for('supervisor.student_profile', student_id=student_id))
 
 
 @supervisor.route("/supervisor/theses")
@@ -159,8 +248,9 @@ def theses_data():
     thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id)\
         .options(joinedload(Thesis_Supervisor.thesis).joinedload(Thesis.author))\
         .all()
-    theses = [ts.thesis for ts in thesis_supervisors]
-    return render_template("supervisor/theses.html", theses=theses, dt=datetime.fromtimestamp)
+    from superviseme.utils.thesis_board import build_thesis_cards
+    cards, archived = build_thesis_cards([ts.thesis for ts in thesis_supervisors])
+    return render_template("supervisor/theses.html", cards=cards, archived=archived, dt=datetime.fromtimestamp)
 
 
 @supervisor.route("/supervisor/thesis/<thesis_id>")
@@ -1376,13 +1466,24 @@ def edit_student(student_id):
     ).first()
     
     if not student:
-        flash("Student not found or not supervised by you")
+        flash(_("Student not found or not supervised by you"))
         return redirect(url_for('supervisor.supervisee_data'))
-    
+
+    if not _student_edit_unlocked(student.id):
+        flash(_("Please confirm your password to edit this student's profile."))
+        return redirect(url_for('supervisor.student_profile', student_id=student.id))
+
+    new_email = (request.form.get("email") or student.email).strip()
+    if new_email != student.email and User_mgmt.query.filter(
+        User_mgmt.email == new_email, User_mgmt.id != student.id
+    ).first():
+        flash("Email address already exists")
+        return redirect(url_for('supervisor.student_profile', student_id=student.id))
+
     # Update student information
     student.name = request.form.get("name", student.name)
     student.surname = request.form.get("surname", student.surname)
-    student.email = request.form.get("email", student.email)
+    student.email = new_email
     student.cdl = request.form.get("cdl", student.cdl)
     student.gender = request.form.get("gender", student.gender)
     student.nationality = request.form.get("nationality", student.nationality)
@@ -1393,13 +1494,13 @@ def edit_student(student_id):
         password2 = request.form.get("password2")
         if new_password != password2:
             flash("Passwords do not match")
-            return redirect(request.referrer)
+            return redirect(url_for('supervisor.student_profile', student_id=student.id))
         student.password = generate_password_hash(new_password, method="pbkdf2:sha256")
     
     db.session.commit()
     flash(f"Student {student.name} {student.surname} updated successfully")
     
-    return redirect(url_for('supervisor.supervisee_data'))
+    return redirect(url_for('supervisor.student_profile', student_id=student.id))
 
 
 @supervisor.route("/supervisor/todo/<int:todo_id>")
@@ -1457,7 +1558,7 @@ def delete_student(student_id):
     ).first()
     
     if not student:
-        flash("Student not found or not supervised by you")
+        flash(_("Student not found or not supervised by you"))
         return redirect(url_for('supervisor.supervisee_data'))
     
     # Check if student has any active theses (only allow deletion if no active theses)
@@ -1659,6 +1760,12 @@ def add_resource():
         flash("Thesis not found or not supervised by you")
         return redirect(url_for('supervisor.dashboard'))
     
+    resource_url = normalize_resource_url(resource_url)
+    if not resource_url:
+        flash("Please provide a valid http(s) link.")
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+    resource_type = resolve_resource_type(resource_type, resource_url)
+
     new_resource = Resource(
         thesis_id=thesis_id,
         resource_type=resource_type,
@@ -1896,8 +2003,12 @@ def edit_resource(resource_id):
         flash("Resource not found or not accessible")
         return redirect(url_for('supervisor.dashboard'))
     
-    resource.resource_type = request.form.get("resource_type", resource.resource_type)
-    resource.resource_url = request.form.get("resource_url", resource.resource_url)
+    new_url = normalize_resource_url(request.form.get("resource_url", resource.resource_url))
+    if not new_url:
+        flash("Please provide a valid http(s) link.")
+        return redirect(url_for('supervisor.thesis_detail', thesis_id=resource.thesis_id))
+    resource.resource_url = new_url
+    resource.resource_type = resolve_resource_type(request.form.get("resource_type", resource.resource_type), new_url)
     resource.description = request.form.get("description", resource.description)
     
     db.session.commit()
@@ -2089,3 +2200,61 @@ def delete_meeting_note(note_id):
     
     flash("Meeting note deleted successfully")
     return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+
+
+# --- Thesis presentation: images and external reference links -----------------
+
+def _managed_thesis_or_redirect(thesis_id):
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return None, privilege_check
+    thesis = Thesis.query.get(thesis_id)
+    from superviseme.utils.thesis_media import user_manages_thesis
+    if not thesis or not user_manages_thesis(current_user, thesis):
+        flash(_("Thesis not found or not managed by you"))
+        return None, redirect(url_for("supervisor.theses_data"))
+    return thesis, None
+
+
+@supervisor.route("/supervisor/thesis/<int:thesis_id>/images", methods=["POST"])
+@login_required
+def add_thesis_images(thesis_id):
+    thesis, bad = _managed_thesis_or_redirect(thesis_id)
+    if bad:
+        return bad
+    from superviseme.utils.thesis_media import handle_images_request
+    handle_images_request(thesis, request)
+    return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis_id))
+
+
+@supervisor.route("/supervisor/thesis/<int:thesis_id>/images/<int:image_id>/delete", methods=["POST"])
+@login_required
+def delete_thesis_image(thesis_id, image_id):
+    thesis, bad = _managed_thesis_or_redirect(thesis_id)
+    if bad:
+        return bad
+    from superviseme.utils.thesis_media import delete_image
+    flash(_("Image removed.") if delete_image(thesis, image_id) else _("Image not found."))
+    return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis_id))
+
+
+@supervisor.route("/supervisor/thesis/<int:thesis_id>/links", methods=["POST"])
+@login_required
+def add_thesis_link(thesis_id):
+    thesis, bad = _managed_thesis_or_redirect(thesis_id)
+    if bad:
+        return bad
+    from superviseme.utils.thesis_media import handle_link_request
+    handle_link_request(thesis, request)
+    return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis_id))
+
+
+@supervisor.route("/supervisor/thesis/<int:thesis_id>/links/<int:link_id>/delete", methods=["POST"])
+@login_required
+def delete_thesis_link(thesis_id, link_id):
+    thesis, bad = _managed_thesis_or_redirect(thesis_id)
+    if bad:
+        return bad
+    from superviseme.utils.thesis_media import delete_link
+    flash(_("Link removed.") if delete_link(thesis, link_id) else _("Link not found."))
+    return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis_id))

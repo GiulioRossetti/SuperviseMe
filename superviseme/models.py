@@ -29,6 +29,10 @@ class User_mgmt(UserMixin, db.Model):
     google_id = db.Column(db.String(100), unique=True, nullable=True)
     orcid_id = db.Column(db.String(20), unique=True, nullable=True)
     profile_pic = db.Column(db.String(255), nullable=True)
+    # Contact details (supervisors / researchers), shown to students on the thesis card and profile page
+    office_location = db.Column(db.String(120), nullable=True)
+    phone = db.Column(db.String(40), nullable=True)
+    contact_email = db.Column(db.String(120), nullable=True)
     last_activity = db.Column(db.Integer, nullable=True)  # Track last activity timestamp
     last_activity_location = db.Column(db.String(100), nullable=True)  # Track where they were last active
     
@@ -65,6 +69,34 @@ class Thesis(db.Model):
     level = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.Integer, nullable=False)
     publisher = db.relationship("User_mgmt", foreign_keys=[publisher_id], backref="published_theses", lazy=True)
+
+
+class Thesis_Image(db.Model):
+    """Illustration shown on the public thesis card (stored on disk, see utils/uploads.py)."""
+    __tablename__ = "thesis_image"
+    id = db.Column(db.Integer, primary_key=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False, index=True)
+    filename = db.Column(db.String(120), nullable=False, unique=True)
+    caption = db.Column(db.String(200), nullable=True)
+    position = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    thesis = db.relationship(
+        "Thesis", backref=db.backref("images", lazy=True, order_by="Thesis_Image.position, Thesis_Image.id"))
+
+
+class Thesis_Link(db.Model):
+    """External reference (paper, repo, project page...) shown on the public thesis card."""
+    __tablename__ = "thesis_link"
+    id = db.Column(db.Integer, primary_key=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False, index=True)
+    url = db.Column(db.String(500), nullable=False)
+    label = db.Column(db.String(200), nullable=True)
+    position = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    thesis = db.relationship(
+        "Thesis", backref=db.backref("links", lazy=True, order_by="Thesis_Link.position, Thesis_Link.id"))
 
 
 class Thesis_Status(db.Model):

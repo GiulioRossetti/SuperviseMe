@@ -65,7 +65,7 @@
                                             <tbody>
                                                 {% for user in users %}
                                                 <tr>
-                                                    <td>{{ user.name }} {{ user.surname }}</td>
+                                                    <td>{{ user_link(user) }}</td>
                                                     <td>{{ user.email }}</td>
                                                     <td>
                                                         <span class="badge badge-{% if user.user_type == 'admin' %}danger{% elif user.user_type == 'supervisor' %}info{% else %}success{% endif %}">
@@ -115,7 +115,7 @@
                                                     <td>{{ thesis.title }}</td>
                                                     <td>
                                                         {% if thesis.author %}
-                                                            {{ thesis.author.name }} {{ thesis.author.surname }}
+                                                            {{ user_link(thesis.author) }}
                                                         {% else %}
                                                             <em>{{ _('Available') }}</em>
                                                         {% endif %}

@@ -74,7 +74,7 @@
                                                     </td>
                                                     <td>
                                                         {% if thesis.author %}
-                                                            {{ thesis.author.name }} {{ thesis.author.surname }}
+                                                            {{ user_link(thesis.author) }}
                                                             <br><small class="text-muted">{{ thesis.author.email }}</small>
                                                         {% else %}
                                                             <span class="text-muted">{{ _('Not assigned') }}</span>
@@ -158,7 +158,7 @@
                                                 {% for student in supervisees %}
                                                 <tr>
                                                     <td>
-                                                        <div class="font-weight-bold">{{ student.name }} {{ student.surname }}</div>
+                                                        <div class="font-weight-bold">{{ user_link(student) }}</div>
                                                         <div class="small text-gray-600">{{ student.gender or 'Not specified' }}</div>
                                                     </td>
                                                     <td>{{ student.email }}</td>

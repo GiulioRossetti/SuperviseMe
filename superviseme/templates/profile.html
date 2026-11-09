@@ -1,77 +1,24 @@
-{% if user.user_type == 'admin' %}
-    {% include 'admin/components/header.html' %}
-{% else %}
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta name="description" content="">
-        <meta name="author" content="">
-        <title>SuperviseMe - {{ _('Profile') }}</title>
-        <!-- Custom fonts for this template-->
-        <link href="{{ url_for('static', filename='assets/js/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-        <!-- Custom styles for this template-->
-        <link href="{{ url_for('static', filename='assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
-    </head>
-{% endif %}
+{% include 'admin/components/header.html' %}
 
 <body id="page-top">
 
-    <!-- Page Wrapper -->
     <div id="wrapper">
 
-        {% if user.user_type == 'admin' %}
-            <!-- Sidebar -->
+        {% if user.user_type == 'student' %}
+            {% include 'student/components/sidebar.html' %}
+        {% elif user.user_type == 'supervisor' %}
+            {% include 'supervisor/components/sidebar.html' %}
+        {% elif user.user_type == 'researcher' %}
+            {% include 'researcher/components/sidebar.html' %}
+        {% else %}
             {% include 'admin/components/sidebar.html' %}
-            <!-- End of Sidebar -->
         {% endif %}
 
-        <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column" {% if user.user_type != 'admin' %}style="margin-left: 0;"{% endif %}>
+        <div id="content-wrapper" class="d-flex flex-column">
 
-            <!-- Main Content -->
             <div id="content">
 
-                {% if user.user_type == 'admin' %}
-                    <!-- Topbar -->
-                    {% include 'admin/components/topbar.html' %}
-                    <!-- End of Topbar -->
-                {% else %}
-                    <!-- Simple Topbar for non-admin users -->
-                    <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-                        <div class="container-fluid">
-                            <h1 class="h3 mb-0 text-gray-800">{{ _('SuperviseMe - Profile') }}</h1>
-                            <div class="navbar-nav ml-auto">
-                                <div class="nav-item dropdown no-arrow">
-                                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ user.name }} {{ user.surname }}</span>
-                                        <img class="img-profile rounded-circle"
-                                            src="{{ url_for('static', filename='assets/img/undraw_profile.svg') }}">
-                                    </a>
-                                    <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                        aria-labelledby="userDropdown">
-                                        <a class="dropdown-item" href="/profile">
-                                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                            Profile
-                                        </a>
-                                        <div class="dropdown-divider"></div>
-                                        <form method="POST" action="{{ url_for('auth.logout') }}" class="m-0 p-0">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="dropdown-item">
-                                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                                Logout
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </nav>
-                {% endif %}
+                {% include 'admin/components/topbar.html' %}
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
@@ -80,7 +27,7 @@
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">{{ _('My Profile') }}</h1>
                         <a href="{{ url_for(dashboard_endpoint) }}" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            <i class="fas fa-arrow-left"></i> {{ _('Back to Dashboard') }}
                         </a>
                     </div>
 
@@ -104,6 +51,17 @@
                         <!-- Profile Information -->
                         <div class="col-xl-8 col-lg-7">
                             
+                            <ul class="nav nav-pills sm-profile-tabs mb-3" id="profileTabs" role="tablist">
+                                <li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#tabProfile" role="tab"><i class="fas fa-user fa-fw"></i> {{ _('Profile') }}</a></li>
+                                <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#tabSecurity" role="tab"><i class="fas fa-shield-alt fa-fw"></i> {{ _('Security') }}</a></li>
+                                <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#tabIntegrations" role="tab"><i class="fas fa-plug fa-fw"></i> {{ _('Integrations') }}</a></li>
+                                {% if (user.user_type == "student" and authored_theses) or (user.user_type == "supervisor" and supervised_theses) %}
+                                <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#tabTheses" role="tab"><i class="fas fa-book fa-fw"></i> {{ _('Theses') }}</a></li>
+                                {% endif %}
+                            </ul>
+                            <div class="tab-content">
+                            <div class="tab-pane fade show active" id="tabProfile" role="tabpanel">
+
                             <!-- Basic Information -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
@@ -158,10 +116,41 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        {% if user.user_type in ('supervisor', 'researcher') %}
+                                        <hr>
+                                        <h6 class="font-weight-bold text-gray-700 mb-3"><i class="fas fa-address-card mr-1"></i> {{ _('Office & contacts') }}</h6>
+                                        <div class="small text-muted mb-3">{{ _('Visible to students on your thesis cards and on your profile page.') }}</div>
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label for="office_location">{{ _('Office location') }}</label>
+                                                    <input type="text" class="form-control" id="office_location" name="office_location" maxlength="120" value="{{ user.office_location or '' }}" placeholder="{{ _('e.g. Building A, room 12, second floor') }}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="contact_email">{{ _('Contact email') }}</label>
+                                                    <input type="email" class="form-control" id="contact_email" name="contact_email" maxlength="120" value="{{ user.contact_email or '' }}" placeholder="{{ user.email }}">
+                                                    <small class="text-muted">{{ _('Leave blank to show your account email.') }}</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="phone">{{ _('Phone') }}</label>
+                                                    <input type="tel" class="form-control" id="phone" name="phone" maxlength="40" value="{{ user.phone or '' }}" placeholder="+39 050 ...">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
                                         <button type="submit" class="btn btn-primary">{{ _('Update Profile') }}</button>
                                     </form>
                                 </div>
                             </div>
+
+                            </div>
+                            <div class="tab-pane fade" id="tabSecurity" role="tabpanel">
 
                             <!-- Change Password -->
                             <div class="card shadow mb-4">
@@ -197,6 +186,9 @@
                                     </form>
                                 </div>
                             </div>
+
+                            </div>
+                            <div class="tab-pane fade" id="tabIntegrations" role="tabpanel">
 
                             <!-- ORCID Integration -->
                             <div class="card shadow mb-4">
@@ -238,7 +230,7 @@
                                             <div class="alert alert-info mb-4">
                                                 <h6><i class="fas fa-info-circle mr-2"></i>{{ _('Setup Instructions') }}</h6>
                                                 <ol class="mb-0">
-                                                    <li>{{ _('Start a chat with the SuperviseMe bot on Telegram') }}</li>
+                                                    <li id="bot-step">{{ _('Start a chat with the bot of this installation on Telegram') }} (<span id="bot-step-name">…</span>)</li>
                                                     <li>{{ _('Send any message to the bot (e.g., "Hello")') }}</li>
                                                     <li>{{ _('The bot will reply with your Telegram User ID') }}</li>
                                                     <li>{{ _('Enter your User ID below and test the connection') }}</li>
@@ -320,6 +312,9 @@
                                 </div>
                             </div>
 
+                            </div>
+                            <div class="tab-pane fade" id="tabTheses" role="tabpanel">
+
                             <!-- User's Theses -->
                             {% if user.user_type == "student" and authored_theses %}
                                 <div class="card shadow mb-4">
@@ -363,6 +358,9 @@
                                 </div>
                             {% endif %}
 
+                            </div>
+                            </div>
+
                         </div>
 
                         <!-- Side Panel -->
@@ -375,11 +373,15 @@
                                 </div>
                                 <div class="card-body text-center">
                                     <div class="border-bottom mb-3 pb-3">
+                                        <button type="button" class="sm-avatar-edit mb-3" id="openAvatarModal" data-toggle="modal" data-target="#avatarModal" title="{{ _('Change profile picture') }}" aria-label="{{ _('Change profile picture') }}">
+                                            <img src="{{ avatar_url(user) }}" alt="" class="profile-pic-preview" id="profilePicPreview">
+                                            <span class="sm-avatar-edit-ov"><i class="fas fa-camera"></i><small>{{ _('Change') }}</small></span>
+                                        </button>
                                         <h5>{{ user.name }} {{ user.surname }}</h5>
-                                        <p class="text-muted">{{ user.username }}</p>
+                                        <p class="text-muted mb-2">{{ user.username }}</p>
                                         <span class="badge badge-primary">{{ user.user_type.title() }}</span>
                                     </div>
-                                    
+
                                     {% if user.user_type == "student" %}
                                         <div class="border-bottom mb-3 pb-3">
                                             <h4 class="text-primary">{{ authored_theses|length }}</h4>
@@ -414,42 +416,6 @@
 
             </div>
             <!-- End of Main Content -->
-
-            <!-- Footer -->
-            <footer class="sticky-footer bg-white">
-                <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>{{ _('SuperviseMe - 2025') }}</span>
-                    </div>
-                </div>
-            </footer>
-            <!-- End of Footer -->
-
-        </div>
-        <!-- End of Content Wrapper -->
-
-    </div>
-    <!-- End of Page Wrapper -->
-
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-
-    <!-- Bootstrap core JavaScript-->
-    <script src="{{ url_for('static', filename='assets/js/vendor/jquery/jquery.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='assets/js/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="{{ url_for('static', filename='assets/js/vendor/jquery-easing/jquery.easing.min.js') }}"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="{{ url_for('static', filename='assets/js/sb-admin-2.min.js') }}"></script>
-
-    <!-- Notifications system (required for admin users with topbar) -->
-    {% if user.user_type == 'admin' %}
-    <script src="{{ url_for('static', filename='assets/js/notifications.js') }}"></script>
-    {% endif %}
 
     <script>
         // Telegram configuration data
@@ -501,16 +467,27 @@
 
         function loadTelegramBotInfo() {
             const botInfoEl = document.getElementById('bot-info');
+            const stepName = document.getElementById('bot-step-name');
+            const notConfigured = {{ _('The administrator has not configured a Telegram bot for this installation yet.')|tojson }};
             fetchJson('/profile/telegram/bot-info')
                 .then(data => {
                     if (data.success && data.bot_info && data.bot_info.username) {
-                        botInfoEl.textContent = `@${data.bot_info.username}`;
+                        const handle = '@' + data.bot_info.username;
+                        const url = 'https://t.me/' + encodeURIComponent(data.bot_info.username);
+                        [botInfoEl, stepName].forEach(el => {
+                            el.textContent = '';
+                            const a = document.createElement('a');
+                            a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = handle;
+                            el.appendChild(a);
+                        });
                     } else {
-                        botInfoEl.textContent = 'Not configured';
+                        botInfoEl.textContent = notConfigured;
+                        stepName.textContent = notConfigured;
                     }
                 })
                 .catch(error => {
-                    botInfoEl.textContent = 'Unavailable';
+                    botInfoEl.textContent = {{ _('Unavailable')|tojson }};
+                    stepName.textContent = {{ _('Unavailable')|tojson }};
                     console.error('Error loading Telegram bot info:', error);
                 });
         }
@@ -710,6 +687,135 @@
         });
     </script>
 
-</body>
 
-</html>
+<!-- Avatar editor modal -->
+<div class="modal fade" id="avatarModal" tabindex="-1" role="dialog" aria-labelledby="avatarModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="avatarModalTitle"><i class="fas fa-camera mr-1"></i> {{ _('Profile picture') }}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body text-center">
+        <div class="av-drop" id="avDrop">
+          <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i>
+          <div>{{ _('Drag an image here or click to choose') }}</div>
+          <small class="text-muted">{{ _('PNG, JPEG, GIF or WEBP, max 2 MB.') }}</small>
+        </div>
+        <div class="av-stage" id="avStage" style="display:none">
+          <canvas id="avCanvas" width="300" height="300"></canvas>
+          <div class="av-mask"></div>
+        </div>
+        <div id="avControls" style="display:none">
+          <div class="d-flex align-items-center justify-content-center mt-3">
+            <i class="fas fa-search-minus text-muted"></i>
+            <input type="range" class="custom-range mx-2" id="avZoom" min="1" max="4" step="0.01" value="1" style="max-width:220px" aria-label="Zoom">
+            <i class="fas fa-search-plus text-muted"></i>
+          </div>
+          <div class="small text-muted mt-1">{{ _('Drag to reposition, use the slider to zoom.') }}</div>
+          <div class="btn-group btn-group-sm mt-2">
+            <button type="button" class="btn btn-outline-secondary" id="avRotate"><i class="fas fa-redo"></i> {{ _('Rotate') }}</button>
+            <button type="button" class="btn btn-outline-secondary" id="avChoose"><i class="fas fa-image"></i> {{ _('Choose another') }}</button>
+          </div>
+        </div>
+        <input type="file" id="avFile" accept="image/png,image/jpeg,image/gif,image/webp" class="d-none">
+        <div class="alert alert-danger small mt-3 mb-0" id="avError" style="display:none"></div>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <div>
+          {% if user.profile_pic %}
+          <form action="{{ url_for('profile.update_picture') }}" method="POST" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="remove">
+            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i> {{ _('Remove picture') }}</button>
+          </form>
+          {% endif %}
+        </div>
+        <div>
+          <button type="button" class="btn btn-light btn-sm" data-dismiss="modal">{{ _('Cancel') }}</button>
+          <button type="button" class="btn btn-primary btn-sm" id="avSave" disabled><i class="fas fa-check"></i> {{ _('Save picture') }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+    var MAX = 2 * 1024 * 1024, V = 300, OUT = 512;
+    var canvas = document.getElementById('avCanvas'), ctx = canvas.getContext('2d');
+    var img = null, scale = 1, minScale = 1, zoom = 1, ox = 0, oy = 0, rot = 0, dragging = null;
+    var $ = function (id) { return document.getElementById(id); };
+    function err(m) { var e = $('avError'); e.textContent = m || ''; e.style.display = m ? '' : 'none'; }
+    function dims() { return (rot % 2) ? [img.height, img.width] : [img.width, img.height]; }
+    function clamp() {
+        var d = dims(), w = d[0] * scale, h = d[1] * scale;
+        ox = Math.min(0, Math.max(V - w, ox)); oy = Math.min(0, Math.max(V - h, oy));
+    }
+    function draw(target, size) {
+        var c = target || ctx, k = (size || V) / V;
+        c.save(); c.fillStyle = '#fff'; c.fillRect(0, 0, V * k, V * k);
+        var d = dims(), w = d[0] * scale, h = d[1] * scale;
+        c.translate(ox * k + w * k / 2, oy * k + h * k / 2); c.rotate(rot * Math.PI / 2); c.scale(scale * k, scale * k);
+        c.drawImage(img, -img.width / 2, -img.height / 2); c.restore();
+    }
+    function render() { if (!img) return; clamp(); draw(ctx, V); }
+    function fit() {
+        var d = dims(); minScale = V / Math.min(d[0], d[1]); scale = minScale * zoom;
+        var w = d[0] * scale, h = d[1] * scale; ox = (V - w) / 2; oy = (V - h) / 2; render();
+    }
+    function setZoom(z, keepCenter) {
+        var d = dims(), cx = (V / 2 - ox) / scale, cy = (V / 2 - oy) / scale;
+        zoom = z; scale = minScale * zoom;
+        if (keepCenter) { ox = V / 2 - cx * scale; oy = V / 2 - cy * scale; }
+        render();
+    }
+    function load(file) {
+        err('');
+        if (!file) return;
+        if (!/^image\/(png|jpeg|gif|webp)$/.test(file.type)) { err({{ _('Unsupported file type.')|tojson }}); return; }
+        if (file.size > MAX) { err({{ _('The image is too large (max 2 MB).')|tojson }}); return; }
+        var im = new Image();
+        im.onload = function () {
+            img = im; rot = 0; zoom = 1; $('avZoom').value = 1;
+            $('avDrop').style.display = 'none'; $('avStage').style.display = ''; $('avControls').style.display = '';
+            $('avSave').disabled = false; fit();
+        };
+        im.onerror = function () { err({{ _('Could not read this image.')|tojson }}); };
+        im.src = URL.createObjectURL(file);
+    }
+    $('avDrop').addEventListener('click', function () { $('avFile').click(); });
+    $('avChoose').addEventListener('click', function () { $('avFile').click(); });
+    $('avFile').addEventListener('change', function () { load(this.files[0]); this.value = ''; });
+    ['dragover', 'dragenter'].forEach(function (ev) { $('avDrop').addEventListener(ev, function (e) { e.preventDefault(); this.classList.add('over'); }); });
+    ['dragleave', 'drop'].forEach(function (ev) { $('avDrop').addEventListener(ev, function (e) { e.preventDefault(); this.classList.remove('over'); }); });
+    $('avDrop').addEventListener('drop', function (e) { load(e.dataTransfer.files[0]); });
+    $('avZoom').addEventListener('input', function () { setZoom(parseFloat(this.value), true); });
+    $('avRotate').addEventListener('click', function () { rot = (rot + 1) % 4; zoom = 1; $('avZoom').value = 1; fit(); });
+    function pos(e) { var t = e.touches ? e.touches[0] : e, r = canvas.getBoundingClientRect(); return [(t.clientX - r.left) * V / r.width, (t.clientY - r.top) * V / r.height]; }
+    function down(e) { if (!img) return; e.preventDefault(); var p = pos(e); dragging = [p[0] - ox, p[1] - oy]; }
+    function move(e) { if (!dragging) return; e.preventDefault(); var p = pos(e); ox = p[0] - dragging[0]; oy = p[1] - dragging[1]; render(); }
+    function up() { dragging = null; }
+    canvas.addEventListener('mousedown', down); window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+    canvas.addEventListener('touchstart', down, {passive: false}); canvas.addEventListener('touchmove', move, {passive: false}); canvas.addEventListener('touchend', up);
+    canvas.addEventListener('wheel', function (e) { if (!img) return; e.preventDefault(); var z = Math.min(4, Math.max(1, zoom - e.deltaY * 0.002)); $('avZoom').value = z; setZoom(z, true); }, {passive: false});
+    $('avSave').addEventListener('click', function () {
+        if (!img) return;
+        var btn = this; btn.disabled = true; err('');
+        var out = document.createElement('canvas'); out.width = out.height = OUT; draw(out.getContext('2d'), OUT);
+        out.toBlob(function (blob) {
+            if (!blob) { err({{ _('Could not process the image.')|tojson }}); btn.disabled = false; return; }
+            var fd = new FormData();
+            fd.append('csrf_token', '{{ csrf_token() }}');
+            fd.append('picture', blob, 'avatar.jpg');
+            fetch("{{ url_for('profile.update_picture') }}", {method: 'POST', body: fd, credentials: 'same-origin'})
+                .then(function (r) { if (!r.ok && r.status >= 400) throw new Error(r.status); window.location.reload(); })
+                .catch(function () { err({{ _('Upload failed. Please try again.')|tojson }}); btn.disabled = false; });
+        }, 'image/jpeg', 0.9);
+    });
+    if (window.jQuery) jQuery('#avatarModal').on('hidden.bs.modal', function () {
+        img = null; $('avDrop').style.display = ''; $('avStage').style.display = 'none'; $('avControls').style.display = 'none'; $('avSave').disabled = true; err('');
+    });
+})();
+</script>
+
+            {% include 'admin/components/footer.html' %}

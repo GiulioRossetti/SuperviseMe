@@ -5,6 +5,7 @@ logger = logging.getLogger(__name__)
 from flask_login import login_required, current_user
 from sqlalchemy import select, and_, func, or_
 from superviseme.utils.miscellanea import check_privileges, user_has_supervisor_role
+from superviseme.utils.thesis_resources import normalize_resource_url, resolve_resource_type
 from superviseme.utils.thesis_management import delete_thesis_with_dependencies
 from superviseme.utils.thesis_interest import (
     accept_interest_and_close_others,
@@ -21,6 +22,7 @@ from superviseme import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash
 import time
+from flask_babel import gettext as _
 
 researcher = Blueprint("researcher", __name__)
 
@@ -59,6 +61,7 @@ def dashboard():
         research_projects=research_projects,
         has_supervisor_role=has_supervisor_role,
         supervised_thesis_count=supervised_thesis_count,
+        greeting=__import__("superviseme.utils.dashboard_data", fromlist=["greeting_key"]).greeting_key(),
         datetime=datetime,
         dt=datetime.fromtimestamp,
         str=str
@@ -387,36 +390,11 @@ def supervisor_dashboard():
         flash("You don't have supervisor privileges")
         return redirect(url_for("researcher.dashboard"))
 
-    # Get supervisor statistics (replicating supervisor dashboard logic)
-    user_counts = {
-        "students": db.session.execute(
-                    select(func.count())
-                    .select_from(User_mgmt)
-                    .join(Thesis, Thesis.author_id == User_mgmt.id)
-                    .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)
-                    .where(Thesis_Supervisor.supervisor_id == current_user.id)
-                ).scalar_one()
-    }
-
-    # count all theses by their status
-    thesis_counts = {
-        "total": Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).count(),
-    }
-
-    # Get theses for this supervisor
-    supervised_theses = db.session.execute(
-        select(Thesis, User_mgmt)
-        .join(Thesis_Supervisor, Thesis.id == Thesis_Supervisor.thesis_id)
-        .outerjoin(User_mgmt, Thesis.author_id == User_mgmt.id)
-        .where(Thesis_Supervisor.supervisor_id == current_user.id)
-    ).all()
-
+    from superviseme.utils.dashboard_data import supervisor_overview
     return render_template(
         "researcher/supervisor_dashboard.html",
         current_user=current_user,
-        user_counts=user_counts,
-        thesis_counts=thesis_counts,
-        supervised_theses=supervised_theses,
+        ov=supervisor_overview(current_user),
         has_supervisor_role=True,
         datetime=datetime,
         dt=datetime.fromtimestamp,
@@ -518,7 +496,8 @@ def supervisor_theses():
 
     # Get theses supervised by this researcher
     thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
-    theses = [ts.thesis for ts in thesis_supervisors]
+    from superviseme.utils.thesis_board import build_thesis_cards
+    cards, archived = build_thesis_cards([ts.thesis for ts in thesis_supervisors])
 
     # Get all available students for assignment dropdown (students without active thesis assignments)
     available_students = User_mgmt.query.filter(
@@ -531,7 +510,8 @@ def supervisor_theses():
     return render_template(
         "researcher/supervisor_theses.html",
         current_user=current_user,
-        theses=theses,
+        cards=cards,
+        archived=archived,
         available_students=available_students,
         has_supervisor_role=True,
         datetime=datetime,
@@ -3697,6 +3677,12 @@ def supervisor_add_resource():
         flash("Thesis not found or not supervised by you")
         return redirect(url_for('researcher.supervisor_theses'))
     
+    resource_url = normalize_resource_url(resource_url)
+    if not resource_url:
+        flash("Please provide a valid http(s) link.")
+        return redirect(url_for('researcher.supervisor_thesis_detail', thesis_id=thesis_id))
+    resource_type = resolve_resource_type(resource_type, resource_url)
+
     new_resource = Resource(
         thesis_id=thesis_id,
         resource_type=resource_type,
@@ -3773,3 +3759,64 @@ def supervisor_delete_resource(resource_id):
     flash("Resource deleted successfully")
     
     return redirect(url_for('researcher.supervisor_thesis_detail', thesis_id=thesis_id))
+
+
+# --- Thesis presentation: images and external reference links -----------------
+
+def _managed_thesis_or_redirect(thesis_id):
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return None, privilege_check
+    if not user_has_supervisor_role(current_user):
+        flash("You don't have supervisor privileges")
+        return None, redirect(url_for("researcher.dashboard"))
+    thesis = Thesis.query.get(thesis_id)
+    from superviseme.utils.thesis_media import user_manages_thesis
+    if not thesis or not user_manages_thesis(current_user, thesis):
+        flash(_("Thesis not found or not managed by you"))
+        return None, redirect(url_for("researcher.supervisor_theses"))
+    return thesis, None
+
+
+@researcher.route("/researcher/supervisor/thesis/<int:thesis_id>/images", methods=["POST"])
+@login_required
+def add_thesis_images(thesis_id):
+    thesis, bad = _managed_thesis_or_redirect(thesis_id)
+    if bad:
+        return bad
+    from superviseme.utils.thesis_media import handle_images_request
+    handle_images_request(thesis, request)
+    return redirect(url_for("researcher.supervisor_thesis_detail", thesis_id=thesis_id))
+
+
+@researcher.route("/researcher/supervisor/thesis/<int:thesis_id>/images/<int:image_id>/delete", methods=["POST"])
+@login_required
+def delete_thesis_image(thesis_id, image_id):
+    thesis, bad = _managed_thesis_or_redirect(thesis_id)
+    if bad:
+        return bad
+    from superviseme.utils.thesis_media import delete_image
+    flash(_("Image removed.") if delete_image(thesis, image_id) else _("Image not found."))
+    return redirect(url_for("researcher.supervisor_thesis_detail", thesis_id=thesis_id))
+
+
+@researcher.route("/researcher/supervisor/thesis/<int:thesis_id>/links", methods=["POST"])
+@login_required
+def add_thesis_link(thesis_id):
+    thesis, bad = _managed_thesis_or_redirect(thesis_id)
+    if bad:
+        return bad
+    from superviseme.utils.thesis_media import handle_link_request
+    handle_link_request(thesis, request)
+    return redirect(url_for("researcher.supervisor_thesis_detail", thesis_id=thesis_id))
+
+
+@researcher.route("/researcher/supervisor/thesis/<int:thesis_id>/links/<int:link_id>/delete", methods=["POST"])
+@login_required
+def delete_thesis_link(thesis_id, link_id):
+    thesis, bad = _managed_thesis_or_redirect(thesis_id)
+    if bad:
+        return bad
+    from superviseme.utils.thesis_media import delete_link
+    flash(_("Link removed.") if delete_link(thesis, link_id) else _("Link not found."))
+    return redirect(url_for("researcher.supervisor_thesis_detail", thesis_id=thesis_id))

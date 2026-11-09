@@ -1,8 +1,11 @@
-from flask import Blueprint, render_template, request
-from flask_login import current_user
+from flask import Blueprint, abort, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 from sqlalchemy import or_
 
-from superviseme.models import Thesis, Thesis_Interest, Thesis_Supervisor, Thesis_Tag, User_mgmt
+from superviseme.models import (
+    ResearchProject, Thesis, Thesis_Interest, Thesis_Status, Thesis_Supervisor, Thesis_Tag, User_mgmt,
+)
+from superviseme.utils.profile_access import can_view_profile
 
 public = Blueprint("public", __name__)
 
@@ -24,7 +27,7 @@ def public_thesis_dashboard():
         Thesis.query.filter(
             Thesis.is_public.is_(True),
             Thesis.author_id.is_(None),
-            Thesis.frozen.is_(False),
+            or_(Thesis.frozen.is_(False), Thesis.frozen.is_(None)),
         )
         .outerjoin(Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id)
         .outerjoin(User_mgmt, User_mgmt.id == Thesis_Supervisor.supervisor_id)
@@ -89,8 +92,18 @@ def public_thesis_dashboard():
         for tag in Thesis_Tag.query.filter(Thesis_Tag.thesis_id.in_(thesis_ids)).all():
             tags_by_thesis.setdefault(tag.thesis_id, []).append(tag.tag)
 
+    # Let staff know when their own theses exist but are not visible to students.
+    hidden_own_theses = 0
+    if current_user.is_authenticated and current_user.user_type in ("supervisor", "researcher", "admin"):
+        hidden_own_theses = Thesis.query.filter(
+            Thesis.publisher_id == current_user.id,
+            Thesis.author_id.is_(None),
+            or_(Thesis.is_public.is_(False), Thesis.frozen.is_(True)),
+        ).count()
+
     return render_template(
         "public/theses_dashboard.html",
+        hidden_own_theses=hidden_own_theses,
         theses=theses,
         pagination=pagination,
         supervisors_by_thesis=supervisors_by_thesis,
@@ -106,8 +119,11 @@ def public_thesis_dashboard():
 
 @public.route("/theses/<int:thesis_id>")
 def public_thesis_detail(thesis_id):
-    thesis = Thesis.query.filter_by(
-        id=thesis_id, is_public=True, author_id=None, frozen=False
+    thesis = Thesis.query.filter(
+        Thesis.id == thesis_id,
+        Thesis.is_public.is_(True),
+        Thesis.author_id.is_(None),
+        or_(Thesis.frozen.is_(False), Thesis.frozen.is_(None)),
     ).first_or_404()
 
     supervisors = (
@@ -128,6 +144,53 @@ def public_thesis_detail(thesis_id):
         supervisors=supervisors,
         tags=tags,
         existing_interest=existing_interest,
+    )
+
+
+@public.route("/users/<int:user_id>")
+@login_required
+def user_profile(user_id):
+    """Read-only profile page of a student / supervisor / researcher / admin."""
+    target = User_mgmt.query.get_or_404(user_id)
+    if not can_view_profile(current_user, target):
+        abort(404)
+    if target.id == current_user.id:
+        return redirect(url_for("profile.profile_page"))
+    if target.user_type == "student" and current_user.user_type == "supervisor":
+        return redirect(url_for("supervisor.student_profile", student_id=target.id))
+
+    open_theses, assigned_count, archived_count = [], 0, 0
+    student_theses = []
+    projects_count = 0
+    if target.user_type == "student":
+        for t in Thesis.query.filter_by(author_id=target.id).order_by(Thesis.created_at.desc()).all():
+            status = Thesis_Status.query.filter_by(thesis_id=t.id).order_by(Thesis_Status.updated_at.desc()).first()
+            sups = [ts.supervisor for ts in Thesis_Supervisor.query.filter_by(thesis_id=t.id).all()]
+            student_theses.append({"thesis": t, "status": status.status if status else None, "supervisors": sups})
+    else:
+        theses = (
+            Thesis.query.outerjoin(Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id)
+            .filter(or_(Thesis_Supervisor.supervisor_id == target.id, Thesis.publisher_id == target.id))
+            .distinct().order_by(Thesis.created_at.desc()).all()
+        )
+        for t in theses:
+            if t.frozen:
+                archived_count += 1
+            elif t.author_id:
+                assigned_count += 1
+            elif t.is_public:
+                open_theses.append(t)
+        if target.user_type == "researcher":
+            projects_count = ResearchProject.query.filter_by(researcher_id=target.id).count()
+
+    return render_template(
+        "public/user_profile.html",
+        target=target,
+        open_theses=open_theses,
+        assigned_count=assigned_count,
+        archived_count=archived_count,
+        student_theses=student_theses,
+        projects_count=projects_count,
     )
 
 

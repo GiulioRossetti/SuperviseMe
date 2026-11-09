@@ -76,14 +76,14 @@
                                         <div class="col-md-6">
                                             <strong>{{ _('Assigned To:') }}</strong>
                                             {% if todo.assigned_to %}
-                                                <span class="text-gray-700">{{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}</span>
+                                                <span class="text-gray-700">{{ user_link(todo.assigned_to) }}</span>
                                             {% else %}
                                                 <span class="text-muted">{{ _('Not assigned') }}</span>
                                             {% endif %}
                                         </div>
                                         <div class="col-md-6">
                                             <strong>{{ _('Created By:') }}</strong>
-                                            <span class="text-gray-700">{{ todo.author.name }} {{ todo.author.surname }}</span>
+                                            <span class="text-gray-700">{{ user_link(todo.author) }}</span>
                                         </div>
                                     </div>
                                 </div>

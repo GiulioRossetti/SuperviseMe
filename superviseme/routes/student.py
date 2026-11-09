@@ -2,6 +2,8 @@ from flask import Blueprint, request, render_template, redirect, url_for, jsonif
 from flask_login import login_required, current_user
 from sqlalchemy import and_, or_
 from superviseme.utils.miscellanea import check_privileges
+from superviseme.utils.thesis_timeline import build_status_timeline, build_activity_calendar
+from superviseme.utils.thesis_resources import normalize_resource_url, resolve_resource_type
 from superviseme.utils.activity_tracker import update_user_activity
 from superviseme.models import *
 from superviseme import db
@@ -137,7 +139,9 @@ def dashboard():
         todos = []
         supervisor_info = None
         
+    from superviseme.utils.dashboard_data import student_overview
     return render_template("student/student_dashboard.html", 
+                         ov=student_overview(current_user, thesis, todos),
                          thesis=thesis, 
                          thesis_stats=thesis_stats,
                          recent_updates=recent_updates,
@@ -209,7 +213,20 @@ def thesis_data():
     # Get thesis status history
     thesis_statuses = Thesis_Status.query.filter_by(thesis_id=thesis.id).order_by(Thesis_Status.updated_at.desc()).all()
     
+    status_timeline = build_status_timeline(thesis_statuses)
+
+    # Student activity (GitHub-style calendar): everything the student authored/completed
+    activity_events = [u.created_at for u in updates if u.author_id == current_user.id]
+    activity_events += [n.created_at for n in meeting_notes if n.author_id == current_user.id]
+    activity_events += [o.created_at for o in objectives if o.author_id == current_user.id]
+    activity_events += [h.created_at for h in hypotheses if h.author_id == current_user.id]
+    activity_events += [t.created_at for t in todos if t.author_id == current_user.id]
+    activity_events += [t.completed_at for t in todos
+                        if t.completed_at and (t.assigned_to_id in (None, current_user.id))]
+    activity_calendar = build_activity_calendar(activity_events)
+
     return render_template("student/thesis.html", thesis=thesis, supervisors=supervisors,
+                           status_timeline=status_timeline, activity_calendar=activity_calendar,
                            tags=tags, updates=updates, parent_updates=parent_updates,
                            comments_by_parent=comments_by_parent, resources=resources, 
                            objectives=objectives, hypotheses=hypotheses, todos=todos, 
@@ -490,6 +507,12 @@ def add_resource():
     if not thesis:
         return redirect(url_for('student.thesis_data'))
 
+    resource_url = normalize_resource_url(resource_url)
+    if not resource_url:
+        flash("Please provide a valid http(s) link.", "danger")
+        return redirect(url_for('student.thesis_data'))
+    resource_type = resolve_resource_type(resource_type, resource_url)
+
     new_resource = Resource(
         thesis_id=thesis_id,
         resource_type=resource_type,
@@ -527,7 +550,11 @@ def edit_resource():
     ).first()
     
     if resource:
-        resource.resource_type = resource_type
+        resource_url = normalize_resource_url(resource_url)
+        if not resource_url:
+            flash("Please provide a valid http(s) link.", "danger")
+            return redirect(url_for('student.thesis_data'))
+        resource.resource_type = resolve_resource_type(resource_type, resource_url)
         resource.resource_url = resource_url
         resource.description = description
         db.session.commit()

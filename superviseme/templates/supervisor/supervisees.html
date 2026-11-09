@@ -30,127 +30,195 @@
                         </button>
                     </div>
 
-                    <!-- Content Row -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Current Supervised Students') }}</h6>
+                    {% with messages = get_flashed_messages() %}
+                        {% for message in messages %}
+                            <div class="alert alert-info alert-dismissible fade show" role="alert">{{ message }}
+                                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                            </div>
+                        {% endfor %}
+                    {% endwith %}
+
+                    <!-- Current students: carousel + search -->
+                    <div class="card shadow mb-4" id="svSection">
+                        <div class="card-header py-3 d-flex flex-wrap align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">{{ _('Current Supervised Students') }}</h6>
+                            <span class="small text-muted" id="svCount"></span>
+                        </div>
+                        <div class="card-body">
+                        {% if supervisees %}
+                            <!-- Search toolbar -->
+                            <div class="sv-toolbar mb-3">
+                                <div class="input-group sv-search">
+                                    <div class="input-group-prepend"><span class="input-group-text bg-white"><i class="fas fa-search"></i></span></div>
+                                    <input type="search" class="form-control" id="svQuery" placeholder="{{ _('Search by name, email, thesis, topic or keyword...') }}" autocomplete="off">
                                 </div>
-                                <div class="card-body">
-                                    {% if supervisees %}
-                                        <div class="row">
-                                            {% for supervisee_info in supervisees %}
-                                            <div class="col-lg-6 col-xl-4 mb-4">
-                                                <div class="card border-left-{% if supervisee_info.is_inactive %}warning{% else %}primary{% endif %} shadow h-100 py-2">
-                                                    <div class="card-body">
-                                                        <div class="row no-gutters align-items-center">
-                                                            <div class="col mr-2">
-                                                                <div class="text-xs font-weight-bold {% if supervisee_info.is_inactive %}text-warning{% else %}text-primary{% endif %} text-uppercase mb-1">
-                                                                    Student{% if supervisee_info.is_inactive %} - INACTIVE{% endif %}
-                                                                </div>
-                                                                <div class="h6 mb-0 font-weight-bold text-gray-800">
-                                                                    {{ supervisee_info.student.name }} {{ supervisee_info.student.surname }}
-                                                                </div>
-                                                                <div class="text-xs text-gray-500 mb-2">
-                                                                    {{ supervisee_info.student.email }}
-                                                                </div>
-                                                                <div class="mb-2">
-                                                                    <strong>{{ _('Thesis:') }}</strong> {{ supervisee_info.thesis.title }}
-                                                                </div>
-                                                                <div class="mb-2">
-                                                                    <span class="badge badge-info">{{ supervisee_info.thesis.level|title if supervisee_info.thesis.level else 'No Level' }}</span>
-                                                                    {% if supervisee_info.thesis.frozen %}
-                                                                        <span class="badge badge-danger">{{ _('Frozen') }}</span>
-                                                                    {% else %}
-                                                                        <span class="badge badge-success">{{ _('Active') }}</span>
-                                                                    {% endif %}
-                                                                </div>
-                                                                
-                                                                <!-- Activity Status -->
-                                                                <div class="mb-2">
-                                                                    {% if supervisee_info.is_inactive %}
-                                                                        <div class="alert alert-warning py-2 mb-2" style="font-size: 0.85em;">
-                                                                            <i class="fas fa-exclamation-triangle"></i>
-                                                                            {% if supervisee_info.days_inactive == 'Unknown' or supervisee_info.days_inactive is none %}
-                                                                                <strong>{{ _('Not yet logged') }}</strong>
-                                                                            {% else %}
-                                                                                <strong>Inactive for {{ supervisee_info.days_inactive }} days</strong>
-                                                                            {% endif %}
-                                                                            {% if supervisee_info.last_activity_location %}
-                                                                                <br><small>Last seen: {{ supervisee_info.last_activity_location }}</small>
-                                                                            {% endif %}
-                                                                        </div>
-                                                                    {% else %}
-                                                                        <div class="alert alert-success py-2 mb-2" style="font-size: 0.85em;">
-                                                                            <i class="fas fa-check-circle"></i>
-                                                                            <strong>{{ _('Active') }}</strong>
-                                                                            {% if supervisee_info.last_activity_location %}
-                                                                                <br><small>Last seen: {{ supervisee_info.last_activity_location }}</small>
-                                                                            {% endif %}
-                                                                            {% if supervisee_info.days_inactive is not none and supervisee_info.days_inactive != 'Unknown' %}
-                                                                                {% if supervisee_info.days_inactive == 0 %}
-                                                                                    <br><small>{{ _('Last online: Today') }}</small>
-                                                                                {% elif supervisee_info.days_inactive == 1 %}
-                                                                                    <br><small>{{ _('Last online: Yesterday') }}</small>
-                                                                                {% else %}
-                                                                                    <br><small>Last online: {{ supervisee_info.days_inactive }} days ago</small>
-                                                                                {% endif %}
-                                                                            {% endif %}
-                                                                        </div>
-                                                                    {% endif %}
-                                                                </div>
-                                                                
-                                                                <div class="mt-3">
-                                                                    <a href="{{ url_for('supervisor.thesis_detail', thesis_id=supervisee_info.thesis.id) }}" class="btn btn-primary btn-sm">
-                                                                        <i class="fas fa-eye"></i> View Thesis
-                                                                    </a>
-                                                                    <a href="mailto:{{ supervisee_info.student.email }}" class="btn btn-outline-secondary btn-sm">
-                                                                        <i class="fas fa-envelope"></i> Email
-                                                                    </a>
-                                                                    <button type="button" class="btn btn-info btn-sm" 
-                                                                            data-toggle="modal" 
-                                                                            data-target="#editStudentModal"
-                                                                            data-student-id="{{ supervisee_info.student.id }}"
-                                                                            data-student-name="{{ supervisee_info.student.name }}"
-                                                                            data-student-surname="{{ supervisee_info.student.surname }}"
-                                                                            data-student-email="{{ supervisee_info.student.email }}"
-                                                                            data-student-cdl="{{ supervisee_info.student.cdl }}"
-                                                                            data-student-gender="{{ supervisee_info.student.gender }}"
-                                                                            data-student-nationality="{{ supervisee_info.student.nationality }}">
-                                                                        <i class="fas fa-edit"></i> Edit
-                                                                    </button>
-                                                                    <button type="button" class="btn btn-danger btn-sm"
-                                                                            data-toggle="modal" 
-                                                                            data-target="#deleteStudentModal"
-                                                                            data-student-id="{{ supervisee_info.student.id }}"
-                                                                            data-student-name="{{ supervisee_info.student.name }}"
-                                                                            data-student-surname="{{ supervisee_info.student.surname }}">
-                                                                        <i class="fas fa-trash"></i> Delete
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-auto">
-                                                                {% if supervisee_info.is_inactive %}
-                                                                    <i class="fas fa-user-slash fa-2x text-warning"></i>
-                                                                {% else %}
-                                                                    <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
-                                                                {% endif %}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {% endfor %}
+                                <div class="btn-group btn-group-sm sv-chips" role="group" id="svChips">
+                                    <button type="button" class="btn btn-outline-primary active" data-activity="">{{ _('All') }}</button>
+                                    <button type="button" class="btn btn-outline-primary" data-activity="active">{{ _('Active') }}</button>
+                                    <button type="button" class="btn btn-outline-primary" data-activity="inactive">{{ _('Inactive') }}</button>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-toggle="collapse" data-target="#svAdvanced" aria-expanded="false">
+                                    <i class="fas fa-sliders-h"></i> {{ _('Advanced search') }} <span class="badge badge-primary ml-1" id="svFilterBadge" style="display:none"></span>
+                                </button>
+                            </div>
+
+                            <div class="collapse" id="svAdvanced">
+                                <div class="sv-advanced mb-3">
+                                    <div class="form-row">
+                                        <div class="form-group col-md-3">
+                                            <label for="svLevel">{{ _('Level') }}</label>
+                                            <select id="svLevel" class="form-control form-control-sm">
+                                                <option value="">{{ _('Any') }}</option>
+                                                <option value="bachelor">{{ _('Bachelor') }}</option>
+                                                <option value="master">{{ _('Master') }}</option>
+                                                <option value="phd">{{ _('PhD') }}</option>
+                                                <option value="other">{{ _('Other') }}</option>
+                                            </select>
                                         </div>
-                                    {% else %}
-                                        <div class="text-center">
-                                            <i class="fas fa-user-graduate fa-3x text-gray-300 mb-3"></i>
-                                            <p class="text-gray-500">{{ _('No students assigned yet. Students will appear here when they are assigned to your theses.') }}</p>
+                                        <div class="form-group col-md-3">
+                                            <label for="svStatus">{{ _('Thesis status') }}</label>
+                                            <select id="svStatus" class="form-control form-control-sm">
+                                                <option value="">{{ _('Any') }}</option>
+                                                {% for st in supervisees|map(attribute='status')|select|unique|list %}
+                                                    <option value="{{ st|lower }}">{{ _(st|replace('-', ' ')|capitalize) }}</option>
+                                                {% endfor %}
+                                                <option value="__none">{{ _('No status set') }}</option>
+                                            </select>
                                         </div>
-                                    {% endif %}
+                                        <div class="form-group col-md-3">
+                                            <label for="svSeen">{{ _('Last seen') }}</label>
+                                            <select id="svSeen" class="form-control form-control-sm">
+                                                <option value="">{{ _('Any time') }}</option>
+                                                <option value="7">{{ _('Within 7 days') }}</option>
+                                                <option value="14">{{ _('Within 14 days') }}</option>
+                                                <option value="30">{{ _('Within 30 days') }}</option>
+                                                <option value="old30">{{ _('More than 30 days ago') }}</option>
+                                                <option value="never">{{ _('Never logged in') }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group col-md-3">
+                                            <label for="svProgress">{{ _('Task progress') }}</label>
+                                            <select id="svProgress" class="form-control form-control-sm">
+                                                <option value="">{{ _('Any') }}</option>
+                                                <option value="none">{{ _('No tasks yet') }}</option>
+                                                <option value="lt50">{{ _('Below') }} 50%</option>
+                                                <option value="gte50">≥ 50%</option>
+                                                <option value="gte80">≥ 80%</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-4">
+                                            <label for="svTopic">{{ _('Topic / keyword') }}</label>
+                                            <input type="text" id="svTopic" class="form-control form-control-sm" placeholder="{{ _('e.g. deep learning') }}">
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <label for="svThesis">{{ _('Thesis title') }}</label>
+                                            <input type="text" id="svThesis" class="form-control form-control-sm">
+                                        </div>
+                                        <div class="form-group col-md-2">
+                                            <label for="svSort">{{ _('Sort by') }}</label>
+                                            <select id="svSort" class="form-control form-control-sm">
+                                                <option value="name">{{ _('Name') }}</option>
+                                                <option value="seen">{{ _('Last seen') }}</option>
+                                                <option value="progress">{{ _('Progress') }}</option>
+                                                <option value="level">{{ _('Level') }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group col-md-2 d-flex align-items-end">
+                                            <button type="button" class="btn btn-sm btn-light border btn-block" id="svReset"><i class="fas fa-undo"></i> {{ _('Reset') }}</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
+                            <!-- Source cards (hidden, cloned into pages by JS) -->
+                            <div id="svSource" class="d-none">
+                            {% for si in supervisees %}
+                                {% set stu = si.student %}
+                                {% set seen_days = (-1 if si.never_logged else si.days_inactive) %}
+                                <div class="sv-item"
+                                     data-name="{{ (stu.name ~ ' ' ~ stu.surname)|lower }}"
+                                     data-email="{{ stu.email|lower }}"
+                                     data-thesis="{{ si.thesis.title|lower }}"
+                                     data-topic="{{ ((si.topic or '') ~ ' ' ~ (si.keywords|join(' ')))|lower }}"
+                                     data-level="{{ (si.thesis.level or '')|lower }}"
+                                     data-status="{{ (si.status or '__none')|lower }}"
+                                     data-inactive="{{ 1 if si.is_inactive else 0 }}"
+                                     data-seen="{{ seen_days }}"
+                                     data-progress="{{ si.progress if si.progress is not none else -1 }}">
+                                    <div class="sv-card {{ 'is-inactive' if si.is_inactive else 'is-active' }}">
+                                        <div class="sv-card-top">
+                                            {% if stu.profile_pic %}<img class="sm-avatar" src="{{ avatar_url(stu) }}" alt="">{% else %}<div class="sm-avatar">{{ (stu.name or '?')[:1] }}{{ (stu.surname or '')[:1] }}</div>{% endif %}
+                                            <div class="sv-id">
+                                                <a class="sv-name" href="{{ url_for('supervisor.student_profile', student_id=stu.id) }}">{{ stu.name }} {{ stu.surname }}</a>
+                                                <div class="sv-email" title="{{ stu.email }}">{{ stu.email }}</div>
+                                            </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-link btn-sm text-muted p-0" data-toggle="dropdown" aria-label="{{ _('More') }}"><i class="fas fa-ellipsis-v"></i></button>
+                                                <div class="dropdown-menu dropdown-menu-right">
+                                                    <a class="dropdown-item" href="mailto:{{ stu.email }}"><i class="fas fa-envelope fa-fw mr-1"></i> {{ _('Email') }}</a>
+                                                    <button type="button" class="dropdown-item text-danger" data-toggle="modal" data-target="#deleteStudentModal"
+                                                            data-student-id="{{ stu.id }}" data-student-name="{{ stu.name }}" data-student-surname="{{ stu.surname }}">
+                                                        <i class="fas fa-trash fa-fw mr-1"></i> {{ _('Delete') }}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="sv-thesis" title="{{ si.thesis.title }}">{{ si.thesis.title }}</div>
+                                        <div class="sv-badges">
+                                            {% if si.thesis.level %}<span class="badge badge-light border">{{ _(si.thesis.level|title) }}</span>{% endif %}
+                                            {% if si.status %}<span class="badge badge-info">{{ _(si.status|replace('-', ' ')|capitalize) }}</span>{% endif %}
+                                        </div>
+
+                                        <div class="sv-progress">
+                                            <div class="d-flex justify-content-between small text-muted">
+                                                <span>{{ _('Tasks') }}</span>
+                                                <span>{% if si.progress is not none %}{{ si.todos_done }}/{{ si.todos_total }}{% else %}—{% endif %}</span>
+                                            </div>
+                                            <div class="progress"><div class="progress-bar" style="width: {{ si.progress or 0 }}%"></div></div>
+                                        </div>
+
+                                        <div class="sv-activity {{ 'warn' if si.is_inactive else 'ok' }}">
+                                            <i class="fas fa-circle"></i>
+                                            {% if si.never_logged %}
+                                                {{ _('Not yet logged') }}
+                                            {% elif si.days_inactive == 0 %}
+                                                {{ _('Last online: Today') }}
+                                            {% elif si.days_inactive == 1 %}
+                                                {{ _('Last online: Yesterday') }}
+                                            {% else %}
+                                                {{ _('Last online') }}: {{ si.days_inactive }} {{ _('days ago') }}
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="sv-actions">
+                                            <a href="{{ url_for('supervisor.student_profile', student_id=stu.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-user"></i> {{ _('Profile') }}</a>
+                                            <a href="{{ url_for('supervisor.thesis_detail', thesis_id=si.thesis.id) }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-book-open"></i> {{ _('Thesis') }}</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            </div>
+
+                            <!-- Carousel -->
+                            <div class="sv-carousel">
+                                <button type="button" class="sv-arrow sv-prev" id="svPrev" aria-label="{{ _('Previous') }}"><i class="fas fa-chevron-left"></i></button>
+                                <div class="sv-viewport"><div class="sv-track" id="svTrack"></div></div>
+                                <button type="button" class="sv-arrow sv-next" id="svNext" aria-label="{{ _('Next') }}"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                            <div class="sv-dots" id="svDots"></div>
+                            <div class="text-center text-muted py-4" id="svEmpty" style="display:none">
+                                <i class="fas fa-user-slash fa-2x mb-2"></i>
+                                <div>{{ _('No students match your search.') }}</div>
+                            </div>
+                        {% else %}
+                            <div class="text-center">
+                                <i class="fas fa-user-graduate fa-3x text-gray-300 mb-3"></i>
+                                <p class="text-gray-500">{{ _('No students assigned yet. Students will appear here when they are assigned to your theses.') }}</p>
+                            </div>
+                        {% endif %}
                         </div>
                     </div>
 
@@ -179,7 +247,7 @@
                                                 {% for supervisee_info in past_supervisees %}
                                                 <tr>
                                                     <td>
-                                                        <strong>{{ supervisee_info.student.name }} {{ supervisee_info.student.surname }}</strong>
+                                                        <strong>{{ user_link(supervisee_info.student) }}</strong>
                                                         {% if supervisee_info.is_inactive %}
                                                             {% if supervisee_info.days_inactive == 'Unknown' or supervisee_info.days_inactive is none %}
                                                                 <br><small class="text-warning">
@@ -211,6 +279,10 @@
                                                         <a href="{{ url_for('supervisor.thesis_detail', thesis_id=supervisee_info.thesis.id) }}" 
                                                            class="btn btn-primary btn-sm">
                                                             <i class="fas fa-eye"></i> View
+                                                        </a>
+                                                        <a href="{{ url_for('supervisor.student_profile', student_id=supervisee_info.student.id) }}"
+                                                           class="btn btn-outline-primary btn-sm">
+                                                            <i class="fas fa-user"></i> {{ _('Profile') }}
                                                         </a>
                                                         <a href="mailto:{{ supervisee_info.student.email }}" 
                                                            class="btn btn-outline-secondary btn-sm">
@@ -460,91 +532,6 @@
         </div>
     </div>
 
-    <!-- Edit Student Modal -->
-    <div class="modal fade" id="editStudentModal" tabindex="-1" role="dialog" aria-labelledby="editStudentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editStudentModalLabel">{{ _('Edit Student') }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form method="POST" id="editStudentForm">
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="edit_name">{{ _('First Name') }}</label>
-                                    <input type="text" class="form-control" id="edit_name" name="name" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="edit_surname">{{ _('Last Name') }}</label>
-                                    <input type="text" class="form-control" id="edit_surname" name="surname" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="edit_email">{{ _('Email') }}</label>
-                                    <input type="email" class="form-control" id="edit_email" name="email" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="edit_cdl">{{ _('Course of Study') }}</label>
-                                    <input type="text" class="form-control" id="edit_cdl" name="cdl">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="edit_gender">{{ _('Gender') }}</label>
-                                    <select class="form-control" id="edit_gender" name="gender">
-                                        <option value="">{{ _('Select Gender') }}</option>
-                                        <option value="male">{{ _('Male') }}</option>
-                                        <option value="female">{{ _('Female') }}</option>
-                                        <option value="other">{{ _('Other') }}</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="edit_nationality">{{ _('Nationality') }}</label>
-                                    <input type="text" class="form-control" id="edit_nationality" name="nationality">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="edit_password">{{ _('New Password (leave blank to keep current)') }}</label>
-                                    <input type="password" class="form-control" id="edit_password" name="password">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="edit_password2">{{ _('Confirm New Password') }}</label>
-                                    <input type="password" class="form-control" id="edit_password2" name="password2">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
-                        <button type="submit" class="btn btn-primary">{{ _('Update Student') }}</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <!-- Delete Student Modal -->
     <div class="modal fade" id="deleteStudentModal" tabindex="-1" role="dialog" aria-labelledby="deleteStudentModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -577,27 +564,6 @@
 
     <!-- JavaScript for modal functionality -->
     <script>
-        // Edit Student Modal
-        $('#editStudentModal').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget);
-            var studentId = button.data('student-id');
-            var studentName = button.data('student-name');
-            var studentSurname = button.data('student-surname');
-            var studentEmail = button.data('student-email');
-            var studentCdl = button.data('student-cdl');
-            var studentGender = button.data('student-gender');
-            var studentNationality = button.data('student-nationality');
-            
-            var modal = $(this);
-            modal.find('#edit_name').val(studentName);
-            modal.find('#edit_surname').val(studentSurname);
-            modal.find('#edit_email').val(studentEmail);
-            modal.find('#edit_cdl').val(studentCdl);
-            modal.find('#edit_gender').val(studentGender);
-            modal.find('#edit_nationality').val(studentNationality);
-            modal.find('#editStudentForm').attr('action', '{{ url_for("supervisor.edit_student", student_id=0) }}'.replace('0', studentId));
-        });
-
         // Delete Student Modal
         $('#deleteStudentModal').on('show.bs.modal', function (event) {
             var button = $(event.relatedTarget);
@@ -611,6 +577,131 @@
         });
     </script>
 
+
+    <script>
+    (function () {
+        var $src = $('#svSource .sv-item');
+        if (!$src.length) return;
+        var items = $src.toArray();
+        var page = 0, filtered = items.slice();
+        var $track = $('#svTrack'), state = { activity: '' };
+
+        function pageSize() {
+            var w = window.innerWidth;
+            return w >= 1200 ? 4 : w >= 992 ? 3 : w >= 576 ? 2 : 1;
+        }
+        function val(id) { return ($('#' + id).val() || '').toString().trim().toLowerCase(); }
+
+        function matches(el) {
+            var d = el.dataset, q = val('svQuery');
+            if (q) {
+                var blob = [d.name, d.email, d.thesis, d.topic].join(' ');
+                if (!q.split(/\s+/).every(function (t) { return blob.indexOf(t) !== -1; })) return false;
+            }
+            if (state.activity === 'active' && d.inactive === '1') return false;
+            if (state.activity === 'inactive' && d.inactive !== '1') return false;
+            var lvl = val('svLevel'); if (lvl && d.level !== lvl) return false;
+            var st = val('svStatus'); if (st && d.status !== st) return false;
+            var seen = val('svSeen'), days = parseInt(d.seen, 10);
+            if (seen === 'never' && days !== -1) return false;
+            if (seen === 'old30' && !(days === -1 || days > 30)) return false;
+            if (/^\d+$/.test(seen) && !(days !== -1 && days <= parseInt(seen, 10))) return false;
+            var pr = val('svProgress'), p = parseInt(d.progress, 10);
+            if (pr === 'none' && p !== -1) return false;
+            if (pr === 'lt50' && !(p !== -1 && p < 50)) return false;
+            if (pr === 'gte50' && !(p >= 50)) return false;
+            if (pr === 'gte80' && !(p >= 80)) return false;
+            var tp = val('svTopic'); if (tp && d.topic.indexOf(tp) === -1) return false;
+            var th = val('svThesis'); if (th && d.thesis.indexOf(th) === -1) return false;
+            return true;
+        }
+
+        function sorter(a, b) {
+            var by = $('#svSort').val(), A = a.dataset, B = b.dataset;
+            if (by === 'seen') {
+                var da = parseInt(A.seen, 10), db = parseInt(B.seen, 10);
+                da = da === -1 ? 1e9 : da; db = db === -1 ? 1e9 : db;
+                return da - db;
+            }
+            if (by === 'progress') return parseInt(B.progress, 10) - parseInt(A.progress, 10);
+            if (by === 'level') return (A.level || '').localeCompare(B.level || '') || A.name.localeCompare(B.name);
+            return A.name.localeCompare(B.name);
+        }
+
+        function activeFilterCount() {
+            var n = 0;
+            ['svLevel', 'svStatus', 'svSeen', 'svProgress', 'svTopic', 'svThesis'].forEach(function (id) { if (val(id)) n++; });
+            return n;
+        }
+
+        function render() {
+            var size = pageSize(), pages = Math.max(1, Math.ceil(filtered.length / size));
+            page = Math.min(page, pages - 1);
+            $track.empty();
+            for (var i = 0; i < pages; i++) {
+                var $p = $('<div class="sv-page"></div>').css('grid-template-columns', 'repeat(' + size + ', minmax(0, 1fr))');
+                filtered.slice(i * size, (i + 1) * size).forEach(function (el) {
+                    $p.append($('<div class="sv-slot"></div>').append($(el).children().first().clone(true, true)));
+                });
+                $track.append($p);
+            }
+            $track.css('transform', 'translateX(' + (-100 * page) + '%)');
+
+            var from = filtered.length ? page * size + 1 : 0, to = Math.min(filtered.length, (page + 1) * size);
+            $('#svCount').text(filtered.length ? from + '–' + to + ' / ' + filtered.length + ' ' + '{{ _("students") }}' : '0 {{ _("students") }}');
+            $('#svPrev').prop('disabled', page === 0);
+            $('#svNext').prop('disabled', page >= pages - 1);
+            $('.sv-carousel').toggle(filtered.length > 0);
+            $('#svEmpty').toggle(filtered.length === 0);
+            var $dots = $('#svDots').empty();
+            if (pages > 1) for (var j = 0; j < pages; j++) {
+                $('<button type="button" class="sv-dot"></button>').toggleClass('active', j === page).attr('data-page', j).appendTo($dots);
+            }
+            var n = activeFilterCount();
+            $('#svFilterBadge').text(n).toggle(n > 0);
+        }
+
+        function apply(resetPage) {
+            filtered = items.filter(matches).sort(sorter);
+            if (resetPage) page = 0;
+            render();
+        }
+
+        $('#svQuery, #svTopic, #svThesis').on('input', function () { apply(true); });
+        $('#svLevel, #svStatus, #svSeen, #svProgress, #svSort').on('change', function () { apply(true); });
+        $('#svChips').on('click', 'button', function () {
+            $('#svChips button').removeClass('active'); $(this).addClass('active');
+            state.activity = $(this).data('activity'); apply(true);
+        });
+        $('#svReset').on('click', function () {
+            $('#svQuery, #svTopic, #svThesis').val('');
+            $('#svLevel, #svStatus, #svSeen, #svProgress').val('');
+            $('#svSort').val('name');
+            $('#svChips button').removeClass('active').first().addClass('active'); state.activity = '';
+            apply(true);
+        });
+        $('#svPrev').on('click', function () { if (page > 0) { page--; render(); } });
+        $('#svNext').on('click', function () { page++; render(); });
+        $('#svDots').on('click', '.sv-dot', function () { page = parseInt($(this).attr('data-page'), 10); render(); });
+        $(document).on('keydown', function (e) {
+            if ($(e.target).is('input, select, textarea')) return;
+            if (e.key === 'ArrowLeft') $('#svPrev').click();
+            if (e.key === 'ArrowRight') $('#svNext').click();
+        });
+        // swipe
+        var x0 = null;
+        $('.sv-viewport').on('touchstart', function (e) { x0 = e.originalEvent.touches[0].clientX; })
+            .on('touchend', function (e) {
+                if (x0 === null) return;
+                var dx = e.originalEvent.changedTouches[0].clientX - x0;
+                if (dx > 50) $('#svPrev').click(); else if (dx < -50) $('#svNext').click();
+                x0 = null;
+            });
+        var lastSize = pageSize();
+        $(window).on('resize', function () { if (pageSize() !== lastSize) { lastSize = pageSize(); render(); } });
+        apply(true);
+    })();
+    </script>
 
 </body>
 

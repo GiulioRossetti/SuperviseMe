@@ -22,176 +22,66 @@
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
 
-                    <!-- Page Heading -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">{{ _('Dashboard') }}</h1>
+                    {% from 'components/dash.html' import hero, tile, panel, empty, avatar with context %}
+                    {% set greet = {'morning': _('Good morning, %(name)s', name=current_user.name), 'afternoon': _('Good afternoon, %(name)s', name=current_user.name), 'evening': _('Good evening, %(name)s', name=current_user.name)}[greeting] %}
+                    {% call hero(greet, _('Platform overview: people, supervision workload and the thesis catalog.'), 'fa-shield-alt') %}
+                        <a href="{{ url_for('admin.users') }}" class="btn btn-primary btn-sm"><i class="fas fa-users-cog"></i> {{ _('Manage users') }}</a>
+                        <a href="{{ url_for('admin.theses') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-book"></i> {{ _('Manage theses') }}</a>
+                    {% endcall %}
+
+                    <div class="dash-tiles">
+                        {{ tile('fa-user-graduate', 'sky', user_counts['students'], _('Students'), href=url_for('admin.users')) }}
+                        {{ tile('fa-chalkboard-teacher', 'green', user_counts['supervisors'], _('Supervisors'), href=url_for('admin.users')) }}
+                        {{ tile('fa-flask', 'rose', user_counts['researchers'], _('Researchers'), href=url_for('admin.users')) }}
+                        {{ tile('fa-user-shield', 'indigo', user_counts['admins'], _('Admins'), href=url_for('admin.users')) }}
+                        {{ tile('fa-book', 'amber', thesis_counts['total'], _('Theses'), (available_theses|length ~ ' ' ~ _('open')), url_for('admin.theses')) }}
                     </div>
 
-                    <!-- Content Row -->
                     <div class="row">
-
-                        <!-- Earnings (Monthly) Card Example -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-primary shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                Admins </div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ user_counts['admins'] }}</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Earnings (Monthly) Card Example -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-success shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                Supervisors</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ user_counts['supervisors'] }}</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Earnings (Monthly) Card Example -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-info shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Students
-                                            </div>
-                                            <div class="row no-gutters align-items-center">
-                                                <div class="col-auto">
-                                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ user_counts['students'] }}</div>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Pending Requests Card Example -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-warning shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                Theses</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800"> {{ thesis_counts['total'] }}</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-comments fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Content Row -->
-
-                    <div class="row">
-                        <div class="col-xl-12 col-lg-16">
-                            <div class="card mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Assigned Theses') }}</h6>
-                                 </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                        <thead>
-                                            <tr>
-                                                <th>{{ _('Supervisor') }}</th>
-                                                <th>{{ _('Student') }}</th>
-                                                <th>{{ _('Thesis') }}</th>
-                                                <th>{{ _('CdL') }}</th>
-                                                <th>{{ _('Degree') }}</th>
-                                                <th>{{ _('Created') }}</th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody>
-                                        {% for l, theses in theses_by_supervisor.items() %}
+                        <div class="col-xl-8">
+                            {% call panel(_('Supervision workload'), 'fa-balance-scale') %}
+                                {% set maxn = [1] %}
+                                {% for l, theses in theses_by_supervisor.items() %}{% if theses|length > maxn[0] %}{% set _x = maxn.__setitem__(0, theses|length) %}{% endif %}{% endfor %}
+                                {% if theses_by_supervisor %}
+                                <div class="dash-people">
+                                    {% for l, theses in theses_by_supervisor.items()|sort(attribute='1', reverse=True) %}
+                                    <a class="dash-person" data-toggle="collapse" href="#wl{{ l.id }}" role="button" aria-expanded="false">
+                                        <div class="top">{{ avatar(l) }}<div style="min-width:0"><div class="nm">{{ l.name }} {{ l.surname }}</div><div class="th">{{ l.email }}</div></div></div>
+                                        <div class="progress"><div class="progress-bar" style="width: {{ 100 * theses|length / maxn[0] }}%"></div></div>
+                                        <div class="foot"><span>{{ theses|length }} {{ _('assigned theses') }}</span><span><i class="fas fa-chevron-down"></i></span></div>
+                                        <div class="collapse mt-2" id="wl{{ l.id }}" onclick="event.stopPropagation()">
                                             {% for t in theses %}
-                                            <tr>
-                                                <td>{{ l.name }} {{ l.surname }}</td>
-                                                <td>{{ t['student'].name }} {{ t['student'].surname }}</td>
-
-                                                <td>{{ t['thesis'].title }}</td>
-                                                <td>{{ t['student'].cdl }}</td>
-                                                <td>{{ t['thesis'].level }}</td>
-                                                <td>{{ str(dt(t['thesis'].created_at))[:10] }}</td>
-                                            </tr>
-                                         {% endfor %}
-                                        {% endfor %}
-                                        </tbody>
-                                    </table>
+                                            <div class="small border-top pt-1 mt-1"><strong>{{ user_link(t['student']) }}</strong><br><span class="text-muted">{{ t['thesis'].title }}</span></div>
+                                            {% else %}<div class="small text-muted">{{ _('No assigned students yet') }}</div>{% endfor %}
+                                        </div>
+                                    </a>
+                                    {% endfor %}
                                 </div>
-                                </div>
-                            </div>
+                                {% else %}{{ empty('fas fa-chalkboard-teacher', _('No supervisors yet')) }}{% endif %}
+                            {% endcall %}
                         </div>
-
-                    </div>
-
-                    <div class="row">
-                        <div class="col-xl-12 col-lg-16">
-                            <div class="card mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Available Theses') }}</h6>
-                                 </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                    <table class="table table-bordered" id="dataTable1" width="100%" cellspacing="0">
-                                        <thead>
-                                            <tr>
-                                                <th>{{ _('Supervisor') }}</th>
-                                                <th>{{ _('Thesis') }}</th>
-                                                <th>{{ _('Description') }}</th>
-                                                <th>{{ _('Degree') }}</th>
-                                            </tr>
-                                        </thead>
-
-                                        <tbody>
-                                        {% for l in supervisors %}
-                                            {% for t in available_theses %}
-                                            <tr>
-                                                <td>{{ l.name }} {{ l.surname }}</td>
-                                                <td>{{ t['thesis'].title }}</td>
-                                                <td>{{ t['thesis'].description }}</td>
-                                                <td>{{ t['thesis'].level }}</td>
-                                            </tr>
-                                         {% endfor %}
-                                        {% endfor %}
-                                        </tbody>
-                                    </table>
+                        <div class="col-xl-4">
+                            {% call panel(_('Open thesis catalog'), 'fa-door-open', url_for('admin.theses'), _('Manage')) %}
+                                {% if available_theses %}
+                                <ul class="dash-feed">
+                                    {% for item in available_theses[:8] %}
+                                    {% set t = item['thesis'] %}
+                                    <li><span class="sm-avatar" style="flex:none"><i class="fas fa-book-open" style="font-size:.7rem"></i></span>
+                                        <div class="tx"><strong>{{ t.title }}</strong>
+                                            <small>{% for sp in t.supervisors %}{{ user_link(sp.supervisor) }}{% if not loop.last %}, {% endif %}{% endfor %}{% if t.level %} · {{ _(t.level|title) }}{% endif %}</small></div></li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}{{ empty('far fa-folder-open', _('No open theses at the moment.')) }}{% endif %}
+                            {% endcall %}
+                            {% call panel(_('Shortcuts'), 'fa-bolt') %}
+                                <div class="dash-quick">
+                                    <a href="{{ url_for('admin.system_stats') }}"><i class="fas fa-chart-line"></i> {{ _('System stats') }}</a>
+                                    <a href="{{ url_for('admin.notifications') }}"><i class="fas fa-bell"></i> {{ _('Notifications') }}</a>
+                                    <a href="{{ url_for('admin.export_data') }}"><i class="fas fa-file-export"></i> {{ _('Export data') }}</a>
                                 </div>
-                                </div>
-                            </div>
+                            {% endcall %}
                         </div>
-
                     </div>
-
-                    <!-- Content Row -->
                 </div>
                 <!-- /.container-fluid -->
 

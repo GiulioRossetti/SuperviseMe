@@ -100,7 +100,7 @@
                                                 {% if todo.assigned_to %}
                                                 <div class="mt-2">
                                                     <small class="text-muted">
-                                                        <i class="fas fa-user"></i> Assigned to: {{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}
+                                                        <i class="fas fa-user"></i> Assigned to: {{ user_link(todo.assigned_to) }}
                                                     </small>
                                                 </div>
                                                 {% endif %}

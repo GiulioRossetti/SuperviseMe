@@ -65,7 +65,7 @@
                                     {% endif %}
                                     <div class="row mb-3">
                                         <div class="col-sm-3"><strong>{{ _('Added by:') }}</strong></div>
-                                        <div class="col-sm-9">{{ meeting_note.author.name }} {{ meeting_note.author.surname }}</div>
+                                        <div class="col-sm-9">{{ user_link(meeting_note.author) }}</div>
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col-sm-3"><strong>{{ _('Created:') }}</strong></div>

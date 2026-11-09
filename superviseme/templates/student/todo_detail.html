@@ -70,7 +70,7 @@
                                     
                                     {% if todo.assigned_to %}
                                     <div class="mt-3">
-                                        <strong>{{ _('Assigned to:') }}</strong> {{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}
+                                        <strong>{{ _('Assigned to:') }}</strong> {{ user_link(todo.assigned_to) }}
                                         <br><small class="text-muted">{{ todo.assigned_to.email }}</small>
                                     </div>
                                     {% endif %}

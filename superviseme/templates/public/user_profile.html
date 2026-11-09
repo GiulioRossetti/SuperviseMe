@@ -1,0 +1,88 @@
+{% extends 'public/base_public.html' %}
+{% block page_content %}
+{% set is_staff = target.user_type != 'student' %}
+{% set role_label = {'student': _('Student'), 'supervisor': _('Supervisor'), 'researcher': _('Researcher'), 'admin': _('Administrator')}.get(target.user_type, target.user_type|title) %}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">{{ _('Profile') }}</h1>
+    <a href="javascript:history.back()" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> {{ _('Back') }}</a>
+</div>
+
+{% set mail = (target.contact_email or target.email) if is_staff else target.email %}
+<div class="row">
+    <!-- Identity -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4 up-identity">
+            <div class="card-body text-center">
+                <div class="up-ring"><img class="up-avatar" src="{{ avatar_url(target) }}" alt=""></div>
+                <h4 class="font-weight-bold mt-3 mb-1">{{ target.name }} {{ target.surname }}</h4>
+                <span class="up-role up-role-{{ target.user_type }}">{{ role_label }}</span>
+                {% if target.orcid_id %}
+                    <div class="mt-2"><a class="small" href="https://orcid.org/{{ target.orcid_id }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-orcid text-success"></i> {{ target.orcid_id }}</a></div>
+                {% endif %}
+                <div class="up-actions mt-3">
+                    <a class="btn btn-primary btn-sm" href="mailto:{{ mail }}"><i class="fas fa-envelope"></i> {{ _('Email') }}</a>
+                    {% if target.phone %}<a class="btn btn-outline-primary btn-sm" href="tel:{{ target.phone|replace(' ', '') }}"><i class="fas fa-phone"></i> {{ _('Call') }}</a>{% endif %}
+                </div>
+            </div>
+            <ul class="list-unstyled up-facts mb-0">
+                <li><span class="ic"><i class="fas fa-at"></i></span><div><small>{{ _('Email') }}</small><a href="mailto:{{ mail }}">{{ mail }}</a></div></li>
+                {% if target.phone %}<li><span class="ic"><i class="fas fa-phone"></i></span><div><small>{{ _('Phone') }}</small>{{ target.phone }}</div></li>{% endif %}
+                {% if target.office_location %}<li><span class="ic"><i class="fas fa-map-marker-alt"></i></span><div><small>{{ _('Office location') }}</small>{{ target.office_location }}</div></li>{% endif %}
+                {% if target.cdl %}<li><span class="ic"><i class="fas fa-graduation-cap"></i></span><div><small>{{ _('Degree Course') }}</small>{{ target.cdl }}</div></li>{% endif %}
+                {% if target.nationality %}<li><span class="ic"><i class="fas fa-flag"></i></span><div><small>{{ _('Nationality') }}</small>{{ target.nationality }}</div></li>{% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="col-lg-8">
+        {% if is_staff %}
+            <div class="row mb-2">
+                <div class="col-sm-4 mb-3"><div class="up-tile"><span class="ic bg-a"><i class="fas fa-door-open"></i></span><div><div class="n">{{ open_theses|length }}</div><div class="l">{{ _('Open theses') }}</div></div></div></div>
+                <div class="col-sm-4 mb-3"><div class="up-tile"><span class="ic bg-b"><i class="fas fa-user-graduate"></i></span><div><div class="n">{{ assigned_count }}</div><div class="l">{{ _('Assigned theses') }}</div></div></div></div>
+                <div class="col-sm-4 mb-3"><div class="up-tile"><span class="ic bg-c"><i class="fas fa-archive"></i></span><div><div class="n">{{ archived_count }}</div><div class="l">{{ _('Archived theses') }}</div></div></div></div>
+            </div>
+            {% if target.user_type == 'researcher' and projects_count %}
+                <div class="up-note mb-3"><i class="fas fa-flask text-primary mr-1"></i> {{ projects_count }} {{ _('research projects') }}</div>
+            {% endif %}
+            <h6 class="up-section">{{ _('Open thesis opportunities') }}</h6>
+            {% if open_theses %}
+            <div class="up-grid">
+                {% for t in open_theses %}
+                    {% set lvl = (t.level or '')|lower %}
+                    {% set icon = {'bachelor': 'fa-seedling', 'master': 'fa-graduation-cap', 'phd': 'fa-microscope'}.get(lvl, 'fa-book-open') %}
+                    <a class="up-thesis" href="{{ url_for('public.public_thesis_detail', thesis_id=t.id) }}">
+                        <span class="up-thumb {% if not t.images %}g{{ t.id % 6 }}{% endif %}">
+                            {% if t.images %}<img src="{{ url_for('media.thesis_image', filename=t.images[0].filename[7:]) }}" alt="" loading="lazy">{% else %}<i class="fas {{ icon }}"></i>{% endif %}
+                        </span>
+                        <span class="up-thesis-txt">
+                            <strong>{{ t.title }}</strong>
+                            {% if t.topic %}<small>{{ t.topic }}</small>{% endif %}
+                            {% if t.level %}<em>{{ _(t.level|title) }}</em>{% endif %}
+                        </span>
+                        <i class="fas fa-chevron-right up-go"></i>
+                    </a>
+                {% endfor %}
+            </div>
+            {% else %}
+                <div class="up-empty"><i class="far fa-folder-open"></i>{{ _('No open theses at the moment.') }}</div>
+            {% endif %}
+        {% else %}
+            <h6 class="up-section">{{ _('Thesis') }}</h6>
+            {% for item in student_theses %}
+                <div class="up-thesis up-thesis-static">
+                    <span class="up-thumb g{{ item.thesis.id % 6 }}"><i class="fas fa-book-open"></i></span>
+                    <span class="up-thesis-txt">
+                        <strong>{{ item.thesis.title }}</strong>
+                        {% if item.supervisors %}<small>{{ _('Supervisors') }}: {% for s in item.supervisors %}{{ user_link(s) }}{% if not loop.last %}, {% endif %}{% endfor %}</small>{% endif %}
+                    </span>
+                    {% if item.status %}<span class="badge badge-info">{{ _(item.status|replace('-', ' ')|capitalize) }}</span>{% endif %}
+                </div>
+            {% else %}
+                <div class="up-empty"><i class="far fa-folder-open"></i>{{ _('No thesis assigned yet.') }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

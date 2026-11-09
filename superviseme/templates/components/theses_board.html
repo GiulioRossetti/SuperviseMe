@@ -1,0 +1,287 @@
+{# Supervisor "My theses" board. Expects: cards (active), archived, detail_endpoint. #}
+{% set all_cards = cards %}
+<!-- Stats -->
+<div class="row mb-2">
+    {% set n_assigned = cards|selectattr('state','equalto','assigned')|list|length %}
+    {% set n_open = cards|selectattr('state','equalto','open')|list|length %}
+    {% set n_pending = cards|sum(attribute='pending_interests') %}
+    <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ cards|length }}</div><div class="l">{{ _('Active theses') }}</div></div></div>
+    <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ n_assigned }}</div><div class="l">{{ _('Assigned') }}</div></div></div>
+    <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ n_open }}</div><div class="l">{{ _('Open') }}</div></div></div>
+    <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ n_pending }}</div><div class="l">{{ _('Pending interests') }}</div></div></div>
+</div>
+
+{% with messages = get_flashed_messages() %}
+    {% for message in messages %}
+        <div class="alert alert-info alert-dismissible fade show" role="alert">{{ message }}
+            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        </div>
+    {% endfor %}
+{% endwith %}
+
+<div class="card shadow mb-4" id="thSection">
+    <div class="card-header py-3 d-flex flex-wrap align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">{{ _('Supervised Theses') }}</h6>
+        <span class="small text-muted" id="thCount"></span>
+    </div>
+    <div class="card-body">
+    {% if cards %}
+        <div class="sv-toolbar mb-3">
+            <div class="input-group sv-search">
+                <div class="input-group-prepend"><span class="input-group-text bg-white"><i class="fas fa-search"></i></span></div>
+                <input type="search" class="form-control" id="thQuery" placeholder="{{ _('Search by title, student, topic or keyword...') }}" autocomplete="off">
+            </div>
+            <div class="btn-group btn-group-sm sv-chips" id="thChips">
+                <button type="button" class="btn btn-outline-primary active" data-state="">{{ _('All') }}</button>
+                <button type="button" class="btn btn-outline-primary" data-state="assigned">{{ _('Assigned') }}</button>
+                <button type="button" class="btn btn-outline-primary" data-state="open">{{ _('Open') }}</button>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-toggle="collapse" data-target="#thAdvanced">
+                <i class="fas fa-sliders-h"></i> {{ _('Advanced search') }} <span class="badge badge-primary ml-1" id="thFilterBadge" style="display:none"></span>
+            </button>
+        </div>
+
+        <div class="collapse" id="thAdvanced">
+            <div class="sv-advanced mb-3">
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label for="thLevel">{{ _('Level') }}</label>
+                        <select id="thLevel" class="form-control form-control-sm">
+                            <option value="">{{ _('Any') }}</option>
+                            <option value="bachelor">{{ _('Bachelor') }}</option><option value="master">{{ _('Master') }}</option>
+                            <option value="phd">{{ _('PhD') }}</option><option value="other">{{ _('Other') }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="thStatus">{{ _('Thesis status') }}</label>
+                        <select id="thStatus" class="form-control form-control-sm">
+                            <option value="">{{ _('Any') }}</option>
+                            {% for st in cards|map(attribute='status')|select|unique|list %}
+                                <option value="{{ st|lower }}">{{ _(st|replace('-', ' ')|capitalize) }}</option>
+                            {% endfor %}
+                            <option value="__none">{{ _('No status set') }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="thVisibility">{{ _('Visibility') }}</label>
+                        <select id="thVisibility" class="form-control form-control-sm">
+                            <option value="">{{ _('Any') }}</option>
+                            <option value="1">{{ _('Published in the public catalog') }}</option>
+                            <option value="0">{{ _('Not published') }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="thInterest">{{ _('Student interest') }}</label>
+                        <select id="thInterest" class="form-control form-control-sm">
+                            <option value="">{{ _('Any') }}</option>
+                            <option value="pending">{{ _('With pending interests') }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label for="thTopic">{{ _('Topic / keyword') }}</label>
+                        <input type="text" id="thTopic" class="form-control form-control-sm" placeholder="{{ _('e.g. deep learning') }}">
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label for="thStudent">{{ _('Student') }}</label>
+                        <input type="text" id="thStudent" class="form-control form-control-sm">
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="thSort">{{ _('Sort by') }}</label>
+                        <select id="thSort" class="form-control form-control-sm">
+                            <option value="newest">{{ _('Newest') }}</option><option value="title">{{ _('Title') }}</option>
+                            <option value="progress">{{ _('Progress') }}</option><option value="level">{{ _('Level') }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-sm btn-light border btn-block" id="thReset"><i class="fas fa-undo"></i> {{ _('Reset') }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="thSource" class="d-none">
+        {% for c in cards %}
+            {% set t = c.thesis %}
+            {% set lvl = (t.level or '')|lower %}
+            {% set icon = {'bachelor': 'fa-seedling', 'master': 'fa-graduation-cap', 'phd': 'fa-microscope'}.get(lvl, 'fa-book-open') %}
+            <div class="sv-item"
+                 data-title="{{ t.title|lower }}"
+                 data-student="{{ ((c.student.name ~ ' ' ~ c.student.surname ~ ' ' ~ c.student.email) if c.student else '')|lower }}"
+                 data-topic="{{ ((t.topic or '') ~ ' ' ~ (c.keywords|join(' ')))|lower }}"
+                 data-level="{{ lvl }}" data-state="{{ c.state }}" data-status="{{ (c.status or '__none')|lower }}"
+                 data-public="{{ 1 if t.is_public else 0 }}" data-interests="{{ c.pending_interests }}"
+                 data-progress="{{ c.progress if c.progress is not none else -1 }}" data-created="{{ t.created_at or 0 }}">
+                <div class="sv-card th-card {{ 'is-assigned' if c.state == 'assigned' else 'is-open' }}">
+                    <a class="th-cover {% if not t.images %}placeholder g{{ t.id % 6 }}{% endif %}" href="{{ url_for(detail_endpoint, thesis_id=t.id) }}">
+                        {% if t.images %}<img src="{{ url_for('media.thesis_image', filename=t.images[0].filename[7:]) }}" alt="" loading="lazy">{% else %}<i class="fas {{ icon }}"></i>{% endif %}
+                        {% if t.level %}<span class="th-level">{{ _(t.level|title) }}</span>{% endif %}
+                        {% if c.pending_interests %}<span class="th-interest"><i class="fas fa-heart"></i> {{ c.pending_interests }}</span>{% endif %}
+                    </a>
+                    <div class="d-flex align-items-start">
+                        <a class="sv-thesis flex-grow-1 text-dark" href="{{ url_for(detail_endpoint, thesis_id=t.id) }}" title="{{ t.title }}">{{ t.title }}</a>
+                        <div class="dropdown ml-2">
+                            <button class="btn btn-link btn-sm text-muted p-0" data-toggle="dropdown" aria-label="{{ _('More') }}"><i class="fas fa-ellipsis-v"></i></button>
+                            <div class="dropdown-menu dropdown-menu-right">
+                                <a class="dropdown-item" href="{{ url_for(detail_endpoint, thesis_id=t.id) }}"><i class="fas fa-eye fa-fw mr-1"></i> {{ _('View Details') }}</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#" onclick="freezeThesis({{ t.id }}); return false;"><i class="fas fa-lock fa-fw mr-1 text-warning"></i> {{ _('Freeze') }}</a>
+                                <a class="dropdown-item text-danger" href="#" onclick="deleteThesis({{ t.id }}); return false;"><i class="fas fa-trash fa-fw mr-1"></i> {{ _('Delete') }}</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sv-badges">
+                        {% if c.status %}<span class="badge badge-info">{{ _(c.status|replace('-', ' ')|capitalize) }}</span>{% endif %}
+                        {% if t.is_public %}<span class="badge badge-success"><i class="fas fa-globe"></i> {{ _('Public') }}</span>
+                        {% else %}<span class="badge badge-light border"><i class="fas fa-eye-slash"></i> {{ _('Private') }}</span>{% endif %}
+                    </div>
+
+                    {% if c.student %}
+                    <div class="th-student">
+                        {% if c.student.profile_pic %}<img class="sm-avatar" src="{{ avatar_url(c.student) }}" alt="">{% else %}<span class="sm-avatar">{{ (c.student.name or '?')[:1] }}{{ (c.student.surname or '')[:1] }}</span>{% endif %}
+                        <div class="min-w-0"><div class="sv-name">{{ user_link(c.student) }}</div><div class="sv-email">{{ c.student.email }}</div></div>
+                    </div>
+                    <div class="sv-progress">
+                        <div class="d-flex justify-content-between small text-muted"><span>{{ _('Tasks') }}</span><span>{% if c.progress is not none %}{{ c.todos_done }}/{{ c.todos_total }}{% else %}—{% endif %}</span></div>
+                        <div class="progress"><div class="progress-bar" style="width: {{ c.progress or 0 }}%"></div></div>
+                    </div>
+                    {% else %}
+                    <div class="th-student th-unassigned"><i class="fas fa-user-plus"></i> {{ _('Not assigned') }}
+                        {% if c.pending_interests %}<span class="badge badge-danger ml-auto">{{ c.pending_interests }} {{ _('interested') }}</span>{% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="th-meta">
+                        <span title="{{ _('Created') }}"><i class="far fa-calendar"></i> {{ dt(t.created_at).strftime('%b %d, %Y') if t.created_at else '—' }}</span>
+                        {% if c.images %}<span><i class="fas fa-images"></i> {{ c.images }}</span>{% endif %}
+                        {% if c.links %}<span><i class="fas fa-link"></i> {{ c.links }}</span>{% endif %}
+                    </div>
+                    <div class="sv-actions">
+                        <a href="{{ url_for(detail_endpoint, thesis_id=t.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-book-open"></i> {{ _('Open') }}</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+
+        <div class="sv-carousel">
+            <button type="button" class="sv-arrow sv-prev" id="thPrev" aria-label="{{ _('Previous') }}"><i class="fas fa-chevron-left"></i></button>
+            <div class="sv-viewport"><div class="sv-track" id="thTrack"></div></div>
+            <button type="button" class="sv-arrow sv-next" id="thNext" aria-label="{{ _('Next') }}"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="sv-dots" id="thDots"></div>
+        <div class="text-center text-muted py-4" id="thEmpty" style="display:none">
+            <i class="fas fa-book fa-2x mb-2"></i><div>{{ _('No theses match your search.') }}</div>
+        </div>
+    {% else %}
+        <div class="text-center">
+            <i class="fas fa-book fa-3x text-gray-300 mb-3"></i>
+            <p class="text-gray-500">{{ _('No theses found. Create your first thesis to get started.') }}</p>
+        </div>
+    {% endif %}
+    </div>
+</div>
+
+{% if archived %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center" data-toggle="collapse" data-target="#thArchived" style="cursor:pointer">
+        <h6 class="m-0 font-weight-bold text-primary">{{ _('Archived (frozen) theses') }} <span class="badge badge-secondary">{{ archived|length }}</span></h6>
+        <i class="fas fa-chevron-down text-muted"></i>
+    </div>
+    <div class="collapse" id="thArchived">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead><tr><th>{{ _('Title') }}</th><th>{{ _('Student') }}</th><th>{{ _('Level') }}</th><th>{{ _('Created') }}</th><th></th></tr></thead>
+                <tbody>
+                {% for c in archived %}
+                    <tr>
+                        <td><strong>{{ c.thesis.title }}</strong></td>
+                        <td>{% if c.student %}{{ user_link(c.student) }}{% else %}<span class="text-muted">{{ _('Not assigned') }}</span>{% endif %}</td>
+                        <td>{% if c.thesis.level %}<span class="badge badge-light border">{{ _(c.thesis.level|title) }}</span>{% endif %}</td>
+                        <td>{{ dt(c.thesis.created_at).strftime('%b %d, %Y') if c.thesis.created_at else '—' }}</td>
+                        <td class="text-right text-nowrap">
+                            <a class="btn btn-sm btn-outline-primary" href="{{ url_for(detail_endpoint, thesis_id=c.thesis.id) }}"><i class="fas fa-eye"></i></a>
+                            <button class="btn btn-sm btn-outline-success" onclick="unfreezeThesis({{ c.thesis.id }})" title="{{ _('Unfreeze') }}"><i class="fas fa-unlock"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteThesis({{ c.thesis.id }})" title="{{ _('Delete') }}"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+window.addEventListener('load', function () {
+    var $src = $('#thSource .sv-item');
+    if (!$src.length) return;
+    var items = $src.toArray(), page = 0, filtered = items.slice(), state = '';
+    var $track = $('#thTrack');
+    function pageSize() { var w = window.innerWidth; return w >= 1200 ? 4 : w >= 992 ? 3 : w >= 576 ? 2 : 1; }
+    function val(id) { return ($('#' + id).val() || '').toString().trim().toLowerCase(); }
+    function matches(el) {
+        var d = el.dataset, q = val('thQuery');
+        if (q) {
+            var blob = [d.title, d.student, d.topic].join(' ');
+            if (!q.split(/\s+/).every(function (t) { return blob.indexOf(t) !== -1; })) return false;
+        }
+        if (state && d.state !== state) return false;
+        var v;
+        if ((v = val('thLevel')) && d.level !== v) return false;
+        if ((v = val('thStatus')) && d.status !== v) return false;
+        if ((v = val('thVisibility')) && d.public !== v) return false;
+        if (val('thInterest') === 'pending' && parseInt(d.interests, 10) < 1) return false;
+        if ((v = val('thTopic')) && d.topic.indexOf(v) === -1) return false;
+        if ((v = val('thStudent')) && d.student.indexOf(v) === -1) return false;
+        return true;
+    }
+    function sorter(a, b) {
+        var by = $('#thSort').val(), A = a.dataset, B = b.dataset;
+        if (by === 'title') return A.title.localeCompare(B.title);
+        if (by === 'progress') return parseInt(B.progress, 10) - parseInt(A.progress, 10);
+        if (by === 'level') return (A.level || '').localeCompare(B.level || '') || A.title.localeCompare(B.title);
+        return parseInt(B.created, 10) - parseInt(A.created, 10);
+    }
+    function filterCount() { var n = 0; ['thLevel','thStatus','thVisibility','thInterest','thTopic','thStudent'].forEach(function (id) { if (val(id)) n++; }); return n; }
+    function render() {
+        var size = pageSize(), pages = Math.max(1, Math.ceil(filtered.length / size));
+        page = Math.min(page, pages - 1);
+        $track.empty();
+        for (var i = 0; i < pages; i++) {
+            var $p = $('<div class="sv-page"></div>').css('grid-template-columns', 'repeat(' + size + ', minmax(0, 1fr))');
+            filtered.slice(i * size, (i + 1) * size).forEach(function (el) {
+                $p.append($('<div class="sv-slot"></div>').append($(el).children().first().clone(true, true)));
+            });
+            $track.append($p);
+        }
+        $track.css('transform', 'translateX(' + (-100 * page) + '%)');
+        var from = filtered.length ? page * size + 1 : 0, to = Math.min(filtered.length, (page + 1) * size);
+        $('#thCount').text(filtered.length ? from + '–' + to + ' / ' + filtered.length : '0');
+        $('#thPrev').prop('disabled', page === 0); $('#thNext').prop('disabled', page >= pages - 1);
+        $('#thSection .sv-carousel').toggle(filtered.length > 0); $('#thEmpty').toggle(filtered.length === 0);
+        var $dots = $('#thDots').empty();
+        if (pages > 1) for (var j = 0; j < pages; j++) $('<button type="button" class="sv-dot"></button>').toggleClass('active', j === page).attr('data-page', j).appendTo($dots);
+        var n = filterCount(); $('#thFilterBadge').text(n).toggle(n > 0);
+    }
+    function apply(reset) { filtered = items.filter(matches).sort(sorter); if (reset) page = 0; render(); }
+    $('#thQuery, #thTopic, #thStudent').on('input', function () { apply(true); });
+    $('#thLevel, #thStatus, #thVisibility, #thInterest, #thSort').on('change', function () { apply(true); });
+    $('#thChips').on('click', 'button', function () { $('#thChips button').removeClass('active'); $(this).addClass('active'); state = $(this).data('state'); apply(true); });
+    $('#thReset').on('click', function () {
+        $('#thQuery, #thTopic, #thStudent').val(''); $('#thLevel, #thStatus, #thVisibility, #thInterest').val(''); $('#thSort').val('newest');
+        $('#thChips button').removeClass('active').first().addClass('active'); state = ''; apply(true);
+    });
+    $('#thPrev').on('click', function () { if (page > 0) { page--; render(); } });
+    $('#thNext').on('click', function () { page++; render(); });
+    $('#thDots').on('click', '.sv-dot', function () { page = parseInt($(this).attr('data-page'), 10); render(); });
+    var x0 = null;
+    $('#thSection .sv-viewport').on('touchstart', function (e) { x0 = e.originalEvent.touches[0].clientX; })
+        .on('touchend', function (e) { if (x0 === null) return; var dx = e.originalEvent.changedTouches[0].clientX - x0; if (dx > 50) $('#thPrev').click(); else if (dx < -50) $('#thNext').click(); x0 = null; });
+    var last = pageSize();
+    $(window).on('resize', function () { if (pageSize() !== last) { last = pageSize(); render(); } });
+    apply(true);
+});
+</script>

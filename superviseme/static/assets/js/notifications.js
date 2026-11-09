@@ -43,52 +43,55 @@ function loadNotifications() {
     });
 }
 
+function escapeHtml(value) {
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function displayNotifications(notifications) {
     const notificationsList = $('#notifications-list');
-    
-    if (notifications.length === 0) {
+
+    if (!notifications || notifications.length === 0) {
         notificationsList.html(`
-            <div class="text-center py-4 text-muted">
-                <i class="fas fa-bell-slash fa-2x mb-2"></i>
+            <div class="notif-empty">
+                <i class="fas fa-bell-slash"></i>
                 <div>No notifications</div>
             </div>
         `);
         return;
     }
-    
+
     let html = '';
-    notifications.forEach(function(notification) {
-        const timeAgo = getTimeAgo(notification.created_at);
-        const iconClass = getNotificationIcon(notification.type);
-        const iconColor = getNotificationColor(notification.type);
-        const readClass = notification.is_read ? 'text-muted' : '';
-        const bgClass = notification.is_read ? '' : 'bg-light';
-        
+    notifications.forEach(function(n) {
+        const unread = !n.is_read;
         html += `
-            <a class="dropdown-item d-flex align-items-center ${bgClass} notification-item" 
-               href="#" 
-               onclick="handleNotificationClick(${notification.id}, '${notification.action_url || '#'}')"
-               data-notification-id="${notification.id}">
-                <div class="mr-3">
-                    <div class="icon-circle ${iconColor}">
-                        <i class="${iconClass} text-white"></i>
-                    </div>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="small text-gray-500 ${readClass}">${timeAgo}</div>
-                    <div class="font-weight-bold ${readClass}">${notification.title}</div>
-                    ${notification.message.length > 80 ? 
-                        `<div class="small ${readClass}">${notification.message.substring(0, 80)}...</div>` :
-                        `<div class="small ${readClass}">${notification.message}</div>`
-                    }
-                </div>
-                ${!notification.is_read ? '<div class="ml-2"><span class="badge badge-primary badge-pill">New</span></div>' : ''}
+            <a class="notif-item${unread ? ' unread' : ''}" href="${escapeHtml(n.action_url || '#')}"
+               data-notification-id="${n.id}" data-action-url="${escapeHtml(n.action_url || '')}">
+                <span class="notif-icon ${getNotificationColor(n.type)}"><i class="${getNotificationIcon(n.type)}"></i></span>
+                <span class="notif-content">
+                    <span class="notif-item-title">${escapeHtml(n.title)}</span>
+                    <span class="notif-item-msg">${escapeHtml(n.message)}</span>
+                    <span class="notif-item-time">${getTimeAgo(n.created_at)}</span>
+                </span>
+                ${unread ? '<span class="notif-dot" title="New"></span>' : ''}
             </a>
         `;
     });
-    
+
     notificationsList.html(html);
 }
+
+// Delegated handlers (no inline onclick, safe against odd characters in URLs)
+$(document).on('click', '.notif-item', function(e) {
+    e.preventDefault();
+    handleNotificationClick($(this).data('notification-id'), $(this).data('action-url') || '#');
+});
+$(document).on('click', '#notif-mark-all', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    markAllAsRead();
+});
 
 function displayNotificationError() {
     $('#notifications-list').html(`
@@ -162,9 +165,8 @@ function markNotificationAsRead(notificationId) {
         success: function() {
             // Update the notification item visually
             const notificationItem = $(`.notification-item[data-notification-id="${notificationId}"]`);
-            notificationItem.removeClass('bg-light');
-            notificationItem.find('.badge-primary').remove();
-            notificationItem.find('div').addClass('text-muted');
+            notificationItem.removeClass('unread');
+            notificationItem.find('.notif-dot').remove();
             
             // Update counter
             updateNotificationCounterAfterRead();

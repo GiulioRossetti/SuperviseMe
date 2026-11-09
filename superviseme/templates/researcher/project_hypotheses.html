@@ -56,7 +56,7 @@
                                         </div>
                                         <p class="card-text">{{ hypothesis.description }}</p>
                                         <div class="text-sm text-muted">
-                                            <i class="fas fa-user"></i> Added by {{ hypothesis.author.name }} {{ hypothesis.author.surname }}
+                                            <i class="fas fa-user"></i> Added by {{ user_link(hypothesis.author) }}
                                             on {{ dt(hypothesis.created_at).strftime('%B %d, %Y') }}
                                         </div>
                                     </div>

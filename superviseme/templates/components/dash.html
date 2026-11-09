@@ -1,0 +1,66 @@
+{# Shared building blocks for the role dashboards. Import with context. #}
+{% macro hero(title, subtitle=None, icon='fa-sun') %}
+<div class="dash-hero">
+    <div class="dash-hero-tx">
+        <div class="dash-eyebrow"><i class="fas {{ icon }}"></i> {{ now_label }}</div>
+        <h1 class="dash-title">{{ title }}</h1>
+        {% if subtitle %}<p class="dash-sub">{{ subtitle }}</p>{% endif %}
+    </div>
+    <div class="dash-hero-actions">{{ caller() if caller else '' }}</div>
+</div>
+{% endmacro %}
+
+{% macro tile(icon, tone, value, label, hint=None, href=None) %}
+<{{ 'a' if href else 'div' }} class="dash-tile tone-{{ tone }}"{% if href %} href="{{ href }}"{% endif %}>
+    <span class="dash-tile-ic"><i class="fas {{ icon }}"></i></span>
+    <span class="dash-tile-tx">
+        <span class="n">{{ value }}</span>
+        <span class="l">{{ label }}</span>
+        {% if hint %}<span class="h">{{ hint }}</span>{% endif %}
+    </span>
+</{{ 'a' if href else 'div' }}>
+{% endmacro %}
+
+{% macro panel(title, icon=None, link_url=None, link_label=None) %}
+<section class="dash-panel">
+    <header>
+        <h6>{% if icon %}<i class="fas {{ icon }}"></i>{% endif %} {{ title }}</h6>
+        {% if link_url %}<a href="{{ link_url }}" class="dash-link">{{ link_label }} <i class="fas fa-arrow-right"></i></a>{% endif %}
+    </header>
+    <div class="dash-panel-body">{{ caller() }}</div>
+</section>
+{% endmacro %}
+
+{% macro empty(icon, text, sub=None) %}
+<div class="dash-empty"><i class="{{ icon }}"></i><div>{{ text }}</div>{% if sub %}<small>{{ sub }}</small>{% endif %}</div>
+{% endmacro %}
+
+{% macro avatar(u, size='') %}
+{% if u.profile_pic %}<img class="sm-avatar {{ size }}" src="{{ avatar_url(u) }}" alt="">{% else %}<span class="sm-avatar {{ size }}">{{ (u.name or '?')[:1] }}{{ (u.surname or '')[:1] }}</span>{% endif %}
+{% endmacro %}
+
+{# One task row. urls = dict(detail, toggle, delete or none). #}
+{% macro task_row(todo, urls, context_label=None) %}
+{% set overdue = todo.status == 'pending' and todo.due_date and todo.due_date < now_ts %}
+<div class="dash-task {{ 'is-done' if todo.status == 'completed' }} prio-{{ todo.priority }}">
+    <form method="POST" action="{{ urls.toggle }}" class="dash-task-check">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" title="{{ _('Mark Pending') if todo.status == 'completed' else _('Mark Complete') }}" aria-label="{{ _('Toggle task') }}"><i class="fas fa-check"></i></button>
+    </form>
+    <div class="dash-task-main">
+        <a href="{{ urls.detail }}" class="dash-task-title">{{ todo.title }}</a>
+        <div class="dash-task-meta">
+            <span class="chip prio-{{ todo.priority }}">{{ _(todo.priority|title) }}</span>
+            {% if todo.due_date %}<span class="chip {{ 'late' if overdue }}"><i class="far fa-calendar"></i> {{ dt(todo.due_date).strftime('%d %b') }}</span>{% endif %}
+            {% if context_label %}<span class="chip ghost"><i class="fas fa-book"></i> {{ context_label }}</span>{% endif %}
+            {% if todo.assigned_to %}<span class="chip ghost"><i class="fas fa-user"></i> {{ todo.assigned_to.name }}</span>{% endif %}
+        </div>
+    </div>
+    {% if urls.delete %}
+    <form method="POST" action="{{ urls.delete }}" onsubmit="return confirm({{ _('Are you sure you want to delete this todo?')|tojson|forceescape }});" class="dash-task-del">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" title="{{ _('Delete') }}" aria-label="{{ _('Delete') }}"><i class="fas fa-trash-alt"></i></button>
+    </form>
+    {% endif %}
+</div>
+{% endmacro %}

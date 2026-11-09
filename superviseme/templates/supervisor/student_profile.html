@@ -1,0 +1,210 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+
+        {% include 'supervisor/components/sidebar.html' %}
+
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+
+                {% include 'admin/components/topbar.html' %}
+
+                <div class="container-fluid">
+
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Student Profile') }}</h1>
+                        <a href="{{ url_for('supervisor.supervisee_data') }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> {{ _('Back to My Students') }}
+                        </a>
+                    </div>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'success' if category in ('success','message') and ('updated' in message or 'unlocked' in message) else 'info' }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                            </div>
+                        {% endfor %}
+                    {% endwith %}
+
+                    <!-- Identity banner -->
+                    <div class="card shadow mb-4 sp-banner">
+                        <div class="card-body d-flex align-items-center flex-wrap">
+                            {% if student.profile_pic %}<img class="sm-avatar sm-avatar-lg mr-3" src="{{ avatar_url(student) }}" alt="">{% else %}<div class="sm-avatar sm-avatar-lg mr-3">{{ (student.name or '?')[:1] }}{{ (student.surname or '')[:1] }}</div>{% endif %}
+                            <div class="flex-grow-1">
+                                <h4 class="mb-0 font-weight-bold">{{ student.name }} {{ student.surname }}</h4>
+                                <div class="text-muted">{{ student.email }}</div>
+                                <div class="small mt-1">
+                                    {% if student.last_activity %}
+                                        <i class="fas fa-circle text-success small"></i>
+                                        {{ _('Last activity') }}: {{ dt(student.last_activity).strftime('%b %d, %Y %H:%M') }}
+                                        {% if student.last_activity_location %}· {{ student.last_activity_location }}{% endif %}
+                                    {% else %}
+                                        <i class="fas fa-circle text-warning small"></i> {{ _('Not yet logged') }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <a href="mailto:{{ student.email }}" class="btn btn-outline-secondary btn-sm mr-2"><i class="fas fa-envelope"></i> {{ _('Email') }}</a>
+                            {% for t in theses %}
+                                <a href="{{ url_for('supervisor.thesis_detail', thesis_id=t.id) }}" class="btn btn-primary btn-sm mr-1"><i class="fas fa-book-open"></i> {{ _('View Thesis') }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-xl-8 col-lg-7">
+
+                            <!-- Details / edit -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Profile Details') }}</h6>
+                                    {% if unlocked %}
+                                        <form method="POST" action="{{ url_for('supervisor.lock_student_edit', student_id=student.id) }}" class="m-0">
+                                            <span class="badge badge-success mr-2"><i class="fas fa-lock-open"></i> {{ _('Editing unlocked') }} (~{{ unlock_remaining }} min)</span>
+                                            <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="fas fa-lock"></i> {{ _('Lock') }}</button>
+                                        </form>
+                                    {% else %}
+                                        <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#unlockModal"><i class="fas fa-lock"></i> {{ _('Unlock editing') }}</button>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    {% if unlocked %}
+                                    <form method="POST" action="{{ url_for('supervisor.edit_student', student_id=student.id) }}">
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6"><label>{{ _('First Name') }}</label><input class="form-control" name="name" value="{{ student.name or '' }}" required></div>
+                                            <div class="form-group col-md-6"><label>{{ _('Last Name') }}</label><input class="form-control" name="surname" value="{{ student.surname or '' }}" required></div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6"><label>{{ _('Email') }}</label><input type="email" class="form-control" name="email" value="{{ student.email or '' }}" required></div>
+                                            <div class="form-group col-md-6"><label>{{ _('Degree Course') }}</label><input class="form-control" name="cdl" value="{{ student.cdl or '' }}"></div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6">
+                                                <label>{{ _('Gender') }}</label>
+                                                <select class="form-control" name="gender">
+                                                    <option value="">{{ _('Not specified') }}</option>
+                                                    <option value="male" {% if student.gender == 'male' %}selected{% endif %}>{{ _('Male') }}</option>
+                                                    <option value="female" {% if student.gender == 'female' %}selected{% endif %}>{{ _('Female') }}</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-md-6"><label>{{ _('Nationality') }}</label><input class="form-control" name="nationality" value="{{ student.nationality or '' }}"></div>
+                                        </div>
+                                        <hr>
+                                        <div class="small text-muted mb-2">{{ _('Leave blank to keep the current password.') }}</div>
+                                        <div class="form-row">
+                                            <div class="form-group col-md-6"><label>{{ _('New Password') }}</label><input type="password" class="form-control" name="password" autocomplete="new-password"></div>
+                                            <div class="form-group col-md-6"><label>{{ _('Confirm Password') }}</label><input type="password" class="form-control" name="password2" autocomplete="new-password"></div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> {{ _('Save changes') }}</button>
+                                    </form>
+                                    {% else %}
+                                    <dl class="row mb-0 sp-details">
+                                        <dt class="col-sm-4">{{ _('Username') }}</dt><dd class="col-sm-8">{{ student.username }}</dd>
+                                        <dt class="col-sm-4">{{ _('Email') }}</dt><dd class="col-sm-8">{{ student.email }}</dd>
+                                        <dt class="col-sm-4">{{ _('Degree Course') }}</dt><dd class="col-sm-8">{{ student.cdl or '—' }}</dd>
+                                        <dt class="col-sm-4">{{ _('Gender') }}</dt><dd class="col-sm-8">{{ (student.gender|title) if student.gender else '—' }}</dd>
+                                        <dt class="col-sm-4">{{ _('Nationality') }}</dt><dd class="col-sm-8">{{ student.nationality or '—' }}</dd>
+                                        <dt class="col-sm-4">{{ _('Joined') }}</dt><dd class="col-sm-8">{{ dt(student.joined_on).strftime('%B %d, %Y') if student.joined_on else '—' }}</dd>
+                                    </dl>
+                                    <div class="small text-muted mt-3"><i class="fas fa-info-circle"></i> {{ _('To change this profile, unlock editing with your own password.') }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Theses + status timelines -->
+                            {% for t in theses %}
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ t.title }}</h6>
+                                    <span class="badge badge-{{ 'danger' if t.frozen else 'success' }}">{{ _('Frozen') if t.frozen else _('Active') }}</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="sm-timeline">
+                                        {% for step in statuses[t.id] %}
+                                        <div class="sm-step {{ step.state }}">
+                                            <div class="sm-dot bg-{{ step.color }}"><i class="fas {{ step.icon }}"></i></div>
+                                            <div class="sm-label">{{ _(step.label) }}</div>
+                                            <div class="sm-date">{% if step.date %}{{ dt(step.date).strftime('%b %d, %Y') }}{% else %}{{ _('Upcoming') }}{% endif %}</div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+
+                            <!-- Activity -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap">
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Student Activity') }}</h6>
+                                    <small class="text-muted">{{ activity_calendar.total }} {{ _('contributions in the last year') }} · {{ _('current streak') }}: {{ activity_calendar.current_streak }}d · {{ _('longest streak') }}: {{ activity_calendar.longest_streak }}d</small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="sm-heat-scroll"><div class="sm-heat">
+                                        <div class="sm-heat-months">{% for m in activity_calendar.months %}<span>{{ m }}</span>{% endfor %}</div>
+                                        <div class="sm-heat-body">
+                                            <div class="sm-heat-days"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span></div>
+                                            <div class="sm-heat-grid">
+                                                {% for col in activity_calendar.columns %}<div class="sm-heat-col">
+                                                    {% for cell in col %}{% if cell %}<i class="sm-cell l{{ cell.level }}" title="{{ cell.count }} {{ _('contributions') }} · {{ cell.date }}"></i>{% else %}<i class="sm-cell empty"></i>{% endif %}{% endfor %}
+                                                </div>{% endfor %}
+                                            </div>
+                                        </div>
+                                    </div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xl-4 col-lg-5">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Overview') }}</h6></div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2"><span>{{ _('Updates posted') }}</span><strong>{{ updates_count }}</strong></div>
+                                    <div class="d-flex justify-content-between mb-2"><span>{{ _('Meeting notes') }}</span><strong>{{ notes_count }}</strong></div>
+                                    <div class="d-flex justify-content-between mb-2"><span>{{ _('Tasks completed') }}</span><strong>{{ todos_done }} / {{ todos_total }}</strong></div>
+                                    {% if todos_total %}
+                                    <div class="progress mt-2"><div class="progress-bar" style="width: {{ (100 * todos_done / todos_total)|round|int }}%"></div></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Recent updates') }}</h6></div>
+                                <div class="card-body">
+                                    {% for u in recent_updates %}
+                                        <div class="mb-3">
+                                            <div class="small text-muted">{{ dt(u.created_at).strftime('%b %d, %Y') }}</div>
+                                            <div class="sp-clamp">{{ u.content }}</div>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted mb-0">{{ _('No updates yet.') }}</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unlock modal -->
+            <div class="modal fade" id="unlockModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <form method="POST" action="{{ url_for('supervisor.unlock_student_edit', student_id=student.id) }}">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><i class="fas fa-lock"></i> {{ _('Confirm your password') }}</h5>
+                                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                            </div>
+                            <div class="modal-body">
+                                <p class="text-muted">{{ _('For security, enter your own password to edit this student\'s profile. Editing stays unlocked for 10 minutes.') }}</p>
+                                <input type="password" class="form-control" name="password" placeholder="{{ _('Your password') }}" required autocomplete="current-password">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                                <button type="submit" class="btn btn-info">{{ _('Unlock editing') }}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {% include 'admin/components/footer.html' %}

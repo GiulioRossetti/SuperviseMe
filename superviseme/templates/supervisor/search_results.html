@@ -68,7 +68,7 @@
                                                     <td>{{ thesis.title }}</td>
                                                     <td>
                                                         {% if thesis.author %}
-                                                            {{ thesis.author.name }} {{ thesis.author.surname }}
+                                                            {{ user_link(thesis.author) }}
                                                         {% else %}
                                                             <em>{{ _('Available') }}</em>
                                                         {% endif %}
@@ -116,7 +116,7 @@
                                             <tbody>
                                                 {% for student in supervisees %}
                                                 <tr>
-                                                    <td>{{ student.name }} {{ student.surname }}</td>
+                                                    <td>{{ user_link(student) }}</td>
                                                     <td>{{ student.email }}</td>
                                                     <td>{{ student.cdl or 'N/A' }}</td>
                                                     <td>

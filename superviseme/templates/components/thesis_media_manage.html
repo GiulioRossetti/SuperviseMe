@@ -1,0 +1,67 @@
+{# Supervisor-side editor for thesis images and links. Expects: thesis, bp ('supervisor' | 'researcher'). #}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-images mr-1"></i> {{ _('Presentation: images & references') }}</h6>
+        <small class="text-muted">{{ _('Shown on the thesis card when it is published.') }}</small>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <h6 class="font-weight-bold">{{ _('Images') }} <span class="badge badge-light border">{{ thesis.images|length }}/10</span></h6>
+                <div class="tm-thumbs mb-3">
+                    {% for img in thesis.images %}
+                    <div class="tm-thumb">
+                        <img src="{{ url_for('media.thesis_image', filename=img.filename[7:]) }}" alt="{{ img.caption or '' }}">
+                        <form method="POST" action="{{ url_for(bp ~ '.delete_thesis_image', thesis_id=thesis.id, image_id=img.id) }}"
+                              onsubmit="return confirm('{{ _('Remove this image?') }}');">
+                            <button class="tm-thumb-del" type="submit" title="{{ _('Remove') }}"><i class="fas fa-times"></i></button>
+                        </form>
+                        {% if img.caption %}<div class="tm-thumb-cap">{{ img.caption }}</div>{% endif %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">{{ _('No images yet.') }}</p>
+                    {% endfor %}
+                </div>
+                <form method="POST" action="{{ url_for(bp ~ '.add_thesis_images', thesis_id=thesis.id) }}" enctype="multipart/form-data">
+                    <div class="custom-file mb-2">
+                        <input type="file" class="custom-file-input" id="tmImages-{{ thesis.id }}" name="images" accept="image/png,image/jpeg,image/gif,image/webp" multiple required>
+                        <label class="custom-file-label" for="tmImages-{{ thesis.id }}">{{ _('Choose one or more images...') }}</label>
+                    </div>
+                    <input type="text" class="form-control form-control-sm mb-2" name="caption" maxlength="200" placeholder="{{ _('Caption (optional, applied to all selected images)') }}">
+                    <button class="btn btn-primary btn-sm" type="submit"><i class="fas fa-upload"></i> {{ _('Upload') }}</button>
+                    <small class="text-muted ml-2">{{ _('PNG, JPEG, GIF or WEBP, max 5 MB each.') }}</small>
+                </form>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <h6 class="font-weight-bold">{{ _('External references') }} <span class="badge badge-light border">{{ thesis.links|length }}</span></h6>
+                <ul class="list-group mb-3">
+                    {% for l in thesis.links %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                        <a href="{{ l.url }}" target="_blank" rel="noopener noreferrer nofollow" class="text-truncate mr-2">{{ l.label or l.url }}</a>
+                        <form method="POST" action="{{ url_for(bp ~ '.delete_thesis_link', thesis_id=thesis.id, link_id=l.id) }}" class="m-0">
+                            <button class="btn btn-sm btn-outline-danger" type="submit" title="{{ _('Remove') }}"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-muted">{{ _('No links yet.') }}</li>
+                    {% endfor %}
+                </ul>
+                <form method="POST" action="{{ url_for(bp ~ '.add_thesis_link', thesis_id=thesis.id) }}">
+                    <div class="form-row">
+                        <div class="col-md-5 mb-2"><input type="text" class="form-control form-control-sm" name="label" maxlength="200" placeholder="{{ _('Label (e.g. Related paper)') }}"></div>
+                        <div class="col-md-7 mb-2"><input type="text" class="form-control form-control-sm" name="url" required placeholder="https://..."></div>
+                    </div>
+                    <button class="btn btn-primary btn-sm" type="submit"><i class="fas fa-plus"></i> {{ _('Add link') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    window.addEventListener('load', function () {
+        var input = document.getElementById('tmImages-{{ thesis.id }}');
+        if (input) input.addEventListener('change', function () {
+            this.nextElementSibling.textContent = this.files.length > 1 ? this.files.length + ' {{ _("files") }}' : (this.files[0] ? this.files[0].name : '');
+        });
+    });
+</script>

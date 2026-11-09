@@ -60,7 +60,7 @@
                                         <div class="col-md-6">
                                             <p><strong>{{ _('Level:') }}</strong> {{ project.level|title if project.level else 'Not specified' }}</p>
                                             <p><strong>{{ _('Created:') }}</strong> {{ dt(project.created_at).strftime('%B %d, %Y') }}</p>
-                                            <p><strong>{{ _('Principal Researcher:') }}</strong> {{ project.researcher.name }} {{ project.researcher.surname }}</p>
+                                            <p><strong>{{ _('Principal Researcher:') }}</strong> {{ user_link(project.researcher) }}</p>
                                         </div>
                                         <div class="col-md-6">
                                             {% if current_status %}
@@ -254,7 +254,7 @@
                                         {% for collab in collaborators %}
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <div>
-                                                <strong>{{ collab.user.name }} {{ collab.user.surname }}</strong><br>
+                                                <strong>{{ user_link(collab.user) }}</strong><br>
                                                 <small class="text-muted">{{ collab.role|title }}</small>
                                             </div>
                                             {% if is_owner %}
@@ -285,7 +285,7 @@
                                         {% for update in recent_updates %}
                                         <div class="mb-3">
                                             <div class="d-flex justify-content-between">
-                                                <strong>{{ update.author.name }} {{ update.author.surname }}</strong>
+                                                <strong>{{ user_link(update.author) }}</strong>
                                                 <small class="text-muted">{{ dt(update.created_at).strftime('%m/%d/%Y') }}</small>
                                             </div>
                                             <span class="badge badge-{{ 'info' if update.update_type == 'progress' else 'warning' }}">{{ update.update_type|title }}</span>
@@ -320,7 +320,7 @@
                                                 <span class="badge badge-{{ 'danger' if todo.priority == 'high' else 'info' if todo.priority == 'medium' else 'secondary' }}">{{ todo.priority|title }}</span>
                                             </div>
                                             {% if todo.assigned_to %}
-                                            <small class="text-muted">Assigned to: {{ todo.assigned_to.name }} {{ todo.assigned_to.surname }}</small>
+                                            <small class="text-muted">Assigned to: {{ user_link(todo.assigned_to) }}</small>
                                             {% endif %}
                                             {% if not loop.last %}<hr>{% endif %}
                                         </div>

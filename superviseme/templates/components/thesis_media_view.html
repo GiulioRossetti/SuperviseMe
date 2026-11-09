@@ -1,0 +1,80 @@
+{# Image carousel (click to enlarge) + external reference links of a thesis.
+   Expects: thesis, uid (unique suffix when included more than once). #}
+{% set uid = uid|default('m') %}
+{% set images = thesis.images %}
+{% set links = thesis.links %}
+{% if images or links %}
+<div class="card shadow mb-4 tm-card">
+    {% if images %}
+    <div id="tmCarousel-{{ uid }}" class="carousel slide tm-carousel" data-ride="false" data-interval="false">
+        {% if images|length > 1 %}
+        <ol class="carousel-indicators">
+            {% for img in images %}<li data-target="#tmCarousel-{{ uid }}" data-slide-to="{{ loop.index0 }}" {% if loop.first %}class="active"{% endif %}></li>{% endfor %}
+        </ol>
+        {% endif %}
+        <div class="carousel-inner">
+            {% for img in images %}
+            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                <img src="{{ url_for('media.thesis_image', filename=img.filename[7:]) }}" class="d-block w-100 tm-slide tm-zoomable"
+                     alt="{{ img.caption or thesis.title }}" data-index="{{ loop.index0 }}" data-uid="{{ uid }}" loading="lazy">
+                {% if img.caption %}<div class="carousel-caption d-none d-md-block tm-caption">{{ img.caption }}</div>{% endif %}
+                <span class="tm-zoom-hint"><i class="fas fa-search-plus"></i></span>
+            </div>
+            {% endfor %}
+        </div>
+        {% if images|length > 1 %}
+        <a class="carousel-control-prev" href="#tmCarousel-{{ uid }}" role="button" data-slide="prev"><span class="carousel-control-prev-icon"></span><span class="sr-only">{{ _('Previous') }}</span></a>
+        <a class="carousel-control-next" href="#tmCarousel-{{ uid }}" role="button" data-slide="next"><span class="carousel-control-next-icon"></span><span class="sr-only">{{ _('Next') }}</span></a>
+        {% endif %}
+    </div>
+
+    <!-- Lightbox -->
+    <div class="modal fade tm-lightbox" id="tmLightbox-{{ uid }}" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content bg-dark border-0">
+                <button type="button" class="close tm-lb-close" data-dismiss="modal" aria-label="{{ _('Close') }}"><span>&times;</span></button>
+                <div id="tmLbCarousel-{{ uid }}" class="carousel slide" data-interval="false" data-ride="false">
+                    <div class="carousel-inner">
+                        {% for img in images %}
+                        <div class="carousel-item {% if loop.first %}active{% endif %}">
+                            <img src="{{ url_for('media.thesis_image', filename=img.filename[7:]) }}" class="d-block mx-auto tm-lb-img" alt="{{ img.caption or thesis.title }}">
+                            {% if img.caption %}<div class="text-center text-white-50 small py-2">{{ img.caption }}</div>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if images|length > 1 %}
+                    <a class="carousel-control-prev" href="#tmLbCarousel-{{ uid }}" role="button" data-slide="prev"><span class="carousel-control-prev-icon"></span></a>
+                    <a class="carousel-control-next" href="#tmLbCarousel-{{ uid }}" role="button" data-slide="next"><span class="carousel-control-next-icon"></span></a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.addEventListener('load', function () {
+            var uid = '{{ uid }}';
+            $(document).on('click', '#tmCarousel-' + uid + ' .tm-zoomable', function () {
+                var idx = parseInt($(this).attr('data-index'), 10) || 0;
+                $('#tmLbCarousel-' + uid + ' .carousel-item').removeClass('active').eq(idx).addClass('active');
+                $('#tmLightbox-' + uid).modal('show');
+            });
+            $('#tmLightbox-' + uid).on('keydown', function (e) {
+                if (e.key === 'ArrowLeft') $('#tmLbCarousel-' + uid).carousel('prev');
+                if (e.key === 'ArrowRight') $('#tmLbCarousel-' + uid).carousel('next');
+            });
+        });
+    </script>
+    {% endif %}
+
+    {% if links %}
+    <div class="card-body {% if images %}border-top{% endif %}">
+        <h6 class="font-weight-bold text-primary mb-2"><i class="fas fa-link mr-1"></i> {{ _('External references') }}</h6>
+        <ul class="list-unstyled mb-0 tm-links">
+            {% for l in links %}
+            <li><a href="{{ l.url }}" target="_blank" rel="noopener noreferrer nofollow"><i class="fas fa-external-link-alt fa-xs mr-1"></i>{{ l.label or l.url }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endif %}

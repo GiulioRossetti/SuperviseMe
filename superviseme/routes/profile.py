@@ -9,8 +9,10 @@ from flask import make_response
 from superviseme.utils.orcid_client import fetch_orcid_activities
 from superviseme.utils.bibtex_generator import generate_bibtex
 from superviseme.utils.miscellanea import user_has_supervisor_role
+from superviseme.utils.uploads import AVATAR_MAX_BYTES, UploadError, delete_file, save_image
 from urllib.parse import urljoin
 import logging
+from flask_babel import gettext as _
 
 logger = logging.getLogger(__name__)
 
@@ -120,9 +122,50 @@ def update_profile():
     current_user.nationality = nationality or None
     current_user.cdl = cdl or None
     current_user.gender = gender or None
-    
+
+    if current_user.user_type in ("supervisor", "researcher"):
+        import re
+        contact_email = (request.form.get("contact_email") or "").strip()
+        phone = (request.form.get("phone") or "").strip()
+        if contact_email and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", contact_email):
+            flash(_("Please enter a valid contact email."), "error")
+            return redirect(url_for("profile.profile_page"))
+        if phone and not re.match(r"^[0-9+()\-.\s/]{5,40}$", phone):
+            flash(_("Please enter a valid phone number."), "error")
+            return redirect(url_for("profile.profile_page"))
+        current_user.office_location = (request.form.get("office_location") or "").strip()[:120] or None
+        current_user.contact_email = contact_email[:120] or None
+        current_user.phone = phone or None
+
     db.session.commit()
     flash("Profile updated successfully", "success")
+    return redirect(url_for("profile.profile_page"))
+
+
+@profile.route("/profile/picture", methods=["POST"])
+@login_required
+def update_picture():
+    """Upload, replace or remove the custom profile picture (all user types)."""
+    old = current_user.profile_pic
+    if request.form.get("action") == "remove":
+        current_user.profile_pic = None
+        db.session.commit()
+        if old and old.startswith("avatars/"):
+            delete_file(old)
+        flash(_("Profile picture removed"), "success")
+        return redirect(url_for("profile.profile_page"))
+
+    try:
+        stored = save_image(request.files.get("picture"), "avatars", AVATAR_MAX_BYTES, avatar_size=256)
+    except UploadError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("profile.profile_page"))
+
+    current_user.profile_pic = stored
+    db.session.commit()
+    if old and old.startswith("avatars/"):
+        delete_file(old)
+    flash(_("Profile picture updated"), "success")
     return redirect(url_for("profile.profile_page"))
 
 
