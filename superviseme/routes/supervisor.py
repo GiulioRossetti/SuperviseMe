@@ -306,7 +306,7 @@ def delete_update(update_id):
         return privilege_check
     
     # Verify the update belongs to a thesis supervised by the current user
-    update = Thesis_Update.query.join(Thesis_Supervisor).filter(
+    update = Thesis_Update.query.join(Thesis).join(Thesis_Supervisor).filter(
         Thesis_Update.id == update_id,
         Thesis_Update.update_type == "supervisor_update",
         Thesis_Update.author_id == current_user.id,
@@ -382,7 +382,7 @@ def modify_update():
     new_content = request.form.get("new_content")
 
     # Verify the update belongs to a thesis supervised by the current user
-    update = Thesis_Update.query.join(Thesis_Supervisor).filter(
+    update = Thesis_Update.query.join(Thesis).join(Thesis_Supervisor).filter(
         Thesis_Update.id == update_id,
         Thesis_Update.update_type == "supervisor_update",
         Thesis_Update.author_id == current_user.id,
@@ -1258,7 +1258,7 @@ def toggle_todo(todo_id):
         return privilege_check
     
     # Get the todo item and verify access
-    todo = Todo.query.join(Thesis_Supervisor).filter(
+    todo = Todo.query.join(Thesis).join(Thesis_Supervisor).filter(
         Todo.id == todo_id,
         Thesis_Supervisor.supervisor_id == current_user.id  # Supervisor can access their supervised thesis todos
     ).first()
@@ -1288,7 +1288,7 @@ def delete_todo(todo_id):
         return privilege_check
     
     # Get the todo item and verify access (only author or supervisor can delete)
-    todo = Todo.query.join(Thesis_Supervisor).filter(
+    todo = Todo.query.join(Thesis).join(Thesis_Supervisor).filter(
         Todo.id == todo_id,
         (Todo.author_id == current_user.id) |  # Author can delete
         (Thesis_Supervisor.supervisor_id == current_user.id)  # Supervisor can delete
