@@ -9,9 +9,13 @@ real modules.
 Strategy:
 1. pytest_configure() snapshots ALL of sys.modules before any test file is
    collected / imported (before any module-level mocking can occur).
-2. An autouse fixture restores every entry in that snapshot that has since
-   been replaced with a MagicMock, and removes any new MagicMock sub-entries
-   that were created while the mocks were active.
+2. pytest_collection_finish() restores the snapshot AFTER all files are
+   collected but BEFORE any test runs — this is the main defence against
+   module-level mocking that runs during collection.
+3. An autouse fixture (_restore_real_modules) re-applies the same restore
+   before every individual test as a belt-and-suspenders measure.
+4. The app() fixture explicitly depends on _restore_real_modules so pytest
+   is forced to set up the restore *before* creating the Flask app.
 """
 
 import os
@@ -20,6 +24,47 @@ import time
 import tempfile
 import pytest
 from unittest.mock import MagicMock
+
+
+def _restore_snapshot(snapshot):
+    """Restore sys.modules from *snapshot*, removing/replacing MagicMocks.
+
+    Only the keys present in *snapshot* are touched (entries that were added
+    after the snapshot was taken and are MagicMocks are also removed).
+    """
+    if not snapshot:
+        return
+
+    # Restore any snapshot entry that is currently a MagicMock.
+    for key, real_module in snapshot.items():
+        if isinstance(sys.modules.get(key), MagicMock):
+            sys.modules[key] = real_module
+
+    # Remove new MagicMock entries not in snapshot
+    # (e.g. flask_wtf.csrf added by test_notifications.py).
+    for key in list(sys.modules.keys()):
+        if key not in snapshot and isinstance(sys.modules.get(key), MagicMock):
+            del sys.modules[key]
+
+    # Defensive: if flask_sqlalchemy.extension was imported while sqlalchemy
+    # was mocked, its module-level bindings (sa, sa_event, sa_exc, sa_orm)
+    # will be MagicMocks. Reload the module so they re-bind to the real ones.
+    try:
+        _real_sa = sys.modules.get("sqlalchemy")
+        _fse = sys.modules.get("flask_sqlalchemy.extension")
+        if (
+            _fse is not None
+            and _real_sa is not None
+            and not isinstance(_real_sa, MagicMock)
+            and any(
+                isinstance(getattr(_fse, _a, None), MagicMock)
+                for _a in ("sa", "sa_event", "sa_exc", "sa_orm")
+            )
+        ):
+            import importlib as _il
+            _il.reload(_fse)
+    except Exception:
+        pass
 
 
 def pytest_configure(config):
@@ -60,6 +105,19 @@ def pytest_configure(config):
     config._real_modules_snapshot = dict(sys.modules)
 
 
+def pytest_collection_finish(session):
+    """Restore sys.modules AFTER all test files are collected, BEFORE any
+    test runs.
+
+    Module-level code in test_notifications.py and test_logging_config.py
+    replaces real modules with MagicMocks during collection.  This hook runs
+    once after collection is complete, ensuring that every session-scoped and
+    function-scoped fixture starts with a clean sys.modules regardless of
+    collection order.
+    """
+    _restore_snapshot(getattr(session.config, "_real_modules_snapshot", {}))
+
+
 @pytest.fixture(autouse=True)
 def _restore_real_modules(request):
     """Restore real modules that module-level mocking may have replaced.
@@ -68,43 +126,12 @@ def _restore_real_modules(request):
     werkzeug, flask_migrate and others with MagicMocks at import time.
     This fixture undoes those replacements before every test so that tests
     calling create_app() always get the real modules.
+
+    pytest_collection_finish() already performs this restore once before any
+    test runs; this fixture is a belt-and-suspenders measure for cases where
+    a test itself reinstates the mocks mid-session.
     """
-    snapshot = getattr(request.config, "_real_modules_snapshot", {})
-    if not snapshot:
-        yield
-        return
-
-    # Restore any snapshot entry that is currently a MagicMock.
-    for key, real_module in snapshot.items():
-        if isinstance(sys.modules.get(key), MagicMock):
-            sys.modules[key] = real_module
-
-    # Remove new MagicMock entries that were not in the snapshot at all
-    # (e.g. flask_wtf.csrf added by test_notifications.py).
-    for key in list(sys.modules.keys()):
-        if key not in snapshot and isinstance(sys.modules.get(key), MagicMock):
-            del sys.modules[key]
-
-    # Defensive: if flask_sqlalchemy.extension was imported while sqlalchemy
-    # was mocked, its module-level bindings (sa, sa_event, sa_exc, sa_orm)
-    # will be MagicMocks. Reload the module so they re-bind to the real ones.
-    try:
-        _real_sa = sys.modules.get("sqlalchemy")
-        _fse = sys.modules.get("flask_sqlalchemy.extension")
-        if (
-            _fse is not None
-            and _real_sa is not None
-            and not isinstance(_real_sa, MagicMock)
-            and any(
-                isinstance(getattr(_fse, _a, None), MagicMock)
-                for _a in ("sa", "sa_event", "sa_exc", "sa_orm")
-            )
-        ):
-            import importlib as _il
-            _il.reload(_fse)
-    except Exception:
-        pass
-
+    _restore_snapshot(getattr(request.config, "_real_modules_snapshot", {}))
     yield
 
 
@@ -113,8 +140,13 @@ def _restore_real_modules(request):
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
-def app():
-    """Create an isolated Flask app backed by an in-memory SQLite database."""
+def app(_restore_real_modules):
+    """Create an isolated Flask app backed by an in-memory SQLite database.
+
+    The explicit _restore_real_modules dependency guarantees that sys.modules
+    is restored to real modules before create_app() is called, regardless of
+    the order in which pytest sets up autouse vs. explicit fixtures.
+    """
     from superviseme import create_app, db as _db
 
     db_fd, db_path = tempfile.mkstemp(suffix=".db")

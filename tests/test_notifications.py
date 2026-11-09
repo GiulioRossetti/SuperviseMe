@@ -1,8 +1,21 @@
 import sys
 import os
+import pytest
 from unittest.mock import MagicMock, patch
 
-# Mock external dependencies
+# ---------------------------------------------------------------------------
+# sys.modules mocking — scoped to this test module only
+# ---------------------------------------------------------------------------
+# All mock objects are defined at module level (harmless: they're just objects).
+# The *patching* of sys.modules is started here with patch.dict so that the
+# module-level import of build_role_aware_url (below) succeeds, and is stopped
+# via the autouse module-scoped fixture _cleanup_notification_mocks so that
+# sys.modules is properly restored after all tests in this file complete.
+# This replaces the previous pattern of bare `sys.modules[x] = MagicMock()`
+# assignments which permanently corrupted sys.modules for every subsequent
+# test module in the same pytest run.
+# ---------------------------------------------------------------------------
+
 mock_flask = MagicMock()
 mock_sqlalchemy = MagicMock()
 mock_login = MagicMock()
@@ -13,36 +26,54 @@ mock_moment = MagicMock()
 mock_werkzeug = MagicMock()
 mock_migrate = MagicMock()
 mock_authlib = MagicMock()
-
-sys.modules['flask'] = mock_flask
-sys.modules['flask_sqlalchemy'] = mock_sqlalchemy
-sys.modules['flask_login'] = mock_login
-sys.modules['flask_mail'] = mock_mail
-sys.modules['flask_wtf'] = mock_wtf
-sys.modules['flask_wtf.csrf'] = MagicMock()
-sys.modules['markdown'] = mock_markdown
-sys.modules['flask_moment'] = mock_moment
-sys.modules['werkzeug'] = mock_werkzeug
-sys.modules['werkzeug.security'] = MagicMock()
-sys.modules['werkzeug.middleware'] = MagicMock()
-sys.modules['werkzeug.middleware.proxy_fix'] = MagicMock()
-sys.modules['sqlalchemy'] = MagicMock()
-sys.modules['flask_migrate'] = mock_migrate
-sys.modules['authlib'] = mock_authlib
-sys.modules['authlib.integrations'] = MagicMock()
-sys.modules['authlib.integrations.flask_client'] = MagicMock()
-
-# Mock superviseme and its components
 mock_db = MagicMock()
 mock_models = MagicMock()
 
-sys.modules['superviseme.db'] = mock_db
-sys.modules['superviseme.models'] = mock_models
+_MOCK_MODULES = {
+    'flask': mock_flask,
+    'flask_sqlalchemy': mock_sqlalchemy,
+    'flask_login': mock_login,
+    'flask_mail': mock_mail,
+    'flask_wtf': mock_wtf,
+    'flask_wtf.csrf': MagicMock(),
+    'markdown': mock_markdown,
+    'flask_moment': mock_moment,
+    'werkzeug': mock_werkzeug,
+    'werkzeug.security': MagicMock(),
+    'werkzeug.middleware': MagicMock(),
+    'werkzeug.middleware.proxy_fix': MagicMock(),
+    'sqlalchemy': MagicMock(),
+    'flask_migrate': mock_migrate,
+    'authlib': mock_authlib,
+    'authlib.integrations': MagicMock(),
+    'authlib.integrations.flask_client': MagicMock(),
+    'superviseme.db': mock_db,
+    'superviseme.models': mock_models,
+}
 
-# Now import the functions to test
+# Start the patcher at import/collection time so the import below works.
+_patcher = patch.dict('sys.modules', _MOCK_MODULES)
+_patcher.start()
+
+# Now import the function to test (needs mocks active).
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from superviseme.utils.notifications import build_role_aware_url  # noqa: E402
 
-from superviseme.utils.notifications import build_role_aware_url
+
+@pytest.fixture(autouse=True, scope="module")
+def _cleanup_notification_mocks():
+    """Stop the sys.modules patcher once all tests in this module are done.
+
+    patch.dict records which keys it changed and restores exactly those keys
+    when stopped, leaving any other sys.modules entries untouched.
+    """
+    yield
+    _patcher.stop()
+
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
 
 def test_build_role_aware_url_user_not_found():
     """Test user not found"""
