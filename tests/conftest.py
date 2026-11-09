@@ -81,6 +81,9 @@ def app():
     os.environ["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
     os.environ["WTF_CSRF_ENABLED"] = "False"
     os.environ.setdefault("FLASK_ENV", "testing")
+    os.environ.setdefault("SECRET_KEY", "test-secret-key-not-for-production")
+    os.environ.setdefault("TOKEN_ENCRYPTION_KEY", "")
+    os.environ.setdefault("ADMIN_BOOTSTRAP_PASSWORD", "")
 
     flask_app = create_app(db_type="sqlite", skip_user_init=True)
     flask_app.config["TESTING"] = True
