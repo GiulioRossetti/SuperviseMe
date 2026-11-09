@@ -180,33 +180,52 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Collapsible sub-menus */
 .sidebar .collapse-inner {
-  background: rgba(255,255,255,.04) !important;
-  border-radius: var(--sm-radius-sm);
-  margin: 0 0.5rem 0.25rem;
-  padding: 0.25rem 0 !important;
+  background: rgba(0,0,0,.28) !important;
+  border-left: 2px solid rgba(255,255,255,.08);
+  border-radius: 0 0 var(--sm-radius-sm) var(--sm-radius-sm);
+  margin: 0 0.5rem 0.35rem 1.25rem;
+  padding: 0.3rem 0 !important;
 }
 
 .sidebar .collapse-inner .collapse-item {
-  color: rgba(255,255,255,.6);
-  font-size: 0.82rem;
+  color: #cbd5e1;              /* slate-300 — leggibile su sfondo scuro */
+  font-size: 0.83rem;
   font-weight: 500;
-  padding: 0.45rem 0.85rem;
+  padding: 0.5rem 0.9rem;
   border-radius: var(--sm-radius-sm);
   display: flex;
   align-items: center;
   gap: 0.5rem;
   transition: background var(--sm-transition), color var(--sm-transition);
+  text-decoration: none;
+}
+
+.sidebar .collapse-inner .collapse-item i {
+  font-size: 0.8rem;
+  width: 1rem;
+  text-align: center;
+  opacity: 0.6;
+  flex-shrink: 0;
 }
 
 .sidebar .collapse-inner .collapse-item:hover {
-  background: rgba(255,255,255,.07);
+  background: rgba(255,255,255,.08);
   color: #fff;
   text-decoration: none;
 }
 
+.sidebar .collapse-inner .collapse-item:hover i {
+  opacity: 1;
+}
+
 .sidebar .collapse-inner .collapse-item.active {
   color: var(--sm-primary-light);
-  background: var(--sm-primary-muted);
+  background: rgba(255,255,255,.06);
+  font-weight: 600;
+}
+
+.sidebar .collapse-inner .collapse-item.active i {
+  opacity: 1;
 }
 
 /* Toggle button */

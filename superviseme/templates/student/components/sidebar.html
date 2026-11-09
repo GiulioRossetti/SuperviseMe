@@ -28,7 +28,7 @@
         </a>
         <div id="collapseThesis" class="collapse{% if request.endpoint in ['student.thesis_data','public.public_thesis_dashboard'] %} show{% endif %}"
              data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
+            <div class="py-2 collapse-inner rounded">
                 <a class="collapse-item{% if request.endpoint == 'student.thesis_data' %} active{% endif %}"
                    href="{{ url_for('student.thesis_data') }}">
                     <i class="fas fa-fw fa-file-alt"></i> My Thesis

@@ -44,7 +44,7 @@
         </a>
         <div id="collapseSystem" class="collapse{% if request.endpoint in ['admin.theses_settings','admin.notify_settings','admin.notifications','admin.misc'] %} show{% endif %}"
              data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
+            <div class="py-2 collapse-inner rounded">
                 <a class="collapse-item{% if request.endpoint == 'admin.theses_settings' %} active{% endif %}"
                    href="{{ url_for('admin.theses_settings') }}">
                     <i class="fas fa-fw fa-sliders-h"></i> General Settings
