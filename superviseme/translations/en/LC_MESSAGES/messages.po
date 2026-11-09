@@ -2577,3 +2577,9 @@ msgstr "on Telegram"
 
 msgid "or continue with"
 msgstr "or continue with"
+
+msgid "The system tracks where students were last active (e.g., "student_dashboard", "posting_thesis_update")"
+msgstr "The system tracks where students were last active (e.g., "student_dashboard", "posting_thesis_update")"
+
+msgid "Only supervisors with assigned students will receive weekly reports. Supervisors with no students are automatically excluded from the weekly email batch."
+msgstr "Only supervisors with assigned students will receive weekly reports. Supervisors with no students are automatically excluded from the weekly email batch."
