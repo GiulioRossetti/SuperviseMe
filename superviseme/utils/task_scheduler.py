@@ -11,8 +11,14 @@ Changes from original
 * coalesce=True + max_instances=1 prevent pile-up if a job takes longer than
   its interval.
 * replace_existing=True means re-deploying does not create duplicate job rows.
-* App context is passed via a closure rather than the fragile
-  ``scheduler._app_context`` attribute hack.
+
+Stage 7 fix
+-----------
+APScheduler SQLAlchemyJobStore serialises jobs with pickle.  Pickle resolves
+callables by their module-qualified name, so local closures (functions defined
+*inside* another function) cannot be pickled — they have no stable import
+path.  All job callables are now defined at module level and reference the
+Flask app via the module-level ``_flask_app`` variable set by ``init_scheduler``.
 """
 import atexit
 import logging
@@ -25,6 +31,38 @@ logger = logging.getLogger(__name__)
 
 scheduler: BackgroundScheduler | None = None
 
+# Module-level app reference — set by init_scheduler() so that module-level
+# job functions can push an app context without relying on closures.
+_flask_app = None
+
+
+# ---------------------------------------------------------------------------
+# Job functions (must be at module level for APScheduler pickle serialisation)
+# ---------------------------------------------------------------------------
+
+def _weekly_reports_job():
+    """Send weekly supervisor summary reports.
+
+    Referenced as "superviseme.utils.task_scheduler:_weekly_reports_job" by
+    APScheduler — the module-level definition makes it picklable.
+    """
+    app = _flask_app
+    if app is None:
+        logger.error("APScheduler: _flask_app not set; skipping weekly reports job")
+        return
+    with app.app_context():
+        try:
+            logger.info("APScheduler: running weekly supervisor reports")
+            from superviseme.utils.weekly_notifications import send_all_weekly_supervisor_reports
+            results = send_all_weekly_supervisor_reports()
+            logger.info("APScheduler: weekly reports done: %s", results)
+        except Exception as exc:
+            logger.error("APScheduler: weekly reports failed: %s", exc, exc_info=True)
+
+
+# ---------------------------------------------------------------------------
+# Scheduler lifecycle
+# ---------------------------------------------------------------------------
 
 def init_scheduler(app):
     """Initialise the background scheduler.
@@ -34,11 +72,14 @@ def init_scheduler(app):
     process level.  The SQLAlchemyJobStore additionally prevents duplicate
     job rows in the database.
     """
-    global scheduler
+    global scheduler, _flask_app
 
     if scheduler is not None:
         logger.warning("init_scheduler called more than once; skipping second init")
         return
+
+    # Store the app reference so module-level job functions can use it
+    _flask_app = app
 
     # --- Job store configuration ----------------------------------------
     db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
@@ -51,7 +92,10 @@ def init_scheduler(app):
     try:
         from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
         jobstores["default"] = SQLAlchemyJobStore(url=db_uri)
-        logger.info("APScheduler using SQLAlchemyJobStore (%s)", db_uri.split("@")[-1] if "@" in db_uri else db_uri[:40])
+        logger.info(
+            "APScheduler using SQLAlchemyJobStore (%s)",
+            db_uri.split("@")[-1] if "@" in db_uri else db_uri[:60],
+        )
     except Exception as exc:
         logger.warning(
             "SQLAlchemyJobStore unavailable (%s); falling back to in-memory MemoryJobStore. "
@@ -67,19 +111,10 @@ def init_scheduler(app):
     )
 
     # --- Job registration -----------------------------------------------
-    # Capture app reference in a closure to avoid attribute hack.
-    def _weekly_reports_job():
-        with app.app_context():
-            try:
-                logger.info("APScheduler: running weekly supervisor reports")
-                from superviseme.utils.weekly_notifications import send_all_weekly_supervisor_reports
-                results = send_all_weekly_supervisor_reports()
-                logger.info("APScheduler: weekly reports done: %s", results)
-            except Exception as exc:
-                logger.error("APScheduler: weekly reports failed: %s", exc, exc_info=True)
-
+    # Reference the job function by its fully-qualified module path so APScheduler
+    # can resolve it via import at deserialisation time (required for SQLAlchemyJobStore).
     scheduler.add_job(
-        func=_weekly_reports_job,
+        func="superviseme.utils.task_scheduler:_weekly_reports_job",
         trigger=CronTrigger(day_of_week="mon", hour=9, minute=0),
         id="weekly_supervisor_reports",
         name="Send weekly supervisor reports",
@@ -105,9 +140,8 @@ def shutdown_scheduler():
 
 def trigger_weekly_reports_now():
     """Manually trigger weekly reports (admin / testing)."""
-    from superviseme.utils.weekly_notifications import send_all_weekly_supervisor_reports
     try:
-        results = send_all_weekly_supervisor_reports()
+        results = _weekly_reports_job()
         logger.info("Manual weekly reports: %s", results)
         return results
     except Exception as exc:

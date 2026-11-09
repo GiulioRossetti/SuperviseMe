@@ -11,6 +11,7 @@ from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth
 from flask_caching import Cache
+from flask_babel import Babel
 from sqlalchemy import MetaData
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -38,6 +39,7 @@ csrf = CSRFProtect()
 migrate = Migrate()
 oauth = OAuth()
 cache = Cache()
+babel = Babel()
 
 INSECURE_SECRET_KEY_VALUES = {
     "",
@@ -346,6 +348,27 @@ def create_app(db_type="sqlite", skip_user_init=False):
     app.config.setdefault("CACHE_DEFAULT_TIMEOUT", 30)  # 30 s TTL for badge counts
     cache.init_app(app)
 
+    # Flask-Babel i18n: detect language from Accept-Language header or a
+    # 'lang' query parameter / cookie, fall back to English.
+    app.config.setdefault("BABEL_DEFAULT_LOCALE", "en")
+    app.config.setdefault("BABEL_DEFAULT_TIMEZONE", "UTC")
+    app.config.setdefault(
+        "BABEL_TRANSLATION_DIRECTORIES",
+        os.path.join(os.path.dirname(__file__), "translations"),
+    )
+
+    def _get_locale():
+        lang = (
+            request.args.get("lang")
+            or request.cookies.get("lang")
+        )
+        if lang in ("en", "it"):
+            return lang
+        return request.accept_languages.best_match(["en", "it"], default="en")
+
+    babel.init_app(app, locale_selector=_get_locale)
+
+
     # Configure Google OAuth
     oauth.register(
         name='google',
@@ -446,6 +469,11 @@ def create_app(db_type="sqlite", skip_user_init=False):
 
     from superviseme.routes.public import public as public_blueprint
     app.register_blueprint(public_blueprint)
+
+    from superviseme.routes.api_v1 import api_v1 as api_v1_blueprint
+    app.register_blueprint(api_v1_blueprint)
+    # Exempt the entire api/v1 prefix from CSRF (uses session auth + XHR header guard)
+    csrf.exempt(api_v1_blueprint)
 
     # Register error handlers
     from superviseme.routes.errors import errors as errors_blueprint

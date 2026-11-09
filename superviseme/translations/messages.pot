@@ -1,0 +1,119 @@
+# SuperviseMe — Translation template
+# Copyright (C) 2024 SuperviseMe
+# This file is distributed under the same license as the SuperviseMe package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: SuperviseMe 1.0\n"
+"Report-Msgid-Bugs-To: admin@superviseme.local\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Navigation
+msgid "nav.home"
+msgstr ""
+
+msgid "nav.theses"
+msgstr ""
+
+msgid "nav.notifications"
+msgstr ""
+
+msgid "nav.profile"
+msgstr ""
+
+msgid "nav.logout"
+msgstr ""
+
+# Auth
+msgid "auth.login"
+msgstr ""
+
+msgid "auth.login.username"
+msgstr ""
+
+msgid "auth.login.password"
+msgstr ""
+
+msgid "auth.login.submit"
+msgstr ""
+
+msgid "auth.login.error"
+msgstr ""
+
+msgid "auth.login.disabled"
+msgstr ""
+
+# Thesis
+msgid "thesis.title"
+msgstr ""
+
+msgid "thesis.description"
+msgstr ""
+
+msgid "thesis.level"
+msgstr ""
+
+msgid "thesis.supervisor"
+msgstr ""
+
+msgid "thesis.student"
+msgstr ""
+
+msgid "thesis.status"
+msgstr ""
+
+msgid "thesis.created_at"
+msgstr ""
+
+msgid "thesis.frozen"
+msgstr ""
+
+msgid "thesis.public"
+msgstr ""
+
+# Notifications
+msgid "notification.mark_all_read"
+msgstr ""
+
+msgid "notification.no_notifications"
+msgstr ""
+
+msgid "notification.unread"
+msgstr ""
+
+# Common
+msgid "common.save"
+msgstr ""
+
+msgid "common.cancel"
+msgstr ""
+
+msgid "common.delete"
+msgstr ""
+
+msgid "common.edit"
+msgstr ""
+
+msgid "common.search"
+msgstr ""
+
+msgid "common.loading"
+msgstr ""
+
+msgid "common.error"
+msgstr ""
+
+msgid "common.success"
+msgstr ""
+
+msgid "common.page"
+msgstr ""
+
+msgid "common.of"
+msgstr ""

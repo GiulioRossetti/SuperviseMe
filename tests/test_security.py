@@ -40,6 +40,10 @@ def test_project_update_detail_xss_fix():
     env.globals['csrf_token'] = mock_csrf_token
     env.globals['current_user'] = MagicMock(id=1, name="Test User")
     env.globals['dt'] = mock_dt
+    mock_request = MagicMock()
+    mock_request.endpoint = ''
+    mock_request.args = {}
+    env.globals['request'] = mock_request
 
     try:
         template = env.get_template('researcher/project_update_detail.html')

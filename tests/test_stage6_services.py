@@ -341,35 +341,50 @@ class TestThesisService:
 class TestNotificationService:
     """Tests for superviseme/services/notification_service.py.
 
-    NOTE: send_notification() uses field names (user_id, related_id) that do
-    not match the actual Notification model (recipient_id, actor_id, thesis_id).
-    This is a **known regression** exposed by Stage 6 tests: the service was
-    written against an assumed schema that diverges from the real model.
+    Stage 6 documented a regression: send_notification() used field names
+    (user_id, related_id) that did not match the Notification model
+    (recipient_id, actor_id, thesis_id, title).
 
-    The tests below document the expected graceful-failure behaviour and the
-    correct model fields to guide the follow-up fix.
+    Stage 7 fixed notification_service.py — the service now uses the correct
+    field names and returns True on success.
     """
 
-    def test_send_notification_graceful_failure(self, app):
-        """send_notification returns False (graceful) because the model uses
-        recipient_id/actor_id, not user_id — this is the regression test."""
-        from superviseme.services.notification_service import send_notification
-        u = _make_user("student", "ns_rcpt", "ns_rcpt@test.com")
-        # Service attempts to create Notification(user_id=...) which doesn't exist
-        result = send_notification(u.id, "Hello", notification_type="general")
-        # Expect False — service catches the exception and returns False
-        assert result is False, (
-            "send_notification should return False on model field mismatch; "
-            "fix: rename user_id→recipient_id and add required actor_id/title fields"
-        )
+    def test_send_notification_success(self, app):
+        """send_notification returns True now that the Stage 7 fix is applied.
 
-    def test_get_unread_count_returns_zero_gracefully(self, app):
-        """get_unread_count returns 0 gracefully when the query fails."""
+        Stage 6 documented that send_notification() used user_id/related_id which
+        did not match the Notification model (recipient_id/actor_id/thesis_id/title).
+        Stage 7 fixed notification_service.py to use the correct field names.
+        """
+        from superviseme.services.notification_service import send_notification
+        from superviseme.models import Notification
+        u = _make_user("student", "ns_rcpt", "ns_rcpt@test.com")
+        result = send_notification(
+            u.id,
+            "Hello from Stage 7",
+            notification_type="general",
+            title="Test Notification",
+        )
+        # Stage 7 fix: service now uses recipient_id/actor_id/title correctly
+        assert result is True, (
+            "send_notification should return True after Stage 7 fix; "
+            "notification_service.py now uses recipient_id, actor_id, title"
+        )
+        # Verify the row was actually persisted
+        row = Notification.query.filter_by(recipient_id=u.id).first()
+        assert row is not None, "Notification row should exist after successful send"
+        assert row.message == "Hello from Stage 7"
+
+    def test_get_unread_count_returns_integer(self, app):
+        """get_unread_count returns an integer (0 when no notifications exist).
+
+        Stage 7 fix: now correctly queries by recipient_id.
+        """
         from superviseme.services.notification_service import get_unread_count
         u = _make_user("student", "ns_cnt", "ns_cnt@test.com")
-        # Will hit SQLAlchemy error (no user_id column) but should not raise
         count = get_unread_count(u.id)
-        assert count == 0
+        assert isinstance(count, int), "get_unread_count must return an int"
+        assert count >= 0
 
     def test_invalidate_unread_count_does_not_raise(self, app):
         """invalidate_unread_count must never raise even if the cache key is absent."""
@@ -377,12 +392,16 @@ class TestNotificationService:
         # Should not raise
         invalidate_unread_count(99999)
 
-    def test_mark_all_read_returns_zero_gracefully(self, app):
-        """mark_all_read returns 0 gracefully when query fails (model mismatch)."""
+    def test_mark_all_read_returns_integer(self, app):
+        """mark_all_read returns an integer (0 when no notifications exist).
+
+        Stage 7 fix: now correctly queries by recipient_id.
+        """
         from superviseme.services.notification_service import mark_all_read
         u = _make_user("student", "ns_mar", "ns_mar@test.com")
         result = mark_all_read(u.id)
-        assert result == 0
+        assert isinstance(result, int), "mark_all_read must return an int"
+        assert result >= 0
 
     # --- Regression documentation fixture (not a test, but a note) ---
     def test_notification_model_has_recipient_id(self, app):

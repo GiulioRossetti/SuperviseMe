@@ -1,0 +1,119 @@
+# English translations for SuperviseMe
+# Copyright (C) 2024 SuperviseMe
+msgid ""
+msgstr ""
+"Project-Id-Version: SuperviseMe 1.0\n"
+"Report-Msgid-Bugs-To: admin@superviseme.local\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: SuperviseMe Team\n"
+"Language: en\n"
+"Language-Team: English\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Navigation
+msgid "nav.home"
+msgstr "Home"
+
+msgid "nav.theses"
+msgstr "Theses"
+
+msgid "nav.notifications"
+msgstr "Notifications"
+
+msgid "nav.profile"
+msgstr "Profile"
+
+msgid "nav.logout"
+msgstr "Logout"
+
+# Auth
+msgid "auth.login"
+msgstr "Login"
+
+msgid "auth.login.username"
+msgstr "Username"
+
+msgid "auth.login.password"
+msgstr "Password"
+
+msgid "auth.login.submit"
+msgstr "Sign In"
+
+msgid "auth.login.error"
+msgstr "Invalid username or password."
+
+msgid "auth.login.disabled"
+msgstr "Your account has been disabled. Please contact an administrator."
+
+# Thesis
+msgid "thesis.title"
+msgstr "Title"
+
+msgid "thesis.description"
+msgstr "Description"
+
+msgid "thesis.level"
+msgstr "Level"
+
+msgid "thesis.supervisor"
+msgstr "Supervisor"
+
+msgid "thesis.student"
+msgstr "Student"
+
+msgid "thesis.status"
+msgstr "Status"
+
+msgid "thesis.created_at"
+msgstr "Created"
+
+msgid "thesis.frozen"
+msgstr "Frozen"
+
+msgid "thesis.public"
+msgstr "Public"
+
+# Notifications
+msgid "notification.mark_all_read"
+msgstr "Mark all as read"
+
+msgid "notification.no_notifications"
+msgstr "No notifications"
+
+msgid "notification.unread"
+msgstr "unread"
+
+# Common
+msgid "common.save"
+msgstr "Save"
+
+msgid "common.cancel"
+msgstr "Cancel"
+
+msgid "common.delete"
+msgstr "Delete"
+
+msgid "common.edit"
+msgstr "Edit"
+
+msgid "common.search"
+msgstr "Search"
+
+msgid "common.loading"
+msgstr "Loading..."
+
+msgid "common.error"
+msgstr "An error occurred."
+
+msgid "common.success"
+msgstr "Operation completed successfully."
+
+msgid "common.page"
+msgstr "Page"
+
+msgid "common.of"
+msgstr "of"
