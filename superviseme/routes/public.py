@@ -14,6 +14,8 @@ def _normalize_query(value):
 @public.route("/theses")
 def public_thesis_dashboard():
     q = _normalize_query(request.args.get("q"))
+    page = max(1, request.args.get("page", 1, type=int))
+    per_page = 20
     supervisor = _normalize_query(request.args.get("supervisor"))
     topic = _normalize_query(request.args.get("topic"))
     keywords = _normalize_query(request.args.get("keywords"))
@@ -65,7 +67,10 @@ def public_thesis_dashboard():
                 or_(*[Thesis_Tag.tag.ilike(f"%{term}%") for term in keyword_terms])
             )
 
-    theses = query.order_by(Thesis.created_at.desc()).distinct().all()
+    pagination = query.order_by(Thesis.created_at.desc()).distinct().paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    theses = pagination.items
 
     # Preload related info for rendering without N+1 in templates.
     thesis_ids = [th.id for th in theses]
@@ -87,6 +92,7 @@ def public_thesis_dashboard():
     return render_template(
         "public/theses_dashboard.html",
         theses=theses,
+        pagination=pagination,
         supervisors_by_thesis=supervisors_by_thesis,
         tags_by_thesis=tags_by_thesis,
         filters={
