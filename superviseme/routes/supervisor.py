@@ -150,6 +150,9 @@ def student_profile(student_id):
         flash(_("Student not found or not supervised by you"))
         return redirect(url_for('supervisor.supervisee_data'))
 
+    from superviseme.utils.privacy import log_profile_view
+    log_profile_view(current_user, student)
+
     theses = (
         Thesis.query.join(Thesis_Supervisor, Thesis_Supervisor.thesis_id == Thesis.id)
         .filter(Thesis.author_id == student.id, Thesis_Supervisor.supervisor_id == current_user.id)

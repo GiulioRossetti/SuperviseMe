@@ -296,6 +296,8 @@ def user_detail(user_id):
         return privilege_check
     
     user = User_mgmt.query.get_or_404(user_id)
+    from superviseme.utils.privacy import log_profile_view
+    log_profile_view(current_user, user)
     researcher_supervisor_role = None
     if user.user_type == "researcher":
         researcher_supervisor_role = Supervisor_Role.query.filter_by(

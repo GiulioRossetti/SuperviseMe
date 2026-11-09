@@ -156,6 +156,8 @@ def user_profile(user_id):
         abort(404)
     if target.id == current_user.id:
         return redirect(url_for("profile.profile_page"))
+    from superviseme.utils.privacy import log_profile_view
+    log_profile_view(current_user, target)
     if target.user_type == "student" and current_user.user_type == "supervisor":
         return redirect(url_for("supervisor.student_profile", student_id=target.id))
 

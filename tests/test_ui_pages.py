@@ -697,3 +697,42 @@ def test_reports_csv_pdf_and_archive(client, supervisor_user, student_user, rese
 def _make_student(name):
     from tests.conftest import _make_user
     return _make_user("student", name, f"{name}@test.com")
+
+
+def test_privacy_export_erasure_views_and_retention(client, app, admin_user, supervisor_user, student_user):
+    import json as _json
+    from superviseme.models import Notification, Profile_View, User_mgmt
+    from superviseme.utils import privacy
+    t = _assign(student_user, supervisor_user)
+    db.session.add(Thesis_Update(thesis_id=t.id, author_id=student_user.id, update_type="progress", content="hello", created_at=int(time.time())))
+    db.session.add(Notification(recipient_id=student_user.id, actor_id=supervisor_user.id, notification_type="x", title="old", message="m",
+                                created_at=1))
+    db.session.commit()
+    # profile view log: supervisor opens the student profile (deduplicated)
+    login(client, supervisor_user)
+    client.get(f"/users/{student_user.id}", follow_redirects=True)
+    client.get(f"/users/{student_user.id}", follow_redirects=True)
+    assert Profile_View.query.filter_by(target_id=student_user.id).count() == 1
+    client.post("/logout")
+    login(client, student_user)
+    page = client.get("/privacy")
+    assert page.status_code == 200 and b"Who viewed your profile" in page.data
+    data = _json.loads(client.get("/privacy/export.json").data)
+    assert data["profile"]["email"] == "student@test.com" and "password" not in data["profile"]
+    assert len(data["updates"]) == 1 and len(data["profile_views_received"]) == 1
+    # retention
+    assert privacy.purge_expired()["notifications"] == 1
+    # erasure needs the right confirmation
+    client.post("/privacy/delete", data={"confirm": "wrong"})
+    assert User_mgmt.query.get(student_user.id).username == "student_test"
+    client.post("/privacy/delete", data={"confirm": "student_test"})
+    u = User_mgmt.query.get(student_user.id)
+    assert u.username.startswith("deleted-") and not u.is_enabled and u.email.endswith("@invalid.local")
+    assert Thesis_Update.query.filter_by(author_id=u.id).count() == 1  # academic record kept
+    assert Profile_View.query.filter_by(target_id=u.id).count() == 0
+    # administrators cannot self-erase
+    assert privacy.erasure_blockers(admin_user)
+    client.post("/logout")
+    login(client, admin_user)
+    assert client.get("/admin/privacy").status_code == 200
+    assert client.post("/admin/privacy").status_code == 200

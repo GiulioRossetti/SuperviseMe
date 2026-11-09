@@ -3822,3 +3822,81 @@ msgstr "Tesi concluse (archivio)"
 
 msgid "Nothing here yet"
 msgstr "Ancora niente"
+
+msgid "Your account cannot be erased right now."
+msgstr "Il tuo account non può essere cancellato in questo momento."
+
+msgid "Type your username to confirm."
+msgstr "Digita il tuo nome utente per confermare."
+
+msgid "Your personal data was erased."
+msgstr "I tuoi dati personali sono stati cancellati."
+
+msgid "Administrator accounts must be removed by another administrator."
+msgstr "Gli account amministratore devono essere rimossi da un altro amministratore."
+
+msgid "You still supervise active theses: hand them over or archive them first."
+msgstr "Segui ancora tesi attive: passale a un altro relatore o archiviale prima."
+
+msgid "Privacy and data"
+msgstr "Privacy e dati"
+
+msgid "Download or erase your personal data"
+msgstr "Scarica o cancella i tuoi dati personali"
+
+msgid "Your data"
+msgstr "I tuoi dati"
+
+msgid "Download everything the platform stores about you (profile, theses, updates, tasks, notes, notifications, access log) as a JSON file."
+msgstr "Scarica in un file JSON tutto ciò che la piattaforma conserva su di te (profilo, tesi, aggiornamenti, attività, note, notifiche, registro degli accessi)."
+
+msgid "Download my data"
+msgstr "Scarica i miei dati"
+
+msgid "Retention policy"
+msgstr "Politica di conservazione"
+
+msgid "Notifications, reminder history and profile-view logs are deleted automatically after %(m)d months. Academic records (theses, updates, documents) are kept for the institution."
+msgstr "Notifiche, storico dei promemoria e registro delle visualizzazioni del profilo vengono eliminati automaticamente dopo %(m)d mesi. I documenti accademici (tesi, aggiornamenti, file) sono conservati dall'istituzione."
+
+msgid "Erase my account"
+msgstr "Cancella il mio account"
+
+msgid "Your name, contact details, picture and connected accounts are erased and you will no longer be able to sign in. Theses and updates you contributed to are kept, attributed to \"Deleted user\"."
+msgstr "Nome, contatti, foto e account collegati vengono cancellati e non potrai più accedere. Le tesi e gli aggiornamenti a cui hai contribuito vengono conservati, attribuiti a \"Deleted user\"."
+
+msgid "This cannot be undone. Continue?"
+msgstr "L'operazione non può essere annullata. Continuare?"
+
+msgid "Type your username to confirm"
+msgstr "Digita il tuo nome utente per confermare"
+
+msgid "Erase my personal data"
+msgstr "Cancella i miei dati personali"
+
+msgid "Who viewed your profile"
+msgstr "Chi ha visto il tuo profilo"
+
+msgid "Nobody has viewed your profile yet"
+msgstr "Nessuno ha ancora visto il tuo profilo"
+
+msgid "Data retention"
+msgstr "Conservazione dei dati"
+
+msgid "Retention policy of this installation"
+msgstr "Politica di conservazione di questa installazione"
+
+msgid "Policy"
+msgstr "Politica"
+
+msgid "Notifications, reminder history and profile-view logs older than %(m)d months are deleted every night. Change the period with the RETENTION_MONTHS setting."
+msgstr "Notifiche, storico dei promemoria e registro delle visualizzazioni del profilo più vecchi di %(m)d mesi vengono eliminati ogni notte. Cambia il periodo con l'impostazione RETENTION_MONTHS."
+
+msgid "Run the cleanup now"
+msgstr "Esegui la pulizia ora"
+
+msgid "Removed: %(n)d notifications, %(r)d reminders, %(v)d profile views."
+msgstr "Rimossi: %(n)d notifiche, %(r)d promemoria, %(v)d visualizzazioni del profilo."
+
+msgid "Privacy"
+msgstr "Privacy"

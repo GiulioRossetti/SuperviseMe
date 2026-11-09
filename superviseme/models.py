@@ -651,3 +651,14 @@ class Thesis_Checklist_Item(db.Model):
 
     thesis = db.relationship("Thesis", backref=db.backref("checklist", cascade="all, delete-orphan",
                                                           order_by="Thesis_Checklist_Item.position, Thesis_Checklist_Item.id", lazy=True))
+
+
+class Profile_View(db.Model):
+    """Who opened a student's profile and when (transparency log, shown to the student)."""
+    __tablename__ = "profile_view"
+    id = db.Column(db.Integer, primary_key=True)
+    viewer_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False, index=True)
+    target_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False, index=True)
+    viewed_at = db.Column(db.Integer, nullable=False)
+
+    viewer = db.relationship("User_mgmt", foreign_keys=[viewer_id], lazy=True)

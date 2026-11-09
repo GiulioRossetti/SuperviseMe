@@ -696,3 +696,52 @@ def activity_report():
     elif only == "active":
         theses = [t for t in theses if not rp.is_concluded(t)]
     return _download(rp.activity_csv([rp.thesis_report(t, since, until) for t in theses]), "text/csv; charset=utf-8", "activity-report.csv")
+
+
+# ---------------------------------------------------------------- privacy / GDPR
+import json  # noqa: E402
+
+from flask_login import logout_user  # noqa: E402
+from superviseme.models import Profile_View  # noqa: E402
+from superviseme.utils import privacy as pv  # noqa: E402
+
+
+@workflow.route("/privacy")
+@login_required
+def privacy():
+    views = []
+    if current_user.user_type == "student":
+        views = Profile_View.query.filter_by(target_id=current_user.id).order_by(Profile_View.viewed_at.desc()).limit(50).all()
+    return render_template("workflow/privacy.html", views=views, blockers=pv.erasure_blockers(current_user),
+                           months=pv.retention_months(), dt=datetime.fromtimestamp)
+
+
+@workflow.route("/privacy/export.json")
+@login_required
+def privacy_export():
+    body = json.dumps(pv.export_user_data(current_user), indent=2, ensure_ascii=False, default=str)
+    return _download(body, "application/json; charset=utf-8", f"my-data-{current_user.id}.json")
+
+
+@workflow.route("/privacy/delete", methods=["POST"])
+@login_required
+def privacy_delete():
+    if pv.erasure_blockers(current_user):
+        flash(_("Your account cannot be erased right now."), "error")
+        return redirect(url_for("workflow.privacy"))
+    if (request.form.get("confirm") or "").strip() != current_user.username:
+        flash(_("Type your username to confirm."), "error")
+        return redirect(url_for("workflow.privacy"))
+    user = User_mgmt.query.get(current_user.id)
+    logout_user()
+    pv.anonymize_user(user)
+    flash(_("Your personal data was erased."), "success")
+    return redirect(url_for("auth.login"))
+
+
+@workflow.route("/admin/privacy", methods=["GET", "POST"])
+@login_required
+def admin_privacy():
+    _admin_only()
+    purged = pv.purge_expired() if request.method == "POST" else None
+    return render_template("workflow/admin_privacy.html", months=pv.retention_months(), purged=purged)

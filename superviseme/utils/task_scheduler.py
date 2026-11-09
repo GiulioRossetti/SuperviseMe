@@ -36,6 +36,19 @@ scheduler: BackgroundScheduler | None = None
 _flask_app = None
 
 
+def _retention_job():
+    """Nightly application of the data retention policy."""
+    app = _flask_app
+    if app is None:
+        return
+    with app.app_context():
+        try:
+            from superviseme.utils.privacy import purge_expired
+            logger.info("APScheduler: retention purge: %s", purge_expired())
+        except Exception as exc:
+            logger.error("APScheduler: retention purge failed: %s", exc, exc_info=True)
+
+
 # ---------------------------------------------------------------------------
 # Job functions (must be at module level for APScheduler pickle serialisation)
 # ---------------------------------------------------------------------------
@@ -140,6 +153,14 @@ def init_scheduler(app):
         trigger=CronTrigger(hour=8, minute=0),
         id="daily_reminders",
         name="Send automatic reminders",
+        replace_existing=True,
+    )
+
+    scheduler.add_job(
+        func="superviseme.utils.task_scheduler:_retention_job",
+        trigger=CronTrigger(hour=3, minute=30),
+        id="retention_purge",
+        name="Apply data retention policy",
         replace_existing=True,
     )
 

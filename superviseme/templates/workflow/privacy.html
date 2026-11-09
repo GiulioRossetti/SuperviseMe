@@ -1,0 +1,40 @@
+{% extends 'public/base_public.html' %}
+{% from 'components/dash.html' import hero, panel with context %}
+{% block page_content %}
+{% call hero(_('Privacy and data'), _('Download or erase your personal data'), 'fa-user-shield') %}{% endcall %}
+{% with messages = get_flashed_messages(with_categories=true) %}{% for cat, message in messages %}
+    <div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }} alert-dismissible fade show">{{ message }}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button></div>
+{% endfor %}{% endwith %}
+<div class="row">
+<div class="col-xl-6">
+    {% call panel(_('Your data'), 'fa-download') %}
+        <p class="small text-muted">{{ _('Download everything the platform stores about you (profile, theses, updates, tasks, notes, notifications, access log) as a JSON file.') }}</p>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('workflow.privacy_export') }}"><i class="fas fa-file-download"></i> {{ _('Download my data') }}</a>
+    {% endcall %}
+    {% call panel(_('Retention policy'), 'fa-hourglass-half') %}
+        <p class="small mb-0">{{ _('Notifications, reminder history and profile-view logs are deleted automatically after %(m)d months. Academic records (theses, updates, documents) are kept for the institution.', m=months) }}</p>
+    {% endcall %}
+    {% call panel(_('Erase my account'), 'fa-user-times') %}
+        {% if blockers %}
+            {% for b in blockers %}<div class="alert alert-warning small">{{ _(b) }}</div>{% endfor %}
+        {% else %}
+        <p class="small text-muted">{{ _('Your name, contact details, picture and connected accounts are erased and you will no longer be able to sign in. Theses and updates you contributed to are kept, attributed to "Deleted user".') }}</p>
+        <form method="POST" action="{{ url_for('workflow.privacy_delete') }}" onsubmit="return confirm({{ _('This cannot be undone. Continue?')|tojson|forceescape }});">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group"><input class="form-control form-control-sm" name="confirm" autocomplete="off" required placeholder="{{ _('Type your username to confirm') }}"></div>
+            <button class="btn btn-danger btn-sm">{{ _('Erase my personal data') }}</button>
+        </form>
+        {% endif %}
+    {% endcall %}
+</div>
+<div class="col-xl-6">
+    {% if current_user.user_type == 'student' %}
+    {% call panel(_('Who viewed your profile'), 'fa-eye') %}
+        {% if views %}<ul class="list-unstyled mb-0">
+            {% for v in views %}<li class="mb-1">{{ user_link(v.viewer) }} <small class="text-muted">· {{ dt(v.viewed_at).strftime('%d %b %Y, %H:%M') }}</small></li>{% endfor %}
+        </ul>{% else %}<div class="dash-empty"><i class="far fa-eye-slash"></i>{{ _('Nobody has viewed your profile yet') }}</div>{% endif %}
+    {% endcall %}
+    {% endif %}
+</div>
+</div>
+{% endblock %}
