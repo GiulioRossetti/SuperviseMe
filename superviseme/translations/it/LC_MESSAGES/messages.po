@@ -4320,3 +4320,48 @@ msgstr "Scongelare questa tesi?"
 
 msgid "Are you sure you want to delete this thesis? This action cannot be undone."
 msgstr "Eliminare questa tesi? L'azione non può essere annullata."
+
+msgid "Search by supervisor, student or thesis..."
+msgstr "Cerca per relatore, studente o tesi..."
+
+msgid "No supervisors match your search."
+msgstr "Nessun relatore corrisponde alla ricerca."
+
+msgid "User Profile"
+msgstr "Profilo utente"
+
+msgid "Edit"
+msgstr "Modifica"
+
+msgid "Member since"
+msgstr "Iscritto da"
+
+msgid "Supervisor privileges are active for this researcher."
+msgstr "I privilegi di relatore sono attivi per questo ricercatore."
+
+msgid "This researcher currently has no supervisor privileges."
+msgstr "Questo ricercatore non ha al momento privilegi di relatore."
+
+msgid "Total Updates"
+msgstr "Aggiornamenti totali"
+
+msgid "Student Updates"
+msgstr "Aggiornamenti dello studente"
+
+msgid "No objectives yet."
+msgstr "Nessun obiettivo."
+
+msgid "No hypotheses yet."
+msgstr "Nessuna ipotesi."
+
+msgid "No meeting notes yet."
+msgstr "Nessuna nota di incontro."
+
+msgid "No tasks yet."
+msgstr "Nessun task."
+
+msgid "No resources yet."
+msgstr "Nessuna risorsa."
+
+msgid "Due"
+msgstr "Scadenza"

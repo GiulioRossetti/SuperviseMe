@@ -329,8 +329,16 @@ def user_detail(user_id):
             .all()
         )
     
+    from superviseme.utils.thesis_board import build_thesis_cards
+    thesis_cards, _archived = build_thesis_cards(authored_theses + supervised_theses)
+    thesis_cards = thesis_cards + _archived
+    recent_updates = Thesis_Update.query.filter_by(author_id=user_id).order_by(Thesis_Update.created_at.desc()).limit(6).all()
+    projects = ResearchProject.query.filter_by(researcher_id=user_id).order_by(ResearchProject.created_at.desc()).all() \
+        if user.user_type == "researcher" else []
     return render_template("/admin/user_detail.html",
                          current_user=current_user,
+                         thesis_cards=thesis_cards, recent_updates=recent_updates, projects=projects,
+                         dt=datetime.datetime.fromtimestamp,
                          user=user,
                          researcher_supervisor_role=researcher_supervisor_role,
                          authored_theses=authored_theses,
@@ -824,8 +832,16 @@ def thesis_detail(thesis_id):
     students = User_mgmt.query.filter_by(user_type="student").all()
     all_supervisors = User_mgmt.query.filter_by(user_type="supervisor").all()
     
+    objectives = Thesis_Objective.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Objective.created_at.desc()).all()
+    hypotheses = Thesis_Hypothesis.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Hypothesis.created_at.desc()).all()
+    todos = Todo.query.filter_by(thesis_id=thesis_id).order_by(Todo.created_at.desc()).all()
+    meeting_notes = MeetingNote.query.filter_by(thesis_id=thesis_id).order_by(MeetingNote.created_at.desc()).all()
+    resources = Resource.query.filter_by(thesis_id=thesis_id).all()
     return render_template("/admin/thesis_detail.html", 
                          current_user=current_user,
+                         objectives=objectives, hypotheses=hypotheses, todos=todos,
+                         meeting_notes=meeting_notes, resources=resources,
+                         dt=datetime.datetime.fromtimestamp,
                          thesis=thesis,
                          author=author,
                          supervisors=supervisors,

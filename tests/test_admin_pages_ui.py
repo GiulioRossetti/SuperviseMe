@@ -7,7 +7,7 @@ def test_admin_users_and_theses_pages(client, admin_user, supervisor_user, stude
     r = client.get("/admin/users")
     assert r.status_code == 200
     html = r.get_data(as_text=True)
-    assert "usGrid" in html and supervisor_user.email in html and "createUserModal" in html
+    assert "usSource" in html and supervisor_user.email in html and "createUserModal" in html
     r = client.get("/admin/theses")
     assert r.status_code == 200
     html = r.get_data(as_text=True)
@@ -18,7 +18,7 @@ def test_admin_dashboard_workload_is_accordion(client, admin_user, supervisor_us
     _assign(student_user, supervisor_user)
     login(client, admin_user)
     html = client.get("/admin/dashboard").get_data(as_text=True)
-    assert 'id="wlGrid"' in html and "wl-head" in html and "wl-detail" in html
+    assert 'id="wlSource"' in html and "wl-head" in html and "wl-detail" in html and "sm-carousel.js" in html
 
 
 def test_admin_can_disable_user_via_json(client, admin_user, student_user, app):
@@ -43,3 +43,14 @@ def test_admin_detail_pages(client, admin_user, supervisor_user, student_user, a
     assert r.status_code == 200 and "login.html" not in r.get_data(as_text=True)
     r = client.post("/admin/archive_thesis", data={"thesis_id": tid, "action": "archive", "next": "list"})
     assert r.status_code == 302 and r.headers["Location"].endswith("/admin/theses")
+
+
+def test_admin_user_detail_roles(client, admin_user, supervisor_user, student_user, researcher_user):
+    _assign(student_user, supervisor_user)
+    login(client, admin_user)
+    for u in (student_user, supervisor_user, researcher_user, admin_user):
+        r = client.get("/admin/user/%d" % u.id)
+        html = r.get_data(as_text=True)
+        assert r.status_code == 200 and "sp-banner" in html and u.email in html
+    sup = client.get("/admin/user/%d" % supervisor_user.id).get_data(as_text=True)
+    assert "Supervised Theses" in sup

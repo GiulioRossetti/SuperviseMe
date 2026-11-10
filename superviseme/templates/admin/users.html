@@ -58,10 +58,10 @@
                                 </select>
                             </div>
 
-                            <div class="pj-grid" id="usGrid">
+                            <div id="usSource" class="d-none">
                                 {% for u in users %}
                                 {% set sup = u.user_type == 'researcher' and u.id in sup_researchers %}
-                                <div class="pj-slot us-item" data-role="{{ u.user_type }}" data-enabled="{{ 1 if u.is_enabled else 0 }}"
+                                <div class="sv-item us-item" data-role="{{ u.user_type }}" data-enabled="{{ 1 if u.is_enabled else 0 }}"
                                      data-q="{{ (u.name ~ ' ' ~ u.surname ~ ' ' ~ u.email ~ ' ' ~ u.username)|lower }}">
                                     <div class="sv-card {{ '' if u.is_enabled else 'is-inactive' }}">
                                         <div class="sv-card-top">
@@ -103,7 +103,12 @@
                                 </div>
                                 {% endfor %}
                             </div>
-                            <div class="text-center mt-3"><button type="button" class="btn btn-outline-primary btn-sm" id="usMore" style="display:none">{{ _('Show more') }}</button></div>
+                            <div class="sv-carousel">
+                                <button type="button" class="sv-arrow sv-prev" aria-label="{{ _('Previous') }}"><i class="fas fa-chevron-left"></i></button>
+                                <div class="sv-viewport"><div class="sv-track"></div></div>
+                                <button type="button" class="sv-arrow sv-next" aria-label="{{ _('Next') }}"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                            <div class="sv-dots"></div>
                             <div class="text-center text-muted py-4" id="usEmpty" style="display:none">
                                 <i class="fas fa-users fa-2x mb-2"></i><div>{{ _('No users match your search.') }}</div>
                             </div>
@@ -173,50 +178,40 @@
     <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
     {% include 'admin/components/logout_modal.html' %}
 
+    <script src="{{ url_for('static', filename='assets/js/sm-carousel.js') }}"></script>
     <script>
-    (function () {
-        var CSRF = {{ csrf_token()|tojson }}, PAGE = 24;
-        var items = Array.prototype.slice.call(document.querySelectorAll('.us-item')), role = '', shown = PAGE;
-        function matches(el) {
-            var q = document.getElementById('usQuery').value.trim().toLowerCase(), st = document.getElementById('usStatus').value;
-            if (role && el.dataset.role !== role) return false;
-            if (st !== '' && el.dataset.enabled !== st) return false;
-            return !q || q.split(/\s+/).every(function (t) { return el.dataset.q.indexOf(t) !== -1; });
-        }
-        function render() {
-            var hits = items.filter(matches), n = 0;
-            items.forEach(function (el) { el.style.display = 'none'; });
-            hits.forEach(function (el) { if (n++ < shown) el.style.display = ''; });
-            document.getElementById('usCount').textContent = hits.length + ' / ' + items.length;
-            document.getElementById('usMore').style.display = hits.length > shown ? '' : 'none';
-            document.getElementById('usEmpty').style.display = hits.length ? 'none' : '';
-        }
-        document.getElementById('usQuery').addEventListener('input', function () { shown = PAGE; render(); });
-        document.getElementById('usStatus').addEventListener('change', function () { shown = PAGE; render(); });
-        document.getElementById('usMore').addEventListener('click', function () { shown += PAGE; render(); });
-        document.getElementById('usChips').addEventListener('click', function (e) {
-            var b = e.target.closest('button'); if (!b) return;
-            Array.prototype.forEach.call(this.children, function (c) { c.classList.remove('active'); });
-            b.classList.add('active'); role = b.dataset.role; shown = PAGE; render();
-        });
-        document.getElementById('usGrid').addEventListener('click', function (e) {
-            var t = e.target.closest('.js-toggle'), d = e.target.closest('.js-delete');
-            if (t) {
-                var enable = t.dataset.enabled !== '1';
-                if (!confirm(enable ? {{ _('Are you sure you want to enable this user?')|tojson }} : {{ _('Are you sure you want to disable this user?')|tojson }})) return;
-                fetch('{{ url_for("admin.users_data") }}', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
-                      body: JSON.stringify({id: t.dataset.id, is_enabled: enable})})
-                    .then(function (r) { if (!r.ok) throw new Error(); location.reload(); })
-                    .catch(function () { alert({{ _('Error updating user status.')|tojson }}); });
-            } else if (d) {
-                if (!confirm({{ _('Are you sure you want to delete this user?')|tojson }} + '\n' + d.dataset.name)) return;
-                fetch('{{ url_for("admin.delete_user", uid=0) }}'.replace(/0$/, d.dataset.id), {method: 'DELETE', headers: {'X-CSRFToken': CSRF}})
-                    .then(function (r) { if (!r.ok) throw new Error(); location.reload(); })
-                    .catch(function () { alert({{ _('Error deleting user.')|tojson }}); });
+    window.addEventListener('load', function () {
+        var CSRF = {{ csrf_token()|tojson }}, role = '';
+        function cols() { var w = window.innerWidth; return w >= 1400 ? 4 : w >= 992 ? 3 : w >= 576 ? 2 : 1; }
+        var car = SmCarousel({
+            root: '#usSection', source: '#usSource .us-item', empty: '#usEmpty', count: '#usCount', cols: cols, rows: 2,
+            matches: function (el) {
+                var q = document.getElementById('usQuery').value.trim().toLowerCase(), st = document.getElementById('usStatus').value;
+                if (role && el.dataset.role !== role) return false;
+                if (st !== '' && el.dataset.enabled !== st) return false;
+                return !q || q.split(/\s+/).every(function (t) { return el.dataset.q.indexOf(t) !== -1; });
             }
         });
-        render();
-    })();
+        $('#usQuery').on('input', function () { car.apply(true); });
+        $('#usStatus').on('change', function () { car.apply(true); });
+        $('#usChips').on('click', 'button', function () {
+            $('#usChips button').removeClass('active'); $(this).addClass('active'); role = $(this).data('role') || ''; car.apply(true);
+        });
+        $('#usSection').on('click', '.js-toggle', function () {
+            var t = this, enable = t.dataset.enabled !== '1';
+            if (!confirm(enable ? {{ _('Are you sure you want to enable this user?')|tojson }} : {{ _('Are you sure you want to disable this user?')|tojson }})) return;
+            fetch('{{ url_for("admin.users_data") }}', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+                  body: JSON.stringify({id: t.dataset.id, is_enabled: enable})})
+                .then(function (r) { if (!r.ok) throw new Error(); location.reload(); })
+                .catch(function () { alert({{ _('Error updating user status.')|tojson }}); });
+        }).on('click', '.js-delete', function () {
+            var d = this;
+            if (!confirm({{ _('Are you sure you want to delete this user?')|tojson }} + '\n' + d.dataset.name)) return;
+            fetch('{{ url_for("admin.delete_user", uid=0) }}'.replace(/0$/, d.dataset.id), {method: 'DELETE', headers: {'X-CSRFToken': CSRF}})
+                .then(function (r) { if (!r.ok) throw new Error(); location.reload(); })
+                .catch(function () { alert({{ _('Error deleting user.')|tojson }}); });
+        });
+    });
     </script>
 
 </body>

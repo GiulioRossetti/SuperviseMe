@@ -24,36 +24,56 @@
 
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">{{ user.name }} {{ user.surname }}</h1>
-                        <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('User Profile') }}</h1>
+                        <a href="{{ url_for('admin.users') }}" class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left"></i> {{ _('Back to Users') }}
                         </a>
                     </div>
 
-                    <!-- Flash Messages -->
                     {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert alert-info alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
+                        {% for message in messages %}
+                            <div class="alert alert-info alert-dismissible fade show" role="alert">{{ message }}
+                                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                            </div>
+                        {% endfor %}
                     {% endwith %}
 
-                    <!-- User Info Row -->
+                    <!-- Identity banner -->
+                    <div class="card shadow mb-4 sp-banner">
+                        <div class="card-body d-flex align-items-center flex-wrap">
+                            {% if user.profile_pic %}<img class="sm-avatar sm-avatar-lg mr-3" src="{{ avatar_url(user) }}" alt="">{% else %}<div class="sm-avatar sm-avatar-lg mr-3">{{ (user.name or '?')[:1] }}{{ (user.surname or '')[:1] }}</div>{% endif %}
+                            <div class="flex-grow-1">
+                                <h4 class="mb-0 font-weight-bold">{{ user.name }} {{ user.surname }}</h4>
+                                <div class="text-muted">{{ user.email }}</div>
+                                <div class="small mt-1">
+                                    <span class="badge badge-primary">{{ _(user.user_type|capitalize) }}</span>
+                                    <span class="badge {{ 'badge-success' if user.is_enabled else 'badge-warning' }}">{{ _('Enabled') if user.is_enabled else _('Disabled') }}</span>
+                                    {% if researcher_supervisor_role %}<span class="badge badge-success">{{ _('Supervisor role') }}</span>{% endif %}
+                                    <span class="ml-2">
+                                    {% if user.last_activity %}
+                                        <i class="fas fa-circle text-success small"></i>
+                                        {{ _('Last activity') }}: {{ dt(user.last_activity).strftime('%b %d, %Y %H:%M') }}{% if user.last_activity_location %} · {{ user.last_activity_location }}{% endif %}
+                                    {% else %}
+                                        <i class="fas fa-circle text-warning small"></i> {{ _('Not yet logged') }}
+                                    {% endif %}
+                                    </span>
+                                </div>
+                                {% if user.web_links %}
+                                <div class="mt-2">{% for l in user.web_links %}<a class="btn btn-light btn-sm border mr-1 mb-1" href="{{ l.url }}" target="_blank" rel="noopener noreferrer nofollow"><i class="fas fa-link"></i> {{ l.label or l.url }}</a>{% endfor %}</div>
+                                {% endif %}
+                            </div>
+                            <a href="mailto:{{ user.email }}" class="btn btn-outline-secondary btn-sm mr-2"><i class="fas fa-envelope"></i> {{ _('Email') }}</a>
+                        </div>
+                    </div>
+
                     <div class="row">
-                        
-                        <!-- User Details -->
                         <div class="col-xl-8 col-lg-7">
-                            
-                            <!-- Basic Information -->
+
+                            <!-- Details / edit -->
                             <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Basic Information') }}</h6>
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Profile Details') }}</h6>
+                                    <button class="btn btn-sm btn-info" type="button" data-toggle="collapse" data-target="#editUser"><i class="fas fa-edit"></i> {{ _('Edit') }}</button>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
@@ -61,195 +81,144 @@
                                             <p><strong>{{ _('Name:') }}</strong> {{ user.name }} {{ user.surname }}</p>
                                             <p><strong>{{ _('Username:') }}</strong> {{ user.username }}</p>
                                             <p><strong>{{ _('Email:') }}</strong> {{ user.email }}</p>
+                                            {% if user.contact_email %}<p><strong>{{ _('Contact email') }}:</strong> {{ user.contact_email }}</p>{% endif %}
                                         </div>
                                         <div class="col-md-6">
-                                            <p><strong>{{ _('User Type:') }}</strong> <span class="badge badge-primary">{{ user.user_type }}</span></p>
-                                            <p><strong>{{ _('Gender:') }}</strong> {{ user.gender or "Not specified" }}</p>
-                                            <p><strong>{{ _('Nationality:') }}</strong> {{ user.nationality or "Not specified" }}</p>
+                                            <p><strong>{{ _('Gender:') }}</strong> {{ user.gender or _('Not specified') }}</p>
+                                            <p><strong>{{ _('Nationality:') }}</strong> {{ user.nationality or _('Not specified') }}</p>
+                                            <p><strong>{{ _('Degree Course:') }}</strong> {{ user.cdl or _('Not specified') }}</p>
+                                            <p class="mb-0"><strong>{{ _('Joined On:') }}</strong> {{ dt(user.joined_on).strftime('%Y-%m-%d %H:%M') if user.joined_on else '—' }}</p>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <p><strong>{{ _('Degree Course:') }}</strong> {{ user.cdl or "Not specified" }}</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <p><strong>{{ _('Joined On:') }}</strong> {{ datetime.fromtimestamp(user.joined_on).strftime('%Y-%m-%d %H:%M') }}</p>
-                                        </div>
+                                    {% if user.orcid_id or user.phone or user.office_location %}
+                                    <hr class="my-2">
+                                    <div class="small text-muted">
+                                        {% if user.orcid_id %}<span class="mr-3"><i class="fab fa-orcid text-success"></i> {{ user.orcid_id }}</span>{% endif %}
+                                        {% if user.phone %}<span class="mr-3"><i class="fas fa-phone"></i> {{ user.phone }}</span>{% endif %}
+                                        {% if user.office_location %}<span><i class="fas fa-map-marker-alt"></i> {{ user.office_location }}</span>{% endif %}
                                     </div>
-                                </div>
-                            </div>
+                                    {% endif %}
 
-                            <!-- Edit User Form -->
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Edit User Information') }}</h6>
-                                </div>
-                                <div class="card-body">
-                                    <form action="/admin/update_user" method="POST">
-                                        <input type="hidden" name="user_id" value="{{ user.id }}">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="name">{{ _('First Name') }}</label>
-                                                    <input type="text" class="form-control" id="name" name="name" value="{{ user.name or '' }}">
-                                                </div>
+                                    <div class="collapse mt-3" id="editUser">
+                                        <hr>
+                                        <form action="{{ url_for('admin.update_user') }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                                            <div class="form-row">
+                                                <div class="form-group col-md-6"><label for="name">{{ _('First Name') }}</label><input type="text" class="form-control" id="name" name="name" value="{{ user.name or '' }}"></div>
+                                                <div class="form-group col-md-6"><label for="surname">{{ _('Last Name') }}</label><input type="text" class="form-control" id="surname" name="surname" value="{{ user.surname or '' }}"></div>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="surname">{{ _('Last Name') }}</label>
-                                                    <input type="text" class="form-control" id="surname" name="surname" value="{{ user.surname or '' }}">
-                                                </div>
+                                            <div class="form-row">
+                                                <div class="form-group col-md-6"><label for="email">{{ _('Email') }}</label><input type="email" class="form-control" id="email" name="email" value="{{ user.email or '' }}"></div>
+                                                <div class="form-group col-md-6"><label for="username">{{ _('Username') }}</label><input type="text" class="form-control" id="username" name="username" value="{{ user.username or '' }}"></div>
                                             </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="email">{{ _('Email') }}</label>
-                                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email or '' }}">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="username">{{ _('Username') }}</label>
-                                                    <input type="text" class="form-control" id="username" name="username" value="{{ user.username or '' }}">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="form-group">
+                                            <div class="form-row">
+                                                <div class="form-group col-md-4">
                                                     <label for="user_type">{{ _('User Type') }}</label>
                                                     <select class="form-control" id="user_type" name="user_type">
-                                                        <option value="admin" {% if user.user_type == 'admin' %}selected{% endif %}>{{ _('Admin') }}</option>
-                                                        <option value="supervisor" {% if user.user_type == 'supervisor' %}selected{% endif %}>{{ _('Supervisor') }}</option>
-                                                        <option value="researcher" {% if user.user_type == 'researcher' %}selected{% endif %}>{{ _('Researcher') }}</option>
-                                                        <option value="student" {% if user.user_type == 'student' %}selected{% endif %}>{{ _('Student') }}</option>
+                                                        {% for v, lab in [('admin', _('Admin')), ('supervisor', _('Supervisor')), ('researcher', _('Researcher')), ('student', _('Student'))] %}<option value="{{ v }}" {{ 'selected' if user.user_type == v }}>{{ lab }}</option>{% endfor %}
                                                     </select>
                                                 </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="form-group">
+                                                <div class="form-group col-md-4">
                                                     <label for="gender">{{ _('Gender') }}</label>
                                                     <select class="form-control" id="gender" name="gender">
                                                         <option value="">{{ _('Not specified') }}</option>
-                                                        <option value="male" {% if user.gender == 'male' %}selected{% endif %}>{{ _('Male') }}</option>
-                                                        <option value="female" {% if user.gender == 'female' %}selected{% endif %}>{{ _('Female') }}</option>
+                                                        <option value="male" {{ 'selected' if user.gender == 'male' }}>{{ _('Male') }}</option>
+                                                        <option value="female" {{ 'selected' if user.gender == 'female' }}>{{ _('Female') }}</option>
                                                     </select>
                                                 </div>
+                                                <div class="form-group col-md-4"><label for="nationality">{{ _('Nationality') }}</label><input type="text" class="form-control" id="nationality" name="nationality" value="{{ user.nationality or '' }}"></div>
                                             </div>
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label for="nationality">{{ _('Nationality') }}</label>
-                                                    <input type="text" class="form-control" id="nationality" name="nationality" value="{{ user.nationality or '' }}">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                <div class="form-group">
-                                                    <label for="cdl">{{ _('Degree Course') }}</label>
-                                                    <input type="text" class="form-control" id="cdl" name="cdl" value="{{ user.cdl or '' }}">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary">{{ _('Update User') }}</button>
-                                    </form>
+                                            <div class="form-group"><label for="cdl">{{ _('Degree Course') }}</label><input type="text" class="form-control" id="cdl" name="cdl" value="{{ user.cdl or '' }}"></div>
+                                            <button type="submit" class="btn btn-primary">{{ _('Update User') }}</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Theses Information -->
-                            {% if user.user_type == "student" and authored_theses %}
-                                <div class="card shadow mb-4">
-                                    <div class="card-header py-3">
-                                        <h6 class="m-0 font-weight-bold text-primary">{{ _('Authored Theses') }}</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        {% for thesis in authored_theses %}
-                                            <div class="border-bottom mb-3 pb-3">
-                                                <h6><a href="/admin/thesis/{{ thesis.id }}">{{ thesis.title }}</a></h6>
-                                                <p class="text-muted">{{ thesis.description[:100] }}...</p>
-                                                <small class="text-muted">Level: {{ thesis.level }} | Created: {{ datetime.fromtimestamp(thesis.created_at).strftime('%Y-%m-%d') }}</small>
+                            {% if thesis_cards %}
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Authored Theses') if user.user_type == 'student' else _('Supervised Theses') }}</h6></div>
+                                <div class="card-body">
+                                    {% for c in thesis_cards %}
+                                    <div class="d-flex align-items-start border-bottom py-2">
+                                        <div class="flex-grow-1 min-w-0">
+                                            <a class="font-weight-bold" href="{{ url_for('admin.thesis_detail', thesis_id=c.thesis.id) }}">{{ c.thesis.title }}</a>
+                                            <div class="small text-muted">
+                                                {% if c.thesis.level %}{{ _(c.thesis.level|title) }} · {% endif %}{{ dt(c.thesis.created_at).strftime('%b %d, %Y') if c.thesis.created_at else '—' }}
+                                                {% if c.student and user.user_type != 'student' %} · {{ user_link(c.student) }}{% endif %}
                                             </div>
-                                        {% endfor %}
+                                            {% if c.progress is not none %}<div class="progress mt-1" style="height:.35rem;max-width:14rem"><div class="progress-bar" style="width: {{ c.progress }}%"></div></div>{% endif %}
+                                        </div>
+                                        <div class="text-right ml-2">
+                                            {% if c.status %}<span class="badge badge-info">{{ _(c.status|replace('-', ' ')|capitalize) }}</span>{% endif %}
+                                            {% if c.state == 'frozen' %}<span class="badge badge-secondary">{{ _('Archived') }}</span>{% elif c.state == 'open' %}<span class="badge badge-success">{{ _('Open') }}</span>{% endif %}
+                                        </div>
                                     </div>
+                                    {% endfor %}
                                 </div>
+                            </div>
                             {% endif %}
 
-                            {% if user.user_type == "supervisor" and supervised_theses %}
-                                <div class="card shadow mb-4">
-                                    <div class="card-header py-3">
-                                        <h6 class="m-0 font-weight-bold text-primary">{{ _('Supervised Theses') }}</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        {% for thesis in supervised_theses %}
-                                            {% if thesis %}
-                                                <div class="border-bottom mb-3 pb-3">
-                                                    <h6><a href="/admin/thesis/{{ thesis.id }}">{{ thesis.title }}</a></h6>
-                                                    <p class="text-muted">{{ thesis.description[:100] }}...</p>
-                                                    <small class="text-muted">Level: {{ thesis.level }} | Created: {{ datetime.fromtimestamp(thesis.created_at).strftime('%Y-%m-%d') }}</small>
-                                                </div>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </div>
+                            {% if projects %}
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Research Projects') }}</h6></div>
+                                <div class="card-body">
+                                    {% for p in projects %}
+                                    <div class="border-bottom py-2"><strong>{{ p.title }}</strong>
+                                        {% if p.frozen %}<span class="badge badge-warning">{{ _('Frozen') }}</span>{% endif %}
+                                        <div class="small text-muted">{{ (p.description or '')[:140] }}</div></div>
+                                    {% endfor %}
                                 </div>
+                            </div>
                             {% endif %}
+
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Recent updates') }}</h6></div>
+                                <div class="card-body">
+                                    {% for u in recent_updates %}
+                                    <div class="border-bottom pb-2 mb-2">
+                                        <div class="d-flex justify-content-between"><small class="text-primary">{{ u.update_type|replace('_', ' ')|capitalize }}</small><small class="text-muted">{{ dt(u.created_at).strftime('%Y-%m-%d') }}</small></div>
+                                        <p class="mb-0 small">{{ u.content[:200] }}{% if u.content|length > 200 %}…{% endif %}</p>
+                                    </div>
+                                    {% else %}<p class="text-muted mb-0">{{ _('No updates yet.') }}</p>{% endfor %}
+                                </div>
+                            </div>
 
                         </div>
 
-                        <!-- Side Panel -->
                         <div class="col-xl-4 col-lg-5">
-                            
-                            <!-- Statistics -->
+
                             <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('User Statistics') }}</h6>
-                                </div>
-                                <div class="card-body text-center">
-                                    {% if user.user_type == "student" %}
-                                        <div class="border-bottom mb-3 pb-3">
-                                            <h4 class="text-primary">{{ authored_theses|length }}</h4>
-                                            <p class="mb-0">{{ _('Authored Theses') }}</p>
-                                        </div>
-                                    {% elif user.user_type == "supervisor" %}
-                                        <div class="border-bottom mb-3 pb-3">
-                                            <h4 class="text-primary">{{ supervised_theses|length }}</h4>
-                                            <p class="mb-0">{{ _('Supervised Theses') }}</p>
-                                        </div>
-                                    {% endif %}
-                                    <div class="border-bottom mb-3 pb-3">
-                                        <h4 class="text-success">{{ _('Active') }}</h4>
-                                        <p class="mb-0">{{ _('Account Status') }}</p>
+                                <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Overview') }}</h6></div>
+                                <div class="card-body">
+                                    {% for label, value, icon, tone in [
+                                        (_('Theses'), thesis_cards|length, 'fa-book', 'primary'),
+                                        (_('Updates'), recent_updates|length, 'fa-edit', 'info'),
+                                        (_('Account Status'), _('Enabled') if user.is_enabled else _('Disabled'), 'fa-user-check', 'success' if user.is_enabled else 'warning'),
+                                        (_('Member since'), dt(user.joined_on).strftime('%B %Y') if user.joined_on else '—', 'fa-calendar', 'secondary')] %}
+                                    <div class="row no-gutters align-items-center {{ 'mb-3' if not loop.last }}">
+                                        <div class="col mr-2"><div class="text-xs font-weight-bold text-{{ tone }} text-uppercase mb-1">{{ label }}</div><div class="h5 mb-0 font-weight-bold text-gray-800">{{ value }}</div></div>
+                                        <div class="col-auto"><i class="fas {{ icon }} fa-2x text-gray-300"></i></div>
                                     </div>
-                                    <div>
-                                        <p class="text-muted">
-                                            Member since<br>
-                                            {{ datetime.fromtimestamp(user.joined_on).strftime('%B %Y') }}
-                                        </p>
-                                    </div>
+                                    {% endfor %}
                                 </div>
                             </div>
 
-                            <!-- Actions -->
                             <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Actions') }}</h6>
-                                </div>
+                                <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Actions') }}</h6></div>
                                 <div class="card-body">
                                     {% if user.user_type == "researcher" %}
                                         {% if researcher_supervisor_role %}
-                                            <div class="alert alert-success py-2 small" role="alert">
-                                                Supervisor privileges are active for this researcher.
-                                            </div>
-                                            <form action="/admin/revoke_supervisor_role" method="POST" class="mb-2">
+                                            <div class="alert alert-success py-2 small" role="alert">{{ _('Supervisor privileges are active for this researcher.') }}</div>
+                                            <form action="{{ url_for('admin.revoke_supervisor_role') }}" method="POST" class="mb-2">
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <input type="hidden" name="researcher_id" value="{{ user.id }}">
                                                 <button type="submit" class="btn btn-outline-warning btn-block">{{ _('Revoke Supervisor Privileges') }}</button>
                                             </form>
                                         {% else %}
-                                            <div class="alert alert-secondary py-2 small" role="alert">
-                                                This researcher currently has no supervisor privileges.
-                                            </div>
-                                            <form action="/admin/grant_supervisor_role" method="POST" class="mb-2">
+                                            <div class="alert alert-secondary py-2 small" role="alert">{{ _('This researcher currently has no supervisor privileges.') }}</div>
+                                            <form action="{{ url_for('admin.grant_supervisor_role') }}" method="POST" class="mb-2">
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <input type="hidden" name="researcher_id" value="{{ user.id }}">
                                                 <button type="submit" class="btn btn-outline-success btn-block">{{ _('Grant Supervisor Privileges') }}</button>
@@ -257,7 +226,7 @@
                                         {% endif %}
                                     {% endif %}
                                     <button class="btn btn-warning btn-block mb-2" onclick="resetPassword({{ user.id }})">{{ _('Reset Password') }}</button>
-                                    <button class="btn btn-danger btn-block" onclick="deleteUser({{ user.id }})">{{ _('Delete User') }}</button>
+                                    {% if user.id != current_user.id %}<button class="btn btn-danger btn-block" onclick="deleteUser({{ user.id }})">{{ _('Delete User') }}</button>{% endif %}
                                 </div>
                             </div>
 
@@ -270,20 +239,12 @@
             </div>
             <!-- End of Main Content -->
 
-            <!-- Footer -->
             {% include 'admin/components/footer.html' %}
-            <!-- End of Footer -->
 
         </div>
-        <!-- End of Content Wrapper -->
-
     </div>
-    <!-- End of Page Wrapper -->
 
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
 
     <script>
         function resetPassword(userId) {
@@ -300,7 +261,8 @@
             fetch(`/admin/reset_user_password/${userId}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
                 },
                 body: JSON.stringify({ new_password: newPassword })
             })
@@ -322,6 +284,7 @@
             if (confirm('Are you sure you want to delete this user? This action cannot be undone and will remove all associated data.')) {
                 fetch(`/admin/delete_user/${userId}`, {
                     method: 'DELETE',
+                    headers: {'X-CSRFToken': '{{ csrf_token() }}'}
                 })
                 .then(response => {
                     if (!response.ok) throw new Error('Failed to delete');

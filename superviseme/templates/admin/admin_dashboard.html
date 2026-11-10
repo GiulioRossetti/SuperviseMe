@@ -43,41 +43,66 @@
                                 {% set maxn = [1] %}
                                 {% for l, theses in theses_by_supervisor.items() %}{% if theses|length > maxn[0] %}{% set _x = maxn.__setitem__(0, theses|length) %}{% endif %}{% endfor %}
                                 {% if theses_by_supervisor %}
-                                <div class="dash-people wl-grid" id="wlGrid">
+                                <div id="wlSection">
+                                <div class="sv-toolbar mb-3">
+                                    <div class="input-group sv-search">
+                                        <div class="input-group-prepend"><span class="input-group-text bg-white"><i class="fas fa-search"></i></span></div>
+                                        <input type="search" class="form-control" id="wlQuery" placeholder="{{ _('Search by supervisor, student or thesis...') }}" autocomplete="off">
+                                    </div>
+                                    <span class="small text-muted ml-auto" id="wlCount"></span>
+                                </div>
+                                <div id="wlSource" class="d-none">
                                     {% for l, theses in workload %}
-                                    <div class="dash-person wl-card" id="wl{{ l.id }}">
-                                        <button type="button" class="wl-head" aria-expanded="false" aria-controls="wl{{ l.id }}d">
+                                    <div class="sv-item" data-uid="{{ l.id }}" data-q="{{ ((l.name or '') ~ ' ' ~ (l.surname or '') ~ ' ' ~ (l.email or '') ~ ' ' ~ (theses|map(attribute='thesis')|map(attribute='title')|join(' ')) ~ ' ' ~ (theses|map(attribute='student')|map(attribute='surname')|join(' ')))|lower }}">
+                                    <div class="dash-person wl-card" data-uid="{{ l.id }}">
+                                        <button type="button" class="wl-head" aria-expanded="false">
                                             <span class="top">{{ avatar(l) }}<span style="min-width:0"><span class="nm">{{ l.name }} {{ l.surname }}</span><span class="th">{{ l.email }}</span></span></span>
                                             <span class="progress"><span class="progress-bar" style="width: {{ 100 * theses|length / maxn[0] }}%"></span></span>
                                             <span class="foot">{% set cap = capacity_info(l) %}<span>{{ theses|length }} {{ _('assigned theses') }}{% if cap.max is not none %} · <strong class="{{ 'text-danger' if cap.full }}">{{ cap.used }}/{{ cap.max }}</strong>{% endif %}</span><span><i class="fas fa-chevron-down wl-chev"></i></span></span>
                                         </button>
-                                        <div class="wl-detail" id="wl{{ l.id }}d" hidden>
+                                        <div class="wl-detail">
                                             {% for t in theses %}
                                             <div class="wl-row"><i class="fas fa-user-graduate"></i><div><strong>{{ user_link(t['student']) }}</strong><span>{{ t['thesis'].title }}</span></div></div>
                                             {% else %}<div class="small text-muted">{{ _('No assigned students yet') }}</div>{% endfor %}
                                             <div class="mt-2"><a class="dash-link" href="{{ url_for('admin.user_detail', user_id=l.id) }}">{{ _('Supervisor profile') }} <i class="fas fa-arrow-right"></i></a></div>
                                         </div>
                                     </div>
+                                    </div>
                                     {% endfor %}
                                 </div>
+                                <div class="sv-carousel">
+                                    <button type="button" class="sv-arrow sv-prev" aria-label="{{ _('Previous') }}"><i class="fas fa-chevron-left"></i></button>
+                                    <div class="sv-viewport"><div class="sv-track"></div></div>
+                                    <button type="button" class="sv-arrow sv-next" aria-label="{{ _('Next') }}"><i class="fas fa-chevron-right"></i></button>
+                                </div>
+                                <div class="sv-dots"></div>
+                                <div class="text-center text-muted py-4" id="wlEmpty" style="display:none"><i class="fas fa-search fa-2x mb-2"></i><div>{{ _('No supervisors match your search.') }}</div></div>
+                                </div>
+                                <script src="{{ url_for('static', filename='assets/js/sm-carousel.js') }}"></script>
                                 <script>
-                                (function () {
-                                    var grid = document.getElementById('wlGrid');
-                                    if (!grid) return;
-                                    function setOpen(card, open) {
-                                        card.classList.toggle('is-open', open);
-                                        card.querySelector('.wl-head').setAttribute('aria-expanded', open ? 'true' : 'false');
-                                        card.querySelector('.wl-detail').hidden = !open;
-                                    }
-                                    grid.addEventListener('click', function (e) {
-                                        var head = e.target.closest('.wl-head');
-                                        if (!head) return;
-                                        var card = head.parentNode, willOpen = !card.classList.contains('is-open');
-                                        grid.querySelectorAll('.wl-card.is-open').forEach(function (c) { setOpen(c, false); });
-                                        if (willOpen) { setOpen(card, true); card.scrollIntoView({block: 'nearest', behavior: 'smooth'}); }
-                                        grid.classList.toggle('has-open', willOpen);
+                                window.addEventListener('load', function () {
+                                    var openUid = null;
+                                    function cols() { var w = window.innerWidth; return w >= 1200 ? 3 : w >= 576 ? 2 : 1; }
+                                    var car = SmCarousel({
+                                        root: '#wlSection', source: '#wlSource .sv-item', empty: '#wlEmpty', count: '#wlCount', cols: cols, rows: 2,
+                                        matches: function (el) {
+                                            var q = document.getElementById('wlQuery').value.trim().toLowerCase();
+                                            return !q || q.split(/\s+/).every(function (t) { return el.dataset.q.indexOf(t) !== -1; });
+                                        }
                                     });
-                                })();
+                                    $('#wlQuery').on('input', function () { car.apply(true); });
+                                    $('#wlSection').on('click', '.wl-head', function () {
+                                        var uid = $(this).closest('.wl-card').data('uid').toString();
+                                        openUid = (openUid === uid) ? null : uid;
+                                        car.items.forEach(function (el) {
+                                            var $c = $(el).children().first(), on = el.getAttribute('data-uid') === openUid;
+                                            $c.toggleClass('is-open', on); $c.find('.wl-head').attr('aria-expanded', on ? 'true' : 'false');
+                                        });
+                                        $('#wlSection .sv-track').toggleClass('has-open', openUid !== null);
+                                        car.render();
+                                        $('#wlSection .sv-track').toggleClass('has-open', openUid !== null);
+                                    });
+                                });
                                 </script>
                                 {% else %}{{ empty('fas fa-chalkboard-teacher', _('No supervisors yet')) }}{% endif %}
                             {% endcall %}
