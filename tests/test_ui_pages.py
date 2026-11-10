@@ -977,3 +977,31 @@ def test_build_thesis_cards_uses_constant_queries(app, supervisor_user, student_
     assert len(active) == 6 and not archived
     assert all(c["supervisors"] and c["student"] for c in active)
     assert counter["n"] <= 12, counter["n"]
+
+
+def test_checklist_links_and_optional_days(client, admin_user, supervisor_user, student_user):
+    from superviseme.models import Checklist_Template, Thesis_Checklist_Item
+    from superviseme.utils.checklist import parse_item_lines, parse_resources
+    assert parse_item_lines("A | 30 | https://x.org/a\nB | https://x.org/b\nC | javascript:alert(1)\nD") == [
+        ("A", 30, "https://x.org/a"), ("B", None, "https://x.org/b"), ("C", None, None), ("D", None, None)]
+    assert parse_resources("Form | https://x.org/f | student\nBad | ftp://x\nGuide | https://x.org/g") == [
+        {"label": "Form", "url": "https://x.org/f", "audience": "student"}, {"label": "Guide", "url": "https://x.org/g", "audience": None}]
+    login(client, admin_user)
+    client.post("/admin/checklists/add", data={"name": "Std", "info_url": "https://uni.example/appelli", "items": "Apply | 30 | https://x.org/apply\nBook room",
+                                               "resources": "Student form | https://x.org/form | student\nSupervisor guide | https://x.org/sup | supervisor\nFAQ | https://x.org/faq"})
+    tpl = Checklist_Template.query.one()
+    assert tpl.info_url == "https://uni.example/appelli" and tpl.items[0].url == "https://x.org/apply" and tpl.items[1].days_before_defense is None
+    assert b"https://uni.example/appelli" in client.get("/admin/checklists").data
+    assert client.post("/admin/checklists/%d/links" % tpl.id, data={"info_url": "javascript:x", "resources": ""}).status_code == 302
+    assert Checklist_Template.query.one().info_url == "https://uni.example/appelli"  # invalid website refused
+    client.post("/logout")
+    t = _assign(student_user, supervisor_user)
+    login(client, supervisor_user)
+    client.post(f"/thesis/{t.id}/checklist/apply", data={"template_id": tpl.id})
+    assert Thesis_Checklist_Item.query.filter_by(thesis_id=t.id, url="https://x.org/apply").count() == 1
+    page = client.get(f"/supervisor/thesis/{t.id}").data
+    assert b"https://uni.example/appelli" in page and b"Supervisor guide" in page and b"Student form" not in page and b"FAQ" in page
+    client.post("/logout")
+    login(client, student_user)
+    page = client.get("/student/thesis").data
+    assert b"Student form" in page and b"Supervisor guide" not in page and b"https://x.org/apply" in page

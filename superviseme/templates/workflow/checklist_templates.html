@@ -13,7 +13,19 @@
             <div class="d-flex justify-content-between"><strong>{{ t.name }}{% if t.degree_course %} <span class="badge badge-light border">{{ t.degree_course }}</span>{% endif %}</strong>
                 <form method="POST" action="{{ url_for('workflow.delete_checklist_template', template_id=t.id) }}" onsubmit="return confirm({{ _('Delete this template?')|tojson|forceescape }});">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-link btn-sm text-danger p-0"><i class="fas fa-trash-alt"></i></button></form></div>
-            <ol class="small mb-0 mt-2">{% for i in t.items %}<li>{{ i.title }}{% if i.days_before_defense is not none %} <span class="text-muted">· {{ _('%(n)d days before the defense', n=i.days_before_defense) }}</span>{% endif %}</li>{% endfor %}</ol>
+            {% if t.info_url %}<div class="small mt-2"><i class="fas fa-globe"></i> <a href="{{ t.info_url }}" target="_blank" rel="noopener noreferrer">{{ t.info_url }}</a></div>{% endif %}
+            <ol class="small mb-0 mt-2">{% for i in t.items %}<li>{{ i.title }}{% if i.days_before_defense is not none %} <span class="text-muted">· {{ _('%(n)d days before the defense', n=i.days_before_defense) }}</span>{% endif %}{% if i.url %} <a href="{{ i.url }}" target="_blank" rel="noopener noreferrer" title="{{ i.url }}"><i class="fas fa-external-link-alt"></i></a>{% endif %}</li>{% endfor %}</ol>
+            {% if t.resources %}<div class="small mt-2"><strong>{{ _('Documents and resources') }}</strong>
+                {% for r in checklist_resources(t.resources) %}<div><i class="fas fa-link"></i> <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer">{{ r.label }}</a>{% if r.audience %} <span class="badge badge-light border">{{ _('Students') if r.audience == 'student' else _('Supervisors') }}</span>{% endif %}</div>{% endfor %}</div>{% endif %}
+            <button class="btn btn-link btn-sm p-0 mt-2" type="button" data-toggle="collapse" data-target="#links{{ t.id }}"><i class="fas fa-pen"></i> {{ _('Edit links') }}</button>
+            <div class="collapse mt-2" id="links{{ t.id }}">
+                <form method="POST" action="{{ url_for('workflow.update_checklist_links', template_id=t.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group mb-2"><input class="form-control form-control-sm" type="url" name="info_url" maxlength="500" value="{{ t.info_url or '' }}" placeholder="{{ _('Website with exam sessions and graduation information (https://...)') }}"></div>
+                    <div class="form-group mb-2"><textarea class="form-control form-control-sm" name="resources" rows="4" placeholder="{{ _('One resource per line: Label | URL | student or supervisor (optional)') }}">{{ t.resources or '' }}</textarea></div>
+                    <button class="btn btn-primary btn-sm">{{ _('Save') }}</button>
+                </form>
+            </div>
         </div>
         {% else %}<div class="dash-empty"><i class="fas fa-list-check"></i>{{ _('No templates yet') }}</div>{% endfor %}
     {% endcall %}
@@ -24,7 +36,10 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group"><input class="form-control form-control-sm" name="name" maxlength="150" required placeholder="{{ _('Template name') }}"></div>
         <div class="form-group"><input class="form-control form-control-sm" name="degree_course" maxlength="120" placeholder="{{ _('Degree course (empty = generic)') }}"></div>
-        <div class="form-group"><textarea class="form-control form-control-sm" name="items" rows="8" required placeholder="{{ _('One step per line, optionally followed by | and the number of days before the defense') }}&#10;Submit the application | 60&#10;Upload the final PDF | 14"></textarea></div>
+        <div class="form-group"><input class="form-control form-control-sm" type="url" name="info_url" maxlength="500" placeholder="{{ _('Website with exam sessions and graduation information (https://...)') }}"></div>
+        <div class="form-group"><textarea class="form-control form-control-sm" name="items" rows="7" required placeholder="{{ _('One step per line. Days before the defense and a link are optional: Title | days | https://...') }}&#10;Submit the application | 60&#10;Upload the final PDF | 14 | https://example.org/guide&#10;Book the defense room"></textarea></div>
+        <div class="form-group"><textarea class="form-control form-control-sm" name="resources" rows="3" placeholder="{{ _('Documents, templates and to-do lists, one per line: Label | URL | student or supervisor (optional)') }}"></textarea></div>
+        <p class="small text-muted">{{ _('Days are optional: steps without them have no due date.') }}</p>
         <button class="btn btn-primary btn-sm btn-block">{{ _('Create') }}</button>
     </form>
     {% endcall %}

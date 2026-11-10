@@ -4740,3 +4740,36 @@ msgstr "L'eliminazione automatica è disattivata: nessun dato viene rimosso. Imp
 
 msgid "All results"
 msgstr "Tutti i risultati"
+
+msgid "Documents and resources"
+msgstr "Documenti e risorse"
+
+msgid "Edit links"
+msgstr "Modifica link"
+
+msgid "Website with exam sessions and graduation information (https://...)"
+msgstr "Sito con appelli e informazioni sulla laurea (https://...)"
+
+msgid "One resource per line: Label | URL | student or supervisor (optional)"
+msgstr "Una risorsa per riga: Etichetta | URL | student o supervisor (facoltativo)"
+
+msgid "One step per line. Days before the defense and a link are optional: Title | days | https://..."
+msgstr "Un passo per riga. Giorni prima della discussione e link sono facoltativi: Titolo | giorni | https://..."
+
+msgid "Documents, templates and to-do lists, one per line: Label | URL | student or supervisor (optional)"
+msgstr "Documenti, modelli e todo list, uno per riga: Etichetta | URL | student o supervisor (facoltativo)"
+
+msgid "Days are optional: steps without them have no due date."
+msgstr "I giorni sono facoltativi: i passi senza giorni non hanno scadenza."
+
+msgid "The website must start with http:// or https://"
+msgstr "Il sito deve iniziare con http:// o https://"
+
+msgid "Links saved."
+msgstr "Link salvati."
+
+msgid "Exam sessions and graduation information"
+msgstr "Appelli e informazioni sulla laurea"
+
+msgid "More information"
+msgstr "Maggiori informazioni"

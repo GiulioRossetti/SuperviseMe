@@ -33,6 +33,13 @@
             </form>
         </div>
         {% endif %}
+        {% set _links = checklist_links_for(thesis, mm_role) %}
+        {% if _links[0] or _links[1] %}
+        <div class="small mb-3">
+            {% for i in _links[0] %}<div><i class="fas fa-globe text-primary"></i> <a href="{{ i.url }}" target="_blank" rel="noopener noreferrer">{{ _('Exam sessions and graduation information') }}{% if _links[0]|length > 1 %} ({{ i.label }}){% endif %}</a></div>{% endfor %}
+            {% for r in _links[1] %}<div><i class="fas fa-file-alt text-muted"></i> <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer">{{ r.label }}</a></div>{% endfor %}
+        </div>
+        {% endif %}
         {% if items %}
         <div class="progress mb-3" style="height:.45rem"><div class="progress-bar bg-success" style="width: {{ 100 * done_n / items|length }}%"></div></div>
         <ul class="ms-list">
@@ -43,7 +50,7 @@
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="next" value="{{ mm_next }}#checklist">
                     <button type="submit" class="ms-dot" aria-label="{{ _('Toggle step') }}"><i class="fas fa-check"></i></button>
                 </form>
-                <div class="ms-body"><strong>{{ i.title }}</strong></div>
+                <div class="ms-body"><strong>{{ i.title }}</strong>{% if i.url %} <a href="{{ i.url }}" target="_blank" rel="noopener noreferrer" title="{{ _('More information') }}"><i class="fas fa-external-link-alt small"></i></a>{% endif %}</div>
                 {% if i.due_date %}<span class="ms-date {{ 'late' if late }}"><i class="far fa-calendar"></i> {{ dt(i.due_date).strftime('%d %b %Y') }}</span>{% endif %}
                 {% if can_edit %}
                 <form method="POST" action="{{ url_for('workflow.delete_checklist_item', item_id=i.id) }}">

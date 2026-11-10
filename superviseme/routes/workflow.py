@@ -669,17 +669,34 @@ def checklist_templates():
 def add_checklist_template():
     _admin_only()
     name = (request.form.get("name") or "").strip()[:150]
-    items = cl.parse_items(request.form.get("items"))
+    items = cl.parse_item_lines(request.form.get("items"))
     if not name or not items:
         flash(_("A name and at least one step are required."), "error")
         return redirect(url_for("workflow.checklist_templates"))
     t = Checklist_Template(name=name, degree_course=(request.form.get("degree_course") or "").strip()[:120] or None,
-                           created_at=int(time.time()))
-    for pos, (title, days) in enumerate(items):
-        t.items.append(Checklist_Template_Item(title=title, position=pos, days_before_defense=days))
+                           created_at=int(time.time()), info_url=cl.clean_url(request.form.get("info_url")),
+                           resources=cl.normalize_resources(request.form.get("resources")))
+    for pos, (title, days, url) in enumerate(items):
+        t.items.append(Checklist_Template_Item(title=title, position=pos, days_before_defense=days, url=url))
     db.session.add(t)
     db.session.commit()
     flash(_("Template created."), "success")
+    return redirect(url_for("workflow.checklist_templates"))
+
+
+@workflow.route("/admin/checklists/<int:template_id>/links", methods=["POST"])
+@login_required
+def update_checklist_links(template_id):
+    _admin_only()
+    t = Checklist_Template.query.get_or_404(template_id)
+    raw = (request.form.get("info_url") or "").strip()
+    if raw and not cl.clean_url(raw):
+        flash(_("The website must start with http:// or https://"), "error")
+        return redirect(url_for("workflow.checklist_templates"))
+    t.info_url = cl.clean_url(raw)
+    t.resources = cl.normalize_resources(request.form.get("resources"))
+    db.session.commit()
+    flash(_("Links saved."), "success")
     return redirect(url_for("workflow.checklist_templates"))
 
 

@@ -744,6 +744,8 @@ class Checklist_Template(db.Model):
     name = db.Column(db.String(150), nullable=False)
     degree_course = db.Column(db.String(120), nullable=True)  # NULL = generic template
     created_at = db.Column(db.Integer, nullable=False)
+    info_url = db.Column(db.String(500), nullable=True)  # site with exam sessions / graduation information
+    resources = db.Column(db.Text, nullable=True)  # "Label | URL | audience" lines (documents, templates, to-do lists)
 
     items = db.relationship("Checklist_Template_Item", backref="template", cascade="all, delete-orphan",
                             order_by="Checklist_Template_Item.position", lazy=True)
@@ -756,6 +758,7 @@ class Checklist_Template_Item(db.Model):
     title = db.Column(db.String(200), nullable=False)
     position = db.Column(db.Integer, nullable=False, default=0)
     days_before_defense = db.Column(db.Integer, nullable=True)
+    url = db.Column(db.String(500), nullable=True)  # optional page/document explaining the step
 
 
 class Thesis_Checklist_Item(db.Model):
@@ -765,6 +768,7 @@ class Thesis_Checklist_Item(db.Model):
     title = db.Column(db.String(200), nullable=False)
     position = db.Column(db.Integer, nullable=False, default=0)
     days_before_defense = db.Column(db.Integer, nullable=True)
+    url = db.Column(db.String(500), nullable=True)
     due_date = db.Column(db.Integer, nullable=True)
     status = db.Column(db.String(20), nullable=False, default="pending")  # "pending" | "done"
     completed_at = db.Column(db.Integer, nullable=True)
