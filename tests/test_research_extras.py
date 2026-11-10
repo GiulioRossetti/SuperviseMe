@@ -134,3 +134,29 @@ def test_software_and_outputs_pages(client, app, researcher_user, admin_user):
     from superviseme.utils.projects import delete_project_cascade
     delete_project_cascade(db.session.get(ResearchProject, p.id))
     assert S.query.count() == 0
+
+
+def test_researcher_edits_datasets_and_software(client, researcher_user, supervisor_user):
+    from superviseme import db
+    from superviseme.models import ResearchProject, ResearchProject_Software as S, ResearchProject_Dataset as D
+    p = ResearchProject(title="Editable", description="d", researcher_id=researcher_user.id, created_at=int(time.time()))
+    other = ResearchProject(title="Not mine", description="d", researcher_id=supervisor_user.id, created_at=int(time.time()))
+    db.session.add_all([p, other]); db.session.commit()
+    _login(client, researcher_user.email)
+    client.post(f"/researcher/project/{p.id}/software/add", data={"title": "tool", "version": "1"})
+    client.post(f"/researcher/project/{p.id}/datasets/add", data={"title": "ds", "fair_findable": "on"})
+    sw, ds = S.query.filter_by(project_id=p.id).one(), D.query.filter_by(project_id=p.id).one()
+    client.post(f"/researcher/project/{p.id}/software/{sw.id}/edit", data={"title": "tool2", "version": "2", "license": "MIT", "repo_url": "https://github.com/a/b"})
+    client.post(f"/researcher/project/{p.id}/datasets/{ds.id}/edit", data={"title": "ds2", "doi": "10.1234/x", "fair_findable": "on", "fair_accessible": "on"})
+    db.session.refresh(sw); db.session.refresh(ds)
+    assert (sw.title, sw.version, sw.license, sw.repo_url) == ("tool2", "2", "MIT", "https://github.com/a/b")
+    assert ds.title == "ds2" and ds.doi == "10.1234/x" and ds.fair == "findable,accessible"
+    client.post(f"/researcher/project/{p.id}/software/{sw.id}/edit", data={"title": ""})
+    db.session.refresh(sw)
+    assert sw.title == "tool2"
+    page = client.get(f"/researcher/project/{p.id}/output").data.decode()
+    assert f"editS{sw.id}" in page and f"editD{ds.id}" in page
+    # not allowed on someone else's project
+    assert client.post(f"/researcher/project/{other.id}/software/{sw.id}/edit", data={"title": "x"}).status_code in (302, 403, 404)
+    db.session.refresh(sw)
+    assert sw.title == "tool2"

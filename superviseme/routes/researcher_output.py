@@ -228,6 +228,28 @@ def add_dataset(project_id):
     return _back(project)
 
 
+@researcher.route("/researcher/project/<int:project_id>/datasets/<int:did>/edit", methods=["POST"])
+@login_required
+def edit_dataset(project_id, did):
+    project, gate = _load(project_id, write=True)
+    if gate is not None:
+        return gate
+    d = ResearchProject_Dataset.query.filter_by(id=did, project_id=project.id).first_or_404()
+    f = request.form
+    title = (f.get("title") or "").strip()
+    if not title:
+        flash("A title is required")
+        return _back(project)
+    d.title = title[:300]
+    d.doi = ro.clean_doi(f.get("doi"))
+    d.url = ro.safe_url(f.get("url"))
+    d.license = (f.get("license") or "").strip()[:100] or None
+    d.fair = ",".join(x for x in ro.FAIR_FLAGS if f.get(f"fair_{x}")) or None
+    db.session.commit()
+    flash("Dataset updated")
+    return _back(project)
+
+
 @researcher.route("/researcher/project/<int:project_id>/datasets/<int:did>/delete", methods=["POST"])
 @login_required
 def delete_dataset(project_id, did):
@@ -259,6 +281,30 @@ def add_software(project_id):
         description=(f.get("description") or "").strip()[:500] or None, added_by=current_user.id, created_at=int(time.time())))
     db.session.commit()
     flash("Software added")
+    return _back(project)
+
+
+@researcher.route("/researcher/project/<int:project_id>/software/<int:sid>/edit", methods=["POST"])
+@login_required
+def edit_software(project_id, sid):
+    project, gate = _load(project_id, write=True)
+    if gate is not None:
+        return gate
+    sw = ResearchProject_Software.query.filter_by(id=sid, project_id=project.id).first_or_404()
+    f = request.form
+    title = (f.get("title") or "").strip()
+    if not title:
+        flash("A title is required")
+        return _back(project)
+    sw.title = title[:300]
+    sw.version = (f.get("version") or "").strip()[:50] or None
+    sw.repo_url = ro.safe_url(f.get("repo_url"))
+    sw.doi = ro.clean_doi(f.get("doi"))
+    sw.license = (f.get("license") or "").strip()[:100] or None
+    sw.language = (f.get("language") or "").strip()[:100] or None
+    sw.description = (f.get("description") or "").strip()[:500] or None
+    db.session.commit()
+    flash("Software updated")
     return _back(project)
 
 
