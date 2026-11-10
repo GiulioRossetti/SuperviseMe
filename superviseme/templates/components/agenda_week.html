@@ -3,10 +3,11 @@
     <header>
         <h6><i class="far fa-calendar-alt"></i> {{ week.monday.strftime('%d %b') }} – {{ week.sunday.strftime('%d %b %Y') }}</h6>
         <div class="ag-weeknav">
-            <a class="btn btn-light btn-sm border" href="{{ url_for('workflow.agenda', week=week.prev) }}" title="{{ _('Previous week') }}" aria-label="{{ _('Previous week') }}"><i class="fas fa-chevron-left"></i></a>
-            {% if not week.is_current %}<a class="btn btn-light btn-sm border" href="{{ url_for('workflow.agenda') }}">{{ _('Today') }}</a>{% endif %}
-            <a class="btn btn-light btn-sm border" href="{{ url_for('workflow.agenda', week=week.next) }}" title="{{ _('Next week') }}" aria-label="{{ _('Next week') }}"><i class="fas fa-chevron-right"></i></a>
+            <a class="btn btn-light btn-sm border" href="{{ url_for('workflow.agenda', week=week.prev, person=person_id) }}" title="{{ _('Previous week') }}" aria-label="{{ _('Previous week') }}"><i class="fas fa-chevron-left"></i></a>
+            {% if not week.is_current %}<a class="btn btn-light btn-sm border" href="{{ url_for('workflow.agenda', person=person_id) }}">{{ _('Today') }}</a>{% endif %}
+            <a class="btn btn-light btn-sm border" href="{{ url_for('workflow.agenda', week=week.next, person=person_id) }}" title="{{ _('Next week') }}" aria-label="{{ _('Next week') }}"><i class="fas fa-chevron-right"></i></a>
             <form method="GET" action="{{ url_for('workflow.agenda') }}" class="d-inline-flex ml-1">
+                {% if person_id %}<input type="hidden" name="person" value="{{ person_id }}">{% endif %}
                 <input type="date" name="week" class="form-control form-control-sm" value="{{ week.monday.isoformat() }}" onchange="this.form.submit()" aria-label="{{ _('Go to date') }}">
             </form>
         </div>

@@ -1,9 +1,19 @@
 {% extends 'public/base_public.html' %}
 {% from 'components/dash.html' import hero, panel, empty, avatar with context %}
 {% block page_content %}
-{% call hero(_('Agenda'), _('Meetings with your supervisor or students, and bookable office hours.') if not is_sup else _('Your meetings and the office-hour slots students can book.'), 'fa-calendar-alt') %}
-    <a class="btn btn-outline-primary btn-sm" href="{{ url_for('workflow.calendar_ics') }}"><i class="fas fa-download"></i> {{ _('Export calendar (.ics)') }}</a>
+{% call hero(_('Agenda'), _('Meetings scheduled on the platform, for everyone or for one supervisor or researcher.') if is_admin else (_('Meetings with your supervisor or students, and bookable office hours.') if not is_sup else _('Your meetings and the office-hour slots students can book.')), 'fa-calendar-alt') %}
+    {% if not is_admin %}<a class="btn btn-outline-primary btn-sm" href="{{ url_for('workflow.calendar_ics') }}"><i class="fas fa-download"></i> {{ _('Export calendar (.ics)') }}</a>{% endif %}
 {% endcall %}
+{% if is_admin %}
+<form method="GET" action="{{ url_for('workflow.agenda') }}" class="form-inline mb-3" id="agendaPerson">
+    <label class="mr-2 small text-muted" for="agendaPersonSel">{{ _('Agenda of') }}</label>
+    <select class="custom-select custom-select-sm mr-2" id="agendaPersonSel" name="person" onchange="this.form.submit()">
+        <option value="">{{ _('Everyone') }}</option>
+        {% for u in people %}<option value="{{ u.id }}" {{ 'selected' if u.id == person_id }}>{{ u.surname }} {{ u.name }} ({{ _('Supervisor') if u.user_type == 'supervisor' else _('Researcher') }})</option>{% endfor %}
+    </select>
+    <span class="small text-muted">{{ _('Only meetings scheduled on the platform are shown; office hours and external or personal calendars are not visible to admins.') }}</span>
+</form>
+{% endif %}
 
 {% with messages = get_flashed_messages(with_categories=true) %}{% for cat, message in messages %}
     <div class="alert alert-{{ 'success' if cat == 'success' else ('info' if cat == 'info' else 'danger') }} alert-dismissible fade show">{{ message }}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button></div>
@@ -24,7 +34,7 @@
         {% if upcoming %}
         <div class="ag-list">
             {% for m in upcoming %}
-            {% set other = m.student if current_user.id == m.supervisor_id else m.supervisor %}
+            {% set other = m.student if (person_id or current_user.id) == m.supervisor_id else m.supervisor %}
             <div class="ag-item">
                 <div class="ag-date"><span class="d">{{ dt(m.start_ts).strftime('%d') }}</span><span class="m">{{ dt(m.start_ts).strftime('%b') }}</span></div>
                 <div class="ag-main">
@@ -72,7 +82,7 @@
 </div>
 
 <div class="col-xl-4">
-    {% include 'components/agenda_subscribe.html' %}
+    {% if not is_admin %}{% include 'components/agenda_subscribe.html' %}{% endif %}
     {% if current_user.user_type == 'student' %}
     {% call panel(_('Book office hours'), 'fa-user-clock') %}
         {% if bookable %}

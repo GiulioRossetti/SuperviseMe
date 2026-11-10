@@ -1005,3 +1005,30 @@ def test_checklist_links_and_optional_days(client, admin_user, supervisor_user, 
     login(client, student_user)
     page = client.get("/student/thesis").data
     assert b"Student form" in page and b"Supervisor guide" not in page and b"https://x.org/apply" in page
+
+
+def test_admin_agenda_person_selector(client, admin_user, supervisor_user, student_user):
+    import time as _t
+    from superviseme.models import Availability_Slot, Meeting, User_mgmt
+    from superviseme import db as _db
+    from tests.conftest import _make_user
+    other = _make_user("supervisor", "oth_er", "oth@test.com")
+    t = _assign(student_user, supervisor_user)
+    now = int(_t.time())
+    _db.session.add_all([
+        Meeting(thesis_id=t.id, supervisor_id=supervisor_user.id, student_id=student_user.id, title="Mine meeting", start_ts=now + 3600, end_ts=now + 7200, created_at=now),
+        Meeting(thesis_id=t.id, supervisor_id=other.id, student_id=None, title="Other meeting", start_ts=now + 3600, end_ts=now + 7200, created_at=now),
+        Availability_Slot(supervisor_id=supervisor_user.id, start_ts=now + 90000, end_ts=now + 91800, created_at=now),
+    ])
+    _db.session.commit()
+    login(client, admin_user)
+    html = client.get("/agenda").data.decode()
+    assert "Mine meeting" in html and "Other meeting" in html and 'id="agendaPersonSel"' in html
+    html = client.get(f"/agenda?person={supervisor_user.id}").data.decode()
+    assert "Mine meeting" in html and "Other meeting" not in html
+    assert f'person={supervisor_user.id}' in html  # week navigation keeps the selection
+    # nothing but platform meetings: no office hours, publishing form, calendar link or subscription
+    assert "Publish office hours" not in html and "Office hours</div>" not in html and "agenda_subscribe" not in html
+    assert "Export calendar" not in html
+    # a non-supervisor/researcher id is ignored
+    assert "Other meeting" in client.get(f"/agenda?person={student_user.id}").data.decode()

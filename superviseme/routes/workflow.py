@@ -91,10 +91,20 @@ def _agenda_back():
 @login_required
 def agenda():
     now = int(time.time())
-    is_sup = _is_supervisor()
-    ctx = {"is_sup": is_sup, "dt": datetime.fromtimestamp, "thesis_url": thesis_url}
-    ctx["upcoming"] = meeting_utils.meetings_for(current_user, upcoming=True)
-    ctx["past"] = meeting_utils.meetings_for(current_user, upcoming=False, limit=10)
+    is_admin = current_user.user_type == "admin"
+    # admins only ever see meetings scheduled on the platform (optionally of one person):
+    # never office-hour slots, linked external calendars or personal feeds
+    is_sup = _is_supervisor() and not is_admin
+    person_id = None
+    ctx = {"is_sup": is_sup, "dt": datetime.fromtimestamp, "thesis_url": thesis_url, "is_admin": is_admin}
+    if is_admin:
+        ctx["people"] = User_mgmt.query.filter(User_mgmt.user_type.in_(("supervisor", "researcher"))).order_by(User_mgmt.surname, User_mgmt.name).all()
+        person_id = request.args.get("person", type=int)
+        if person_id not in {u.id for u in ctx["people"]}:
+            person_id = None
+    ctx["person_id"] = person_id
+    ctx["upcoming"] = meeting_utils.meetings_for(current_user, upcoming=True, person_id=person_id)
+    ctx["past"] = meeting_utils.meetings_for(current_user, upcoming=False, limit=10, person_id=person_id)
     if is_sup:
         ctx["slots"] = (Availability_Slot.query.filter(Availability_Slot.supervisor_id == current_user.id, Availability_Slot.end_ts >= now)
                         .order_by(Availability_Slot.start_ts.asc()).limit(60).all())
@@ -120,7 +130,7 @@ def agenda():
         from superviseme.utils.research_output import agenda_milestones
         ctx["research_milestones"] = agenda_milestones(current_user, now)
         ctx["now_ts"] = now
-    ctx["week"] = _week_view(request.args.get("week"), now, is_sup)
+    ctx["week"] = _week_view(request.args.get("week"), now, is_sup, person_id)
     ctx["feed_url"], ctx["feed_enabled"] = _feed_urls(current_user)
     return render_template("workflow/agenda.html", **ctx)
 
@@ -132,7 +142,7 @@ def _feed_urls(user):
     return https_url, True
 
 
-def _week_view(raw, now, is_sup):
+def _week_view(raw, now, is_sup, person_id=None):
     """One week of the agenda: meetings, office-hour slots and (supervisors) external busy time."""
     from superviseme.utils import calendar_feed as cf
     monday, start, end = meeting_utils.week_bounds(raw)
@@ -150,8 +160,9 @@ def _week_view(raw, now, is_sup):
                 day["events"].append(item)
                 return
 
-    for m in meeting_utils.meetings_between(current_user, start, end):
-        other = m.student if current_user.id == m.supervisor_id else m.supervisor
+    for m in meeting_utils.meetings_between(current_user, start, end, person_id):
+        anchor = person_id or current_user.id
+        other = m.student if anchor == m.supervisor_id else m.supervisor
         put(m.start_ts, {"kind": "meeting", "start": m.start_ts, "end": m.end_ts, "title": m.title, "m": m, "other": other})
     if is_sup:
         busy = cf.busy_for(current_user.id, start, end) if cf.status(current_user.id) else []

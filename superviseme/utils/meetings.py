@@ -10,10 +10,17 @@ from superviseme.models import Availability_Slot, Meeting, Thesis_Supervisor
 DAY = 86400
 
 
-def meetings_for(user, upcoming=True, limit=50):
-    q = Meeting.query.filter(Meeting.status == "scheduled")
+def _scope(q, user, person_id=None):
+    """Admins see every meeting (or just those of ``person_id``); everyone else only their own."""
     if user.user_type != "admin":
-        q = q.filter(or_(Meeting.supervisor_id == user.id, Meeting.student_id == user.id))
+        return q.filter(or_(Meeting.supervisor_id == user.id, Meeting.student_id == user.id))
+    if person_id:
+        return q.filter(or_(Meeting.supervisor_id == person_id, Meeting.student_id == person_id))
+    return q
+
+
+def meetings_for(user, upcoming=True, limit=50, person_id=None):
+    q = _scope(Meeting.query.filter(Meeting.status == "scheduled"), user, person_id)
     now = int(time.time())
     if upcoming:
         q = q.filter(Meeting.end_ts >= now).order_by(Meeting.start_ts.asc())
@@ -85,10 +92,8 @@ def week_bounds(raw=None):
     return monday, start, end
 
 
-def meetings_between(user, start_ts, end_ts):
-    q = Meeting.query.filter(Meeting.status == "scheduled", Meeting.start_ts < end_ts, Meeting.end_ts > start_ts)
-    if user.user_type != "admin":
-        q = q.filter(or_(Meeting.supervisor_id == user.id, Meeting.student_id == user.id))
+def meetings_between(user, start_ts, end_ts, person_id=None):
+    q = _scope(Meeting.query.filter(Meeting.status == "scheduled", Meeting.start_ts < end_ts, Meeting.end_ts > start_ts), user, person_id)
     return q.order_by(Meeting.start_ts.asc()).all()
 
 

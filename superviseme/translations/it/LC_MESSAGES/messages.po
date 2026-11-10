@@ -4773,3 +4773,15 @@ msgstr "Appelli e informazioni sulla laurea"
 
 msgid "More information"
 msgstr "Maggiori informazioni"
+
+msgid "Meetings scheduled on the platform, for everyone or for one supervisor or researcher."
+msgstr "Incontri programmati in piattaforma, di tutti o di un singolo relatore o ricercatore."
+
+msgid "Agenda of"
+msgstr "Agenda di"
+
+msgid "Everyone"
+msgstr "Tutti"
+
+msgid "Only meetings scheduled on the platform are shown; office hours and external or personal calendars are not visible to admins."
+msgstr "Sono mostrati solo gli incontri programmati in piattaforma; fasce di ricevimento e calendari esterni o personali non sono visibili agli admin."
