@@ -124,8 +124,8 @@ def test_format_text_with_todo_links(parser_module):
     mock_todo.id = 1
     mock_todo.title = "Test Todo"
 
-    with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
-        MockTodo.query.get.return_value = mock_todo
+    with patch('superviseme.utils.todo_parser.Todo') as MockTodo, patch('superviseme.utils.todo_parser.db') as MockDb:
+        MockDb.session.get.return_value = mock_todo
 
         text = "Please check @todo:1"
         formatted = parser_module.format_text_with_todo_links(text)
@@ -139,8 +139,8 @@ def test_format_text_with_hash_todo_links(parser_module):
     mock_todo.id = 2
     mock_todo.title = "Hash Todo"
 
-    with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
-        MockTodo.query.get.return_value = mock_todo
+    with patch('superviseme.utils.todo_parser.Todo') as MockTodo, patch('superviseme.utils.todo_parser.db') as MockDb:
+        MockDb.session.get.return_value = mock_todo
 
         text = "Please check #todo-2"
         formatted = parser_module.format_text_with_todo_links(text)
@@ -149,8 +149,8 @@ def test_format_text_with_hash_todo_links(parser_module):
 
 def test_format_text_invalid_todo(parser_module):
     """Test formatting text when todo ID doesn't exist"""
-    with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
-        MockTodo.query.get.return_value = None
+    with patch('superviseme.utils.todo_parser.Todo') as MockTodo, patch('superviseme.utils.todo_parser.db') as MockDb:
+        MockDb.session.get.return_value = None
 
         text = "Please check @todo:999"
         formatted = parser_module.format_text_with_todo_links(text)
@@ -168,8 +168,8 @@ def test_format_text_custom_base_url(parser_module):
     mock_todo.id = 1
     mock_todo.title = "Test Todo"
 
-    with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
-        MockTodo.query.get.return_value = mock_todo
+    with patch('superviseme.utils.todo_parser.Todo') as MockTodo, patch('superviseme.utils.todo_parser.db') as MockDb:
+        MockDb.session.get.return_value = mock_todo
 
         text = "Check @todo:1"
         formatted = parser_module.format_text_with_todo_links(text, base_url="/student/")
@@ -177,9 +177,9 @@ def test_format_text_custom_base_url(parser_module):
 
 def test_format_text_exception_handling(parser_module):
     """Test exception handling during replacement"""
-    with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
+    with patch('superviseme.utils.todo_parser.Todo') as MockTodo, patch('superviseme.utils.todo_parser.db') as MockDb:
         # Mock get to raise exception
-        MockTodo.query.get.side_effect = Exception("Database error")
+        MockDb.session.get.side_effect = Exception("Database error")
 
         text = "Check @todo:1 and #todo-2"
         # Should return original text despite exception
@@ -187,8 +187,8 @@ def test_format_text_exception_handling(parser_module):
 
 def test_format_text_invalid_hash_todo(parser_module):
     """Test invalid #todo-ID format"""
-    with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
-        MockTodo.query.get.return_value = None
+    with patch('superviseme.utils.todo_parser.Todo') as MockTodo, patch('superviseme.utils.todo_parser.db') as MockDb:
+        MockDb.session.get.return_value = None
 
         text = "Check #todo-999"
         formatted = parser_module.format_text_with_todo_links(text)
@@ -201,13 +201,13 @@ def test_format_text_mixed_content(parser_module):
     mock_todo.id = 1
     mock_todo.title = "Valid Todo"
 
-    with patch('superviseme.utils.todo_parser.Todo') as MockTodo:
-        def side_effect(todo_id):
+    with patch('superviseme.utils.todo_parser.Todo') as MockTodo, patch('superviseme.utils.todo_parser.db') as MockDb:
+        def side_effect(_model, todo_id):
             if todo_id == 1:
                 return mock_todo
             return None
 
-        MockTodo.query.get.side_effect = side_effect
+        MockDb.session.get.side_effect = side_effect
 
         text = "Review @todo:1 and @todo:999"
         formatted = parser_module.format_text_with_todo_links(text)

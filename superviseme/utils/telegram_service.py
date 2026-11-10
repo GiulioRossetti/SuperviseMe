@@ -103,7 +103,7 @@ class TelegramService:
         """
         try:
             # Get user's Telegram configuration
-            user = User_mgmt.query.get(user_id)
+            user = db.session.get(User_mgmt, user_id)
             if not user:
                 return {'success': False, 'message': 'User not found'}
             

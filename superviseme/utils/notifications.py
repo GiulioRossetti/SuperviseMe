@@ -21,7 +21,7 @@ def get_user_role_url_prefix(user_id):
     Returns:
         str: URL prefix (/admin/, /supervisor/, /student/)
     """
-    user = User_mgmt.query.get(user_id)
+    user = db.session.get(User_mgmt, user_id)
     if not user:
         return ""
     
@@ -47,7 +47,7 @@ def build_role_aware_url(recipient_id, path, thesis_id=None):
     Returns:
         str: Complete role-aware URL
     """
-    user = User_mgmt.query.get(recipient_id)
+    user = db.session.get(User_mgmt, recipient_id)
     if not user:
         return "#"
     
@@ -86,8 +86,8 @@ def create_thesis_interest_notification(thesis_id, student_id, interest_message=
     from superviseme.models import Thesis_Supervisor
     from superviseme.utils.email_service import send_email
 
-    thesis = Thesis.query.get(thesis_id)
-    student = User_mgmt.query.get(student_id)
+    thesis = db.session.get(Thesis, thesis_id)
+    student = db.session.get(User_mgmt, student_id)
     if not thesis or not student:
         return
 
@@ -122,7 +122,7 @@ def create_thesis_interest_notification(thesis_id, student_id, interest_message=
             action_url=action_url,
         )
 
-        recipient = User_mgmt.query.get(recipient_id)
+        recipient = db.session.get(User_mgmt, recipient_id)
         if recipient and recipient.email:
             body = (
                 f"Hello {recipient.name or recipient.username},\n\n"
@@ -196,7 +196,7 @@ def _send_email_copy(notification):
 
         if current_app.config.get("TESTING") or not current_app.config.get("MAIL_USERNAME"):
             return False
-        user = User_mgmt.query.get(notification.recipient_id)
+        user = db.session.get(User_mgmt, notification.recipient_id)
         if not user or not user.email_notifications or user.email.endswith("@orcid.placeholder.local"):
             return False
         body = f"{notification.message}\n"
@@ -213,7 +213,7 @@ def create_thesis_update_notification(thesis_id, student_id, update_content):
     """
     Create notification when student posts an update
     """
-    thesis = Thesis.query.get(thesis_id)
+    thesis = db.session.get(Thesis, thesis_id)
     if not thesis:
         return
     
@@ -221,7 +221,7 @@ def create_thesis_update_notification(thesis_id, student_id, update_content):
     from superviseme.models import Thesis_Supervisor
     supervisors = Thesis_Supervisor.query.filter_by(thesis_id=thesis_id).all()
     
-    student = User_mgmt.query.get(student_id)
+    student = db.session.get(User_mgmt, student_id)
     student_name = f"{student.name} {student.surname}" if student else "A student"
     
     title = f"New update on {thesis.title}"
@@ -245,11 +245,11 @@ def create_supervisor_feedback_notification(thesis_id, supervisor_id, feedback_c
     """
     Create notification when supervisor provides feedback
     """
-    thesis = Thesis.query.get(thesis_id)
+    thesis = db.session.get(Thesis, thesis_id)
     if not thesis or not thesis.author_id:
         return
     
-    supervisor = User_mgmt.query.get(supervisor_id)
+    supervisor = db.session.get(User_mgmt, supervisor_id)
     supervisor_name = f"{supervisor.name} {supervisor.surname}" if supervisor else "Your supervisor"
     
     title = f"New feedback on {thesis.title}"
@@ -272,11 +272,11 @@ def create_todo_assignment_notification(todo_id, assigner_id, assignee_id):
     Create notification when a todo is assigned
     """
     from superviseme.models import Todo
-    todo = Todo.query.get(todo_id)
+    todo = db.session.get(Todo, todo_id)
     if not todo:
         return
     
-    assigner = User_mgmt.query.get(assigner_id)
+    assigner = db.session.get(User_mgmt, assigner_id)
     assigner_name = f"{assigner.name} {assigner.surname}" if assigner else "Someone"
     
     title = f"New task assigned: {todo.title}"
@@ -298,11 +298,11 @@ def create_thesis_status_change_notification(thesis_id, changer_id, new_status):
     """
     Create notification when thesis status changes
     """
-    thesis = Thesis.query.get(thesis_id)
+    thesis = db.session.get(Thesis, thesis_id)
     if not thesis:
         return
     
-    changer = User_mgmt.query.get(changer_id)
+    changer = db.session.get(User_mgmt, changer_id)
     changer_name = f"{changer.name} {changer.surname}" if changer else "System"
     
     title = f"Thesis status updated: {thesis.title}"
@@ -360,7 +360,7 @@ def mark_notification_as_read(notification_id):
     """
     Mark a notification as read
     """
-    notification = Notification.query.get(notification_id)
+    notification = db.session.get(Notification, notification_id)
     if notification:
         notification.is_read = True
         db.session.commit()

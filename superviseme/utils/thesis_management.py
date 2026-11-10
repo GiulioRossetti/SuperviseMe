@@ -29,7 +29,7 @@ def delete_thesis_with_dependencies(thesis_id):
     Returns:
         tuple[bool, str | None]: (success, error_message)
     """
-    thesis = Thesis.query.get(thesis_id)
+    thesis = db.session.get(Thesis, thesis_id)
     if not thesis:
         return False, "Thesis not found"
 

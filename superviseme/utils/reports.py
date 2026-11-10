@@ -3,6 +3,7 @@ import csv
 import io
 from datetime import datetime, timezone
 
+from superviseme import db
 from superviseme.models import (
     Meeting,
     MeetingNote,
@@ -37,7 +38,7 @@ def safe_cell(value):
 
 
 def _name(user_id):
-    u = User_mgmt.query.get(user_id) if user_id else None
+    u = db.session.get(User_mgmt, user_id) if user_id else None
     return f"{u.name or ''} {u.surname or ''}".strip() if u else ""
 
 
@@ -49,7 +50,7 @@ def _in_range(ts, since, until):
 
 def thesis_report(thesis, since=None, until=None):
     """Plain-data snapshot of a thesis. ``since``/``until`` are unix timestamps (until is exclusive)."""
-    student = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
+    student = db.session.get(User_mgmt, thesis.author_id) if thesis.author_id else None
     sups = Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).all()
     rows = []  # (date_ts, kind, author, title, status, detail)
     for u in Thesis_Update.query.filter_by(thesis_id=thesis.id).all():
@@ -76,7 +77,7 @@ def thesis_report(thesis, since=None, until=None):
                 rows.append((v.created_at, "document", _name(v.uploaded_by), f"{d.title} v{v.version}", "", v.note or ""))
     rows.sort(key=lambda r: (r[0] is None, r[0] or 0))
     return {
-        "thesis": thesis, "student": student, "supervisors": [(User_mgmt.query.get(s.supervisor_id), s.role) for s in sups],
+        "thesis": thesis, "student": student, "supervisors": [(db.session.get(User_mgmt, s.supervisor_id), s.role) for s in sups],
         "status": latest_status(thesis), "rows": rows, "since": since, "until": until,
         "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     }

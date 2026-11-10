@@ -24,7 +24,7 @@ def full_supervisors(thesis):
     """Primary supervisors of ``thesis`` who have no free capacity left."""
     out = []
     for ts in Thesis_Supervisor.query.filter_by(thesis_id=thesis.id, role="supervisor").all():
-        user = User_mgmt.query.get(ts.supervisor_id)
+        user = db.session.get(User_mgmt, ts.supervisor_id)
         if user and capacity_info(user)["full"]:
             out.append(user)
     return out

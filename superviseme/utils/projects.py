@@ -123,7 +123,7 @@ def set_parent(project, parent_id, user):
         project.parent_id = None
         return None
     try:
-        parent = ResearchProject.query.get(int(parent_id))
+        parent = db.session.get(ResearchProject, int(parent_id))
     except (TypeError, ValueError):
         parent = None
     if not parent or not user_can_access(user, parent):
@@ -149,11 +149,11 @@ def linked_projects(project):
     """[(other_project, relation_label, direction, link)] for links in both directions."""
     rows = []
     for l in ResearchProject_Link.query.filter_by(project_id=project.id):
-        other = ResearchProject.query.get(l.linked_id)
+        other = db.session.get(ResearchProject, l.linked_id)
         if other:
             rows.append((other, RELATION_LABELS.get(l.relation, l.relation), "out", l))
     for l in ResearchProject_Link.query.filter_by(linked_id=project.id):
-        other = ResearchProject.query.get(l.project_id)
+        other = db.session.get(ResearchProject, l.project_id)
         if other:
             rows.append((other, RELATION_LABELS.get(l.relation, l.relation), "in", l))
     return rows
@@ -161,7 +161,7 @@ def linked_projects(project):
 
 def add_link(project, other_id, relation, user):
     try:
-        other = ResearchProject.query.get(int(other_id))
+        other = db.session.get(ResearchProject, int(other_id))
     except (TypeError, ValueError):
         other = None
     if not other or not user_can_access(user, other):
@@ -181,7 +181,7 @@ def add_link(project, other_id, relation, user):
 
 
 def remove_link(project, link_id):
-    l = ResearchProject_Link.query.get(link_id)
+    l = db.session.get(ResearchProject_Link, link_id)
     if not l or project.id not in (l.project_id, l.linked_id):
         return False
     db.session.delete(l)
@@ -247,7 +247,7 @@ def _fmt(ts):
 
 
 def _name(user_id):
-    u = User_mgmt.query.get(user_id) if user_id else None
+    u = db.session.get(User_mgmt, user_id) if user_id else None
     return f"{u.name or ''} {u.surname or ''}".strip() if u else ""
 
 

@@ -51,7 +51,7 @@ def profile_page():
         authored_theses = Thesis.query.filter_by(author_id=current_user.id).all()
     elif current_user.user_type == "supervisor":
         supervised_rels = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
-        supervised_theses = [Thesis.query.get(rel.thesis_id) for rel in supervised_rels if Thesis.query.get(rel.thesis_id)]
+        supervised_theses = [db.session.get(Thesis, rel.thesis_id) for rel in supervised_rels if db.session.get(Thesis, rel.thesis_id)]
     
     from superviseme.models import Profile_View
     from superviseme.utils import privacy as pv

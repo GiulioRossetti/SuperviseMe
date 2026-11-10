@@ -209,7 +209,7 @@ CREATE TABLE telegram_bot_config (
 Run the migration script to add Telegram functionality to existing installations:
 
 ```bash
-python migrate_telegram.py
+flask db upgrade
 ```
 
 This will:

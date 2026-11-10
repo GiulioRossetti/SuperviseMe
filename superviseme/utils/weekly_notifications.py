@@ -4,6 +4,7 @@ Weekly email notification service for SuperviseMe application
 from flask import current_app, render_template_string
 from superviseme.utils.email_service import send_email
 from superviseme.utils.activity_tracker import get_weekly_activity_summary
+from superviseme import db
 from superviseme.models import User_mgmt, Thesis_Supervisor
 from datetime import datetime
 import logging
@@ -22,7 +23,7 @@ def send_weekly_supervisor_report(supervisor_id):
         bool: True if email was sent successfully, False otherwise
     """
     try:
-        supervisor = User_mgmt.query.get(supervisor_id)
+        supervisor = db.session.get(User_mgmt, supervisor_id)
         if not supervisor or supervisor.user_type != 'supervisor':
             logger.error(f"Invalid supervisor ID: {supervisor_id}")
             return False
@@ -124,7 +125,7 @@ def send_weekly_student_digest(student_id):
     import time
     from superviseme.models import Thesis, Thesis_Milestone, Thesis_Update, Todo
 
-    student = User_mgmt.query.get(student_id)
+    student = db.session.get(User_mgmt, student_id)
     if not student or student.user_type != "student" or not student.weekly_digest:
         return False
     if student.email.endswith("@orcid.placeholder.local"):
@@ -219,7 +220,7 @@ def preview_weekly_supervisor_report(supervisor_id):
         dict: Preview data including email subject and body
     """
     try:
-        supervisor = User_mgmt.query.get(supervisor_id)
+        supervisor = db.session.get(User_mgmt, supervisor_id)
         if not supervisor:
             return {'error': 'Supervisor not found'}
         

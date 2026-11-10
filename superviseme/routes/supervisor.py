@@ -2,6 +2,7 @@ from flask import Blueprint, request, render_template, abort, redirect, url_for,
 from flask_login import login_required, current_user
 from sqlalchemy import select, and_, func, or_
 from sqlalchemy.orm import joinedload
+from superviseme.utils import security
 from superviseme.utils.miscellanea import check_privileges
 from superviseme.utils.thesis_resources import normalize_resource_url, resolve_resource_type
 from superviseme.utils.activity_tracker import get_inactive_students
@@ -624,7 +625,7 @@ def delete_update_tag():
 
     tag_id = request.form.get("tag_id")
     tag = Update_Tag.query.get_or_404(tag_id)
-    update = Thesis_Update.query.get(tag.update_id)
+    update = db.session.get(Thesis_Update, tag.update_id)
     if not update:
         return redirect(url_for('supervisor.theses_data'))
 
@@ -1428,6 +1429,11 @@ def create_student():
         flash("Passwords do not match")
         return redirect(request.referrer)
 
+    pw_error = security.validate_password(password)
+    if pw_error:
+        flash(pw_error)
+        return redirect(request.referrer)
+
     # Create new student
     new_student = User_mgmt(
         email=email,
@@ -1497,6 +1503,10 @@ def edit_student(student_id):
         password2 = request.form.get("password2")
         if new_password != password2:
             flash("Passwords do not match")
+            return redirect(url_for('supervisor.student_profile', student_id=student.id))
+        pw_error = security.validate_password(new_password)
+        if pw_error:
+            flash(pw_error)
             return redirect(url_for('supervisor.student_profile', student_id=student.id))
         student.password = generate_password_hash(new_password, method="pbkdf2:sha256")
     
@@ -1615,7 +1625,7 @@ def assign_thesis():
         return redirect(url_for('supervisor.theses_data'))
     
     # Check if thesis already has an author
-    thesis = Thesis.query.get(thesis_id)
+    thesis = db.session.get(Thesis, thesis_id)
     if thesis.author_id:
         flash("Thesis is already assigned to a student")
         return redirect(url_for('supervisor.theses_data'))
@@ -1659,10 +1669,10 @@ def unassign_thesis(thesis_id):
         flash("Thesis not found or not supervised by you")
         return redirect(url_for('supervisor.theses_data'))
     
-    thesis = Thesis.query.get(thesis_id)
+    thesis = db.session.get(Thesis, thesis_id)
     student_name = ""
     if thesis.author_id:
-        student = User_mgmt.query.get(thesis.author_id)
+        student = db.session.get(User_mgmt, thesis.author_id)
         student_name = f"{student.name} {student.surname}" if student else ""
     
     # Unassign thesis
@@ -2223,7 +2233,7 @@ def _managed_thesis_or_redirect(thesis_id):
     privilege_check = check_privileges(current_user.username, role="supervisor")
     if privilege_check is not True:
         return None, privilege_check
-    thesis = Thesis.query.get(thesis_id)
+    thesis = db.session.get(Thesis, thesis_id)
     from superviseme.utils.thesis_media import user_manages_thesis
     if not thesis or not user_manages_thesis(current_user, thesis):
         flash(_("Thesis not found or not managed by you"))

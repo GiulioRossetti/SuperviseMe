@@ -4,6 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 from flask_login import login_required, current_user
 from sqlalchemy import select, and_, func, or_
+from superviseme.utils import security
 from superviseme.utils.miscellanea import check_privileges, user_has_supervisor_role
 from superviseme.utils.thesis_resources import normalize_resource_url, resolve_resource_type
 from superviseme.utils.thesis_management import delete_thesis_with_dependencies
@@ -23,6 +24,11 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash
 import time
 from flask_babel import gettext as _
+
+# Collaborator roles. "viewer" members can read a project but not change it;
+# the owner and every other role can edit its content. Only the owner manages collaborators.
+COLLABORATOR_ROLES = ("collaborator", "co-investigator", "research-assistant", "advisor", "viewer")
+READ_ONLY_ROLES = ("viewer",)
 
 researcher = Blueprint("researcher", __name__)
 
@@ -98,7 +104,7 @@ def projects():
         collaborators = ResearchProject_Collaborator.query.filter_by(project_id=project.id).all()
         collaborator_users = []
         for collab in collaborators:
-            user = User_mgmt.query.get(collab.collaborator_id)
+            user = db.session.get(User_mgmt, collab.collaborator_id)
             if user:
                 collaborator_users.append({"user": user, "role": collab.role})
         
@@ -183,7 +189,7 @@ def update_project():
         flash("Project ID is required")
         return redirect(request.referrer)
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project or project.researcher_id != current_user.id:
         flash("Project not found or access denied")
         return redirect(url_for("researcher.projects"))
@@ -227,7 +233,7 @@ def delete_project(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project or project.researcher_id != current_user.id:
         return jsonify({"status": "error", "message": "Project not found or access denied"}), 404
 
@@ -252,13 +258,15 @@ def add_collaborator():
 
     project_id = request.form.get("project_id")
     collaborator_email = request.form.get("collaborator_email")
-    role = request.form.get("role", "collaborator")
+    role = (request.form.get("role") or "collaborator").strip().lower()
+    if role not in COLLABORATOR_ROLES:
+        role = "collaborator"
 
     if not project_id or not collaborator_email:
         flash("Project ID and collaborator email are required")
         return redirect(request.referrer)
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project or project.researcher_id != current_user.id:
         flash("Project not found or access denied")
         return redirect(url_for("researcher.projects"))
@@ -311,7 +319,7 @@ def remove_collaborator():
         flash("Project ID and collaborator ID are required")
         return redirect(request.referrer)
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project or project.researcher_id != current_user.id:
         flash("Project not found or access denied")
         return redirect(url_for("researcher.projects"))
@@ -344,7 +352,7 @@ def project_detail(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -363,7 +371,7 @@ def project_detail(project_id):
     collaborators = ResearchProject_Collaborator.query.filter_by(project_id=project_id).all()
     collaborator_users = []
     for collab in collaborators:
-        user = User_mgmt.query.get(collab.collaborator_id)
+        user = db.session.get(User_mgmt, collab.collaborator_id)
         if user:
             collaborator_users.append({"user": user, "role": collab.role})
 
@@ -585,7 +593,7 @@ def supervisor_thesis_detail(thesis_id):
     # Get student if assigned
     student = None
     if thesis.author_id:
-        student = User_mgmt.query.get(thesis.author_id)
+        student = db.session.get(User_mgmt, thesis.author_id)
     
     # Get thesis updates, todos, resources, etc.
     updates = Thesis_Update.query.filter_by(thesis_id=thesis_id).order_by(Thesis_Update.created_at.desc()).all()
@@ -1475,7 +1483,7 @@ def update_thesis():
         return redirect(url_for("researcher.supervisor_theses"))
 
     try:
-        thesis = Thesis.query.get(thesis_id)
+        thesis = db.session.get(Thesis, thesis_id)
         if thesis:
             thesis.title = title
             normalized_short, normalized_long, normalized_description = normalize_thesis_descriptions(
@@ -1569,6 +1577,11 @@ def create_student():
         flash("All required fields must be filled")
         return redirect(url_for("researcher.supervisor_students"))
 
+    pw_error = security.validate_password(password)
+    if pw_error:
+        flash(pw_error)
+        return redirect(url_for("researcher.supervisor_students"))
+
     # Check if username or email already exists
     existing_user = User_mgmt.query.filter(
         or_(User_mgmt.username == username, User_mgmt.email == email)
@@ -1641,6 +1654,10 @@ def edit_student(student_id):
         # Update password if provided
         new_password = request.form.get("password")
         if new_password:
+            pw_error = security.validate_password(new_password)
+            if pw_error:
+                flash(pw_error)
+                return redirect(url_for("researcher.supervisor_students"))
             student.password = generate_password_hash(new_password, method='pbkdf2:sha256')
         
         db.session.commit()
@@ -1727,7 +1744,7 @@ def assign_thesis():
         return redirect(url_for("researcher.supervisor_theses"))
 
     try:
-        thesis = Thesis.query.get(thesis_id)
+        thesis = db.session.get(Thesis, thesis_id)
         if thesis and student_id and not thesis.author_id:
             from superviseme.utils.capacity import active_thesis_message, capacity_message
             over = active_thesis_message(int(student_id), thesis.id) or capacity_message(thesis)
@@ -1776,7 +1793,7 @@ def unassign_thesis(thesis_id):
         return redirect(url_for("researcher.supervisor_theses"))
 
     try:
-        thesis = Thesis.query.get(thesis_id)
+        thesis = db.session.get(Thesis, thesis_id)
         if thesis:
             thesis.author_id = None
             db.session.commit()
@@ -2136,7 +2153,7 @@ def project_updates(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2175,7 +2192,7 @@ def add_project_update(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2185,7 +2202,7 @@ def add_project_update(project_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project_id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         abort(403)
@@ -2224,7 +2241,7 @@ def project_todos(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2246,7 +2263,7 @@ def project_todos(project_id):
     collaborators = ResearchProject_Collaborator.query.filter_by(project_id=project_id).all()
     collaborator_users = [project.researcher]  # Include project owner
     for collab in collaborators:
-        user = User_mgmt.query.get(collab.collaborator_id)
+        user = db.session.get(User_mgmt, collab.collaborator_id)
         if user:
             collaborator_users.append(user)
 
@@ -2272,7 +2289,7 @@ def add_project_todo(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2282,7 +2299,7 @@ def add_project_todo(project_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project_id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         abort(403)
@@ -2333,7 +2350,7 @@ def complete_project_todo(todo_id):
     if privilege_check is not True:
         return privilege_check
 
-    todo = ResearchProject_Todo.query.get(todo_id)
+    todo = db.session.get(ResearchProject_Todo, todo_id)
     if not todo:
         abort(404)
 
@@ -2344,7 +2361,7 @@ def complete_project_todo(todo_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         abort(403)
@@ -2371,7 +2388,7 @@ def project_resources(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2410,7 +2427,7 @@ def add_project_resource(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2420,7 +2437,7 @@ def add_project_resource(project_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project_id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         abort(403)
@@ -2460,7 +2477,7 @@ def project_objectives(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2499,7 +2516,7 @@ def add_project_objective(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2509,7 +2526,7 @@ def add_project_objective(project_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project_id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         abort(403)
@@ -2548,7 +2565,7 @@ def project_hypotheses(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2587,7 +2604,7 @@ def add_project_hypothesis(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2597,7 +2614,7 @@ def add_project_hypothesis(project_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project_id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         abort(403)
@@ -2636,7 +2653,7 @@ def project_meeting_notes(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2675,7 +2692,7 @@ def add_project_meeting_note(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2685,7 +2702,7 @@ def add_project_meeting_note(project_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project_id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         abort(403)
@@ -2725,7 +2742,7 @@ def change_project_status(project_id):
     if privilege_check is not True:
         return privilege_check
 
-    project = ResearchProject.query.get(project_id)
+    project = db.session.get(ResearchProject, project_id)
     if not project:
         abort(404)
 
@@ -2765,13 +2782,13 @@ def delete_project_resource(resource_id):
     if privilege_check is not True:
         return privilege_check
 
-    resource = ResearchProject_Resource.query.get(resource_id)
+    resource = db.session.get(ResearchProject_Resource, resource_id)
     if not resource:
         flash("Resource not found")
         return redirect(url_for("researcher.projects"))
 
     # Check if user has access to the project
-    project = ResearchProject.query.get(resource.project_id)
+    project = db.session.get(ResearchProject, resource.project_id)
     if not project:
         flash("Project not found")
         return redirect(url_for("researcher.projects"))
@@ -2781,7 +2798,7 @@ def delete_project_resource(resource_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         flash("You don't have permission to delete this resource")
@@ -2829,7 +2846,7 @@ def freeze_thesis():
         return redirect(url_for("researcher.supervisor_theses"))
 
     try:
-        thesis = Thesis.query.get(thesis_id)
+        thesis = db.session.get(Thesis, thesis_id)
         if thesis:
             thesis.frozen = True
             db.session.commit()
@@ -2871,7 +2888,7 @@ def unfreeze_thesis():
         return redirect(url_for("researcher.supervisor_theses"))
 
     try:
-        thesis = Thesis.query.get(thesis_id)
+        thesis = db.session.get(Thesis, thesis_id)
         if thesis:
             thesis.frozen = False
             db.session.commit()
@@ -2893,13 +2910,13 @@ def edit_project_resource(resource_id):
     if privilege_check is not True:
         return privilege_check
 
-    resource = ResearchProject_Resource.query.get(resource_id)
+    resource = db.session.get(ResearchProject_Resource, resource_id)
     if not resource:
         flash("Resource not found")
         return redirect(url_for("researcher.projects"))
 
     # Check if user has access to the project
-    project = ResearchProject.query.get(resource.project_id)
+    project = db.session.get(ResearchProject, resource.project_id)
     if not project:
         flash("Project not found")
         return redirect(url_for("researcher.projects"))
@@ -2909,7 +2926,7 @@ def edit_project_resource(resource_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         flash("You don't have permission to edit this resource")
@@ -2946,13 +2963,13 @@ def edit_project_todo(todo_id):
     if privilege_check is not True:
         return privilege_check
 
-    todo = ResearchProject_Todo.query.get(todo_id)
+    todo = db.session.get(ResearchProject_Todo, todo_id)
     if not todo:
         flash("Todo not found")
         return redirect(url_for("researcher.projects"))
 
     # Check if user has access to the project
-    project = ResearchProject.query.get(todo.project_id)
+    project = db.session.get(ResearchProject, todo.project_id)
     if not project:
         flash("Project not found")
         return redirect(url_for("researcher.projects"))
@@ -2962,7 +2979,7 @@ def edit_project_todo(todo_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         flash("You don't have permission to edit this todo")
@@ -2999,13 +3016,13 @@ def delete_project_todo(todo_id):
     if privilege_check is not True:
         return privilege_check
 
-    todo = ResearchProject_Todo.query.get(todo_id)
+    todo = db.session.get(ResearchProject_Todo, todo_id)
     if not todo:
         flash("Todo not found")
         return redirect(url_for("researcher.projects"))
 
     # Check if user has access to the project
-    project = ResearchProject.query.get(todo.project_id)
+    project = db.session.get(ResearchProject, todo.project_id)
     if not project:
         flash("Project not found")
         return redirect(url_for("researcher.projects"))
@@ -3015,7 +3032,7 @@ def delete_project_todo(todo_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         flash("You don't have permission to delete this todo")
@@ -3042,13 +3059,13 @@ def edit_project_objective(objective_id):
     if privilege_check is not True:
         return privilege_check
 
-    objective = ResearchProject_Objective.query.get(objective_id)
+    objective = db.session.get(ResearchProject_Objective, objective_id)
     if not objective:
         flash("Objective not found")
         return redirect(url_for("researcher.projects"))
 
     # Check if user has access to the project
-    project = ResearchProject.query.get(objective.project_id)
+    project = db.session.get(ResearchProject, objective.project_id)
     if not project:
         flash("Project not found")
         return redirect(url_for("researcher.projects"))
@@ -3058,7 +3075,7 @@ def edit_project_objective(objective_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         flash("You don't have permission to edit this objective")
@@ -3092,13 +3109,13 @@ def delete_project_objective(objective_id):
     if privilege_check is not True:
         return privilege_check
 
-    objective = ResearchProject_Objective.query.get(objective_id)
+    objective = db.session.get(ResearchProject_Objective, objective_id)
     if not objective:
         flash("Objective not found")
         return redirect(url_for("researcher.projects"))
 
     # Check if user has access to the project
-    project = ResearchProject.query.get(objective.project_id)
+    project = db.session.get(ResearchProject, objective.project_id)
     if not project:
         flash("Project not found")
         return redirect(url_for("researcher.projects"))
@@ -3108,7 +3125,7 @@ def delete_project_objective(objective_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         flash("You don't have permission to delete this objective")
@@ -3135,13 +3152,13 @@ def edit_project_hypothesis(hypothesis_id):
     if privilege_check is not True:
         return privilege_check
 
-    hypothesis = ResearchProject_Hypothesis.query.get(hypothesis_id)
+    hypothesis = db.session.get(ResearchProject_Hypothesis, hypothesis_id)
     if not hypothesis:
         flash("Hypothesis not found")
         return redirect(url_for("researcher.projects"))
 
     # Check if user has access to the project
-    project = ResearchProject.query.get(hypothesis.project_id)
+    project = db.session.get(ResearchProject, hypothesis.project_id)
     if not project:
         flash("Project not found")
         return redirect(url_for("researcher.projects"))
@@ -3151,7 +3168,7 @@ def edit_project_hypothesis(hypothesis_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         flash("You don't have permission to edit this hypothesis")
@@ -3185,13 +3202,13 @@ def delete_project_hypothesis(hypothesis_id):
     if privilege_check is not True:
         return privilege_check
 
-    hypothesis = ResearchProject_Hypothesis.query.get(hypothesis_id)
+    hypothesis = db.session.get(ResearchProject_Hypothesis, hypothesis_id)
     if not hypothesis:
         flash("Hypothesis not found")
         return redirect(url_for("researcher.projects"))
 
     # Check if user has access to the project
-    project = ResearchProject.query.get(hypothesis.project_id)
+    project = db.session.get(ResearchProject, hypothesis.project_id)
     if not project:
         flash("Project not found")
         return redirect(url_for("researcher.projects"))
@@ -3201,7 +3218,7 @@ def delete_project_hypothesis(hypothesis_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         flash("You don't have permission to delete this hypothesis")
@@ -3228,13 +3245,13 @@ def edit_project_meeting_note(note_id):
     if privilege_check is not True:
         return privilege_check
 
-    note = ResearchProject_MeetingNote.query.get(note_id)
+    note = db.session.get(ResearchProject_MeetingNote, note_id)
     if not note:
         flash("Meeting note not found")
         return redirect(url_for("researcher.projects"))
 
     # Check if user has access to the project
-    project = ResearchProject.query.get(note.project_id)
+    project = db.session.get(ResearchProject, note.project_id)
     if not project:
         flash("Project not found")
         return redirect(url_for("researcher.projects"))
@@ -3244,7 +3261,7 @@ def edit_project_meeting_note(note_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         flash("You don't have permission to edit this meeting note")
@@ -3279,13 +3296,13 @@ def delete_project_meeting_note(note_id):
     if privilege_check is not True:
         return privilege_check
 
-    note = ResearchProject_MeetingNote.query.get(note_id)
+    note = db.session.get(ResearchProject_MeetingNote, note_id)
     if not note:
         flash("Meeting note not found")
         return redirect(url_for("researcher.projects"))
 
     # Check if user has access to the project
-    project = ResearchProject.query.get(note.project_id)
+    project = db.session.get(ResearchProject, note.project_id)
     if not project:
         flash("Project not found")
         return redirect(url_for("researcher.projects"))
@@ -3295,7 +3312,7 @@ def delete_project_meeting_note(note_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         flash("You don't have permission to delete this meeting note")
@@ -3322,13 +3339,13 @@ def edit_project_update(update_id):
     if privilege_check is not True:
         return privilege_check
 
-    update = ResearchProject_Update.query.get(update_id)
+    update = db.session.get(ResearchProject_Update, update_id)
     if not update:
         flash("Update not found")
         return redirect(url_for("researcher.projects"))
 
     # Check if user has access to the project
-    project = ResearchProject.query.get(update.project_id)
+    project = db.session.get(ResearchProject, update.project_id)
     if not project:
         flash("Project not found")
         return redirect(url_for("researcher.projects"))
@@ -3338,7 +3355,7 @@ def edit_project_update(update_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         flash("You don't have permission to edit this update")
@@ -3372,13 +3389,13 @@ def delete_project_update(update_id):
     if privilege_check is not True:
         return privilege_check
 
-    update = ResearchProject_Update.query.get(update_id)
+    update = db.session.get(ResearchProject_Update, update_id)
     if not update:
         flash("Update not found")
         return redirect(url_for("researcher.projects"))
 
     # Check if user has access to the project
-    project = ResearchProject.query.get(update.project_id)
+    project = db.session.get(ResearchProject, update.project_id)
     if not project:
         flash("Project not found")
         return redirect(url_for("researcher.projects"))
@@ -3388,7 +3405,7 @@ def delete_project_update(update_id):
         collaboration = ResearchProject_Collaborator.query.filter_by(
             project_id=project.id, collaborator_id=current_user.id
         ).first()
-        has_access = collaboration is not None
+        has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
     if not has_access:
         flash("You don't have permission to delete this update")
@@ -3419,7 +3436,7 @@ def project_meeting_note_detail(note_id):
         return privilege_check
 
     # Get the meeting note
-    meeting_note = ResearchProject_MeetingNote.query.get(note_id)
+    meeting_note = db.session.get(ResearchProject_MeetingNote, note_id)
     if not meeting_note:
         flash("Meeting note not found")
         return redirect(url_for("researcher.projects"))
@@ -3463,7 +3480,7 @@ def project_todo_detail(todo_id):
         return privilege_check
 
     # Get the todo
-    todo = ResearchProject_Todo.query.get(todo_id)
+    todo = db.session.get(ResearchProject_Todo, todo_id)
     if not todo:
         flash("Todo not found")
         return redirect(url_for("researcher.projects"))
@@ -3485,7 +3502,7 @@ def project_todo_detail(todo_id):
     collaborators = ResearchProject_Collaborator.query.filter_by(project_id=project.id).all()
     collaborator_users = [project.researcher]  # Include project owner
     for collab in collaborators:
-        user = User_mgmt.query.get(collab.collaborator_id)
+        user = db.session.get(User_mgmt, collab.collaborator_id)
         if user:
             collaborator_users.append(user)
 
@@ -3523,7 +3540,7 @@ def project_update_detail(update_id):
         return privilege_check
 
     # Get the update
-    update = ResearchProject_Update.query.get(update_id)
+    update = db.session.get(ResearchProject_Update, update_id)
     if not update:
         flash("Update not found")
         return redirect(url_for("researcher.projects"))
@@ -3817,7 +3834,7 @@ def _managed_thesis_or_redirect(thesis_id):
     if not user_has_supervisor_role(current_user):
         flash("You don't have supervisor privileges")
         return None, redirect(url_for("researcher.dashboard"))
-    thesis = Thesis.query.get(thesis_id)
+    thesis = db.session.get(Thesis, thesis_id)
     from superviseme.utils.thesis_media import user_manages_thesis
     if not thesis or not user_manages_thesis(current_user, thesis):
         flash(_("Thesis not found or not managed by you"))

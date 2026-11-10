@@ -41,7 +41,7 @@ def book_slot(slot_id, student, thesis):
     if updated != 1:
         db.session.rollback()
         return None
-    slot = Availability_Slot.query.get(slot_id)
+    slot = db.session.get(Availability_Slot, slot_id)
     meeting = Meeting(
         thesis_id=thesis.id, supervisor_id=slot.supervisor_id, student_id=student.id,
         title=f"Meeting: {thesis.title}"[:200], start_ts=slot.start_ts, end_ts=slot.end_ts,
@@ -55,7 +55,7 @@ def book_slot(slot_id, student, thesis):
 def cancel_meeting(meeting):
     meeting.status = "cancelled"
     if meeting.slot_id:
-        slot = Availability_Slot.query.get(meeting.slot_id)
+        slot = db.session.get(Availability_Slot, meeting.slot_id)
         if slot and slot.start_ts > time.time():
             slot.booked_by = None  # the slot becomes bookable again
     db.session.commit()

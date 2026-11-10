@@ -91,7 +91,7 @@ python superviseme.py
 
 Open <http://localhost:8080>.
 
-The schema is managed with **Alembic** (`migrations/`). Pending migrations are applied automatically at startup; to run them manually use `flask db upgrade` (or `make migrate`). The old `scripts/migrate_*.py` scripts are legacy and are not needed on current versions.
+The schema is managed with **Alembic** (`migrations/`). Pending migrations are applied automatically at startup; to run them manually use `flask db upgrade` (or `make migrate`). The old `migrate_*.py` scripts now live in `scripts/legacy/` and are not needed on current versions.
 
 Command line options:
 

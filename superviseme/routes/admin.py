@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import select, and_, or_
 from sqlalchemy.orm import aliased
 from werkzeug.security import generate_password_hash
+from superviseme.utils import security
 from superviseme.models import *
 from superviseme.utils.miscellanea import check_privileges
 from superviseme.utils.task_scheduler import trigger_weekly_reports_now, get_scheduler_status
@@ -149,6 +150,11 @@ def create_user():
         flash("Passwords do not match")
         return redirect(request.referrer)
 
+    pw_error = security.validate_password(password)
+    if pw_error:
+        flash(pw_error)
+        return redirect(request.referrer)
+
     # create a new user with the form data. Hash the password so the plaintext version isn't saved.
     new_user = User_mgmt(
         email=email,
@@ -277,7 +283,7 @@ def reset_user_password(user_id):
     user = User_mgmt.query.get_or_404(user_id)
     payload = request.get_json(silent=True) or {}
     new_password = request.form.get("new_password") or payload.get("new_password")
-    if not new_password or len(new_password) < 12:
+    if not new_password or len(new_password) < 12 or security.validate_password(new_password):
         return {
             "status": "error",
             "message": "new_password is required and must be at least 12 characters long.",
@@ -640,7 +646,7 @@ def grant_supervisor_role():
         flash("Researcher ID is required")
         return redirect(request.referrer)
 
-    researcher = User_mgmt.query.get(researcher_id)
+    researcher = db.session.get(User_mgmt, researcher_id)
     if not researcher or researcher.user_type != "researcher":
         flash("Researcher not found or invalid user type")
         return redirect(request.referrer)
@@ -699,7 +705,7 @@ def revoke_supervisor_role():
             supervisor_role.updated_at = int(time.time())
             db.session.commit()
             
-            researcher = User_mgmt.query.get(researcher_id)
+            researcher = db.session.get(User_mgmt, researcher_id)
             flash(f"Supervisor role revoked from {researcher.name} {researcher.surname}")
         else:
             flash("No active supervisor role found for this researcher")
@@ -817,7 +823,7 @@ def thesis_detail(thesis_id):
         return privilege_check
     
     thesis = Thesis.query.get_or_404(thesis_id)
-    author = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
+    author = db.session.get(User_mgmt, thesis.author_id) if thesis.author_id else None
     # Fix N+1 query: Fetch supervisors in a single query
     supervisors = User_mgmt.query.join(Thesis_Supervisor, Thesis_Supervisor.supervisor_id == User_mgmt.id)\
         .filter(Thesis_Supervisor.thesis_id == thesis_id).all()
@@ -1299,13 +1305,13 @@ def export_data():
         theses = Thesis.query.all()
         for thesis in theses:
             # Get author info
-            author = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
+            author = db.session.get(User_mgmt, thesis.author_id) if thesis.author_id else None
             
             # Get supervisors
             supervisors = []
             supervisor_rels = Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).all()
             for rel in supervisor_rels:
-                supervisor = User_mgmt.query.get(rel.supervisor_id)
+                supervisor = db.session.get(User_mgmt, rel.supervisor_id)
                 if supervisor:
                     supervisors.append({
                         "id": supervisor.id,
@@ -1402,13 +1408,13 @@ def export_data_csv():
             
             theses = Thesis.query.all()
             for thesis in theses:
-                author = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
+                author = db.session.get(User_mgmt, thesis.author_id) if thesis.author_id else None
                 
                 # Get supervisors
                 supervisors = []
                 supervisor_rels = Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).all()
                 for rel in supervisor_rels:
-                    supervisor = User_mgmt.query.get(rel.supervisor_id)
+                    supervisor = db.session.get(User_mgmt, rel.supervisor_id)
                     if supervisor:
                         supervisors.append(f"{supervisor.name} {supervisor.surname}")
                 

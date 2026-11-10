@@ -99,7 +99,7 @@ def get_student_theses(student_id: int):
 def get_thesis_or_404(thesis_id: int) -> Thesis:
     """Fetch a thesis by id or abort with 404."""
     from flask import abort
-    thesis = Thesis.query.get(thesis_id)
+    thesis = db.session.get(Thesis, thesis_id)
     if thesis is None:
         abort(404)
     return thesis

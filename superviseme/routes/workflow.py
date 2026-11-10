@@ -387,7 +387,7 @@ def agenda_feed_token():
     """Create, rotate or revoke the personal feed token."""
     import secrets
     action = request.form.get("action")
-    user = User_mgmt.query.get(current_user.id)
+    user = db.session.get(User_mgmt, current_user.id)
     if action in ("create", "regenerate"):
         user.agenda_token = secrets.token_urlsafe(32)
         flash(_("Calendar subscription link created.") if action == "create" else _("A new link was generated; the old one no longer works."), "success")
@@ -588,7 +588,7 @@ def add_team_member(thesis_id):
     if not can_manage_team(current_user, thesis):
         abort(403)
     kind = request.form.get("kind")
-    user = User_mgmt.query.get(request.form.get("user_id", type=int) or 0)
+    user = db.session.get(User_mgmt, request.form.get("user_id", type=int) or 0)
     if kind not in ("co_supervisor", "reviewer") or not user or user.user_type not in ("supervisor", "researcher"):
         flash(_("Invalid selection."), "error")
         return _team_back(thesis)
@@ -635,7 +635,7 @@ def reviews():
 def review_thesis(thesis_id):
     thesis, _role = load_thesis_or_403(current_user, thesis_id, roles=("reviewer",))
     supervisors = Thesis_Supervisor.query.filter_by(thesis_id=thesis.id).all()
-    student = User_mgmt.query.get(thesis.author_id) if thesis.author_id else None
+    student = db.session.get(User_mgmt, thesis.author_id) if thesis.author_id else None
     return render_template("workflow/review_thesis.html", thesis=thesis, supervisors=supervisors, student=student,
                            mm_next=url_for("workflow.review_thesis", thesis_id=thesis.id), dt=datetime.fromtimestamp)
 
@@ -873,7 +873,7 @@ def privacy_delete():
     if (request.form.get("confirm") or "").strip() != current_user.username:
         flash(_("Type your username to confirm."), "error")
         return redirect(url_for("workflow.privacy"))
-    user = User_mgmt.query.get(current_user.id)
+    user = db.session.get(User_mgmt, current_user.id)
     logout_user()
     pv.anonymize_user(user)
     flash(_("Your personal data was erased."), "success")

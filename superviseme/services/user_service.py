@@ -72,7 +72,7 @@ def get_all_users(
 
 def enable_user(user_id: int) -> bool:
     """Enable a user account.  Returns True on success."""
-    user = User_mgmt.query.get(user_id)
+    user = db.session.get(User_mgmt, user_id)
     if user is None:
         return False
     user.is_enabled = True
@@ -83,7 +83,7 @@ def enable_user(user_id: int) -> bool:
 
 def disable_user(user_id: int) -> bool:
     """Disable a user account.  Returns True on success."""
-    user = User_mgmt.query.get(user_id)
+    user = db.session.get(User_mgmt, user_id)
     if user is None:
         return False
     user.is_enabled = False

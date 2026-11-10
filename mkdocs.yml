@@ -54,6 +54,9 @@ extra:
 extra_css:
   - stylesheets/extra.css
 
+exclude_docs: |
+  archive/
+
 nav:
   - Home: index.md
   - Setup:

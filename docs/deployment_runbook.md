@@ -60,9 +60,7 @@ Before deploying any changes or updates:
 4.  **Run Migrations**:
     -   If there are database schema changes, run the migration scripts:
         ```bash
-        docker-compose exec superviseme_app python migrate_database.py
-        docker-compose exec superviseme_app python migrate_telegram.py
-        docker-compose exec superviseme_app python migrate_researcher.py
+        docker-compose exec superviseme_app flask db upgrade
         ```
 
 ## 3. Maintenance

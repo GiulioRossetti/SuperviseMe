@@ -51,7 +51,7 @@ def _create_generic_todo_references(model_class, parent_id_field, parent_id, tod
     # Create new references
     for todo_id in todo_ids:
         # Verify todo exists
-        todo = Todo.query.get(todo_id)
+        todo = db.session.get(Todo, todo_id)
         if todo:
             reference_data = {
                 parent_id_field: parent_id,
@@ -105,7 +105,7 @@ def format_text_with_todo_links(text, base_url="/supervisor/"):
     def replace_todo_ref(match):
         todo_id = match.group(1)
         try:
-            todo = Todo.query.get(int(todo_id))
+            todo = db.session.get(Todo, int(todo_id))
             if todo:
                 return f'<a href="{base_url}todo/{todo_id}" class="todo-reference badge badge-primary" title="{todo.title}">@todo:{todo_id}</a>'
             else:
@@ -116,7 +116,7 @@ def format_text_with_todo_links(text, base_url="/supervisor/"):
     def replace_hash_todo_ref(match):
         todo_id = match.group(1)
         try:
-            todo = Todo.query.get(int(todo_id))
+            todo = db.session.get(Todo, int(todo_id))
             if todo:
                 return f'<a href="{base_url}todo/{todo_id}" class="todo-reference badge badge-primary" title="{todo.title}">#todo-{todo_id}</a>'
             else:

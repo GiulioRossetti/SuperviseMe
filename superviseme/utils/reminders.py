@@ -59,7 +59,7 @@ def run_reminders(now=None, inactive_days=14):
 
     # --- tasks: due within 48h, or overdue ------------------------------------------------
     for todo in Todo.query.filter(Todo.status == "pending", Todo.due_date.isnot(None)).all():
-        thesis = Thesis.query.get(todo.thesis_id)
+        thesis = db.session.get(Thesis, todo.thesis_id)
         if not thesis or thesis.frozen:
             continue
         if todo.due_date < now:
@@ -74,7 +74,7 @@ def run_reminders(now=None, inactive_days=14):
 
     # --- milestones: 7 days, 1 day, overdue -----------------------------------------------
     for m in Thesis_Milestone.query.filter_by(status="pending").all():
-        thesis = Thesis.query.get(m.thesis_id)
+        thesis = db.session.get(Thesis, m.thesis_id)
         if not thesis or thesis.frozen:
             continue
         left = m.due_date - now
@@ -93,7 +93,7 @@ def run_reminders(now=None, inactive_days=14):
     # --- graduation checklist: same buckets as milestones --------------------------------
     for item in Thesis_Checklist_Item.query.filter(Thesis_Checklist_Item.status == "pending",
                                                    Thesis_Checklist_Item.due_date.isnot(None)).all():
-        thesis = Thesis.query.get(item.thesis_id)
+        thesis = db.session.get(Thesis, item.thesis_id)
         if not thesis or thesis.frozen:
             continue
         left = item.due_date - now
@@ -116,7 +116,7 @@ def run_reminders(now=None, inactive_days=14):
     for thesis in Thesis.query.filter(Thesis.author_id.isnot(None)).all():
         if thesis.frozen:
             continue
-        student = User_mgmt.query.get(thesis.author_id)
+        student = db.session.get(User_mgmt, thesis.author_id)
         if not student or (student.last_activity and student.last_activity >= cutoff):
             continue
         days = None if not student.last_activity else (now - student.last_activity) // DAY

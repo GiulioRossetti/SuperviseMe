@@ -298,6 +298,29 @@ def create_app(db_type="sqlite", skip_user_init=False):
     # Force Lax when unset so OAuth state survives the redirect callback.
     if app.config.get("SESSION_COOKIE_SAMESITE") is None:
         app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+    # Harden session / remember-me cookies. Secure defaults to on in production and can be
+    # overridden with COOKIE_SECURE=true|false (e.g. plain-HTTP intranet deployments).
+    _cookie_secure_env = os.getenv("COOKIE_SECURE", "").strip().lower()
+    cookie_secure = (
+        _cookie_secure_env in ("1", "true", "yes")
+        if _cookie_secure_env
+        else _is_production_environment()
+    )
+    app.config.update(
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SECURE=cookie_secure,
+        REMEMBER_COOKIE_HTTPONLY=True,
+        REMEMBER_COOKIE_SECURE=cookie_secure,
+        REMEMBER_COOKIE_SAMESITE="Lax",
+    )
+    from superviseme.utils import security as _security
+    _security.reset_throttle()
+    app.after_request(_security.apply_security_headers)
+
+    @app.context_processor
+    def _inject_current_year():
+        return {"current_year": time.gmtime().tm_year}
     
     # Mail configuration
     app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "localhost")
@@ -443,7 +466,7 @@ def create_app(db_type="sqlite", skip_user_init=False):
     @login_manager.user_loader
     def load_user(user_id):
         print(f"Loading user with ID: {user_id}")
-        return User_mgmt.query.get(int(user_id))
+        return db.session.get(User_mgmt, int(user_id))
 
     # Register your blueprints here as before
     from superviseme.routes.auth import auth as auth_blueprint
@@ -480,6 +503,7 @@ def create_app(db_type="sqlite", skip_user_init=False):
     app.register_blueprint(api_v1_blueprint)
     # Exempt the entire api/v1 prefix from CSRF (uses session auth + XHR header guard)
     csrf.exempt(api_v1_blueprint)
+    app.before_request(_security.api_csrf_guard)
 
     # Register error handlers
     from superviseme.routes.errors import errors as errors_blueprint
@@ -609,7 +633,7 @@ def create_app(db_type="sqlite", skip_user_init=False):
     @app.template_filter("user_by_id")
     def _user_by_id(user_id):
         from superviseme.models import User_mgmt
-        return User_mgmt.query.get(user_id) if user_id else None
+        return db.session.get(User_mgmt, user_id) if user_id else None
 
     @app.context_processor
     def _dashboard_context():

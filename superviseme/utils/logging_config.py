@@ -5,7 +5,7 @@ import logging
 import logging.handlers
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import request, session
 from flask_login import current_user
 
@@ -15,7 +15,7 @@ class JSONFormatter(logging.Formatter):
     """
     def format(self, record):
         log_entry = {
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'level': record.levelname,
             'logger': record.name,
             'message': record.getMessage(),

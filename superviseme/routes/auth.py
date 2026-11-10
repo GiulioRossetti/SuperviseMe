@@ -9,6 +9,7 @@ import time
 import os
 from urllib.parse import urljoin
 from superviseme.utils.crypto import encrypt_token, decrypt_token
+from superviseme.utils import security
 
 auth = Blueprint("auth", __name__)
 
@@ -71,6 +72,12 @@ def login_post():
     password = request.form.get("password")
     remember = True if request.form.get("remember") else False
 
+    wait = security.throttle_status(email, request.remote_addr)
+    if wait:
+        log_login_attempt(email or 'unknown', False, request.remote_addr, details="Throttled")
+        flash(f"Too many failed attempts. Try again in {max(1, wait // 60)} minute(s).")
+        return redirect(url_for("auth.login"))
+
     user = User_mgmt.query.filter_by(email=email).first()
 
     # check if the user actually exists,
@@ -78,6 +85,7 @@ def login_post():
     if not user or not check_password_hash(user.password, password):
         # Log failed login attempt
         log_login_attempt(email or 'unknown', False, request.remote_addr)
+        security.record_login_failure(email, request.remote_addr)
         flash("Please check your login details and try again.")
         return redirect(
             url_for("auth.login")
@@ -89,6 +97,7 @@ def login_post():
         return redirect(url_for("auth.login"))
 
     # Log successful login attempt
+    security.record_login_success(email, request.remote_addr)
     log_login_attempt(user.username, True, request.remote_addr)
     
     # if the above check passes, then we know the user has the right credentials
@@ -209,7 +218,7 @@ def orcid_callback():
     link_user_id = session.pop("orcid_link_user_id", None)
     link_next = session.pop("orcid_link_next", None)
     if link_user_id:
-        linking_user = User_mgmt.query.get(link_user_id)
+        linking_user = db.session.get(User_mgmt, link_user_id)
         if not linking_user:
             flash("Unable to link ORCID: user session expired. Please try again.", "error")
             return redirect(url_for("auth.login"))

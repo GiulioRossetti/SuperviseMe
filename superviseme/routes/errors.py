@@ -3,7 +3,7 @@ Error handlers for HTTP errors (404, 500, etc.) with integrated logging
 """
 import logging
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Blueprint, render_template, request, current_app, session
 from flask_login import current_user
 from werkzeug.exceptions import HTTPException
@@ -20,7 +20,7 @@ def log_error(error, status_code, user_info=None, request_info=None):
     """
     try:
         log_entry = {
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'status_code': status_code,
             'error_type': type(error).__name__,
             'error_message': str(error),

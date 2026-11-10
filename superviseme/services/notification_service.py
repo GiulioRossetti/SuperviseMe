@@ -75,7 +75,7 @@ def send_notification(
             from superviseme.utils.telegram_service import get_telegram_service
             from superviseme.models import User_mgmt
 
-            user = User_mgmt.query.get(recipient_id)
+            user = db.session.get(User_mgmt, recipient_id)
             if user and user.telegram_enabled and user.telegram_user_id:
                 svc = get_telegram_service()
                 svc.send_message(user.telegram_user_id, f"*{resolved_title}*\n{message}")

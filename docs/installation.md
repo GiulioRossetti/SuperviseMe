@@ -56,12 +56,10 @@ python scripts/seed_database.py
 
 ### Existing installation (already has a DB)
 
-If you are upgrading an existing instance, run migration scripts before starting:
+If you are upgrading an existing instance, apply the schema migrations before starting (they also run automatically at startup):
 
 ```bash
-python scripts/migrate_database.py
-python scripts/migrate_telegram.py
-python scripts/migrate_researcher.py
+flask db upgrade   # schema is also upgraded automatically at startup
 ```
 
 Optional schema check:

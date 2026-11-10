@@ -96,8 +96,8 @@ def _cleanup_notification_mocks():
 
 def test_build_role_aware_url_user_not_found():
     """Test user not found"""
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = None
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = None
         assert build_role_aware_url(999, 'dashboard') == '#'
 
 def test_build_role_aware_url_dashboard_student():
@@ -105,8 +105,8 @@ def test_build_role_aware_url_dashboard_student():
     mock_user = MagicMock()
     mock_user.user_type = 'student'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         assert build_role_aware_url(1, 'dashboard') == '/student/dashboard'
 
 def test_build_role_aware_url_dashboard_supervisor():
@@ -114,8 +114,8 @@ def test_build_role_aware_url_dashboard_supervisor():
     mock_user = MagicMock()
     mock_user.user_type = 'supervisor'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         assert build_role_aware_url(2, 'dashboard') == '/supervisor/dashboard'
 
 def test_build_role_aware_url_dashboard_admin():
@@ -123,8 +123,8 @@ def test_build_role_aware_url_dashboard_admin():
     mock_user = MagicMock()
     mock_user.user_type = 'admin'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         assert build_role_aware_url(3, 'dashboard') == '/admin/dashboard'
 
 def test_build_role_aware_url_thesis_student():
@@ -132,8 +132,8 @@ def test_build_role_aware_url_thesis_student():
     mock_user = MagicMock()
     mock_user.user_type = 'student'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         assert build_role_aware_url(1, 'thesis') == '/student/thesis'
 
 def test_build_role_aware_url_thesis_supervisor_with_id():
@@ -141,8 +141,8 @@ def test_build_role_aware_url_thesis_supervisor_with_id():
     mock_user = MagicMock()
     mock_user.user_type = 'supervisor'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         assert build_role_aware_url(2, 'thesis', thesis_id=123) == '/supervisor/thesis/123'
 
 def test_build_role_aware_url_thesis_supervisor_no_id():
@@ -150,8 +150,8 @@ def test_build_role_aware_url_thesis_supervisor_no_id():
     mock_user = MagicMock()
     mock_user.user_type = 'supervisor'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         # Should fallback to 'theses'
         assert build_role_aware_url(2, 'thesis') == '/supervisor/theses'
 
@@ -160,8 +160,8 @@ def test_build_role_aware_url_thesis_admin_with_id():
     mock_user = MagicMock()
     mock_user.user_type = 'admin'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         assert build_role_aware_url(3, 'thesis', thesis_id=456) == '/admin/thesis/456'
 
 def test_build_role_aware_url_thesis_todos_student():
@@ -169,8 +169,8 @@ def test_build_role_aware_url_thesis_todos_student():
     mock_user = MagicMock()
     mock_user.user_type = 'student'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         assert build_role_aware_url(1, 'thesis_todos') == '/student/thesis#todos'
 
 def test_build_role_aware_url_thesis_todos_supervisor_with_id():
@@ -178,8 +178,8 @@ def test_build_role_aware_url_thesis_todos_supervisor_with_id():
     mock_user = MagicMock()
     mock_user.user_type = 'supervisor'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         assert build_role_aware_url(2, 'thesis_todos', thesis_id=789) == '/supervisor/thesis/789#todos'
 
 def test_build_role_aware_url_thesis_todos_supervisor_no_id():
@@ -187,8 +187,8 @@ def test_build_role_aware_url_thesis_todos_supervisor_no_id():
     mock_user = MagicMock()
     mock_user.user_type = 'supervisor'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         # Should fallback to generic thesis#todos
         assert build_role_aware_url(2, 'thesis_todos') == '/supervisor/thesis#todos'
 
@@ -197,8 +197,8 @@ def test_build_role_aware_url_thesis_todos_admin():
     mock_user = MagicMock()
     mock_user.user_type = 'admin'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         # Current implementation falls back to else for admin
         assert build_role_aware_url(3, 'thesis_todos', thesis_id=101) == '/admin/thesis#todos'
 
@@ -207,8 +207,8 @@ def test_build_role_aware_url_generic_path():
     mock_user = MagicMock()
     mock_user.user_type = 'student'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         assert build_role_aware_url(1, 'profile') == '/student/profile'
 
 def test_build_role_aware_url_unknown_role():
@@ -216,7 +216,7 @@ def test_build_role_aware_url_unknown_role():
     mock_user = MagicMock()
     mock_user.user_type = 'guest'
 
-    with patch('superviseme.utils.notifications.User_mgmt') as MockUser:
-        MockUser.query.get.return_value = mock_user
+    with patch('superviseme.utils.notifications.User_mgmt') as MockUser, patch('superviseme.utils.notifications.db') as MockDb:
+        MockDb.session.get.return_value = mock_user
         # Prefix should be empty
         assert build_role_aware_url(4, 'dashboard') == 'dashboard'
