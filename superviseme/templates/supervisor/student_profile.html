@@ -31,7 +31,7 @@
                     <!-- Identity banner -->
                     <div class="card shadow mb-4 sp-banner">
                         <div class="card-body d-flex align-items-center flex-wrap">
-                            {% if student.profile_pic %}<img class="sm-avatar sm-avatar-lg mr-3" src="{{ avatar_url(student) }}" alt="">{% else %}<div class="sm-avatar sm-avatar-lg mr-3">{{ (student.name or '?')[:1] }}{{ (student.surname or '')[:1] }}</div>{% endif %}
+                            <img class="sm-avatar sm-avatar-lg mr-3" src="{{ avatar_url(student) }}" alt="">
                             <div class="flex-grow-1">
                                 <h4 class="mb-0 font-weight-bold">{{ student.name }} {{ student.surname }}</h4>
                                 <div class="text-muted">{{ student.email }}</div>

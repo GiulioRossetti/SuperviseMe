@@ -34,6 +34,7 @@
         .thesis-sups .mini { width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--sm-primary-muted); color: var(--sm-primary); border: 2px solid var(--sm-surface);
             font-size: .62rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-left: -.45rem; text-transform: uppercase; }
         .thesis-sups .mini:first-child { margin-left: 0; }
+        .thesis-sups img.mini { object-fit: cover; background: var(--sm-border); }
         .thesis-sups .names { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .chip { display: inline-block; margin: 0 .3rem .3rem 0; font-weight: 600; border-radius: 999px; padding: .28rem .6rem; background: var(--sm-primary-muted); color: var(--sm-primary); font-size: .7rem; }
         .chip.more { background: var(--sm-bg); color: var(--sm-text-muted); border: 1px solid var(--sm-border); }
@@ -111,7 +112,7 @@
                                     <div class="thesis-sups">
                                         {% if sup_list %}
                                             <div class="stack">
-                                                {% for sup in sup_list[:3] %}<span class="mini" title="{{ sup.name }} {{ sup.surname }}">{{ (sup.name or '?')[:1] }}{{ (sup.surname or '')[:1] }}</span>{% endfor %}
+                                                {% for sup in sup_list[:3] %}<img class="mini" title="{{ sup.name }} {{ sup.surname }}" src="{{ avatar_url(sup) if current_user.is_authenticated else avatar_url(none) }}" alt="">{% endfor %}
                                             </div>
                                             <span class="names">{% for sup in sup_list %}{{ user_link(sup) }}{% if not loop.last %}, {% endif %}{% endfor %}</span>
                                         {% else %}

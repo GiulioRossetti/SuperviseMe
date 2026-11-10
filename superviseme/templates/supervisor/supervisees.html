@@ -149,7 +149,7 @@
                                      data-progress="{{ si.progress if si.progress is not none else -1 }}">
                                     <div class="sv-card {{ 'is-inactive' if si.is_inactive else 'is-active' }}">
                                         <div class="sv-card-top">
-                                            {% if stu.profile_pic %}<img class="sm-avatar" src="{{ avatar_url(stu) }}" alt="">{% else %}<div class="sm-avatar">{{ (stu.name or '?')[:1] }}{{ (stu.surname or '')[:1] }}</div>{% endif %}
+                                            <img class="sm-avatar" src="{{ avatar_url(stu) }}" alt="">
                                             <div class="sv-id">
                                                 <a class="sv-name" href="{{ url_for('supervisor.student_profile', student_id=stu.id) }}">{{ stu.name }} {{ stu.surname }}</a>
                                                 <div class="sv-email" title="{{ stu.email }}">{{ stu.email }}</div>

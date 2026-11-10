@@ -36,7 +36,7 @@
 {% endmacro %}
 
 {% macro avatar(u, size='') %}
-{% if u.profile_pic %}<img class="sm-avatar {{ size }}" src="{{ avatar_url(u) }}" alt="">{% else %}<span class="sm-avatar {{ size }}">{{ (u.name or '?')[:1] }}{{ (u.surname or '')[:1] }}</span>{% endif %}
+<img class="sm-avatar {{ size }}" src="{{ avatar_url(u) }}" alt="">
 {% endmacro %}
 
 {# One task row. urls = dict(detail, toggle, delete or none). #}

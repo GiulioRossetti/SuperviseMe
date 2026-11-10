@@ -39,7 +39,7 @@
                                     {% for supervisor in supervisors %}
                                         <div class="sup-contact {% if not loop.last %}mb-3 pb-3 border-bottom{% endif %}">
                                             <div class="d-flex align-items-center mb-1">
-                                                <a href="{{ url_for('public.user_profile', user_id=supervisor.id) }}" class="mr-2" aria-label="{{ _('View profile') }}">{% if supervisor.profile_pic and current_user.is_authenticated %}<img class="sm-avatar" src="{{ avatar_url(supervisor) }}" alt="">{% else %}<span class="sm-avatar">{{ (supervisor.name or '?')[:1] }}{{ (supervisor.surname or '')[:1] }}</span>{% endif %}</a>
+                                                <a href="{{ url_for('public.user_profile', user_id=supervisor.id) }}" class="mr-2" aria-label="{{ _('View profile') }}"><img class="sm-avatar" src="{{ avatar_url(supervisor) if current_user.is_authenticated else avatar_url(none) }}" alt=""></a>
                                                 <strong class="flex-grow-1">{{ user_link(supervisor) }}</strong>
                                                 <a href="{{ url_for('public.user_profile', user_id=supervisor.id) }}" class="btn btn-outline-primary btn-sm py-0 px-2"><i class="far fa-id-card"></i> {{ _('Profile') }}</a>
                                             </div>

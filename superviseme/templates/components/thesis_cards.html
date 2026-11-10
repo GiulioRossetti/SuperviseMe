@@ -36,7 +36,7 @@
 
             {% if c.student %}
             <div class="th-student">
-                {% if c.student.profile_pic %}<img class="sm-avatar" src="{{ avatar_url(c.student) }}" alt="">{% else %}<span class="sm-avatar">{{ (c.student.name or '?')[:1] }}{{ (c.student.surname or '')[:1] }}</span>{% endif %}
+                <img class="sm-avatar" src="{{ avatar_url(c.student) }}" alt="">
                 <div class="min-w-0"><div class="sv-name">{{ user_link(c.student) }}</div><div class="sv-email">{{ c.student.email }}</div></div>
             </div>
             <div class="sv-progress">

@@ -124,3 +124,19 @@ def test_live_search_suggest_and_regions(client, app, admin_user, researcher_use
 
 def test_suggest_requires_login(app):
     assert app.test_client().get("/search/suggest?q=abc").status_code == 302
+
+
+def test_avatars_default_or_custom(client, app, admin_user, supervisor_user, student_user):
+    from superviseme import db
+    _login(client, admin_user.email)
+    detail = f"/admin/user/{student_user.id}"
+    html = client.get(detail).data.decode()
+    if client.get(detail).status_code != 200:
+        html = client.get(f"/admin/users/{student_user.id}").data.decode()
+    assert "undraw_profile.svg" in html and 'class="sm-avatar sm-avatar-lg' in html
+    student_user.profile_pic = "avatars/mine.png"
+    db.session.commit()
+    html = client.get(detail).data.decode() if client.get(detail).status_code == 200 else client.get(f"/admin/users/{student_user.id}").data.decode()
+    assert "/media/avatar/mine.png" in html
+    # an initials-only fallback must not exist any more
+    assert 'class="sm-avatar">' not in html

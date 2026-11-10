@@ -5,7 +5,7 @@
      data-q="{{ (u.name ~ ' ' ~ u.surname ~ ' ' ~ u.email ~ ' ' ~ u.username)|lower }}">
     <div class="sv-card {{ '' if u.is_enabled else 'is-inactive' }}">
         <div class="sv-card-top">
-            {% if u.profile_pic %}<img class="sm-avatar" src="{{ avatar_url(u) }}" alt="">{% else %}<div class="sm-avatar">{{ (u.name or '?')[:1] }}{{ (u.surname or '')[:1] }}</div>{% endif %}
+            <img class="sm-avatar" src="{{ avatar_url(u) }}" alt="">
             <div class="sv-id">
                 <a class="sv-name" href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ u.name }} {{ u.surname }}</a>
                 <div class="sv-email" title="{{ u.email }}">{{ u.email }}</div>
