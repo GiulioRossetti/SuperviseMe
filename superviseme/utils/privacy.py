@@ -112,6 +112,7 @@ def anonymize_user(user):
         if hasattr(user, col):
             setattr(user, col, None)
     user.telegram_enabled = False
+    user.agenda_token = None
     user.email_notifications = False
     user.weekly_digest = False
     Calendar_Feed.query.filter_by(user_id=uid).delete()

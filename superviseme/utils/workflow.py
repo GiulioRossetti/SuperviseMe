@@ -84,3 +84,14 @@ def thesis_url(user, thesis):
     if user.user_type == "admin":
         return url_for("admin.thesis_detail", thesis_id=thesis.id) if "admin.thesis_detail" in __import__("flask").current_app.view_functions else url_for("public.public_thesis_detail", thesis_id=thesis.id)
     return url_for("supervisor.thesis_detail", thesis_id=thesis.id)
+
+
+def clean_call_url(raw):
+    """Validated http(s) video-call link, or None when empty. Raises ValueError when invalid."""
+    value = (raw or "").strip()
+    if not value:
+        return None
+    parsed = urlparse(value)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc or len(value) > 500 or any(c in value for c in "\r\n \t"):
+        raise ValueError("invalid call link")
+    return value

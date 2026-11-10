@@ -41,6 +41,9 @@ class User_mgmt(UserMixin, db.Model):
     telegram_enabled = db.Column(db.Boolean, default=False, nullable=False)  # Enable/disable Telegram notifications
     telegram_notification_types = db.Column(db.Text, nullable=True)  # JSON string of enabled notification types
 
+    # Secret token of the personal agenda feed (iCal subscription URL); None = feed disabled
+    agenda_token = db.Column(db.String(64), unique=True, nullable=True)
+
     # Supervision capacity: maximum number of active students (None = unlimited)
     max_students = db.Column(db.Integer, nullable=True)
 
@@ -526,6 +529,7 @@ class Availability_Slot(db.Model):
     start_ts = db.Column(db.Integer, nullable=False)
     end_ts = db.Column(db.Integer, nullable=False)
     location = db.Column(db.String(200), nullable=True)
+    call_url = db.Column(db.String(500), nullable=True)  # video-call link shown to whoever books the slot
     booked_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)  # student id once booked
     created_at = db.Column(db.Integer, nullable=False)
 
@@ -543,6 +547,7 @@ class Meeting(db.Model):
     start_ts = db.Column(db.Integer, nullable=False)
     end_ts = db.Column(db.Integer, nullable=False)
     location = db.Column(db.String(200), nullable=True)
+    call_url = db.Column(db.String(500), nullable=True)  # video-call link (Zoom, Meet, Teams, ...)
     status = db.Column(db.String(20), nullable=False, default="scheduled")  # "scheduled" | "cancelled"
     slot_id = db.Column(db.Integer, db.ForeignKey("availability_slot.id"), nullable=True)
     created_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)

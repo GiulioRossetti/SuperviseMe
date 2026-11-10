@@ -3975,3 +3975,102 @@ msgstr "Il supporto ai calendari non è installato su questo server (icalendar, 
 
 msgid "Unexpected error while reading the calendar."
 msgstr "Errore imprevisto durante la lettura del calendario."
+
+msgid "The call link must be a valid http(s) address."
+msgstr "Il link della call deve essere un indirizzo http(s) valido."
+
+msgid "Call link added: %(t)s"
+msgstr "Link della call aggiunto: %(t)s"
+
+msgid "Call link saved."
+msgstr "Link della call salvato."
+
+msgid "Calendar subscription link created."
+msgstr "Indirizzo di abbonamento al calendario creato."
+
+msgid "A new link was generated; the old one no longer works."
+msgstr "Generato un nuovo indirizzo: quello precedente non funziona più."
+
+msgid "Calendar subscription disabled."
+msgstr "Abbonamento al calendario disattivato."
+
+msgid "Join call"
+msgstr "Partecipa alla call"
+
+msgid "Join"
+msgstr "Partecipa"
+
+msgid "Edit call link"
+msgstr "Modifica link della call"
+
+msgid "Add call link"
+msgstr "Aggiungi link della call"
+
+msgid "Location"
+msgstr "Luogo"
+
+msgid "Call link (optional)"
+msgstr "Link della call (facoltativo)"
+
+msgid "Busy time appears in the weekly view; navigate week by week to plan ahead."
+msgstr "Il tempo occupato compare nella vista settimanale: naviga settimana per settimana per pianificare in anticipo."
+
+msgid "Add to your calendar app"
+msgstr "Aggiungi alla tua app di calendario"
+
+msgid "Subscribe once and your meetings stay up to date in Google Calendar, Apple Calendar, Outlook and other apps. Keep this address private: anyone who has it can see your meetings."
+msgstr "Abbonati una volta e i tuoi incontri restano aggiornati in Google Calendar, Apple Calendar, Outlook e altre app. Tieni riservato questo indirizzo: chi lo possiede può vedere i tuoi incontri."
+
+msgid "Copy"
+msgstr "Copia"
+
+msgid "Open in Apple Calendar / Outlook"
+msgstr "Apri in Calendario Apple / Outlook"
+
+msgid "How to add it elsewhere"
+msgstr "Come aggiungerlo altrove"
+
+msgid "Other calendars → + → From URL → paste the address."
+msgstr "Altri calendari → + → Da URL → incolla l'indirizzo."
+
+msgid "File → New Calendar Subscription."
+msgstr "File → Nuova sottoscrizione a un calendario."
+
+msgid "Add calendar → Subscribe from web."
+msgstr "Aggiungi calendario → Sottoscrivi dal web."
+
+msgid "New address"
+msgstr "Nuovo indirizzo"
+
+msgid "Disable"
+msgstr "Disattiva"
+
+msgid "Get a personal subscription address to see your meetings in Google Calendar, Apple Calendar, Outlook or any calendar app, always up to date. You can also download a single meeting with the calendar button."
+msgstr "Ottieni un indirizzo di abbonamento personale per vedere i tuoi incontri in Google Calendar, Apple Calendar, Outlook o qualsiasi app di calendario, sempre aggiornati. Puoi anche scaricare un singolo incontro con il pulsante del calendario."
+
+msgid "Create subscription address"
+msgstr "Crea indirizzo di abbonamento"
+
+msgid "Previous week"
+msgstr "Settimana precedente"
+
+msgid "Next week"
+msgstr "Settimana successiva"
+
+msgid "Today"
+msgstr "Oggi"
+
+msgid "Go to date"
+msgstr "Vai alla data"
+
+msgid "The external calendar is read up to %(d)s: busy time is not shown beyond that date."
+msgstr "Il calendario esterno è letto fino al %(d)s: oltre quella data il tempo occupato non viene mostrato."
+
+msgid "Office hours"
+msgstr "Ricevimento"
+
+msgid "Busy"
+msgstr "Occupato"
+
+msgid "Busy (external calendar)"
+msgstr "Occupato (calendario esterno)"

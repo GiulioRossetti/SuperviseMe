@@ -20,7 +20,8 @@ from superviseme.utils.crypto import decrypt_token, encrypt_token
 
 REFRESH_SECONDS = 15 * 60
 RETRY_SECONDS = 5 * 60
-HORIZON_DAYS = 90
+HORIZON_DAYS = 400
+LOOKBACK_DAYS = 14
 MAX_BYTES = 3 * 1024 * 1024
 MAX_REDIRECTS = 3
 MAX_URL_LEN = 1000
@@ -142,7 +143,7 @@ def merge(spans):
 
 def _window(now=None):
     now = int(now or time.time())
-    return now - 86400, now + HORIZON_DAYS * 86400
+    return now - LOOKBACK_DAYS * 86400, now + HORIZON_DAYS * 86400
 
 
 def connect(user, raw_url):

@@ -1,0 +1,26 @@
+{# Personal iCal subscription (Google / Apple / Outlook ...). Expects: feed_url, feed_enabled. #}
+{% from 'components/dash.html' import panel with context %}
+<div id="subscribe">
+{% call panel(_('Add to your calendar app'), 'fa-calendar-plus') %}
+    {% if feed_enabled %}
+        <p class="small text-muted mb-2">{{ _('Subscribe once and your meetings stay up to date in Google Calendar, Apple Calendar, Outlook and other apps. Keep this address private: anyone who has it can see your meetings.') }}</p>
+        <div class="input-group input-group-sm mb-2">
+            <input class="form-control" id="feedUrl" readonly value="{{ feed_url }}" onclick="this.select()">
+            <div class="input-group-append"><button type="button" class="btn btn-outline-primary" onclick="var i=document.getElementById('feedUrl');i.select();navigator.clipboard&&navigator.clipboard.writeText(i.value);">{{ _('Copy') }}</button></div>
+        </div>
+        <div class="small mb-2">
+            <a href="{{ feed_url|replace('https://', 'webcal://')|replace('http://', 'webcal://') }}"><i class="fab fa-apple"></i> {{ _('Open in Apple Calendar / Outlook') }}</a>
+        </div>
+        <details class="small mb-2"><summary>{{ _('How to add it elsewhere') }}</summary>
+            <div class="mt-1"><strong>Google Calendar</strong>: {{ _('Other calendars → + → From URL → paste the address.') }}<br>
+            <strong>Apple</strong>: {{ _('File → New Calendar Subscription.') }}<br>
+            <strong>Outlook</strong>: {{ _('Add calendar → Subscribe from web.') }}</div>
+        </details>
+        <form method="POST" action="{{ url_for('workflow.agenda_feed_token') }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="regenerate"><button class="btn btn-outline-secondary btn-sm">{{ _('New address') }}</button></form>
+        <form method="POST" action="{{ url_for('workflow.agenda_feed_token') }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="revoke"><button class="btn btn-outline-danger btn-sm">{{ _('Disable') }}</button></form>
+    {% else %}
+        <p class="small text-muted">{{ _('Get a personal subscription address to see your meetings in Google Calendar, Apple Calendar, Outlook or any calendar app, always up to date. You can also download a single meeting with the calendar button.') }}</p>
+        <form method="POST" action="{{ url_for('workflow.agenda_feed_token') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="action" value="create"><button class="btn btn-primary btn-sm btn-block">{{ _('Create subscription address') }}</button></form>
+    {% endif %}
+{% endcall %}
+</div>

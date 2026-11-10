@@ -1,0 +1,51 @@
+{# Weekly agenda grid. Expects: week (see routes.workflow._week_view), dt, is_sup. #}
+<section class="dash-panel ag-week-panel">
+    <header>
+        <h6><i class="far fa-calendar-alt"></i> {{ week.monday.strftime('%d %b') }} – {{ week.sunday.strftime('%d %b %Y') }}</h6>
+        <div class="ag-weeknav">
+            <a class="btn btn-light btn-sm border" href="{{ url_for('workflow.agenda', week=week.prev) }}" title="{{ _('Previous week') }}" aria-label="{{ _('Previous week') }}"><i class="fas fa-chevron-left"></i></a>
+            {% if not week.is_current %}<a class="btn btn-light btn-sm border" href="{{ url_for('workflow.agenda') }}">{{ _('Today') }}</a>{% endif %}
+            <a class="btn btn-light btn-sm border" href="{{ url_for('workflow.agenda', week=week.next) }}" title="{{ _('Next week') }}" aria-label="{{ _('Next week') }}"><i class="fas fa-chevron-right"></i></a>
+            <form method="GET" action="{{ url_for('workflow.agenda') }}" class="d-inline-flex ml-1">
+                <input type="date" name="week" class="form-control form-control-sm" value="{{ week.monday.isoformat() }}" onchange="this.form.submit()" aria-label="{{ _('Go to date') }}">
+            </form>
+        </div>
+    </header>
+    <div class="dash-panel-body">
+        {% if week.beyond %}<div class="alert alert-light border small py-1">{{ _('The external calendar is read up to %(d)s: busy time is not shown beyond that date.', d=week.horizon.strftime('%d %b %Y')) }}</div>{% endif %}
+        <div class="ag-week">
+            {% for day in week.days %}
+            <div class="ag-daycol {{ 'today' if day.is_today }}">
+                <div class="ag-dayhead"><span>{{ day.date.strftime('%a') }}</span><strong>{{ day.date.strftime('%d') }}</strong></div>
+                {% for it in day.events %}
+                    {% if it.kind == 'meeting' %}
+                    <div class="ag-ev meeting" title="{{ it.title }}">
+                        <div class="t">{{ dt(it.start).strftime('%H:%M') }}–{{ dt(it.end).strftime('%H:%M') }}</div>
+                        <div class="n">{{ it.title }}</div>
+                        {% if it.other %}<div class="o">{{ it.other.surname }}</div>{% endif %}
+                        {% if it.m.call_url %}<a href="{{ it.m.call_url }}" target="_blank" rel="noopener noreferrer" class="j"><i class="fas fa-video"></i> {{ _('Join') }}</a>{% endif %}
+                    </div>
+                    {% elif it.kind == 'slot' %}
+                    <div class="ag-ev slot {{ 'conflict' if it.conflict }}" title="{{ _('Busy in your external calendar') if it.conflict else _('Office hours') }}">
+                        <div class="t">{{ dt(it.start).strftime('%H:%M') }}–{{ dt(it.end).strftime('%H:%M') }}</div>
+                        {% if it.bookable %}
+                        <form method="POST" action="{{ url_for('workflow.book_slot', slot_id=it.slot.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-success btn-sm py-0 px-1">{{ _('Book') }} · {{ it.slot.supervisor.surname }}</button>
+                        </form>
+                        {% else %}<div class="n">{{ _('Office hours') }}</div>{% endif %}
+                    </div>
+                    {% else %}
+                    <div class="ag-ev busy"><div class="t">{{ dt(it.start).strftime('%H:%M') }}–{{ dt(it.end).strftime('%H:%M') }}</div><div class="n">{{ _('Busy') }}</div></div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div class="small text-muted mt-2">
+            <span class="ag-key meeting"></span> {{ _('Meeting') }}
+            <span class="ag-key slot"></span> {{ _('Office hours') }}
+            {% if is_sup %}<span class="ag-key busy"></span> {{ _('Busy (external calendar)') }}{% endif %}
+        </div>
+    </div>
+</section>

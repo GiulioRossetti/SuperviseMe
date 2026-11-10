@@ -11,6 +11,7 @@
 
 <div class="row">
 <div class="col-xl-8">
+    {% include 'components/agenda_week.html' %}
     {% call panel(_('Upcoming meetings'), 'fa-calendar-check') %}
         {% if upcoming %}
         <div class="ag-list">
@@ -25,6 +26,14 @@
                         {% if m.location %}<span><i class="fas fa-map-marker-alt"></i> {{ m.location }}</span>{% endif %}
                         {% if other %}<span><i class="far fa-user"></i> {{ user_link(other) }}</span>{% endif %}
                     </div>
+                    {% if m.call_url %}<a class="btn btn-success btn-sm mt-1" href="{{ m.call_url }}" target="_blank" rel="noopener noreferrer"><i class="fas fa-video"></i> {{ _('Join call') }}</a>{% endif %}
+                    {% if current_user.id == m.supervisor_id %}
+                    <a class="small ml-2" data-toggle="collapse" href="#callEdit{{ m.id }}">{{ _('Edit call link') if m.call_url else _('Add call link') }}</a>
+                    <form method="POST" action="{{ url_for('workflow.set_meeting_call', meeting_id=m.id) }}" class="collapse mt-1" id="callEdit{{ m.id }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="input-group input-group-sm"><input class="form-control" type="url" name="call_url" maxlength="500" value="{{ m.call_url or '' }}" placeholder="https://meet.google.com/…"><div class="input-group-append"><button class="btn btn-primary">{{ _('Save') }}</button></div></div>
+                    </form>
+                    {% endif %}
                 </div>
                 <div class="ag-actions">
                     <a class="btn btn-light btn-sm border" href="{{ url_for('workflow.meeting_ics', meeting_id=m.id) }}" title="{{ _('Add to calendar') }}"><i class="far fa-calendar-plus"></i></a>
@@ -55,6 +64,7 @@
 </div>
 
 <div class="col-xl-4">
+    {% include 'components/agenda_subscribe.html' %}
     {% if current_user.user_type == 'student' %}
     {% call panel(_('Book office hours'), 'fa-user-clock') %}
         {% if bookable %}
@@ -88,7 +98,8 @@
                 <div class="form-group col-4"><label class="small mb-1">{{ _('Slots') }}</label><input type="number" name="count" min="1" max="8" value="1" class="form-control form-control-sm"></div>
                 <div class="form-group col-4"><label class="small mb-1">{{ _('Weeks') }}</label><input type="number" name="repeat" min="1" max="12" value="1" class="form-control form-control-sm"></div>
             </div>
-            <div class="form-group"><label class="small mb-1">{{ _('Location or link') }}</label><input name="location" maxlength="200" class="form-control form-control-sm" placeholder="{{ current_user.office_location or '' }}"></div>
+            <div class="form-group"><label class="small mb-1">{{ _('Location') }}</label><input name="location" maxlength="200" class="form-control form-control-sm" placeholder="{{ current_user.office_location or '' }}"></div>
+            <div class="form-group"><label class="small mb-1">{{ _('Call link (optional)') }}</label><input name="call_url" type="url" maxlength="500" class="form-control form-control-sm" placeholder="https://meet.google.com/…"></div>
             <button class="btn btn-primary btn-sm btn-block">{{ _('Publish') }}</button>
         </form>
         {% if slots %}
@@ -107,16 +118,7 @@
             <div class="small mb-2"><i class="fas fa-check-circle text-success"></i> {{ _('Connected') }}
                 {% if feed.fetched_at %}· {{ _('updated') }} {{ dt(feed.fetched_at).strftime('%d %b, %H:%M') }}{% endif %}</div>
             {% if feed.error %}<div class="alert alert-warning small py-1">{{ _(feed.error) }}</div>{% endif %}
-            {% if busy %}
-            <div class="small text-muted mb-1">{{ _('Busy in the next 14 days') }}</div>
-            {% set ns = namespace(day=None) %}
-            <div class="ag-busy">
-            {% for b in busy[:30] %}
-                {% set day = dt(b[0]).strftime('%a %d %b') %}
-                <div><strong>{{ day }}</strong> {{ dt(b[0]).strftime('%H:%M') }}–{{ dt(b[1]).strftime('%H:%M') }}</div>
-            {% endfor %}
-            </div>
-            {% else %}<div class="small text-muted">{{ _('No busy time in the next 14 days.') }}</div>{% endif %}
+            <div class="small text-muted">{{ _('Busy time appears in the weekly view; navigate week by week to plan ahead.') }}</div>
             <div class="mt-2">
                 <form method="POST" action="{{ url_for('workflow.refresh_calendar') }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-primary btn-sm">{{ _('Update now') }}</button></form>
                 <form method="POST" action="{{ url_for('workflow.disconnect_calendar') }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-danger btn-sm">{{ _('Disconnect') }}</button></form>
@@ -145,8 +147,9 @@
             </div>
             <div class="form-row">
                 <div class="form-group col-4"><input type="number" name="duration" min="10" max="480" value="45" class="form-control form-control-sm" aria-label="{{ _('Minutes') }}"></div>
-                <div class="form-group col-8"><input name="location" maxlength="200" class="form-control form-control-sm" placeholder="{{ _('Location or link') }}"></div>
+                <div class="form-group col-8"><input name="location" maxlength="200" class="form-control form-control-sm" placeholder="{{ _('Location') }}"></div>
             </div>
+            <div class="form-group"><input name="call_url" type="url" maxlength="500" class="form-control form-control-sm" placeholder="{{ _('Call link (optional)') }}"></div>
             <div class="form-group"><input name="title" maxlength="200" class="form-control form-control-sm" placeholder="{{ _('Title (optional)') }}"></div>
             <button class="btn btn-outline-primary btn-sm btn-block">{{ _('Schedule') }}</button>
         </form>

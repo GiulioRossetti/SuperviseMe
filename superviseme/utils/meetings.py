@@ -1,6 +1,6 @@
 """Meeting helpers: listing, reminders and booking rules."""
 import time
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 from sqlalchemy import or_
 
@@ -45,7 +45,7 @@ def book_slot(slot_id, student, thesis):
     meeting = Meeting(
         thesis_id=thesis.id, supervisor_id=slot.supervisor_id, student_id=student.id,
         title=f"Meeting: {thesis.title}"[:200], start_ts=slot.start_ts, end_ts=slot.end_ts,
-        location=slot.location, slot_id=slot.id, created_by=student.id, created_at=now,
+        location=slot.location, call_url=slot.call_url, slot_id=slot.id, created_by=student.id, created_at=now,
     )
     db.session.add(meeting)
     db.session.commit()
@@ -70,3 +70,30 @@ def meeting_reminders(now, notify):
         for uid in {m.supervisor_id, m.student_id} - {None}:
             sent += notify(uid, "meeting", m.id, "day", f"Meeting tomorrow: {m.title}", f"{when}{place}", m.thesis_id)
     return sent
+
+
+def week_bounds(raw=None):
+    """Monday of the week containing ``raw`` (YYYY-MM-DD, default today) -> (monday: date, start_ts, end_ts)."""
+    try:
+        day = date.fromisoformat((raw or "").strip()) if raw else date.today()
+    except ValueError:
+        day = date.today()
+    monday = day - timedelta(days=day.weekday())
+    start = int(datetime(monday.year, monday.month, monday.day).timestamp())
+    nxt = monday + timedelta(days=7)
+    end = int(datetime(nxt.year, nxt.month, nxt.day).timestamp())
+    return monday, start, end
+
+
+def meetings_between(user, start_ts, end_ts):
+    q = Meeting.query.filter(Meeting.status == "scheduled", Meeting.start_ts < end_ts, Meeting.end_ts > start_ts)
+    if user.user_type != "admin":
+        q = q.filter(or_(Meeting.supervisor_id == user.id, Meeting.student_id == user.id))
+    return q.order_by(Meeting.start_ts.asc()).all()
+
+
+def feed_meetings(user, days_back=30, limit=500):
+    """Meetings for the subscribable feed: recent past and everything upcoming."""
+    q = Meeting.query.filter(Meeting.status == "scheduled", Meeting.end_ts >= int(time.time()) - days_back * DAY,
+                             or_(Meeting.supervisor_id == user.id, Meeting.student_id == user.id))
+    return q.order_by(Meeting.start_ts.asc()).limit(limit).all()

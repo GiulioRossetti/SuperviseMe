@@ -824,3 +824,62 @@ def test_calendar_feed_busy_and_agenda(client, app, supervisor_user, student_use
     client.post("/agenda/calendar/disconnect")
     assert Calendar_Feed.query.count() == 0
     assert cf.busy_for(supervisor_user.id, 0, 2**31) == []
+
+
+def test_agenda_week_navigation_call_links_and_feed(client, supervisor_user, student_user):
+    from datetime import datetime as _dt, timedelta as _td
+    from superviseme.models import Availability_Slot, Meeting, User_mgmt
+    from superviseme.utils.ics import build_calendar
+    t = _assign(student_user, supervisor_user)
+    later = (_dt.now() + _td(days=75)).replace(hour=15, minute=0, second=0, microsecond=0)  # months ahead, not just 14 days
+    login(client, supervisor_user)
+    # invalid links are rejected, valid ones saved and shared with the student
+    bad = client.post("/agenda/meetings/add", data={"thesis_id": t.id, "date": later.strftime("%Y-%m-%d"), "time": "15:00",
+                                                    "duration": 45, "call_url": "javascript:alert(1)"})
+    assert bad.status_code == 302 and Meeting.query.count() == 0
+    client.post("/agenda/meetings/add", data={"thesis_id": t.id, "date": later.strftime("%Y-%m-%d"), "time": "15:00", "duration": 45,
+                                              "call_url": "https://meet.example.org/abc-defg"})
+    m = Meeting.query.one()
+    assert m.call_url == "https://meet.example.org/abc-defg" and m.student_id == student_user.id
+    # week navigation: the far-away week shows the meeting, the current one does not
+    far = client.get(f"/agenda?week={later.strftime('%Y-%m-%d')}")
+    assert far.status_code == 200 and b"Join" in far.data and b"meet.example.org" in far.data
+    assert b"ag-ev meeting" not in client.get("/agenda").data
+    assert client.get("/agenda?week=not-a-date").status_code == 200
+    # supervisor edits the link; student cannot
+    client.post(f"/agenda/meetings/{m.id}/call", data={"call_url": "https://zoom.example.org/j/1"})
+    assert Meeting.query.get(m.id).call_url == "https://zoom.example.org/j/1"
+    # a published slot carries its link into the booking
+    slot_day = (_dt.now() + _td(days=3)).replace(hour=10, minute=0)
+    client.post("/agenda/slots/add", data={"date": slot_day.strftime("%Y-%m-%d"), "time": "10:00", "duration": 30,
+                                           "call_url": "https://meet.example.org/office"})
+    slot = Availability_Slot.query.one()
+    assert slot.call_url == "https://meet.example.org/office"
+    client.post("/logout")
+    login(client, student_user)
+    assert client.post(f"/agenda/meetings/{m.id}/call", data={"call_url": "https://evil.example"}).status_code == 403
+    page = client.get(f"/agenda?week={later.strftime('%Y-%m-%d')}")
+    assert b"zoom.example.org" in page.data  # the student sees the supervisor's meeting
+    client.post(f"/agenda/slots/{slot.id}/book")
+    booked = Meeting.query.filter_by(slot_id=slot.id).one()
+    assert booked.call_url == "https://meet.example.org/office"
+    # ICS carries the link (as URL, LOCATION fallback and in the description)
+    ics = client.get(f"/agenda/meetings/{m.id}.ics").data.decode()
+    assert "URL:https://zoom.example.org/j/1" in ics and "LOCATION:https://zoom.example.org/j/1" in ics
+    # personal subscription feed: no login needed, token is the credential
+    assert client.get("/agenda/feed/" + "x" * 30 + ".ics").status_code == 404
+    client.post("/agenda/feed/token", data={"action": "create"})
+    token = User_mgmt.query.get(student_user.id).agenda_token
+    assert token and len(token) >= 32
+    client.post("/logout")
+    feed = client.get(f"/agenda/feed/{token}.ics")
+    assert feed.status_code == 200 and feed.mimetype == "text/calendar"
+    body = feed.data.decode()
+    assert "zoom.example.org" in body and "meeting.example.org" not in body and body.count("BEGIN:VEVENT") == 2
+    assert feed.headers["X-Robots-Tag"].startswith("noindex")
+    login(client, student_user)
+    client.post("/agenda/feed/token", data={"action": "regenerate"})
+    assert client.get(f"/agenda/feed/{token}.ics").status_code == 404  # old address stops working
+    client.post("/agenda/feed/token", data={"action": "revoke"})
+    assert User_mgmt.query.get(student_user.id).agenda_token is None
+    assert "URL:" not in build_calendar([{"uid": 1, "title": "x", "start": 0, "end": 60}])

@@ -69,7 +69,7 @@ def delete_milestone(milestone_id):
 
 
 # ═══════════════════════════ Agenda: slots, meetings, calendar files ═══════════════════════════
-from datetime import datetime, timedelta  # noqa: E402
+from datetime import date, datetime, timedelta  # noqa: E402
 
 from flask import Response, render_template  # noqa: E402
 
@@ -77,7 +77,7 @@ from superviseme.models import Availability_Slot, MeetingNote, Meeting, Thesis, 
 from superviseme.utils import meetings as meeting_utils  # noqa: E402
 from superviseme.utils.ics import build_calendar  # noqa: E402
 from superviseme.utils.miscellanea import user_has_supervisor_role  # noqa: E402
-from superviseme.utils.workflow import parse_local_datetime, thesis_url  # noqa: E402
+from superviseme.utils.workflow import clean_call_url, parse_local_datetime, thesis_url  # noqa: E402
 
 
 def _is_supervisor():
@@ -105,11 +105,9 @@ def agenda():
         ctx["schedulable"] = rows
         from superviseme.utils import calendar_feed as cf
         ctx["feed"] = cf.status(current_user.id)
-        horizon = now + 14 * 86400
-        busy = cf.busy_for(current_user.id, now, horizon) if ctx["feed"] else []
-        ctx["busy"] = busy
+        last_end = max([sl.end_ts for sl in ctx["slots"]] + [now])
+        busy = cf.busy_for(current_user.id, now, last_end) if ctx["feed"] else []
         ctx["conflicting"] = {sl.id for sl in ctx["slots"] if not sl.booked_by and any(b[0] < sl.end_ts and b[1] > sl.start_ts for b in busy)}
-        ctx["feed_status"] = cf.status(current_user.id)
     if current_user.user_type == "student":
         sup_ids = meeting_utils.supervisors_of_student(current_user.id)
         ctx["bookable"] = (Availability_Slot.query.filter(Availability_Slot.supervisor_id.in_(sup_ids), Availability_Slot.booked_by.is_(None),
@@ -119,7 +117,66 @@ def agenda():
         # slots overlapping the supervisor's external calendar are hidden (the reason is never disclosed)
         ctx["bookable"] = [sl for sl in ctx["bookable"] if not cf.conflicts(sl.supervisor_id, sl.start_ts, sl.end_ts)]
         ctx["has_thesis"] = bool(sup_ids)
+    ctx["week"] = _week_view(request.args.get("week"), now, is_sup)
+    ctx["feed_url"], ctx["feed_enabled"] = _feed_urls(current_user)
     return render_template("workflow/agenda.html", **ctx)
+
+
+def _feed_urls(user):
+    if not user.agenda_token:
+        return None, False
+    https_url = url_for("workflow.agenda_feed", token=user.agenda_token, _external=True)
+    return https_url, True
+
+
+def _week_view(raw, now, is_sup):
+    """One week of the agenda: meetings, office-hour slots and (supervisors) external busy time."""
+    from superviseme.utils import calendar_feed as cf
+    monday, start, end = meeting_utils.week_bounds(raw)
+    days = []
+    for i in range(7):
+        d = monday + timedelta(days=i)
+        s0 = int(datetime(d.year, d.month, d.day).timestamp())
+        n = d + timedelta(days=1)
+        days.append({"date": d, "start": s0, "end": int(datetime(n.year, n.month, n.day).timestamp()), "events": [],
+                     "is_today": d == date.today()})
+
+    def put(ts, item):
+        for day in days:
+            if day["start"] <= ts < day["end"]:
+                day["events"].append(item)
+                return
+
+    for m in meeting_utils.meetings_between(current_user, start, end):
+        other = m.student if current_user.id == m.supervisor_id else m.supervisor
+        put(m.start_ts, {"kind": "meeting", "start": m.start_ts, "end": m.end_ts, "title": m.title, "m": m, "other": other})
+    if is_sup:
+        busy = cf.busy_for(current_user.id, start, end) if cf.status(current_user.id) else []
+        for sl in Availability_Slot.query.filter(Availability_Slot.supervisor_id == current_user.id, Availability_Slot.start_ts >= start,
+                                                  Availability_Slot.start_ts < end, Availability_Slot.booked_by.is_(None)).all():
+            put(sl.start_ts, {"kind": "slot", "start": sl.start_ts, "end": sl.end_ts, "slot": sl, "bookable": False,
+                              "conflict": any(b[0] < sl.end_ts and b[1] > sl.start_ts for b in busy)})
+        for b0, b1 in busy:
+            # split overnight blocks so each day shows its own part
+            for day in days:
+                lo, hi = max(b0, day["start"]), min(b1, day["end"])
+                if lo < hi:
+                    day["events"].append({"kind": "busy", "start": lo, "end": hi})
+    elif current_user.user_type == "student":
+        sup_ids = meeting_utils.supervisors_of_student(current_user.id)
+        if sup_ids:
+            for sl in Availability_Slot.query.filter(Availability_Slot.supervisor_id.in_(sup_ids), Availability_Slot.booked_by.is_(None),
+                                                      Availability_Slot.start_ts > now, Availability_Slot.start_ts >= start,
+                                                      Availability_Slot.start_ts < end).all():
+                if not cf.conflicts(sl.supervisor_id, sl.start_ts, sl.end_ts):
+                    put(sl.start_ts, {"kind": "slot", "start": sl.start_ts, "end": sl.end_ts, "slot": sl, "bookable": True, "conflict": False})
+    for day in days:
+        day["events"].sort(key=lambda it: (it["start"], it["kind"]))
+    horizon = date.today() + timedelta(days=cf.HORIZON_DAYS)
+    return {"days": days, "monday": monday, "sunday": monday + timedelta(days=6),
+            "prev": (monday - timedelta(days=7)).isoformat(), "next": (monday + timedelta(days=7)).isoformat(),
+            "is_current": monday == date.today() - timedelta(days=date.today().weekday()),
+            "beyond": is_sup and monday > horizon and bool(cf.status(current_user.id)), "horizon": horizon}
 
 
 @workflow.route("/agenda/slots/add", methods=["POST"])
@@ -138,6 +195,11 @@ def add_slots():
         flash(_("Choose a valid date and time in the future."), "error")
         return _agenda_back()
     location = (request.form.get("location") or "").strip()[:200] or None
+    try:
+        call_url = clean_call_url(request.form.get("call_url"))
+    except ValueError:
+        flash(_("The call link must be a valid http(s) address."), "error")
+        return _agenda_back()
     added = skipped = 0
     from superviseme.utils import calendar_feed as cf
     for w in range(repeat):
@@ -149,7 +211,7 @@ def add_slots():
                 continue
             if not exists:
                 db.session.add(Availability_Slot(supervisor_id=current_user.id, start_ts=s, end_ts=s + minutes * 60,
-                                                 location=location, created_at=int(time.time())))
+                                                 location=location, call_url=call_url, created_at=int(time.time())))
                 added += 1
     db.session.commit()
     flash(_("%(n)d slots published.", n=added), "success")
@@ -214,10 +276,15 @@ def add_meeting():
     if start is None:
         flash(_("Choose a valid date and time."), "error")
         return _agenda_back()
+    try:
+        call_url = clean_call_url(request.form.get("call_url"))
+    except ValueError:
+        flash(_("The call link must be a valid http(s) address."), "error")
+        return _agenda_back()
     title = (request.form.get("title") or "").strip()[:200] or f"Meeting: {thesis.title}"[:200]
     m = Meeting(thesis_id=thesis.id, supervisor_id=current_user.id, student_id=thesis.author_id, title=title, start_ts=start,
                 end_ts=start + minutes * 60, location=(request.form.get("location") or "").strip()[:200] or None,
-                created_by=current_user.id, created_at=int(time.time()))
+                call_url=call_url, created_by=current_user.id, created_at=int(time.time()))
     from superviseme.utils import calendar_feed as cf
     clash = cf.conflicts(current_user.id, start, start + minutes * 60)
     db.session.add(m)
@@ -226,7 +293,8 @@ def add_meeting():
         flash(_("Heads up: this time overlaps with an event in your external calendar."), "warning")
     from superviseme.utils.notifications import create_notification
     create_notification(thesis.author_id, current_user.id, "deadline_reminder", _("Meeting scheduled: %(t)s", t=title),
-                        datetime.fromtimestamp(start).strftime("%d %b %Y, %H:%M"), thesis_id=thesis.id)
+                        datetime.fromtimestamp(start).strftime("%d %b %Y, %H:%M") + (f" — {call_url}" if call_url else ""),
+                        thesis_id=thesis.id)
     flash(_("Meeting scheduled."), "success")
     return _agenda_back()
 
@@ -258,10 +326,31 @@ def _ics_response(rows, filename, name):
         "Content-Disposition": f'attachment; filename="{filename}"', "X-Content-Type-Options": "nosniff"})
 
 
-def _meeting_dict(m):
-    other = m.student if current_user.id == m.supervisor_id else m.supervisor
-    return {"uid": m.id, "title": m.title, "start": m.start_ts, "end": m.end_ts, "location": m.location,
+def _meeting_dict(m, viewer=None):
+    viewer = viewer or current_user
+    other = m.student if viewer.id == m.supervisor_id else m.supervisor
+    return {"uid": m.id, "title": m.title, "start": m.start_ts, "end": m.end_ts, "location": m.location, "url": m.call_url,
             "description": f"With {other.name} {other.surname}" if other else ""}
+
+
+@workflow.route("/agenda/meetings/<int:meeting_id>/call", methods=["POST"])
+@login_required
+def set_meeting_call(meeting_id):
+    m = _participant_meeting(meeting_id)
+    if current_user.id != m.supervisor_id and current_user.user_type != "admin":
+        abort(403)
+    try:
+        m.call_url = clean_call_url(request.form.get("call_url"))
+    except ValueError:
+        flash(_("The call link must be a valid http(s) address."), "error")
+        return _agenda_back()
+    db.session.commit()
+    if m.student_id and m.call_url:
+        from superviseme.utils.notifications import create_notification
+        create_notification(m.student_id, current_user.id, "deadline_reminder", _("Call link added: %(t)s", t=m.title), m.call_url,
+                            thesis_id=m.thesis_id)
+    flash(_("Call link saved."), "success")
+    return _agenda_back()
 
 
 @workflow.route("/agenda/meetings/<int:meeting_id>.ics")
@@ -276,6 +365,37 @@ def meeting_ics(meeting_id):
 def calendar_ics():
     rows = [_meeting_dict(m) for m in meeting_utils.meetings_for(current_user, upcoming=True, limit=200)]
     return _ics_response(rows, "superviseme-agenda.ics", "SuperviseMe meetings")
+
+
+@workflow.route("/agenda/feed/<token>.ics")
+def agenda_feed(token):
+    """Subscribable iCal feed (Google, Apple, Outlook...). The unguessable token is the credential."""
+    import secrets as _secrets
+    user = User_mgmt.query.filter_by(agenda_token=token).first() if 20 <= len(token) <= 64 else None
+    if not user or not user.is_enabled or not _secrets.compare_digest(user.agenda_token, token):
+        abort(404)
+    rows = [_meeting_dict(m, viewer=user) for m in meeting_utils.feed_meetings(user)]
+    body = build_calendar(rows, name="SuperviseMe")
+    return Response(body, mimetype="text/calendar", headers={
+        "Cache-Control": "private, max-age=300", "X-Robots-Tag": "noindex, nofollow", "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "no-referrer"})
+
+
+@workflow.route("/agenda/feed/token", methods=["POST"])
+@login_required
+def agenda_feed_token():
+    """Create, rotate or revoke the personal feed token."""
+    import secrets
+    action = request.form.get("action")
+    user = User_mgmt.query.get(current_user.id)
+    if action in ("create", "regenerate"):
+        user.agenda_token = secrets.token_urlsafe(32)
+        flash(_("Calendar subscription link created.") if action == "create" else _("A new link was generated; the old one no longer works."), "success")
+    elif action == "revoke":
+        user.agenda_token = None
+        flash(_("Calendar subscription disabled."), "success")
+    db.session.commit()
+    return redirect(url_for("workflow.agenda") + "#subscribe")
 
 
 # ═══════════════════════════ Meeting notes → tasks ═══════════════════════════

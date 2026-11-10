@@ -37,10 +37,16 @@ def build_calendar(meetings, domain="superviseme", name="SuperviseMe meetings"):
     for m in meetings:
         lines += ["BEGIN:VEVENT", f"UID:meeting-{m['uid']}@{domain}", f"DTSTAMP:{stamp}",
                   f"DTSTART:{_utc(m['start'])}", f"DTEND:{_utc(m['end'])}", f"SUMMARY:{_esc(m['title'])}"]
-        if m.get("location"):
-            lines.append(f"LOCATION:{_esc(m['location'])}")
-        if m.get("description"):
-            lines.append(f"DESCRIPTION:{_esc(m['description'])}")
+        place = m.get("location") or m.get("url")  # calendar apps show LOCATION; fall back to the call link
+        if place:
+            lines.append(f"LOCATION:{_esc(place)}")
+        if m.get("url"):
+            lines.append(f"URL:{_esc(m['url'])}")
+        desc = m.get("description") or ""
+        if m.get("url"):
+            desc = (desc + "\n" if desc else "") + f"Join: {m['url']}"
+        if desc:
+            lines.append(f"DESCRIPTION:{_esc(desc)}")
         lines += ["STATUS:CONFIRMED", "END:VEVENT"]
     lines.append("END:VCALENDAR")
     return "\r\n".join(_fold(l) for l in lines) + "\r\n"
