@@ -1,12 +1,6 @@
-{% extends 'public/base_public.html' %}
-{% from 'components/dash.html' import hero, panel with context %}
-{% block page_content %}
-{% call hero(_('Privacy and data'), _('Download or erase your personal data'), 'fa-user-shield') %}{% endcall %}
-{% with messages = get_flashed_messages(with_categories=true) %}{% for cat, message in messages %}
-    <div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }} alert-dismissible fade show">{{ message }}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button></div>
-{% endfor %}{% endwith %}
-<div class="row">
-<div class="col-xl-6">
+{# Privacy and data panels, rendered inside the Privacy tab of /profile. Expects: views, blockers, months. #}
+{% from 'components/dash.html' import panel with context %}
+
     {% call panel(_('Your data'), 'fa-download') %}
         <p class="small text-muted">{{ _('Download everything the platform stores about you (profile, theses, updates, tasks, notes, notifications, access log) as a JSON file.') }}</p>
         <a class="btn btn-primary btn-sm" href="{{ url_for('workflow.privacy_export') }}"><i class="fas fa-file-download"></i> {{ _('Download my data') }}</a>
@@ -26,15 +20,12 @@
         </form>
         {% endif %}
     {% endcall %}
-</div>
-<div class="col-xl-6">
+
     {% if current_user.user_type == 'student' %}
     {% call panel(_('Who viewed your profile'), 'fa-eye') %}
         {% if views %}<ul class="list-unstyled mb-0">
-            {% for v in views %}<li class="mb-1">{{ user_link(v.viewer) }} <small class="text-muted">· {{ dt(v.viewed_at).strftime('%d %b %Y, %H:%M') }}</small></li>{% endfor %}
+            {% for v in views %}<li class="mb-1">{{ user_link(v.viewer) }} <small class="text-muted">· {{ datetime.fromtimestamp(v.viewed_at).strftime('%d %b %Y, %H:%M') }}</small></li>{% endfor %}
         </ul>{% else %}<div class="dash-empty"><i class="far fa-eye-slash"></i>{{ _('Nobody has viewed your profile yet') }}</div>{% endif %}
     {% endcall %}
     {% endif %}
-</div>
-</div>
-{% endblock %}
+

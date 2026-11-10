@@ -53,7 +53,14 @@ def profile_page():
         supervised_rels = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
         supervised_theses = [Thesis.query.get(rel.thesis_id) for rel in supervised_rels if Thesis.query.get(rel.thesis_id)]
     
+    from superviseme.models import Profile_View
+    from superviseme.utils import privacy as pv
+    views = []
+    if current_user.user_type == "student":
+        views = Profile_View.query.filter_by(target_id=current_user.id).order_by(Profile_View.viewed_at.desc()).limit(50).all()
+
     return render_template("/profile.html",
+                         views=views, blockers=pv.erasure_blockers(current_user), months=pv.retention_months(),
                          user=current_user,
                          authored_theses=authored_theses,
                          supervised_theses=supervised_theses,

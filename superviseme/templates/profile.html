@@ -58,6 +58,7 @@
                                 {% if (user.user_type == "student" and authored_theses) or (user.user_type == "supervisor" and supervised_theses) %}
                                 <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#tabTheses" role="tab"><i class="fas fa-book fa-fw"></i> {{ _('Theses') }}</a></li>
                                 {% endif %}
+                                <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#tabPrivacy" role="tab"><i class="fas fa-user-shield fa-fw"></i> {{ _('Privacy') }}</a></li>
                             </ul>
                             <div class="tab-content">
                             <div class="tab-pane fade show active" id="tabProfile" role="tabpanel">
@@ -386,6 +387,9 @@
                                 </div>
                             {% endif %}
 
+                            </div>
+                            <div class="tab-pane fade" id="tabPrivacy" role="tabpanel">
+                                {% include 'components/privacy_panel.html' %}
                             </div>
                             </div>
 
@@ -767,6 +771,15 @@
     </div>
   </div>
 </div>
+<script>
+    // open the tab named in the URL hash (e.g. /profile#tabPrivacy)
+    document.addEventListener('DOMContentLoaded', function () {
+        if (location.hash && /^#tab[A-Za-z]+$/.test(location.hash)) {
+            var link = document.querySelector('#profileTabs a[href="' + location.hash + '"]');
+            if (link && window.jQuery) { jQuery(link).tab('show'); }
+        }
+    });
+</script>
 <script>
 (function () {
     var MAX = 2 * 1024 * 1024, V = 300, OUT = 512;

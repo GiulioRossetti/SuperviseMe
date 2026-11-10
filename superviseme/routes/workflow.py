@@ -733,11 +733,8 @@ from superviseme.utils import privacy as pv  # noqa: E402
 @workflow.route("/privacy")
 @login_required
 def privacy():
-    views = []
-    if current_user.user_type == "student":
-        views = Profile_View.query.filter_by(target_id=current_user.id).order_by(Profile_View.viewed_at.desc()).limit(50).all()
-    return render_template("workflow/privacy.html", views=views, blockers=pv.erasure_blockers(current_user),
-                           months=pv.retention_months(), dt=datetime.fromtimestamp)
+    """The privacy controls live in the last tab of the profile page."""
+    return redirect(url_for("profile.profile_page") + "#tabPrivacy")
 
 
 @workflow.route("/privacy/export.json")

@@ -715,8 +715,9 @@ def test_privacy_export_erasure_views_and_retention(client, app, admin_user, sup
     assert Profile_View.query.filter_by(target_id=student_user.id).count() == 1
     client.post("/logout")
     login(client, student_user)
-    page = client.get("/privacy")
-    assert page.status_code == 200 and b"Who viewed your profile" in page.data
+    page = client.get("/privacy", follow_redirects=True)
+    assert page.status_code == 200 and b"Who viewed your profile" in page.data and b'id="tabPrivacy"' in page.data
+    assert client.get("/privacy").headers["Location"].endswith("/profile#tabPrivacy")
     data = _json.loads(client.get("/privacy/export.json").data)
     assert data["profile"]["email"] == "student@test.com" and "password" not in data["profile"]
     assert len(data["updates"]) == 1 and len(data["profile_views_received"]) == 1
