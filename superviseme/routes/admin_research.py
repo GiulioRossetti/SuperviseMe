@@ -323,8 +323,47 @@ def research_activity():
     pagination = q.paginate(page=_page(), per_page=PER_PAGE, error_out=False)
     return render_template("admin/research_activity.html", current_user=current_user, pagination=pagination, entries=pagination.items,
                            projects=projects, filters=filters, total=ResearchOutput_Audit.query.count(),
-                           actions=("create", "update", "delete", "move", "link", "unlink", "import"), kinds=tuple(ro.OUTPUT_MODELS),
+                           actions=("create", "update", "delete", "move", "link", "unlink", "import", "merge"), kinds=tuple(ro.OUTPUT_MODELS),
                            fmt=lambda ts: datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d %H:%M"))
+
+
+@admin.route("/admin/research/duplicates")
+@login_required
+def research_duplicates():
+    """Possible duplicate publications, datasets or software (same DOI, same or very similar title)."""
+    gate = _admin_gate()
+    if gate is not None:
+        return gate
+    from superviseme.utils import duplicates as dup
+    kind = request.args.get("kind") if request.args.get("kind") in ro.OUTPUT_MODELS else "publication"
+    same_only = request.args.get("scope") == "same_project"
+    groups = dup.find_groups(kind, same_project_only=same_only)
+    counts = {k: len(dup.find_groups(k)) for k in ro.OUTPUT_MODELS}
+    return render_template("admin/research_duplicates.html", current_user=current_user, kind=kind, groups=groups, counts=counts,
+                           same_only=same_only, projects={p.id: p.title for p in ResearchProject.query.with_entities(ResearchProject.id, ResearchProject.title)})
+
+
+@admin.route("/admin/research/duplicates/merge", methods=["POST"])
+@login_required
+def research_duplicates_merge():
+    gate = _admin_gate()
+    if gate is not None:
+        return gate
+    from superviseme.utils import duplicates as dup
+    kind = request.form.get("kind")
+    if kind not in ro.OUTPUT_MODELS:
+        abort(404)
+    keeper_id = request.form.get("keeper", type=int)
+    other_ids = request.form.getlist("other", type=int)
+    try:
+        keeper, others = dup.merge(kind, keeper_id, other_ids)
+    except ValueError as exc:
+        flash(str(exc))
+        return redirect(url_for("admin.research_duplicates", kind=kind))
+    _audit_admin_action("research_output_merge", f"research_{kind}", keeper.id, details={"merged": [o.id for o in others]})
+    ro.audit("merge", kind, keeper, details={"merged": [f"{o.title} (#{o.id}, project {o.project_id})" for o in others]})
+    flash("Records merged")
+    return redirect(url_for("admin.research_duplicates", kind=kind))
 
 
 # ---- associate output with projects, users and theses ----------------------------------------------------------

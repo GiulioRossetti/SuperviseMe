@@ -241,3 +241,55 @@ def test_output_audit_trail(client, app, admin_user, researcher_user):
     csv_r = client.get("/admin/research/activity?format=csv")
     assert csv_r.mimetype == "text/csv" and b"adm-sw" in csv_r.data and b"when,who,action" in csv_r.data
     assert "Output activity" in client.get("/admin/research").data.decode()
+
+
+def test_duplicates_detection_and_merge(client, app, admin_user, researcher_user, supervisor_user, student_user):
+    import time as _t
+    from superviseme import db
+    from superviseme.models import (ResearchOutput_Link, ResearchProject, ResearchProject_Dataset as D, ResearchProject_Publication as P,
+                                    ResearchProject_Software as S)
+    from superviseme.utils import duplicates as dup
+    now = int(_t.time())
+    a = ResearchProject(title="A", description="d", researcher_id=researcher_user.id, created_at=now)
+    b = ResearchProject(title="B", description="d", researcher_id=researcher_user.id, created_at=now)
+    db.session.add_all([a, b]); db.session.commit()
+    p1 = P(project_id=a.id, title="Graph Mining at Scale", doi="10.1234/GM", created_at=now)
+    p2 = P(project_id=b.id, title="Something else entirely", doi="10.1234/gm", authors="X, Y", year=2020, created_at=now)  # same DOI, other case
+    p3 = P(project_id=a.id, title="Graph mining at scale!", created_at=now)      # same normalised title
+    p4 = P(project_id=a.id, title="Graph Mining at Scales", created_at=now)      # similar title
+    p5 = P(project_id=a.id, title="Completely unrelated paper", created_at=now)
+    s1 = S(project_id=a.id, title="graphkit", version="1", created_at=now)
+    s2 = S(project_id=a.id, title="GraphKit", license="MIT", language="Python", created_at=now)
+    d1 = D(project_id=a.id, title="Corpus one", fair="findable", created_at=now)
+    d2 = D(project_id=a.id, title="corpus one", fair="reusable", url="https://zenodo.org/x", created_at=now)
+    db.session.add_all([p1, p2, p3, p4, p5, s1, s2, d1, d2]); db.session.commit()
+    groups = dup.find_groups("publication")
+    assert len(groups) == 1 and {i.id for i in groups[0]["items"]} == {p1.id, p2.id, p3.id, p4.id}
+    assert {"doi", "title", "similar"} <= set(groups[0]["reasons"]) and not groups[0]["same_project"]
+    assert len(dup.find_groups("software")) == 1 and len(dup.find_groups("dataset")) == 1
+    assert dup.find_groups("publication", same_project_only=True) == []
+    db.session.add_all([ResearchOutput_Link(kind="publication", output_id=p1.id, user_id=student_user.id, created_at=now),
+                        ResearchOutput_Link(kind="publication", output_id=p2.id, user_id=student_user.id, created_at=now),
+                        ResearchOutput_Link(kind="publication", output_id=p2.id, user_id=supervisor_user.id, created_at=now)])
+    db.session.commit()
+    _login(client, admin_user.email)
+    page = client.get("/admin/research/duplicates").data.decode()
+    assert "Graph Mining at Scale" in page and "same DOI" in page and "different projects" in page
+    assert "graphkit" in client.get("/admin/research/duplicates?kind=software").data.decode().lower()
+    assert "Graph Mining" not in client.get("/admin/research/duplicates?scope=same_project").data.decode()
+    # merging needs a keeper and at least one other
+    client.post("/admin/research/duplicates/merge", data={"kind": "publication", "keeper": p1.id})
+    assert P.query.count() == 5
+    assert client.post("/admin/research/duplicates/merge", data={"kind": "bogus"}).status_code == 404
+    client.post("/admin/research/duplicates/merge", data={"kind": "publication", "keeper": p1.id, "other": [p2.id, p3.id, p4.id, p1.id]})
+    db.session.expire_all()
+    assert [p.id for p in P.query.order_by(P.id)] == [p1.id, p5.id]
+    assert (p1.authors, p1.year) == ("X, Y", 2020)  # filled from the merged record
+    links = ResearchOutput_Link.query.filter_by(kind="publication", output_id=p1.id).all()
+    assert sorted(l.user_id for l in links) == sorted([student_user.id, supervisor_user.id])  # student not duplicated
+    assert ResearchOutput_Link.query.filter(ResearchOutput_Link.kind == "publication", ResearchOutput_Link.output_id.in_([p2.id, p3.id])).count() == 0
+    client.post("/admin/research/duplicates/merge", data={"kind": "dataset", "keeper": d1.id, "other": d2.id})
+    db.session.expire_all()
+    assert D.query.count() == 1 and D.query.one().fair == "findable,reusable" and D.query.one().url == "https://zenodo.org/x"
+    assert "merge" in client.get("/admin/research/activity?action=merge").data.decode()
+    assert "Possible duplicates" in client.get("/admin/research/duplicates").data.decode()

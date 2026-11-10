@@ -73,6 +73,11 @@
             <i class="fas fa-fw fa-history"></i><span>{{ _('Output activity') }}</span>
         </a>
     </li>
+    <li class="nav-item{% if request.endpoint in ('admin.research_duplicates',) %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('admin.research_duplicates') }}">
+            <i class="fas fa-fw fa-clone"></i><span>{{ _('Possible duplicates') }}</span>
+        </a>
+    </li>
 
     <hr class="sidebar-divider">
     <div class="sidebar-heading">{{ _('Planning') }}</div>

@@ -1,0 +1,53 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'admin/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Possible duplicates') }}</h1>
+                    </div>
+                    {% with messages = get_flashed_messages() %}{% for m in messages %}<div class="alert alert-info">{{ _(m) }}</div>{% endfor %}{% endwith %}
+                    <ul class="nav nav-pills mb-3">
+                        {% for k, label in (('publication', _('Publications')), ('dataset', _('Datasets')), ('software', _('Software'))) %}
+                        <li class="nav-item"><a class="nav-link {{ 'active' if k == kind }}" href="{{ url_for('admin.research_duplicates', kind=k, scope='same_project' if same_only) }}">{{ label }} <span class="badge badge-light">{{ counts[k] }}</span></a></li>
+                        {% endfor %}
+                        <li class="nav-item ml-auto">
+                            {% if same_only %}<a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.research_duplicates', kind=kind) }}">{{ _('Show also records of different projects') }}</a>
+                            {% else %}<a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.research_duplicates', kind=kind, scope='same_project') }}">{{ _('Only inside the same project') }}</a>{% endif %}</li>
+                    </ul>
+                    <p class="small text-muted">{{ _('Records with the same DOI, the same title or a very similar title. Choose the record to keep: empty fields are completed from the others, associations are moved to it and the others are deleted.') }}</p>
+                    {% for g in groups %}
+                    <form method="POST" action="{{ url_for('admin.research_duplicates_merge') }}" class="card shadow mb-3" onsubmit="return confirm('{{ _('Merge these records?') }}')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="kind" value="{{ kind }}">
+                        <div class="card-header py-2 d-flex align-items-center">
+                            {% for r in g.reasons %}<span class="badge badge-warning mr-1">{{ _('same DOI') if r == 'doi' else _('same title') if r == 'title' else _('similar title') }}</span>{% endfor %}
+                            <span class="badge badge-{{ 'danger' if g.same_project else 'secondary' }}">{{ _('same project') if g.same_project else _('different projects') }}</span>
+                            <button class="btn btn-primary btn-sm ml-auto" type="submit"><i class="fas fa-compress-arrows-alt"></i> {{ _('Merge') }}</button></div>
+                        <div class="card-body py-2">
+                            {% for o in g['items'] %}
+                            <div class="d-flex align-items-start border-bottom py-2">
+                                <div class="mr-3 text-nowrap"><label class="mb-0 small"><input type="radio" name="keeper" value="{{ o.id }}" {{ 'checked' if loop.first }}> {{ _('keep') }}</label><br>
+                                    <label class="mb-0 small text-muted"><input type="checkbox" name="other" value="{{ o.id }}" checked> {{ _('merge') }}</label></div>
+                                <div><strong>{{ o.title }}</strong>{% if o.year is defined and o.year %} ({{ o.year }}){% endif %}{% if o.version is defined and o.version %} <span class="badge badge-light border">v{{ o.version }}</span>{% endif %}<br>
+                                    <small class="text-muted">#{{ o.id }} · <a href="{{ url_for('admin.research_project', project_id=o.project_id) }}">{{ projects.get(o.project_id, '?') }}</a>
+                                        {% if o.doi %} · doi:{{ o.doi }}{% endif %}{% if o.authors is defined and o.authors %} · {{ o.authors[:80] }}{% endif %}</small>
+                                    <a class="small ml-1" href="{{ url_for('admin.research_output', kind=kind, oid=o.id) }}">{{ _('Manage associations') }}</a></div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="card shadow mb-4"><div class="card-body text-muted"><i class="fas fa-check-circle text-success"></i> {{ _('No duplicates found') }}</div></div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+</body>
+</html>
