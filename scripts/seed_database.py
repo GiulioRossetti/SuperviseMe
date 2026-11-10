@@ -46,6 +46,17 @@ def seed_database():
         
         # Clear existing data (optional - comment out if you want to keep existing data)
         print("Clearing existing data...")
+        from superviseme.models import (
+            Notification, OrcidActivity, ResearchProject, ResearchProject_Collaborator, ResearchProject_Dataset,
+            ResearchProject_Milestone, ResearchProject_Publication, ResearchProject_Resource, ResearchProject_Review,
+            ResearchProject_Thesis, Supervisor_Role,
+        )
+        for model in (ResearchProject_Review, ResearchProject_Resource, ResearchProject_Thesis, ResearchProject_Dataset,
+                      ResearchProject_Milestone, ResearchProject_Publication, ResearchProject_Collaborator,
+                      Supervisor_Role, Notification, OrcidActivity):
+            model.query.delete()
+        ResearchProject.query.update({"parent_id": None})
+        ResearchProject.query.delete()
         Thesis_Tag.query.delete()
         Thesis_Supervisor.query.delete()
         Thesis_Status.query.delete()
@@ -458,6 +469,124 @@ def seed_database():
         
         db.session.commit()
         
+        # Research output: metadata, sub-project, invitations, publications, funding, milestones, datasets,
+        # linked theses, internal reviews, ORCID record and a public project page
+        print("Creating research output demo data...")
+        import json
+        from superviseme.models import (
+            Notification, OrcidActivity, ResearchProject_Dataset, ResearchProject_Milestone, ResearchProject_Publication,
+            ResearchProject_Resource, ResearchProject_Review, ResearchProject_Thesis,
+        )
+        now = int(time.time())
+        day = 86400
+        alice, bob, maria = researchers[0], researchers[1], researchers[2]
+        climate, social, ethics, quantum = projects
+
+        # Metadata shown on project cards / portfolio (levels: see utils/projects.py)
+        climate.level, climate.area, climate.tags = "programme", "Climate science", "machine learning,climate,forecasting"
+        social.level, social.area, social.tags = "full-scale", "Computational social science", "networks,communities"
+        ethics.level, ethics.area, ethics.tags = "longitudinal", "AI ethics", "fairness,bias"
+        quantum.level, quantum.area, quantum.tags = "pilot", "Quantum computing", "quantum,healthcare"
+        climate.created_at, social.created_at, ethics.created_at, quantum.created_at = (
+            now - 700 * day, now - 400 * day, now - 120 * day, now - 30 * day)
+
+        # A paper under the climate programme (sub-project)
+        paper = ResearchProject(
+            title="Precipitation nowcasting with graph networks", description="Paper within the climate programme: short-term rainfall forecasting.",
+            researcher_id=alice.id, level="paper", area="Climate science", tags="machine learning,nowcasting",
+            parent_id=climate.id, frozen=False, created_at=now - 90 * day)
+        db.session.add(paper)
+        db.session.flush()
+
+        # Funding
+        climate.funder, climate.grant_id, climate.start_date, climate.end_date = "European Research Council", "ERC-2024-STG-101", "2024-01-01", "2027-12-31"
+        social.funder, social.grant_id, social.start_date, social.end_date = "PRIN (MUR)", "2022ABCDE", "2023-06-01", "2026-05-31"
+
+        # Collaboration states: accepted roles, a pending invitation (Maria -> climate) and a read-only viewer (Bob -> ethics)
+        db.session.add(ResearchProject_Collaborator(project_id=climate.id, collaborator_id=maria.id, role="collaborator",
+                                                    status="pending", added_at=now - 2 * day))
+        db.session.add(Notification(recipient_id=maria.id, actor_id=alice.id, notification_type="project_invitation",
+                                    title=f"Invitation to project: {climate.title}",
+                                    message=f"{alice.name} {alice.surname} invited you to collaborate on \"{climate.title}\" as collaborator. Accept or decline from your dashboard.",
+                                    action_url="/researcher/dashboard", created_at=now - 2 * day))
+        db.session.add(ResearchProject_Collaborator(project_id=ethics.id, collaborator_id=bob.id, role="viewer",
+                                                    status="accepted", added_at=now - 20 * day))
+
+        # Publications (BibTeX export, portfolio chart, public page)
+        pubs = [
+            (climate, "Deep learning for monthly temperature anomaly forecasting", "Alice Johnson, Bob Williams", 2025, "Journal of Climate Informatics", "10.1000/jci.2025.001", "article"),
+            (climate, "A benchmark for sub-seasonal precipitation prediction", "Alice Johnson", 2024, "Proc. NeurIPS Climate Workshop", "10.1000/nips.2024.017", "conference"),
+            (social, "Community formation in online forums", "Bob Williams, Maria Rodriguez", 2024, "Social Networks", "10.1000/sn.2024.042", "article"),
+            (social, "Influence and homophily: a longitudinal study", "Bob Williams", 2023, "Network Science", "10.1000/ns.2023.009", "article"),
+            (ethics, "Auditing fairness in hiring algorithms", "Maria Rodriguez", 2025, "AI & Society", None, "preprint"),
+        ]
+        for proj, title, authors, year, venue, doi, kind in pubs:
+            db.session.add(ResearchProject_Publication(
+                project_id=proj.id, title=title, authors=authors, year=year, venue=venue, doi=doi, pub_type=kind,
+                url=f"https://doi.org/{doi}" if doi else None, added_by=proj.researcher_id, created_at=now - day))
+
+        # Milestones: one overdue, some upcoming (agenda and .ics feed), one done
+        for proj, title, offset, status in [
+            (climate, "D1.1 Data collection report", -10, "pending"), (climate, "D2.1 Model prototype", 25, "pending"),
+            (climate, "Mid-term review", 120, "pending"), (climate, "D1.0 Kick-off meeting", -300, "done"),
+            (social, "Final report to the funder", 60, "pending"), (ethics, "Workshop submission", 14, "pending"),
+        ]:
+            db.session.add(ResearchProject_Milestone(project_id=proj.id, title=title, due_date=now + offset * day + 12 * 3600,
+                                                     status=status, created_at=now - 30 * day))
+
+        # Datasets with FAIR checklist
+        db.session.add(ResearchProject_Dataset(project_id=climate.id, title="European monthly temperature grid (2000-2024)",
+                                               doi="10.5281/zenodo.1234567", url="https://zenodo.org/record/1234567", license="CC-BY-4.0",
+                                               fair="findable,accessible,interoperable,reusable", created_at=now - 40 * day))
+        db.session.add(ResearchProject_Dataset(project_id=social.id, title="Anonymised forum interaction graph",
+                                               url="https://github.com/example/forum-graph", license="ODbL",
+                                               fair="findable,accessible", created_at=now - 60 * day))
+
+        # Theses done within projects (supervised by Alice / Maria, or published by them)
+        for proj, thesis_obj in [(climate, theses[0]), (social, theses[1]), (ethics, theses[2])]:
+            db.session.add(ResearchProject_Thesis(project_id=proj.id, thesis_id=thesis_obj.id, created_at=now - 10 * day))
+
+        # Resources and internal review requests (Alice <-> Bob on the climate programme)
+        draft = ResearchProject_Resource(project_id=climate.id, resource_type="link", resource_url="https://example.org/drafts/climate-paper-v2.pdf",
+                                         description="Paper draft v2", created_at=now - 6 * day)
+        proto = ResearchProject_Resource(project_id=climate.id, resource_type="link", resource_url="https://example.org/drafts/protocol.pdf",
+                                         description="Data protocol", created_at=now - 12 * day)
+        db.session.add_all([draft, proto])
+        db.session.flush()
+        db.session.add(ResearchProject_Review(project_id=climate.id, resource_id=draft.id, requested_by=alice.id, reviewer_id=bob.id,
+                                              note="Could you check sections 3 and 4 before submission?", status="pending",
+                                              created_at=now - 3 * day, updated_at=now - 3 * day))
+        db.session.add(ResearchProject_Review(project_id=climate.id, resource_id=proto.id, requested_by=alice.id, reviewer_id=bob.id,
+                                              note="Protocol review", status="approved", comment="Looks good, minor typos fixed.",
+                                              created_at=now - 10 * day, updated_at=now - 8 * day))
+        db.session.add(Notification(recipient_id=bob.id, actor_id=alice.id, notification_type="project_review_request",
+                                    title=f"Review requested: {climate.title}",
+                                    message=f"{alice.name} {alice.surname} asked you to review a resource of \"{climate.title}\".",
+                                    action_url=f"/researcher/project/{climate.id}/output#reviews", created_at=now - 3 * day))
+
+        # Public page: climate (description, funding, publications, datasets, team), social (description, publications)
+        climate.is_public, climate.public_fields = True, "description,funding,publications,datasets,collaborators"
+        social.is_public, social.public_fields = True, "description,publications"
+
+        # ORCID record of Dr. Alice (what "Import from your ORCID record" offers) and affiliations shown in the Team card
+        alice.orcid_id = "0000-0002-1825-0097"
+        bob.orcid_id = "0000-0001-5109-3700"
+        def activity(user, title, kind, org=None, year=None, ext=None):
+            db.session.add(OrcidActivity(user_id=user.id, title=title, type=kind, organization=org, publication_date=year,
+                                         external_ids=json.dumps(ext or []), created_at=now, updated_at=now))
+        activity(alice, "Probabilistic downscaling of climate model output", "journal-article", year="2022",
+                 ext=[{"type": "doi", "value": "10.1000/pdcm.2022.5", "url": None}])
+        activity(alice, "Learning-based bias correction for precipitation", "conference-paper", year="2023",
+                 ext=[{"type": "doi", "value": "10.1000/lbbc.2023.8", "url": None}])
+        activity(alice, "Deep learning for monthly temperature anomaly forecasting", "journal-article", year="2025",
+                 ext=[{"type": "doi", "value": "10.1000/jci.2025.001", "url": None}])  # already in the project: not offered
+        activity(alice, "ERC Starting Grant - Climate learning", "funding", org="European Research Council", year="2024",
+                 ext=[{"type": "grant_number", "value": "ERC-2024-STG-101", "url": None}])
+        activity(alice, "Associate Researcher", "employment", org="Institute of Information Science and Technologies, CNR", year="2021")
+        activity(alice, "PhD in Computer Science", "education", org="University of Pisa", year="2016")
+        activity(bob, "Researcher", "employment", org="University of Pisa", year="2020")
+        db.session.commit()
+
         print("Database seeding completed successfully!")
         print(f"Created:")
         print(f"  - 1 admin user (username: admin, password from ADMIN_BOOTSTRAP_PASSWORD)")
@@ -469,6 +598,9 @@ def seed_database():
         print(f"  - {len(collaborations)} research collaborations")
         print(f"  - 2 supervisor role grants (Dr. Alice & Dr. Maria)")
         print(f"  - Thesis statuses and tags")
+        print(f"  - Research output demo: sub-project, funding, 5 publications, milestones (1 overdue), 2 datasets,")
+        print(f"    thesis links, 2 review requests, a pending invitation (Dr. Maria), a viewer (Dr. Bob),")
+        print(f"    ORCID record for Dr. Alice (imports + affiliations) and 2 public project pages")
 
 if __name__ == '__main__':
     seed_database()

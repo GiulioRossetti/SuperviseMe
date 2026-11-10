@@ -161,7 +161,15 @@ Run the scheduler (`ENABLE_SCHEDULER=true`) in a single service only and keep ev
 
 ## 👥 Sample data and credentials
 
-`scripts/seed_database.py` creates 1 admin, 3 supervisors, 3 researchers (two with supervisor privileges), 5 students, 7 theses and 4 research projects. Passwords come from the environment (role-specific `SEED_*_PASSWORD`, then `SEED_DEFAULT_PASSWORD`; development fallback `test`).
+`scripts/seed_database.py` creates 1 admin, 3 supervisors, 3 researchers (two with supervisor privileges), 5 students, 7 theses and 4 research projects (plus a sub-project). The research projects showcase the researcher features:
+
+- **Climate programme** (Dr. Alice): funding (ERC), a sub-project, 2 publications, milestones (one overdue, one done), a dataset with full FAIR checklist, a linked thesis, two review requests to Dr. Bob (one pending, one approved), a **pending invitation** for Dr. Maria and a public page. Log in as Dr. Bob to answer the review, as Dr. Maria to accept the invitation.
+- **Social network project** (Dr. Bob): PRIN funding, publications, a dataset, public page with a reduced set of fields.
+- **Ethics project** (Dr. Maria): Dr. Bob is a read-only **viewer**.
+- Dr. Alice has an **ORCID record** (works, funding, employment) so the "Import from your ORCID record" and funding import can be tried; the employment appears as affiliation in the project team.
+- Open *Portfolio*, *Publications* and the *Agenda* (project milestones) as Dr. Alice; the public pages are at `/projects/<id>` (no login).
+
+Re-running the script resets the demo data. Passwords come from the environment (role-specific `SEED_*_PASSWORD`, then `SEED_DEFAULT_PASSWORD`; development fallback `test`).
 
 | Role | Accounts |
 | --- | --- |
