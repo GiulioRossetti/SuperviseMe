@@ -1,0 +1,143 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'admin/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    {% macro post(action, label, cls='btn-outline-secondary', confirm=None) %}
+                    <form method="POST" action="{{ action }}" class="d-inline"{% if confirm %} onsubmit="return confirm('{{ confirm }}')"{% endif %}>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm {{ cls }}">{{ label }}</button>
+                    </form>
+                    {% endmacro %}
+                    <nav aria-label="breadcrumb"><ol class="breadcrumb bg-transparent px-0 mb-2">
+                        <li class="breadcrumb-item"><a href="{{ url_for('admin.research') }}">{{ _('Research') }}</a></li>
+                        <li class="breadcrumb-item active">{{ project.title }}</li></ol></nav>
+                    <div class="d-sm-flex align-items-start justify-content-between mb-4">
+                        <div>
+                            <h1 class="h3 mb-1 text-gray-800">{{ project.title }}
+                                {% if project.frozen %}<span class="badge badge-warning">{{ _('Frozen') }}</span>{% endif %}
+                                {% if project.is_public %}<span class="badge badge-info">{{ _('Public') }}</span>{% endif %}</h1>
+                            <div class="text-muted small">
+                                {{ level_label(project.level) if project.level else '' }}{% if project.area %} · {{ project.area }}{% endif %}
+                                · {{ _('Owner') }}: <a href="{{ url_for('admin.user_detail', user_id=project.researcher_id) }}">{{ project.researcher.name }} {{ project.researcher.surname }}</a>
+                                {% if project.parent %} · {{ _('Part of') }} <a href="{{ url_for('admin.research_project', project_id=project.parent.id) }}">{{ project.parent.title }}</a>{% endif %}
+                            </div>
+                        </div>
+                        <div class="mt-2 mt-sm-0">
+                            {{ post(url_for('admin.research_project_freeze', project_id=project.id), _('Unfreeze') if project.frozen else _('Freeze')) }}
+                            {{ post(url_for('admin.research_project_visibility', project_id=project.id), _('Disable public page') if project.is_public else _('Enable public page')) }}
+                            {% if project.is_public %}<a class="btn btn-sm btn-outline-info" href="{{ url_for('public.public_project', project_id=project.id) }}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> {{ _('Public page') }}</a>{% endif %}
+                            {{ post(url_for('admin.research_project_delete', project_id=project.id), _('Delete'), 'btn-outline-danger', _('Delete this project and all its data?')) }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Description') }}</h6></div>
+                                <div class="card-body">{{ project.description }}
+                                    {% if project.tag_list %}<div class="mt-2">{% for t in project.tag_list %}<span class="badge badge-light">{{ t }}</span> {% endfor %}</div>{% endif %}</div></div>
+
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Publications') }} ({{ project.publications|length }})</h6></div>
+                                <div class="card-body">
+                                {% for p in project.publications %}
+                                    <div class="mb-2"><strong>{{ p.title }}</strong>{% if p.year %} ({{ p.year }}){% endif %}<br>
+                                        <small class="text-muted">{{ p.authors or '' }}{% if p.venue %} · {{ p.venue }}{% endif %}</small>
+                                        {% if p.doi %}<br><a class="small" href="https://doi.org/{{ p.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ p.doi }}</a>{% endif %}</div>
+                                {% else %}<span class="text-muted small">{{ _('No publications yet') }}</span>{% endfor %}
+                                </div></div>
+
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Datasets') }} ({{ project.datasets|length }})</h6></div>
+                                <div class="card-body">
+                                {% for d in project.datasets %}
+                                    <div class="mb-2"><strong>{{ d.title }}</strong>{% if d.license %} <span class="badge badge-light">{{ d.license }}</span>{% endif %}
+                                        {% for f in (d.fair or '').split(',') if f %}<span class="badge badge-success">{{ f[:1]|upper }}</span> {% endfor %}
+                                        {% if d.doi %}<br><a class="small" href="https://doi.org/{{ d.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ d.doi }}</a>{% endif %}</div>
+                                {% else %}<span class="text-muted small">{{ _('No datasets yet') }}</span>{% endfor %}
+                                </div></div>
+
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Milestones') }}</h6></div>
+                                <div class="card-body">
+                                {% for m in project.milestones %}
+                                    {% set late = m.status == 'pending' and m.due_date < now %}
+                                    <div class="d-flex justify-content-between border-bottom py-1">
+                                        <span>{% if m.status == 'done' %}<i class="fas fa-check-circle text-success"></i>{% else %}<i class="far fa-circle {{ 'text-danger' if late }}"></i>{% endif %} {{ m.title }}</span>
+                                        <span class="small {{ 'text-danger' if late else 'text-muted' }}">{{ iso(m.due_date) }}{% if late %} · {{ _('overdue') }}{% endif %}</span></div>
+                                {% else %}<span class="text-muted small">{{ _('No milestones yet') }}</span>{% endfor %}
+                                </div></div>
+
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Internal reviews') }}</h6></div>
+                                <div class="card-body">
+                                {% for r in project.reviews %}
+                                    <div class="border-bottom py-1 small"><strong>{{ r.resource.title if r.resource else _('Resource') }}</strong> —
+                                        {{ r.reviewer.name }} {{ r.reviewer.surname }}
+                                        <span class="badge badge-{{ 'success' if r.status == 'approved' else 'warning' if r.status == 'pending' else 'danger' }}">{{ r.status|replace('_', ' ') }}</span>
+                                        {% if r.comment %}<div class="text-muted">{{ r.comment }}</div>{% endif %}</div>
+                                {% else %}<span class="text-muted small">{{ _('No review requests') }}</span>{% endfor %}
+                                </div></div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Team') }}</h6></div>
+                                <div class="card-body">
+                                    <div class="mb-2"><a href="{{ url_for('admin.user_detail', user_id=project.researcher_id) }}">{{ project.researcher.name }} {{ project.researcher.surname }}</a> <span class="badge badge-primary">{{ _('Owner') }}</span></div>
+                                    {% for c in team %}{% set u = users.get(c.collaborator_id) %}{% if u %}
+                                    <div class="mb-2"><a href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ u.name }} {{ u.surname }}</a>
+                                        <span class="badge badge-light">{{ c.role }}</span>
+                                        {% if c.status == 'pending' %}<span class="badge badge-warning">{{ _('Invitation pending') }}</span>{% endif %}</div>
+                                    {% endif %}{% endfor %}
+                                    <hr>
+                                    <form method="POST" action="{{ url_for('admin.research_project_owner', project_id=project.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <label class="small text-muted mb-1" for="new_owner_id">{{ _('Reassign ownership') }}</label>
+                                        <div class="input-group input-group-sm">
+                                            <select name="new_owner_id" id="new_owner_id" class="custom-select">
+                                                {% for r in researchers if r.id != project.researcher_id %}<option value="{{ r.id }}">{{ r.surname }} {{ r.name }}</option>{% endfor %}
+                                            </select>
+                                            <div class="input-group-append"><button class="btn btn-outline-primary" type="submit">{{ _('Assign') }}</button></div>
+                                        </div>
+                                    </form>
+                                </div></div>
+
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Funding') }}</h6></div>
+                                <div class="card-body small">
+                                    {% if project.funder or project.grant_id or project.start_date %}
+                                    {% if project.funder %}<div><strong>{{ project.funder }}</strong></div>{% endif %}
+                                    {% if project.grant_id %}<div>{{ _('Grant') }}: {{ project.grant_id }}</div>{% endif %}
+                                    {% if project.start_date or project.end_date %}<div class="text-muted">{{ project.start_date or '…' }} → {{ project.end_date or '…' }}</div>{% endif %}
+                                    {% else %}<span class="text-muted">{{ _('No funding information') }}</span>{% endif %}
+                                </div></div>
+
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Linked theses') }}</h6></div>
+                                <div class="card-body small">
+                                {% for l in project.thesis_links %}
+                                    <div class="mb-1"><a href="{{ url_for('admin.thesis_detail', thesis_id=l.thesis_id) }}">{{ l.thesis.title }}</a></div>
+                                {% else %}<span class="text-muted">{{ _('No linked theses') }}</span>{% endfor %}
+                                </div></div>
+
+                            {% if project.subprojects %}
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Sub-projects') }}</h6></div>
+                                <div class="card-body small">
+                                {% for s in project.subprojects %}<div class="mb-1"><a href="{{ url_for('admin.research_project', project_id=s.id) }}">{{ s.title }}</a></div>{% endfor %}
+                                </div></div>
+                            {% endif %}
+
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Public page') }}</h6></div>
+                                <div class="card-body small">
+                                    {% if project.is_public %}{{ _('Visible fields') }}: {% for f in public_field_names if f in fields %}<span class="badge badge-light">{{ f }}</span> {% endfor %}
+                                    {% else %}<span class="text-muted">{{ _('Not public') }}</span>{% endif %}
+                                </div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    {% include 'admin/components/logout_modal.html' %}
+</body>
+</html>

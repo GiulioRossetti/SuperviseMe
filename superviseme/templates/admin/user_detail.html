@@ -165,7 +165,7 @@
                                 <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Research Projects') }}</h6></div>
                                 <div class="card-body">
                                     {% for p in projects %}
-                                    <div class="border-bottom py-2"><strong>{{ p.title }}</strong>
+                                    <div class="border-bottom py-2"><a href="{{ url_for('admin.research_project', project_id=p.id) }}"><strong>{{ p.title }}</strong></a>
                                         {% if p.frozen %}<span class="badge badge-warning">{{ _('Frozen') }}</span>{% endif %}
                                         <div class="small text-muted">{{ (p.description or '')[:140] }}</div></div>
                                     {% endfor %}

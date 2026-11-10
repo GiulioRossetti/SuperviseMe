@@ -35,7 +35,7 @@
                         <div class="col-12">
                             <div class="alert alert-info">
                                 <strong>{{ _('Search results for:') }}</strong> "{{ search_term }}"
-                                {% if not users and not theses %}
+                                {% if not users and not theses and not projects %}
                                 <br><small class="text-muted">{{ _('No results found. Try a different search term.') }}</small>
                                 {% endif %}
                             </div>
@@ -85,6 +85,19 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Research projects -->
+                    {% if projects %}
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Research projects') }} ({{ projects|length }})</h6></div>
+                        <div class="card-body">
+                            {% for p in projects %}
+                            <div class="border-bottom py-2"><a href="{{ url_for('admin.research_project', project_id=p.id) }}"><strong>{{ p.title }}</strong></a>
+                                <span class="small text-muted"> · {{ p.researcher.name }} {{ p.researcher.surname }}{% if p.funder %} · {{ p.funder }}{% endif %}</span></div>
+                            {% endfor %}
                         </div>
                     </div>
                     {% endif %}

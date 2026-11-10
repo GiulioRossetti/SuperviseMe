@@ -78,7 +78,8 @@ def dashboard():
     # for each supervisor get the list of available theses not assigned to students
     available_theses = [{"thesis": thesis} for thesis in Thesis.query.filter(Thesis.author_id.is_(None)).all()]
 
-    return render_template("/admin/admin_dashboard.html", current_user=current_user,
+    from superviseme.routes.admin_research import research_stats
+    return render_template("/admin/admin_dashboard.html", current_user=current_user, research=research_stats(),
                            user_counts=user_counts, thesis_counts=thesis_counts,
                            theses_by_supervisor=theses_by_supervisor,
                            workload=sorted(theses_by_supervisor.items(), key=lambda kv: (-len(kv[1]), (kv[0].surname or '').lower())),
@@ -545,3 +546,4 @@ def revoke_supervisor_role():
 # Domain modules register their routes on the same blueprint (and are re-exported for shared views).
 from superviseme.routes.admin_theses import *  # noqa: E402,F401,F403
 from superviseme.routes.admin_system import *  # noqa: E402,F401,F403
+from superviseme.routes.admin_research import *  # noqa: E402,F401,F403

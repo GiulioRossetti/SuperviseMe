@@ -20,18 +20,53 @@
     </li>
 
     <hr class="sidebar-divider">
-    <div class="sidebar-heading">{{ _('sidebar.heading.management') }}</div>
+    <div class="sidebar-heading">{{ _('People') }}</div>
 
-    <li class="nav-item{% if request.endpoint == 'admin.users' %} active{% endif %}">
+    <li class="nav-item{% if request.endpoint in ('admin.users', 'admin.user_detail') %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('admin.users') }}">
             <i class="fas fa-fw fa-users"></i><span>{{ _('sidebar.users') }}</span>
         </a>
     </li>
 
-    <li class="nav-item{% if request.endpoint == 'admin.theses' %} active{% endif %}">
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">{{ _('sidebar.heading.supervision') }}</div>
+
+    <li class="nav-item{% if request.endpoint in ('admin.theses', 'admin.thesis_detail') %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('admin.theses') }}">
             <i class="fas fa-fw fa-book-open"></i><span>{{ _('sidebar.theses') }}</span>
         </a>
+    </li>
+    {% if has_reviews is defined and has_reviews(current_user) %}
+    <li class="nav-item{% if request.endpoint in ('workflow.reviews', 'workflow.review_thesis') %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('workflow.reviews') }}"><i class="fas fa-fw fa-glasses"></i><span>{{ _('Reviews') }}</span></a>
+    </li>
+    {% endif %}
+    <li class="nav-item{% if request.endpoint == 'workflow.checklist_templates' %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('workflow.checklist_templates') }}"><i class="fas fa-fw fa-graduation-cap"></i><span>{{ _('Graduation checklists') }}</span></a>
+    </li>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">{{ _('sidebar.heading.research') }}</div>
+
+    <li class="nav-item{% if request.endpoint in ('admin.research', 'admin.research_project') %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('admin.research') }}">
+            <i class="fas fa-fw fa-flask"></i><span>{{ _('Projects') }}</span>
+        </a>
+    </li>
+    <li class="nav-item{% if request.endpoint == 'admin.research_publications' %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('admin.research_publications') }}">
+            <i class="fas fa-fw fa-file-alt"></i><span>{{ _('Publications') }}</span>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-heading">{{ _('Planning') }}</div>
+
+    <li class="nav-item{% if request.endpoint == 'workflow.agenda' %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('workflow.agenda') }}"><i class="fas fa-fw fa-calendar-alt"></i><span>{{ _('Agenda') }}</span></a>
+    </li>
+    <li class="nav-item{% if request.endpoint == 'workflow.reports' %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('workflow.reports') }}"><i class="fas fa-fw fa-file-export"></i><span>{{ _('Reports') }}</span></a>
     </li>
 
     <hr class="sidebar-divider">
@@ -67,7 +102,9 @@
         </div>
     </li>
 
-    {% include 'components/sidebar_workflow.html' %}
+    <li class="nav-item{% if request.endpoint == 'workflow.admin_privacy' %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('workflow.admin_privacy') }}"><i class="fas fa-fw fa-hourglass-half"></i><span>{{ _('Data retention') }}</span></a>
+    </li>
 
     <hr class="sidebar-divider">
     <div class="sidebar-heading">{{ _('sidebar.heading.account') }}</div>

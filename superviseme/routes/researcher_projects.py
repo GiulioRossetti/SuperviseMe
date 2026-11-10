@@ -287,6 +287,17 @@ def _notify_inviter(inv, accepted):
         current_app.logger.exception("Could not notify project owner")
 
 
+def _resolve_invitation_notifications(inv):
+    """Mark the invitee's pending-invitation notifications for this project as read once they answered."""
+    from superviseme.models import Notification
+    project = db.session.get(ResearchProject, inv.project_id)
+    if not project:
+        return
+    Notification.query.filter_by(recipient_id=current_user.id, notification_type="project_invitation", is_read=False,
+                                 title=f"Invitation to project: {project.title}").update({"is_read": True}, synchronize_session=False)
+    db.session.commit()
+
+
 @researcher.route("/researcher/invitations/<int:invitation_id>/accept", methods=["POST"])
 @login_required
 def accept_project_invitation(invitation_id):
@@ -296,6 +307,7 @@ def accept_project_invitation(invitation_id):
     inv = _pending_invitation_or_404(invitation_id)
     inv.status = "accepted"
     db.session.commit()
+    _resolve_invitation_notifications(inv)
     _notify_inviter(inv, True)
     flash("Invitation accepted")
     return redirect(url_for("researcher.project_detail", project_id=inv.project_id))
@@ -309,6 +321,7 @@ def decline_project_invitation(invitation_id):
         return privilege_check
     inv = _pending_invitation_or_404(invitation_id)
     _notify_inviter(inv, False)
+    _resolve_invitation_notifications(inv)
     db.session.delete(inv)
     db.session.commit()
     flash("Invitation declined")

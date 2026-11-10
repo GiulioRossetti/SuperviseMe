@@ -29,6 +29,8 @@ SuperviseMe is a Flask web application that brings supervisors, students, resear
 ### Administrators
 - Dashboard with platform statistics, **supervision workload** (searchable carousel, one supervisor expanded at a time) and the open thesis catalog.
 - **Users** and **Theses** boards with search, filters and carousel pagination; per-user and per-thesis detail pages organised in tabs (Overview, Progress, Activity, People, Settings).
+- **Research** area: platform overview (projects, funded, public pages, publications, datasets, overdue milestones, pending invitations and reviews, distribution by area/type), a filterable and paginated project catalog, a project page (team and invitation status, funding, output, milestones, reviews, public page) with admin actions (freeze, public page on/off, reassign owner, delete) and a **Publications** catalog with BibTeX export.
+- Sidebar grouped by purpose: People, Supervision, Research, Planning, System, Account.
 - Create/edit/disable users, grant supervisor role, reassign supervisors, freeze or delete theses, manage statuses.
 - System statistics, notification/scheduler management, weekly-email preview, JSON/CSV export, data-retention tools (`RETENTION_MONTHS`).
 
@@ -201,7 +203,7 @@ SuperviseMe/
 ├── superviseme/
 │   ├── __init__.py          # Application factory, config, startup upgrade
 │   ├── models.py            # SQLAlchemy models
-│   ├── routes/              # auth, admin (+_theses, _system), supervisor (+_theses, _workspace), student, researcher (+_projects, _output),
+│   ├── routes/              # auth, admin (+_theses, _research, _system), supervisor (+_theses, _workspace), student, researcher (+_projects, _output),
 │   │                        # profile, public, media, workflow, notifications, api_v1
 │   ├── services/            # Service layer
 │   ├── utils/               # Domain helpers: projects, checklist, documents,

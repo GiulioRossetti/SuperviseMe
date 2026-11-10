@@ -1,0 +1,116 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'admin/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    {% from 'components/dash.html' import hero, tile, panel, empty with context %}
+                    {% from 'admin/components/pager.html' import pager %}
+                    {% call hero(_('Research'), _('Research projects across the platform: activity, funding, output and items that need attention.'), 'fa-flask') %}
+                        <a href="{{ url_for('admin.research_publications') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-file-alt"></i> {{ _('Publications') }}</a>
+                    {% endcall %}
+
+                    <div class="dash-tiles">
+                        {{ tile('fa-project-diagram', 'indigo', stats.projects, _('Projects'), (stats.active ~ ' ' ~ _('active') ~ ' · ' ~ stats.frozen ~ ' ' ~ _('frozen')), url_for('admin.research')) }}
+                        {{ tile('fa-coins', 'amber', stats.funded, _('Funded projects'), None, url_for('admin.research', state='funded')) }}
+                        {{ tile('fa-globe', 'sky', stats.public, _('Public pages'), None, url_for('admin.research', state='public')) }}
+                        {{ tile('fa-file-alt', 'green', stats.publications, _('Publications'), None, url_for('admin.research_publications')) }}
+                        {{ tile('fa-database', 'rose', stats.datasets, _('Datasets')) }}
+                        {{ tile('fa-book', 'slate', stats.linked_theses, _('Linked theses')) }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-xl-8">
+                            {% call panel(_('Needs attention'), 'fa-exclamation-circle') %}
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <div class="small text-muted text-uppercase mb-1">{{ _('Overdue milestones') }} <span class="badge badge-{{ 'danger' if stats.overdue_milestones else 'light' }}">{{ stats.overdue_milestones }}</span></div>
+                                        {% for m in overdue %}
+                                        <div class="small mb-1"><a href="{{ url_for('admin.research_project', project_id=m.project_id) }}">{{ m.title }}</a><br><span class="text-muted">{{ m.project.title }} · {{ iso(m.due_date) }}</span></div>
+                                        {% else %}<div class="small text-muted">{{ _('Nothing to report') }}</div>{% endfor %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="small text-muted text-uppercase mb-1">{{ _('Pending invitations') }} <span class="badge badge-{{ 'warning' if stats.pending_invitations else 'light' }}">{{ stats.pending_invitations }}</span></div>
+                                        {% for c in invitations %}
+                                        <div class="small mb-1"><a href="{{ url_for('admin.research_project', project_id=c.project_id) }}">{{ c.collaborator.name }} {{ c.collaborator.surname }}</a><br><span class="text-muted">{{ c.project.title if c.project else '' }}</span></div>
+                                        {% else %}<div class="small text-muted">{{ _('Nothing to report') }}</div>{% endfor %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="small text-muted text-uppercase mb-1">{{ _('Pending reviews') }} <span class="badge badge-{{ 'warning' if stats.pending_reviews else 'light' }}">{{ stats.pending_reviews }}</span></div>
+                                        {% for r in reviews %}
+                                        <div class="small mb-1"><a href="{{ url_for('admin.research_project', project_id=r.project_id) }}">{{ r.resource.title if r.resource else _('Resource') }}</a><br><span class="text-muted">{{ r.reviewer.name }} {{ r.reviewer.surname }}</span></div>
+                                        {% else %}<div class="small text-muted">{{ _('Nothing to report') }}</div>{% endfor %}
+                                    </div>
+                                </div>
+                            {% endcall %}
+                        </div>
+                        <div class="col-xl-4">
+                            {% call panel(_('Distribution'), 'fa-chart-bar') %}
+                                {% set top = (by_area[0][1] if by_area else 1) %}
+                                <div class="small text-muted text-uppercase mb-1">{{ _('By area') }}</div>
+                                {% for name, n in by_area %}
+                                <a class="d-block small mb-1" href="{{ url_for('admin.research', area=name) }}">{{ name }} <span class="text-muted">({{ n }})</span>
+                                    <span class="progress" style="height:4px"><span class="progress-bar" style="width: {{ 100 * n / top }}%"></span></span></a>
+                                {% else %}<div class="small text-muted mb-2">{{ _('No data') }}</div>{% endfor %}
+                                <div class="small text-muted text-uppercase mt-3 mb-1">{{ _('By type') }}</div>
+                                {% for name, n in by_level %}
+                                <a class="badge badge-light mr-1" href="{{ url_for('admin.research', level=name) }}">{{ level_label(name) }} · {{ n }}</a>
+                                {% else %}<div class="small text-muted">{{ _('No data') }}</div>{% endfor %}
+                            {% endcall %}
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">{{ _('Projects') }} <span class="text-muted font-weight-normal">({{ pagination.total }})</span></h6>
+                        </div>
+                        <div class="card-body">
+                            <form method="get" class="form-inline mb-3" id="researchFilters">
+                                <input type="search" name="q" value="{{ filters.q or '' }}" class="form-control form-control-sm mr-2 mb-2" placeholder="{{ _('Search by title, owner, funder, tag...') }}" style="min-width:240px">
+                                <select name="area" class="form-control form-control-sm mr-2 mb-2"><option value="">{{ _('All areas') }}</option>
+                                    {% for a in areas %}<option value="{{ a }}" {{ 'selected' if filters.area == a }}>{{ a }}</option>{% endfor %}</select>
+                                <select name="level" class="form-control form-control-sm mr-2 mb-2"><option value="">{{ _('All types') }}</option>
+                                    {% for v, lab in levels %}<option value="{{ v }}" {{ 'selected' if filters.level == v }}>{{ lab }}</option>{% endfor %}</select>
+                                <select name="state" class="form-control form-control-sm mr-2 mb-2"><option value="">{{ _('Any state') }}</option>
+                                    {% for s, lab in [('active', _('Active')), ('frozen', _('Frozen')), ('public', _('Public page')), ('funded', _('Funded'))] %}<option value="{{ s }}" {{ 'selected' if filters.state == s }}>{{ lab }}</option>{% endfor %}</select>
+                                <select name="owner" class="form-control form-control-sm mr-2 mb-2"><option value="">{{ _('Any owner') }}</option>
+                                    {% for o in owners %}<option value="{{ o.id }}" {{ 'selected' if filters.owner == o.id|string }}>{{ o.surname }} {{ o.name }}</option>{% endfor %}</select>
+                                <button class="btn btn-primary btn-sm mb-2 mr-2" type="submit"><i class="fas fa-search"></i> {{ _('Filter') }}</button>
+                                {% if filters %}<a href="{{ url_for('admin.research') }}" class="btn btn-link btn-sm mb-2">{{ _('Reset') }}</a>{% endif %}
+                            </form>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead><tr><th>{{ _('Project') }}</th><th>{{ _('Owner') }}</th><th>{{ _('Type') }}</th><th>{{ _('Funding') }}</th><th class="text-center">{{ _('Team') }}</th><th class="text-center">{{ _('Pubs') }}</th><th>{{ _('State') }}</th></tr></thead>
+                                    <tbody>
+                                    {% for p in projects %}
+                                    <tr>
+                                        <td><a href="{{ url_for('admin.research_project', project_id=p.id) }}"><strong>{{ p.title }}</strong></a>{% if p.area %}<br><span class="small text-muted">{{ p.area }}</span>{% endif %}</td>
+                                        <td><a href="{{ url_for('admin.user_detail', user_id=p.researcher_id) }}">{{ p.researcher.name }} {{ p.researcher.surname }}</a></td>
+                                        <td class="small">{{ level_label(p.level) if p.level else '—' }}</td>
+                                        <td class="small">{{ p.funder or '—' }}{% if p.grant_id %}<br><span class="text-muted">{{ p.grant_id }}</span>{% endif %}</td>
+                                        <td class="text-center">{{ 1 + (p.collaborators|selectattr('status', 'equalto', 'accepted')|list|length) }}</td>
+                                        <td class="text-center">{{ p.publications|length }}</td>
+                                        <td>{% if p.frozen %}<span class="badge badge-warning">{{ _('Frozen') }}</span>{% else %}<span class="badge badge-success">{{ _('Active') }}</span>{% endif %}
+                                            {% if p.is_public %}<span class="badge badge-info">{{ _('Public') }}</span>{% endif %}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="7" class="text-center text-muted py-4">{{ _('No projects match the filters') }}</td></tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {{ pager(pagination, filters) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    {% include 'admin/components/logout_modal.html' %}
+</body>
+</html>

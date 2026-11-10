@@ -9,18 +9,8 @@
         <a class="nav-link" href="{{ url_for('workflow.reviews') }}"><i class="fas fa-fw fa-glasses"></i><span>{{ _('Reviews') }}</span></a>
     </li>
     {% endif %}
-    {% if current_user.is_authenticated and current_user.user_type == 'admin' %}
-    <li class="nav-item{% if request.endpoint == 'workflow.checklist_templates' %} active{% endif %}">
-        <a class="nav-link" href="{{ url_for('workflow.checklist_templates') }}"><i class="fas fa-fw fa-graduation-cap"></i><span>{{ _('Graduation checklists') }}</span></a>
-    </li>
-    {% endif %}
-    {% if current_user.is_authenticated and current_user.user_type in ('admin', 'supervisor', 'researcher') %}
+    {% if current_user.is_authenticated and current_user.user_type in ('supervisor', 'researcher') %}
     <li class="nav-item{% if request.endpoint in ('workflow.reports',) %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('workflow.reports') }}"><i class="fas fa-fw fa-file-export"></i><span>{{ _('Reports') }}</span></a>
-    </li>
-    {% endif %}
-    {% if current_user.is_authenticated and current_user.user_type == 'admin' %}
-    <li class="nav-item{% if request.endpoint == 'workflow.admin_privacy' %} active{% endif %}">
-        <a class="nav-link" href="{{ url_for('workflow.admin_privacy') }}"><i class="fas fa-fw fa-hourglass-half"></i><span>{{ _('Data retention') }}</span></a>
     </li>
     {% endif %}

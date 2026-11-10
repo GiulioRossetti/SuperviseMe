@@ -1,0 +1,41 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'admin/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    {% from 'admin/components/pager.html' import pager %}
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Publications') }} <span class="text-muted h6">({{ pagination.total }}{% if filters %} / {{ total }}{% endif %})</span></h1>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.research_publications', format='bib', **filters) }}"><i class="fas fa-download"></i> BibTeX</a>
+                    </div>
+                    <div class="card shadow mb-4"><div class="card-body">
+                        <form method="get" class="form-inline mb-3">
+                            <input type="search" name="q" value="{{ filters.q or '' }}" class="form-control form-control-sm mr-2 mb-2" placeholder="{{ _('Search by title, author, venue, DOI...') }}" style="min-width:260px">
+                            <select name="year" class="form-control form-control-sm mr-2 mb-2"><option value="">{{ _('Any year') }}</option>
+                                {% for y in years %}<option value="{{ y }}" {{ 'selected' if filters.year == y|string }}>{{ y }}</option>{% endfor %}</select>
+                            <select name="type" class="form-control form-control-sm mr-2 mb-2"><option value="">{{ _('Any type') }}</option>
+                                {% for t in types %}<option value="{{ t }}" {{ 'selected' if filters.type == t }}>{{ t }}</option>{% endfor %}</select>
+                            <button class="btn btn-primary btn-sm mb-2 mr-2" type="submit"><i class="fas fa-search"></i> {{ _('Filter') }}</button>
+                            {% if filters %}<a href="{{ url_for('admin.research_publications') }}" class="btn btn-link btn-sm mb-2">{{ _('Reset') }}</a>{% endif %}
+                        </form>
+                        {% for p in pubs %}
+                            <div class="mb-3"><strong>{{ p.title }}</strong>{% if p.year %} ({{ p.year }}){% endif %} <span class="badge badge-light">{{ p.pub_type }}</span><br>
+                                <small class="text-muted">{{ p.authors or '' }}{% if p.venue %} · {{ p.venue }}{% endif %} ·
+                                    <a href="{{ url_for('admin.research_project', project_id=p.project_id) }}">{{ p.project.title }}</a></small>
+                                {% if p.doi %}<br><a class="small" href="https://doi.org/{{ p.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ p.doi }}</a>{% endif %}</div>
+                        {% else %}<p class="text-muted mb-0">{{ _('No publications match the filters') }}</p>{% endfor %}
+                        {{ pager(pagination, filters) }}
+                    </div></div>
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    {% include 'admin/components/logout_modal.html' %}
+</body>
+</html>

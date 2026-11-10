@@ -43,6 +43,9 @@ def test_invite_pending_then_accept(app):
     assert g.post(f"/researcher/invitations/{inv}/accept").status_code == 302
     assert _status(app, pid, gid) == "accepted"
     assert g.get(f"/researcher/project/{pid}").status_code == 200
+    with app.app_context():
+        # answering the invitation resolves the invitee's notification
+        assert Notification.query.filter_by(recipient_id=gid, notification_type="project_invitation", is_read=False).count() == 0
 
 
 def test_decline_removes_and_others_cannot_answer(app):

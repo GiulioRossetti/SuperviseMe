@@ -4584,3 +4584,147 @@ msgstr "Crea copia"
 
 msgid "Copies metadata, objectives, hypotheses, open to-dos and (if a start date is given) milestones shifted to it."
 msgstr "Copia metadati, obiettivi, ipotesi, to-do aperti e (se indichi una data di inizio) le milestone traslate su di essa."
+
+msgid "Planning"
+msgstr "Pianificazione"
+
+msgid "Research"
+msgstr "Ricerca"
+
+msgid "Research projects across the platform: activity, funding, output and items that need attention."
+msgstr "Progetti di ricerca della piattaforma: attività, finanziamenti, output ed elementi che richiedono attenzione."
+
+msgid "Platform overview: people, supervision workload, the thesis catalog and research."
+msgstr "Panoramica della piattaforma: persone, carico di supervisione, catalogo tesi e ricerca."
+
+msgid "Public pages"
+msgstr "Pagine pubbliche"
+
+msgid "frozen"
+msgstr "congelati"
+
+msgid "funded"
+msgstr "finanziati"
+
+msgid "publications"
+msgstr "pubblicazioni"
+
+msgid "invitations"
+msgstr "inviti"
+
+msgid "reviews"
+msgstr "review"
+
+msgid "Research items to follow"
+msgstr "Elementi di ricerca da seguire"
+
+msgid "Research projects"
+msgstr "Progetti di ricerca"
+
+msgid "Overdue milestones"
+msgstr "Milestone in ritardo"
+
+msgid "Pending invitations"
+msgstr "Inviti in sospeso"
+
+msgid "Pending reviews"
+msgstr "Review in sospeso"
+
+msgid "Nothing to report"
+msgstr "Nessuna segnalazione"
+
+msgid "Distribution"
+msgstr "Distribuzione"
+
+msgid "By area"
+msgstr "Per area"
+
+msgid "By type"
+msgstr "Per tipo"
+
+msgid "No data"
+msgstr "Nessun dato"
+
+msgid "Search by title, owner, funder, tag..."
+msgstr "Cerca per titolo, responsabile, ente finanziatore, tag..."
+
+msgid "All areas"
+msgstr "Tutte le aree"
+
+msgid "All types"
+msgstr "Tutti i tipi"
+
+msgid "Any state"
+msgstr "Qualsiasi stato"
+
+msgid "Funded"
+msgstr "Finanziato"
+
+msgid "Any owner"
+msgstr "Qualsiasi responsabile"
+
+msgid "Filter"
+msgstr "Filtra"
+
+msgid "Owner"
+msgstr "Responsabile"
+
+msgid "Pubs"
+msgstr "Pubb."
+
+msgid "State"
+msgstr "Stato"
+
+msgid "No projects match the filters"
+msgstr "Nessun progetto corrisponde ai filtri"
+
+msgid "Pagination"
+msgstr "Paginazione"
+
+msgid "Part of"
+msgstr "Parte di"
+
+msgid "Disable public page"
+msgstr "Disattiva pagina pubblica"
+
+msgid "Enable public page"
+msgstr "Attiva pagina pubblica"
+
+msgid "Delete this project and all its data?"
+msgstr "Eliminare questo progetto e tutti i suoi dati?"
+
+msgid "No datasets yet"
+msgstr "Nessun dataset"
+
+msgid "Internal reviews"
+msgstr "Review interne"
+
+msgid "Reassign ownership"
+msgstr "Riassegna la titolarità"
+
+msgid "Assign"
+msgstr "Assegna"
+
+msgid "Grant"
+msgstr "Grant"
+
+msgid "No funding information"
+msgstr "Nessuna informazione sui finanziamenti"
+
+msgid "Visible fields"
+msgstr "Campi visibili"
+
+msgid "Not public"
+msgstr "Non pubblico"
+
+msgid "Search by title, author, venue, DOI..."
+msgstr "Cerca per titolo, autore, sede, DOI..."
+
+msgid "Any year"
+msgstr "Qualsiasi anno"
+
+msgid "Any type"
+msgstr "Qualsiasi tipo"
+
+msgid "No publications match the filters"
+msgstr "Nessuna pubblicazione corrisponde ai filtri"

@@ -522,9 +522,14 @@ def search():
             )
         ).all()
     
+    projects = ResearchProject.query.filter(
+        or_(ResearchProject.title.ilike(f"%{search_term}%"), ResearchProject.tags.ilike(f"%{search_term}%"),
+            ResearchProject.funder.ilike(f"%{search_term}%"))
+    ).order_by(ResearchProject.title).limit(50).all()
+
     return render_template("admin/search_results.html", 
                          users=users, 
-                         theses=theses, 
+                         theses=theses, projects=projects,
                          search_term=search_term,
                          user_type="admin",
                          dt=datetime.datetime.fromtimestamp)

@@ -7,7 +7,7 @@ from flask_login import current_user, login_required
 from superviseme import db
 from superviseme.models import (
     ResearchProject, ResearchProject_Collaborator, ResearchProject_Dataset, ResearchProject_Milestone,
-    ResearchProject_Publication, ResearchProject_Resource, ResearchProject_Review, ResearchProject_Thesis, Thesis, User_mgmt,
+    ResearchProject_Publication, ResearchProject_Resource, ResearchProject_Review, ResearchProject_Thesis, Thesis, User_mgmt, Notification,
 )
 from superviseme.routes.researcher import researcher
 from superviseme.utils import research_output as ro
@@ -407,6 +407,9 @@ def decide_review(project_id, review_id):
         return _back(project)
     review.status, review.updated_at = decision, int(time.time())
     review.comment = (request.form.get("comment") or "").strip()[:4000] or None
+    Notification.query.filter_by(recipient_id=current_user.id, notification_type="project_review_request", is_read=False,
+                                 action_url=url_for("researcher.project_output", project_id=project.id) + "#reviews"
+                                 ).update({"is_read": True}, synchronize_session=False)
     db.session.commit()
     _notify(review.requested_by, "project_review_done", f"Review {decision.replace('_', ' ')}: {project.title}",
             f"{current_user.name} {current_user.surname}: {decision.replace('_', ' ')}.",

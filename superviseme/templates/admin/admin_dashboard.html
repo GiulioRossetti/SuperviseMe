@@ -24,9 +24,10 @@
 
                     {% from 'components/dash.html' import hero, tile, panel, empty, avatar with context %}
                     {% set greet = {'morning': _('Good morning, %(name)s', name=current_user.name), 'afternoon': _('Good afternoon, %(name)s', name=current_user.name), 'evening': _('Good evening, %(name)s', name=current_user.name)}[greeting] %}
-                    {% call hero(greet, _('Platform overview: people, supervision workload and the thesis catalog.'), 'fa-shield-alt') %}
+                    {% call hero(greet, _('Platform overview: people, supervision workload, the thesis catalog and research.'), 'fa-shield-alt') %}
                         <a href="{{ url_for('admin.users') }}" class="btn btn-primary btn-sm"><i class="fas fa-users-cog"></i> {{ _('Manage users') }}</a>
                         <a href="{{ url_for('admin.theses') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-book"></i> {{ _('Manage theses') }}</a>
+                        <a href="{{ url_for('admin.research') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-flask"></i> {{ _('Research') }}</a>
                     {% endcall %}
 
                     <div class="dash-tiles">
@@ -35,6 +36,10 @@
                         {{ tile('fa-flask', 'rose', user_counts['researchers'], _('Researchers'), href=url_for('admin.users')) }}
                         {{ tile('fa-user-shield', 'indigo', user_counts['admins'], _('Admins'), href=url_for('admin.users')) }}
                         {{ tile('fa-book', 'amber', thesis_counts['total'], _('Theses'), (available_theses|length ~ ' ' ~ _('open')), url_for('admin.theses')) }}
+                        {{ tile('fa-project-diagram', 'indigo', research.projects, _('Research projects'), (research.funded ~ ' ' ~ _('funded') ~ ' · ' ~ research.publications ~ ' ' ~ _('publications')), url_for('admin.research')) }}
+                        {% if research.overdue_milestones or research.pending_invitations or research.pending_reviews %}
+                        {{ tile('fa-exclamation-circle', 'amber', research.overdue_milestones + research.pending_invitations + research.pending_reviews, _('Research items to follow'), (research.overdue_milestones ~ ' ' ~ _('overdue') ~ ' · ' ~ research.pending_invitations ~ ' ' ~ _('invitations') ~ ' · ' ~ research.pending_reviews ~ ' ' ~ _('reviews')), url_for('admin.research')) }}
+                        {% endif %}
                     </div>
 
                     <div class="row">

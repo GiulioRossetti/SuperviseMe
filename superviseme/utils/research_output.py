@@ -108,7 +108,21 @@ def crossref_to_fields(meta):
 # ---- cascade ------------------------------------------------------------------------------------------------
 
 def delete_output(project_id):
-    for model in (ResearchProject_Publication, ResearchProject_Milestone, ResearchProject_Dataset, ResearchProject_Thesis, ResearchProject_Review):
+    """Delete everything that hangs off a project (output tables and the core project workspace rows)."""
+    from superviseme.models import (ResearchProject_Hypothesis, ResearchProject_MeetingNote, ResearchProject_MeetingNoteReference,
+                                    ResearchProject_Objective, ResearchProject_Resource, ResearchProject_Status,
+                                    ResearchProject_Todo, ResearchProject_TodoReference, ResearchProject_Update)
+    ids = lambda model: [i for (i,) in db.session.query(model.id).filter_by(project_id=project_id)]  # noqa: E731
+    todo_ids, update_ids, note_ids = ids(ResearchProject_Todo), ids(ResearchProject_Update), ids(ResearchProject_MeetingNote)
+    if todo_ids or update_ids:
+        ResearchProject_TodoReference.query.filter(db.or_(ResearchProject_TodoReference.todo_id.in_(todo_ids),
+                                                          ResearchProject_TodoReference.update_id.in_(update_ids))).delete(synchronize_session=False)
+    if todo_ids or note_ids:
+        ResearchProject_MeetingNoteReference.query.filter(db.or_(ResearchProject_MeetingNoteReference.todo_id.in_(todo_ids),
+                                                                 ResearchProject_MeetingNoteReference.meeting_note_id.in_(note_ids))).delete(synchronize_session=False)
+    for model in (ResearchProject_Review, ResearchProject_Publication, ResearchProject_Milestone, ResearchProject_Dataset,
+                  ResearchProject_Thesis, ResearchProject_Todo, ResearchProject_Update, ResearchProject_MeetingNote,
+                  ResearchProject_Resource, ResearchProject_Objective, ResearchProject_Hypothesis, ResearchProject_Status):
         model.query.filter_by(project_id=project_id).delete(synchronize_session=False)
 
 
