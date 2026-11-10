@@ -955,3 +955,25 @@ def test_admin_dashboard_with_several_supervisors(client, admin_user, supervisor
     assert r.status_code == 200
     html = r.get_data(as_text=True)
     assert html.index("Supervisor_test") < html.index("Second_sup")  # busiest supervisor first
+
+
+def test_build_thesis_cards_uses_constant_queries(app, supervisor_user, student_user):
+    from sqlalchemy import event
+    from superviseme.utils.thesis_board import build_thesis_cards
+    from superviseme import db
+    from superviseme.models import Thesis
+    for _ in range(6):
+        _assign(student_user, supervisor_user)
+    theses = Thesis.query.all()
+    counter = {"n": 0}
+
+    def _count(conn, cursor, statement, parameters, context, executemany):
+        counter["n"] += 1
+    event.listen(db.engine, "before_cursor_execute", _count)
+    try:
+        active, archived = build_thesis_cards(theses)
+    finally:
+        event.remove(db.engine, "before_cursor_execute", _count)
+    assert len(active) == 6 and not archived
+    assert all(c["supervisors"] and c["student"] for c in active)
+    assert counter["n"] <= 12, counter["n"]

@@ -1,0 +1,51 @@
+{# One .us-item per user: rendered for the current page by admin.users_cards #}
+{% for u in users %}
+{% set sup = u.user_type == 'researcher' and u.id in sup_researchers %}
+<div class="sv-item us-item" data-role="{{ u.user_type }}" data-enabled="{{ 1 if u.is_enabled else 0 }}"
+     data-q="{{ (u.name ~ ' ' ~ u.surname ~ ' ' ~ u.email ~ ' ' ~ u.username)|lower }}">
+    <div class="sv-card {{ '' if u.is_enabled else 'is-inactive' }}">
+        <div class="sv-card-top">
+            {% if u.profile_pic %}<img class="sm-avatar" src="{{ avatar_url(u) }}" alt="">{% else %}<div class="sm-avatar">{{ (u.name or '?')[:1] }}{{ (u.surname or '')[:1] }}</div>{% endif %}
+            <div class="sv-id">
+                <a class="sv-name" href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ u.name }} {{ u.surname }}</a>
+                <div class="sv-email" title="{{ u.email }}">{{ u.email }}</div>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-link btn-sm text-muted p-0" data-toggle="dropdown" aria-label="{{ _('More') }}"><i class="fas fa-ellipsis-v"></i></button>
+                <div class="dropdown-menu dropdown-menu-right">
+                    <a class="dropdown-item" href="{{ url_for('admin.user_detail', user_id=u.id) }}"><i class="fas fa-eye fa-fw mr-1"></i> {{ _('Details') }}</a>
+                    <a class="dropdown-item" href="mailto:{{ u.email }}"><i class="fas fa-envelope fa-fw mr-1"></i> {{ _('Email') }}</a>
+                    <button type="button" class="dropdown-item js-toggle" data-id="{{ u.id }}" data-enabled="{{ 1 if u.is_enabled else 0 }}">
+                        <i class="fas fa-{{ 'user-slash' if u.is_enabled else 'user-check' }} fa-fw mr-1 text-warning"></i> {{ _('Disable') if u.is_enabled else _('Enable') }}
+                    </button>
+                    {% if u.user_type == 'researcher' %}
+                    <form action="{{ url_for('admin.revoke_supervisor_role' if sup else 'admin.grant_supervisor_role') }}" method="POST" class="m-0">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="researcher_id" value="{{ u.id }}">
+                        <button type="submit" class="dropdown-item"><i class="fas fa-{{ 'user-minus' if sup else 'chalkboard-teacher' }} fa-fw mr-1 text-success"></i> {{ _('Revoke supervisor privileges') if sup else _('Grant supervisor privileges') }}</button>
+                    </form>
+                    {% endif %}
+                    {% if u.id != current_user.id %}
+                    <div class="dropdown-divider"></div>
+                    <button type="button" class="dropdown-item text-danger js-delete" data-id="{{ u.id }}" data-name="{{ u.name }} {{ u.surname }}"><i class="fas fa-trash fa-fw mr-1"></i> {{ _('Delete') }}</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="sv-badges">
+            <span class="badge badge-primary">{{ _(u.user_type|capitalize) }}</span>
+            {% if sup %}<span class="badge badge-success">{{ _('Supervisor role') }}</span>{% endif %}
+            <span class="badge {{ 'badge-success' if u.is_enabled else 'badge-warning' }}">{{ _('Enabled') if u.is_enabled else _('Disabled') }}</span>
+            {% if u.google_id %}<span class="badge badge-light border" title="{{ _('Google User') }}"><i class="fab fa-google"></i></span>{% endif %}
+            {% if u.orcid_id %}<span class="badge badge-light border" title="{{ _('ORCID User') }}"><i class="fab fa-orcid text-success"></i></span>{% endif %}
+        </div>
+        <div class="sv-activity {{ 'ok' if u.last_activity else 'warn' }}">
+            <i class="fas fa-circle"></i>
+            {% if u.last_activity %}{{ _('Last online:') }} {{ datetime.fromtimestamp(u.last_activity).strftime('%b %d, %Y') }}{% else %}{{ _('Not yet logged') }}{% endif %}
+        </div>
+        <div class="sv-actions">
+            <a href="{{ url_for('admin.user_detail', user_id=u.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-id-card"></i> {{ _('Open') }}</a>
+        </div>
+    </div>
+</div>
+{% endfor %}

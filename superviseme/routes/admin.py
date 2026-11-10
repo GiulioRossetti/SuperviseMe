@@ -109,14 +109,45 @@ def users():
     privilege_check = check_privileges(current_user.username, role="admin")
     if privilege_check is not True:
         return privilege_check
-    all_users = User_mgmt.query.order_by(User_mgmt.surname, User_mgmt.name).all()
+    counts = dict(db.session.query(User_mgmt.user_type, db.func.count(User_mgmt.id)).group_by(User_mgmt.user_type).all())
+    disabled_count = User_mgmt.query.filter(User_mgmt.is_enabled.is_(False)).count()
+    return render_template("/admin/users.html", current_user=current_user, total_users=sum(counts.values()),
+                           counts=counts, disabled_count=disabled_count)
+
+
+def _like_escape(term):
+    return term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+@admin.route("/admin/users/cards")
+@login_required
+def users_cards():
+    """Server-side paginated and filtered user cards (HTML fragment) for the users board."""
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
+    query = User_mgmt.query
+    for term in (request.args.get("q") or "").split():
+        like = f"%{_like_escape(term)}%"
+        query = query.filter(db.or_(
+            User_mgmt.name.ilike(like, escape="\\"), User_mgmt.surname.ilike(like, escape="\\"),
+            User_mgmt.email.ilike(like, escape="\\"), User_mgmt.username.ilike(like, escape="\\"),
+        ))
+    role = request.args.get("role")
+    if role in ("student", "supervisor", "researcher", "admin"):
+        query = query.filter(User_mgmt.user_type == role)
+    status = request.args.get("status")
+    if status in ("0", "1"):
+        query = query.filter(User_mgmt.is_enabled.is_(status == "1"))
+    per = max(1, min(request.args.get("per", 8, type=int), 48))
+    total = query.count()
+    pages = max(1, -(-total // per))
+    page = max(1, min(request.args.get("page", 1, type=int), pages))
+    users = query.order_by(User_mgmt.surname, User_mgmt.name, User_mgmt.id).offset((page - 1) * per).limit(per).all()
     sup_researchers = {r[0] for r in db.session.query(Supervisor_Role.researcher_id).filter(Supervisor_Role.active.is_(True)).all()}
-    counts = {}
-    for u in all_users:
-        counts[u.user_type] = counts.get(u.user_type, 0) + 1
-    return render_template("/admin/users.html", current_user=current_user, users=all_users,
-                           sup_researchers=sup_researchers, counts=counts, datetime=__import__("datetime").datetime,
-                           disabled_count=sum(1 for u in all_users if not u.is_enabled))
+    html = render_template("/admin/components/user_cards.html", users=users, sup_researchers=sup_researchers,
+                           datetime=__import__("datetime").datetime)
+    return jsonify(total=total, page=page, pages=pages, per=per, html=html)
 
 
 @admin.route("/admin/create_user", methods=["POST"])

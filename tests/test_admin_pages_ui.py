@@ -7,7 +7,8 @@ def test_admin_users_and_theses_pages(client, admin_user, supervisor_user, stude
     r = client.get("/admin/users")
     assert r.status_code == 200
     html = r.get_data(as_text=True)
-    assert "usSource" in html and supervisor_user.email in html and "createUserModal" in html
+    assert "usSection" in html and "createUserModal" in html and "admin/users/cards" in html
+    assert supervisor_user.email in client.get("/admin/users/cards").get_json()["html"]
     r = client.get("/admin/theses")
     assert r.status_code == 200
     html = r.get_data(as_text=True)
@@ -64,11 +65,30 @@ def test_admin_user_detail_roles(client, admin_user, supervisor_user, student_us
 def test_users_board_offers_supervisor_toggle_for_researchers(client, admin_user, researcher_user, app):
     from superviseme.models import Supervisor_Role
     login(client, admin_user)
-    page = client.get("/admin/users").get_data(as_text=True)
+    page = client.get("/admin/users/cards").get_json()["html"]
     assert "Grant supervisor privileges" in page or "Concedi privilegi" in page
     client.post("/admin/grant_supervisor_role", data={"researcher_id": researcher_user.id},
                 headers={"Referer": "/admin/users"})
     with app.app_context():
         assert Supervisor_Role.query.filter_by(researcher_id=researcher_user.id, active=True).count() == 1
-    page = client.get("/admin/users").get_data(as_text=True)
+    page = client.get("/admin/users/cards").get_json()["html"]
     assert "Revoke supervisor privileges" in page or "Revoca privilegi" in page
+
+
+def test_users_cards_endpoint_paginates_and_filters_server_side(client, admin_user, supervisor_user, student_user):
+    login(client, admin_user)
+    d = client.get("/admin/users/cards?per=2&page=1").get_json()
+    assert d["total"] == 3 and d["pages"] == 2 and d["html"].count("us-item") == 2
+    d2 = client.get("/admin/users/cards?per=2&page=2").get_json()
+    assert d2["html"].count("us-item") == 1
+    assert client.get("/admin/users/cards?role=student").get_json()["total"] == 1
+    assert client.get("/admin/users/cards?q=zzzz-none").get_json()["total"] == 0
+    assert client.get("/admin/users/cards?q=%25").get_json()["total"] == 0  # LIKE wildcard is escaped
+    assert client.get("/admin/users/cards?status=0").get_json()["total"] == 0
+    # page out of range is clamped
+    assert client.get("/admin/users/cards?per=2&page=99").get_json()["page"] == 2
+
+
+def test_users_cards_requires_admin(client, student_user):
+    login(client, student_user)
+    assert client.get("/admin/users/cards").status_code in (302, 403)
