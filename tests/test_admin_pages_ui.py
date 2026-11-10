@@ -39,6 +39,11 @@ def test_admin_detail_pages(client, admin_user, supervisor_user, student_user, a
     r = client.get("/admin/thesis/%d" % tid)
     html = r.get_data(as_text=True)
     assert r.status_code == 200 and "login.html" not in html and "Expressions of Interest" in html
+    for pane in ("tabOverview", "tabProgress", "tabActivity", "tabPeople", "tabAdmin"):
+        assert 'id="%s"' % pane in html
+    # every pane holds its own content
+    assert html.index('id="tabProgress"') < html.index('id="milestones"') < html.index('id="tabActivity"')
+    assert html.index('id="tabPeople"') < html.index('id="team"') < html.index('id="tabAdmin"')
     r = client.get("/admin/user/%d" % student_user.id)
     assert r.status_code == 200 and "login.html" not in r.get_data(as_text=True)
     r = client.post("/admin/archive_thesis", data={"thesis_id": tid, "action": "archive", "next": "list"})

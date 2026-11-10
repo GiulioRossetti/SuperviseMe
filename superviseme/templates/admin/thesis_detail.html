@@ -57,6 +57,17 @@
                         {% endif %}
                     {% endwith %}
 
+                    <ul class="nav nav-pills sm-profile-tabs mb-3" id="thesisTabs" role="tablist">
+                        <li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#tabOverview" role="tab"><i class="fas fa-info-circle fa-fw"></i> {{ _('Overview') }}</a></li>
+                        <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#tabProgress" role="tab"><i class="fas fa-tasks fa-fw"></i> {{ _('Progress') }}</a></li>
+                        <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#tabActivity" role="tab"><i class="fas fa-comments fa-fw"></i> {{ _('Activity') }} <span class="badge badge-light border">{{ updates|length + meeting_notes|length + todos|length }}</span></a></li>
+                        <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#tabPeople" role="tab"><i class="fas fa-users fa-fw"></i> {{ _('People') }}{% if interests %} <span class="badge badge-danger">{{ interests|length }}</span>{% endif %}</a></li>
+                        <li class="nav-item"><a class="nav-link" data-toggle="pill" href="#tabAdmin" role="tab"><i class="fas fa-cog fa-fw"></i> {{ _('Settings') }}</a></li>
+                    </ul>
+
+                    <div class="tab-content">
+
+                        <div class="tab-pane fade show active" id="tabOverview" role="tabpanel">
                     <!-- Thesis information + statistics -->
                     <div class="row">
                         <div class="col-xl-8 col-lg-7">
@@ -252,26 +263,99 @@
 
                     </div></div>
 
-                    <!-- Roadmap, documents, checklist and team: compact panels on a single row -->
-                    <div class="row sm-compact">
-                        <div class="col-xl-3 col-md-6 mb-4">
+                        </div>
+
+                        <div class="tab-pane fade" id="tabProgress" role="tabpanel">
+                            <div class="row sm-compact">
+                        <div class="col-xl-4 col-lg-6 mb-4">
                             {% with mm_role='admin', mm_next=url_for('admin.thesis_detail', thesis_id=thesis.id) %}{% include 'components/milestones.html' %}{% endwith %}
                         </div>
-                        <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="col-xl-4 col-lg-6 mb-4">
                             {% with mm_role='admin', mm_next=url_for('admin.thesis_detail', thesis_id=thesis.id) %}{% include 'components/documents.html' %}{% endwith %}
                         </div>
-                        <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="col-xl-4 col-lg-12 mb-4">
                             {% with mm_role='admin', mm_next=url_for('admin.thesis_detail', thesis_id=thesis.id) %}{% include 'components/checklist.html' %}{% endwith %}
                         </div>
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            {% with mm_role='admin', mm_next=url_for('admin.thesis_detail', thesis_id=thesis.id) %}{% include 'components/team.html' %}{% endwith %}
+                            </div>
+                            <div class="row">
+                        <div class="col-xl-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Objectives') }}</h6></div>
+                        <div class="card-body">
+                            {% for o in objectives %}<div class="border-bottom pb-2 mb-2"><div class="d-flex justify-content-between"><h6 class="font-weight-bold mb-1">{{ o.title }}</h6><span class="badge badge-{{ 'secondary' if o.frozen else 'info' }}">{{ _(o.status|capitalize) }}</span></div><div class="small text-gray-700">{{ o.description }}</div><small class="text-muted">{{ dt(o.created_at).strftime('%b %d, %Y') }}</small></div>
+                            {% else %}<p class="text-muted mb-0">{{ _('No objectives yet.') }}</p>{% endfor %}
                         </div>
                     </div>
 
-                    <!-- Administration -->
-                    <div class="row">
-                        <div class="col-xl-4 col-lg-6">
-                            <!-- Student Assignment -->
+                        </div>
+                        <div class="col-xl-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Hypotheses') }}</h6></div>
+                        <div class="card-body">
+                            {% for o in hypotheses %}<div class="border-bottom pb-2 mb-2"><div class="d-flex justify-content-between"><h6 class="font-weight-bold mb-1">{{ o.title }}</h6><span class="badge badge-{{ 'secondary' if o.frozen else 'info' }}">{{ _(o.status|capitalize) }}</span></div><div class="small text-gray-700">{{ o.description }}</div><small class="text-muted">{{ dt(o.created_at).strftime('%b %d, %Y') }}</small></div>
+                            {% else %}<p class="text-muted mb-0">{{ _('No hypotheses yet.') }}</p>{% endfor %}
+                        </div>
+                    </div>
+
+                        </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tabActivity" role="tabpanel">
+                            <div class="row">
+                        <div class="col-xl-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Updates & Feedback') }}</h6></div>
+                        <div class="card-body">
+                            <div style="max-height: 360px; overflow-y: auto;">
+                            {% for update in updates %}<div class="border-bottom pb-2 mb-2"><div class="d-flex justify-content-between"><small class="text-primary">{{ update.update_type|replace('_', ' ')|capitalize }}</small><small class="text-muted">{{ dt(update.created_at).strftime('%Y-%m-%d') }}</small></div><p class="mb-0 small">{{ update.content[:300] }}{% if update.content|length > 300 %}…{% endif %}</p></div>
+                            {% else %}<p class="text-muted mb-0">{{ _('No updates yet.') }}</p>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                        </div>
+                        <div class="col-xl-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Meeting Notes') }}</h6></div>
+                        <div class="card-body">
+                            {% for n in meeting_notes %}<div class="border-bottom pb-2 mb-2"><div class="d-flex justify-content-between"><strong>{{ n.title }}</strong><small class="text-muted">{{ dt(n.created_at).strftime('%b %d, %Y') }}</small></div><p class="mb-0 small text-gray-700">{{ n.content[:240] }}{% if n.content|length > 240 %}…{% endif %}</p></div>
+                            {% else %}<p class="text-muted mb-0">{{ _('No meeting notes yet.') }}</p>{% endfor %}
+                        </div>
+                    </div>
+
+                        </div>
+                            </div>
+                            <div class="row">
+                        <div class="col-xl-7">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('ToDo List') }}</h6></div>
+                        <div class="card-body">
+                            {% if todos %}<div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>{{ _('Task') }}</th><th>{{ _('Priority') }}</th><th>{{ _('Status') }}</th><th>{{ _('Due') }}</th></tr></thead><tbody>
+                            {% for t in todos %}<tr><td>{{ t.title }}</td><td><span class="badge badge-light border">{{ _(t.priority|capitalize) }}</span></td><td><span class="badge badge-{{ 'success' if t.status == 'completed' else 'secondary' if t.status == 'cancelled' else 'warning' }}">{{ _(t.status|capitalize) }}</span></td><td>{{ dt(t.due_date).strftime('%b %d, %Y') if t.due_date else '—' }}</td></tr>{% endfor %}
+                            </tbody></table></div>{% else %}<p class="text-muted mb-0">{{ _('No tasks yet.') }}</p>{% endif %}
+                        </div>
+                    </div>
+
+                        </div>
+                        <div class="col-xl-5">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Resources') }}</h6></div>
+                        <div class="card-body">
+                            {% for r in resources %}<div class="border-bottom pb-2 mb-2"><span class="badge badge-light border">{{ r.resource_type }}</span> <a href="{{ r.resource_url }}" target="_blank" rel="noopener noreferrer nofollow">{{ r.resource_url }}</a>{% if r.description %}<div class="small text-muted">{{ r.description }}</div>{% endif %}</div>
+                            {% else %}<p class="text-muted mb-0">{{ _('No resources yet.') }}</p>{% endfor %}
+                        </div>
+                    </div>
+
+
+                        </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tabPeople" role="tabpanel">
+                            <div class="row">
+                        <div class="col-xl-6 col-lg-6">
+                                                        <!-- Student Assignment -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
                                     <h6 class="m-0 font-weight-bold text-primary">{{ _('Student Assignment') }}</h6>
@@ -307,11 +391,9 @@
                                     </form>
                                 </div>
                             </div>
-
-
                         </div>
-                        <div class="col-xl-4 col-lg-6">
-                            <!-- Supervisors -->
+                        <div class="col-xl-6 col-lg-6">
+                                                        <!-- Supervisors -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
                                     <h6 class="m-0 font-weight-bold text-primary">{{ _('Supervisors') }}</h6>
@@ -357,9 +439,55 @@
                                     </form>
                                 </div>
                             </div>
+                        </div>
+                            </div>
+                            <div class="row sm-compact">
+                        <div class="col-xl-6 col-lg-12 mb-4">
+                            {% with mm_role='admin', mm_next=url_for('admin.thesis_detail', thesis_id=thesis.id) %}{% include 'components/team.html' %}{% endwith %}
+                        </div>
+                        <div class="col-xl-6 col-lg-12">
+                            <!-- Expressions of Interest -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Expressions of Interest') }}</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if interests %}
+                                        {% for interest in interests %}
+                                            <div class="border rounded p-2 mb-2">
+                                                <div><strong>{{ user_link(interest.student) }}</strong> ({{ interest.student.email }})</div>
+                                                {% if interest.message %}
+                                                    <div class="small text-muted mt-1">{{ interest.message }}</div>
+                                                {% endif %}
+                                                <div class="mt-2 d-flex">
+                                                    {% if not thesis.author_id %}
+                                                        <form action="/admin/thesis_interest/assign/{{ interest.id }}" method="POST" class="mr-2">
+                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                            <button type="submit" class="btn btn-sm btn-success">{{ _('Assign Thesis') }}</button>
+                                                        </form>
+                                                    {% endif %}
+                                                    <form action="/admin/thesis_interest/delete/{{ interest.id }}" method="POST">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">{{ _('Decline') }}</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-muted mb-0">{{ _('No expressions of interest yet.') }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+
 
                         </div>
-                        <div class="col-xl-4 col-lg-12">
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="tabAdmin" role="tabpanel">
+                            <div class="row">
+                        <div class="col-xl-6">
                             <!-- Tags -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
@@ -396,6 +524,9 @@
                             </div>
 
 
+
+                        </div>
+                        <div class="col-xl-6">
                             <!-- Archive Controls -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
@@ -418,91 +549,12 @@
                             </div>
 
 
-                        </div>
-                    </div>
 
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Objectives') }}</h6></div>
-                        <div class="card-body">
-                            {% for o in objectives %}<div class="border-bottom pb-2 mb-2"><div class="d-flex justify-content-between"><h6 class="font-weight-bold mb-1">{{ o.title }}</h6><span class="badge badge-{{ 'secondary' if o.frozen else 'info' }}">{{ _(o.status|capitalize) }}</span></div><div class="small text-gray-700">{{ o.description }}</div><small class="text-muted">{{ dt(o.created_at).strftime('%b %d, %Y') }}</small></div>
-                            {% else %}<p class="text-muted mb-0">{{ _('No objectives yet.') }}</p>{% endfor %}
                         </div>
-                    </div>
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Hypotheses') }}</h6></div>
-                        <div class="card-body">
-                            {% for o in hypotheses %}<div class="border-bottom pb-2 mb-2"><div class="d-flex justify-content-between"><h6 class="font-weight-bold mb-1">{{ o.title }}</h6><span class="badge badge-{{ 'secondary' if o.frozen else 'info' }}">{{ _(o.status|capitalize) }}</span></div><div class="small text-gray-700">{{ o.description }}</div><small class="text-muted">{{ dt(o.created_at).strftime('%b %d, %Y') }}</small></div>
-                            {% else %}<p class="text-muted mb-0">{{ _('No hypotheses yet.') }}</p>{% endfor %}
-                        </div>
-                    </div>
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Updates & Feedback') }}</h6></div>
-                        <div class="card-body">
-                            <div style="max-height: 360px; overflow-y: auto;">
-                            {% for update in updates %}<div class="border-bottom pb-2 mb-2"><div class="d-flex justify-content-between"><small class="text-primary">{{ update.update_type|replace('_', ' ')|capitalize }}</small><small class="text-muted">{{ dt(update.created_at).strftime('%Y-%m-%d') }}</small></div><p class="mb-0 small">{{ update.content[:300] }}{% if update.content|length > 300 %}…{% endif %}</p></div>
-                            {% else %}<p class="text-muted mb-0">{{ _('No updates yet.') }}</p>{% endfor %}
                             </div>
                         </div>
-                    </div>
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Meeting Notes') }}</h6></div>
-                        <div class="card-body">
-                            {% for n in meeting_notes %}<div class="border-bottom pb-2 mb-2"><div class="d-flex justify-content-between"><strong>{{ n.title }}</strong><small class="text-muted">{{ dt(n.created_at).strftime('%b %d, %Y') }}</small></div><p class="mb-0 small text-gray-700">{{ n.content[:240] }}{% if n.content|length > 240 %}…{% endif %}</p></div>
-                            {% else %}<p class="text-muted mb-0">{{ _('No meeting notes yet.') }}</p>{% endfor %}
-                        </div>
-                    </div>
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('ToDo List') }}</h6></div>
-                        <div class="card-body">
-                            {% if todos %}<div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>{{ _('Task') }}</th><th>{{ _('Priority') }}</th><th>{{ _('Status') }}</th><th>{{ _('Due') }}</th></tr></thead><tbody>
-                            {% for t in todos %}<tr><td>{{ t.title }}</td><td><span class="badge badge-light border">{{ _(t.priority|capitalize) }}</span></td><td><span class="badge badge-{{ 'success' if t.status == 'completed' else 'secondary' if t.status == 'cancelled' else 'warning' }}">{{ _(t.status|capitalize) }}</span></td><td>{{ dt(t.due_date).strftime('%b %d, %Y') if t.due_date else '—' }}</td></tr>{% endfor %}
-                            </tbody></table></div>{% else %}<p class="text-muted mb-0">{{ _('No tasks yet.') }}</p>{% endif %}
-                        </div>
-                    </div>
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Resources') }}</h6></div>
-                        <div class="card-body">
-                            {% for r in resources %}<div class="border-bottom pb-2 mb-2"><span class="badge badge-light border">{{ r.resource_type }}</span> <a href="{{ r.resource_url }}" target="_blank" rel="noopener noreferrer nofollow">{{ r.resource_url }}</a>{% if r.description %}<div class="small text-muted">{{ r.description }}</div>{% endif %}</div>
-                            {% else %}<p class="text-muted mb-0">{{ _('No resources yet.') }}</p>{% endfor %}
-                        </div>
-                    </div>
 
-                    <div class="row"><div class="col-12">
-                            <!-- Expressions of Interest -->
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Expressions of Interest') }}</h6>
-                                </div>
-                                <div class="card-body">
-                                    {% if interests %}
-                                        {% for interest in interests %}
-                                            <div class="border rounded p-2 mb-2">
-                                                <div><strong>{{ user_link(interest.student) }}</strong> ({{ interest.student.email }})</div>
-                                                {% if interest.message %}
-                                                    <div class="small text-muted mt-1">{{ interest.message }}</div>
-                                                {% endif %}
-                                                <div class="mt-2 d-flex">
-                                                    {% if not thesis.author_id %}
-                                                        <form action="/admin/thesis_interest/assign/{{ interest.id }}" method="POST" class="mr-2">
-                                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                            <button type="submit" class="btn btn-sm btn-success">{{ _('Assign Thesis') }}</button>
-                                                        </form>
-                                                    {% endif %}
-                                                    <form action="/admin/thesis_interest/delete/{{ interest.id }}" method="POST">
-                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger">{{ _('Decline') }}</button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        {% endfor %}
-                                    {% else %}
-                                        <p class="text-muted mb-0">{{ _('No expressions of interest yet.') }}</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-
-                    </div></div>
+                    </div>
 
                 </div>
                 <!-- /.container-fluid -->
@@ -524,6 +576,21 @@
     <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
     </a>
+
+    <script>
+    (function () {
+        var KEY = 'adminThesisTab:{{ thesis.id }}';
+        function show(h) { var a = document.querySelector('#thesisTabs a[href="' + h + '"]'); if (a) { $(a).tab('show'); return true; } return false; }
+        window.addEventListener('load', function () {
+            var saved = null;
+            try { saved = sessionStorage.getItem(KEY); } catch (e) {}
+            if (!(location.hash && show(location.hash)) && saved) show(saved);
+            $('#thesisTabs a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+                try { sessionStorage.setItem(KEY, e.target.getAttribute('href')); } catch (err) {}
+            });
+        });
+    })();
+    </script>
 
     <script>
         function deleteThesis(thesisId) {

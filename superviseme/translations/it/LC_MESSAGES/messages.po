@@ -4365,3 +4365,9 @@ msgstr "Nessuna risorsa."
 
 msgid "Due"
 msgstr "Scadenza"
+
+msgid "Activity"
+msgstr "Attività"
+
+msgid "Settings"
+msgstr "Impostazioni"
