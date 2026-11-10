@@ -71,9 +71,8 @@ def delete_milestone(milestone_id):
 # ═══════════════════════════ Agenda: slots, meetings, calendar files ═══════════════════════════
 from datetime import date, datetime, timedelta  # noqa: E402
 
-from flask import Response, render_template  # noqa: E402
 
-from superviseme.models import Availability_Slot, MeetingNote, Meeting, Thesis, Thesis_Supervisor, User_mgmt  # noqa: E402
+from superviseme.models import Availability_Slot, MeetingNote, Meeting, Thesis  # noqa: E402
 from superviseme.utils import meetings as meeting_utils  # noqa: E402
 from superviseme.utils.ics import build_calendar  # noqa: E402
 from superviseme.utils.miscellanea import user_has_supervisor_role  # noqa: E402

@@ -4,6 +4,7 @@ from sqlalchemy import select, and_, func, or_
 from sqlalchemy.orm import joinedload
 from superviseme.utils import security
 from superviseme.utils.miscellanea import check_privileges
+from superviseme.routes._supervision import ep, supervision_gate
 from superviseme.utils.thesis_resources import normalize_resource_url, resolve_resource_type
 from superviseme.utils.activity_tracker import get_inactive_students
 from superviseme.utils.thesis_management import delete_thesis_with_dependencies
@@ -322,8 +323,17 @@ def post_update():
     This route handles posting updates to a thesis. It retrieves the necessary data from the form,
     creates a new Update object, and saves it to the database.
     """
+    privilege_check = supervision_gate()
+    if privilege_check is not True:
+        return privilege_check
+
     thesis_id = request.form.get("thesis_id")
     content = request.form.get("content")
+
+    # Only a supervisor of this thesis may post supervisor updates on it
+    if not Thesis_Supervisor.query.filter_by(thesis_id=thesis_id, supervisor_id=current_user.id).first():
+        flash(_("You don't have permission to update this thesis"))
+        return redirect(url_for(ep('theses')))
 
     new_update = Thesis_Update(
         thesis_id=thesis_id,
@@ -346,7 +356,7 @@ def post_update():
     from superviseme.utils.notifications import create_supervisor_feedback_notification
     create_supervisor_feedback_notification(thesis_id, current_user.id, content)
 
-    return thesis_detail(thesis_id)
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
 
 
 @supervisor.route("/supervisor/post_comment", methods=["POST"])
@@ -416,20 +426,6 @@ def delete_update(update_id):
     return redirect(url_for('supervisor.theses_data'))
 
 
-#@supervisor.route("/delete_thesis/<int:thesis_id>")
-#@login_required
-def delete_thesis(thesis_id):
-    """
-    This route handles deleting a thesis by its ID. It retrieves the thesis, deletes it from the database,
-    and redirects to the theses data page.
-    """
-    thesis = Thesis.query.get_or_404(thesis_id)
-    db.session.delete(thesis)
-    db.session.commit()
-
-    return theses_data()
-
-
 @supervisor.route("/supervisor/delete_comment", methods=["POST"])
 @login_required
 def delete_comment():
@@ -468,7 +464,7 @@ def modify_update():
     This route handles modifying an update. It retrieves the necessary data from the form,
     updates the content of the update in the database, and redirects to the thesis detail page.
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -486,9 +482,9 @@ def modify_update():
     if update:
         update.content = new_content
         db.session.commit()
-        return redirect(url_for('supervisor.thesis_detail', thesis_id=update.thesis_id))
+        return redirect(url_for(ep('thesis_detail'), thesis_id=update.thesis_id))
 
-    return redirect(url_for('supervisor.theses_data'))
+    return redirect(url_for(ep('theses')))
 
 
 @supervisor.route("/supervisor/modify_comment", methods=["POST"])
@@ -1182,7 +1178,7 @@ def comment_on_update():
     This route handles adding comments to student updates. It creates a comment
     as a child update linked to the parent update.
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -1210,9 +1206,9 @@ def comment_on_update():
         db.session.add(new_comment)
         db.session.commit()
         
-        return redirect(url_for('supervisor.thesis_detail', thesis_id=parent_update.thesis_id))
+        return redirect(url_for(ep('thesis_detail'), thesis_id=parent_update.thesis_id))
     
-    return redirect(url_for('supervisor.theses_data'))
+    return redirect(url_for(ep('theses')))
 
 
 @supervisor.route("/supervisor/tag_student_update", methods=["POST"])
@@ -1259,7 +1255,7 @@ def set_thesis_status():
     This route handles setting the advancement status of a thesis. It creates or updates
     the thesis status and saves it to the database.
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -1282,9 +1278,9 @@ def set_thesis_status():
         db.session.add(new_status)
         db.session.commit()
         
-        return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+        return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
     
-    return redirect(url_for('supervisor.theses_data'))
+    return redirect(url_for(ep('theses')))
 
 
 # Todo routes for supervisors
@@ -1294,7 +1290,7 @@ def add_todo():
     """
     Add a new todo item for a supervised thesis
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -1312,7 +1308,7 @@ def add_todo():
     ).first()
     
     if not thesis_supervisor:
-        return redirect(url_for('supervisor.dashboard'))
+        return redirect(url_for(ep('dashboard')))
     
     # Convert due_date string to timestamp if provided
     due_date_timestamp = None
@@ -1338,7 +1334,7 @@ def add_todo():
     db.session.add(new_todo)
     db.session.commit()
     
-    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
 
 
 @supervisor.route("/supervisor/toggle_todo/<int:todo_id>", methods=["POST"])
@@ -1686,7 +1682,7 @@ def unassign_thesis(thesis_id):
 @supervisor.route("/supervisor/thesis_interest/assign/<int:interest_id>", methods=["POST"])
 @login_required
 def assign_thesis_interest(interest_id):
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
 
@@ -1694,19 +1690,19 @@ def assign_thesis_interest(interest_id):
     thesis = Thesis.query.get_or_404(interest.thesis_id)
     if thesis.publisher_id != current_user.id:
         flash("Only the thesis publisher can handle interests for this thesis.", "warning")
-        return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+        return redirect(url_for(ep('thesis_detail'), thesis_id=thesis.id))
     if interest.status != "pending":
         flash("This interest request has already been handled.", "info")
-        return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+        return redirect(url_for(ep('thesis_detail'), thesis_id=thesis.id))
     if thesis.author_id:
         flash("Thesis is already assigned.", "warning")
-        return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+        return redirect(url_for(ep('thesis_detail'), thesis_id=thesis.id))
 
     from superviseme.utils.capacity import active_thesis_message, capacity_message
     over = active_thesis_message(interest.student_id, thesis.id) or capacity_message(thesis)
     if over:
         flash(over, "warning")
-        return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+        return redirect(url_for(ep('thesis_detail'), thesis_id=thesis.id))
 
     thesis.author_id = interest.student_id
     db.session.add(
@@ -1735,13 +1731,13 @@ def assign_thesis_interest(interest_id):
         action_url="/student/thesis",
     )
     flash("Interest accepted and thesis assigned.", "success")
-    return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis.id))
 
 
 @supervisor.route("/supervisor/thesis_interest/delete/<int:interest_id>", methods=["POST"])
 @login_required
 def delete_thesis_interest(interest_id):
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
 
@@ -1749,15 +1745,15 @@ def delete_thesis_interest(interest_id):
     thesis = Thesis.query.get_or_404(interest.thesis_id)
     if thesis.publisher_id != current_user.id:
         flash("Only the thesis publisher can handle interests for this thesis.", "warning")
-        return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+        return redirect(url_for(ep('thesis_detail'), thesis_id=thesis.id))
     if interest.status != "pending":
         flash("This interest request has already been handled.", "info")
-        return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+        return redirect(url_for(ep('thesis_detail'), thesis_id=thesis.id))
 
     decline_interest(interest, current_user.id)
     db.session.commit()
     flash("Expression of interest declined.", "info")
-    return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis.id))
 
 
 @supervisor.route("/supervisor/add_resource", methods=["POST"])
@@ -1812,7 +1808,7 @@ def add_objective():
     """
     Allow supervisors to add objectives to supervised theses
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -1828,7 +1824,7 @@ def add_objective():
     
     if not thesis_supervisor:
         flash("Thesis not found or not supervised by you")
-        return redirect(url_for('supervisor.dashboard'))
+        return redirect(url_for(ep('dashboard')))
     
     new_objective = Thesis_Objective(
         thesis_id=thesis_id,
@@ -1842,7 +1838,7 @@ def add_objective():
     db.session.commit()
     flash("Objective added successfully")
     
-    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
 
 
 @supervisor.route("/supervisor/edit_objective/<int:objective_id>", methods=["POST"])
@@ -1851,7 +1847,7 @@ def edit_objective(objective_id):
     """
     Allow supervisors to edit objectives in supervised theses
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -1865,7 +1861,7 @@ def edit_objective(objective_id):
     
     if not objective:
         flash("Objective not found or not accessible")
-        return redirect(url_for('supervisor.dashboard'))
+        return redirect(url_for(ep('dashboard')))
     
     objective.title = request.form.get("title", objective.title)
     objective.description = request.form.get("description", objective.description)
@@ -1873,7 +1869,7 @@ def edit_objective(objective_id):
     db.session.commit()
     flash("Objective updated successfully")
     
-    return redirect(url_for('supervisor.thesis_detail', thesis_id=objective.thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=objective.thesis_id))
 
 
 @supervisor.route("/supervisor/add_hypothesis", methods=["POST"])
@@ -1882,7 +1878,7 @@ def add_hypothesis():
     """
     Allow supervisors to add hypotheses to supervised theses
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -1898,7 +1894,7 @@ def add_hypothesis():
     
     if not thesis_supervisor:
         flash("Thesis not found or not supervised by you")
-        return redirect(url_for('supervisor.dashboard'))
+        return redirect(url_for(ep('dashboard')))
     
     new_hypothesis = Thesis_Hypothesis(
         thesis_id=thesis_id,
@@ -1912,7 +1908,7 @@ def add_hypothesis():
     db.session.commit()
     flash("Hypothesis added successfully")
     
-    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
 
 
 @supervisor.route("/supervisor/edit_hypothesis/<int:hypothesis_id>", methods=["POST"])
@@ -1921,7 +1917,7 @@ def edit_hypothesis(hypothesis_id):
     """
     Allow supervisors to edit hypotheses in supervised theses
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -1935,7 +1931,7 @@ def edit_hypothesis(hypothesis_id):
     
     if not hypothesis:
         flash("Hypothesis not found or not accessible")
-        return redirect(url_for('supervisor.dashboard'))
+        return redirect(url_for(ep('dashboard')))
     
     hypothesis.title = request.form.get("title", hypothesis.title)
     hypothesis.description = request.form.get("description", hypothesis.description)
@@ -1943,7 +1939,7 @@ def edit_hypothesis(hypothesis_id):
     db.session.commit()
     flash("Hypothesis updated successfully")
     
-    return redirect(url_for('supervisor.thesis_detail', thesis_id=hypothesis.thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=hypothesis.thesis_id))
 
 
 @supervisor.route("/supervisor/delete_objective/<int:objective_id>", methods=["POST", "DELETE"])
@@ -1952,7 +1948,7 @@ def delete_objective(objective_id):
     """
     Allow supervisors to delete objectives from supervised theses
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -1966,14 +1962,14 @@ def delete_objective(objective_id):
     
     if not objective:
         flash("Objective not found or not accessible")
-        return redirect(url_for('supervisor.dashboard'))
+        return redirect(url_for(ep('dashboard')))
     
     thesis_id = objective.thesis_id
     db.session.delete(objective)
     db.session.commit()
     flash("Objective deleted successfully")
     
-    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
 
 
 @supervisor.route("/supervisor/delete_hypothesis/<int:hypothesis_id>", methods=["POST", "DELETE"])
@@ -1982,7 +1978,7 @@ def delete_hypothesis(hypothesis_id):
     """
     Allow supervisors to delete hypotheses from supervised theses
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -1996,14 +1992,14 @@ def delete_hypothesis(hypothesis_id):
     
     if not hypothesis:
         flash("Hypothesis not found or not accessible")
-        return redirect(url_for('supervisor.dashboard'))
+        return redirect(url_for(ep('dashboard')))
     
     thesis_id = hypothesis.thesis_id
     db.session.delete(hypothesis)
     db.session.commit()
     flash("Hypothesis deleted successfully")
     
-    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
 
 
 @supervisor.route("/supervisor/edit_resource/<int:resource_id>", methods=["POST"])
@@ -2079,7 +2075,7 @@ def add_meeting_note():
     """
     Allow supervisors to add meeting notes to supervised theses
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -2095,7 +2091,7 @@ def add_meeting_note():
     
     if not thesis_supervisor:
         flash("Thesis not found or not supervised by you")
-        return redirect(url_for('supervisor.dashboard'))
+        return redirect(url_for(ep('dashboard')))
     
     current_time = int(time.time())
     new_meeting_note = MeetingNote(
@@ -2122,7 +2118,7 @@ def add_meeting_note():
         create_meeting_note_todo_references(meeting_note_id, todo_refs)
     
     flash("Meeting note added successfully")
-    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
 
 
 @supervisor.route("/supervisor/edit_meeting_note/<int:note_id>", methods=["POST"])
@@ -2131,7 +2127,7 @@ def edit_meeting_note(note_id):
     """
     Allow supervisors to edit meeting notes in supervised theses
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -2144,7 +2140,7 @@ def edit_meeting_note(note_id):
     
     if not meeting_note:
         flash("Meeting note not found or not accessible")
-        return redirect(url_for('supervisor.dashboard'))
+        return redirect(url_for(ep('dashboard')))
     
     meeting_note.title = request.form.get("title", meeting_note.title)
     meeting_note.content = request.form.get("content", meeting_note.content)
@@ -2161,7 +2157,7 @@ def edit_meeting_note(note_id):
     create_meeting_note_todo_references(meeting_note_id, todo_refs)
     
     flash("Meeting note updated successfully")
-    return redirect(url_for('supervisor.thesis_detail', thesis_id=meeting_note.thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=meeting_note.thesis_id))
 
 
 @supervisor.route("/supervisor/meeting_note/<int:note_id>")
@@ -2204,7 +2200,7 @@ def delete_meeting_note(note_id):
     """
     Allow supervisors to delete meeting notes from supervised theses
     """
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return privilege_check
     
@@ -2217,27 +2213,27 @@ def delete_meeting_note(note_id):
     
     if not meeting_note:
         flash("Meeting note not found or not accessible")
-        return redirect(url_for('supervisor.dashboard'))
+        return redirect(url_for(ep('dashboard')))
     
     thesis_id = meeting_note.thesis_id
     db.session.delete(meeting_note)
     db.session.commit()
     
     flash("Meeting note deleted successfully")
-    return redirect(url_for('supervisor.thesis_detail', thesis_id=thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
 
 
 # --- Thesis presentation: images and external reference links -----------------
 
 def _managed_thesis_or_redirect(thesis_id):
-    privilege_check = check_privileges(current_user.username, role="supervisor")
+    privilege_check = supervision_gate()
     if privilege_check is not True:
         return None, privilege_check
     thesis = db.session.get(Thesis, thesis_id)
     from superviseme.utils.thesis_media import user_manages_thesis
     if not thesis or not user_manages_thesis(current_user, thesis):
         flash(_("Thesis not found or not managed by you"))
-        return None, redirect(url_for("supervisor.theses_data"))
+        return None, redirect(url_for(ep('theses')))
     return thesis, None
 
 
@@ -2249,7 +2245,7 @@ def add_thesis_images(thesis_id):
         return bad
     from superviseme.utils.thesis_media import handle_images_request
     handle_images_request(thesis, request)
-    return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
 
 
 @supervisor.route("/supervisor/thesis/<int:thesis_id>/images/<int:image_id>/delete", methods=["POST"])
@@ -2260,7 +2256,7 @@ def delete_thesis_image(thesis_id, image_id):
         return bad
     from superviseme.utils.thesis_media import delete_image
     flash(_("Image removed.") if delete_image(thesis, image_id) else _("Image not found."))
-    return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
 
 
 @supervisor.route("/supervisor/thesis/<int:thesis_id>/links", methods=["POST"])
@@ -2271,7 +2267,7 @@ def add_thesis_link(thesis_id):
         return bad
     from superviseme.utils.thesis_media import handle_link_request
     handle_link_request(thesis, request)
-    return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
 
 
 @supervisor.route("/supervisor/thesis/<int:thesis_id>/links/<int:link_id>/delete", methods=["POST"])
@@ -2282,4 +2278,4 @@ def delete_thesis_link(thesis_id, link_id):
         return bad
     from superviseme.utils.thesis_media import delete_link
     flash(_("Link removed.") if delete_link(thesis, link_id) else _("Link not found."))
-    return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis_id))
+    return redirect(url_for(ep('thesis_detail'), thesis_id=thesis_id))
