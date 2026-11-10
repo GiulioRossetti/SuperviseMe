@@ -27,6 +27,7 @@ def test_job_is_a_noop_without_app(ts, monkeypatch, job, module, func):
 @pytest.mark.parametrize("job,module,func", JOBS)
 def test_job_runs_target_inside_app_context(ts, app, monkeypatch, job, module, func):
     import importlib
+    monkeypatch.setenv("RETENTION_ENABLED", "true")
     from flask import has_app_context
     seen = []
     monkeypatch.setattr(ts, "_flask_app", app)
@@ -38,6 +39,7 @@ def test_job_runs_target_inside_app_context(ts, app, monkeypatch, job, module, f
 @pytest.mark.parametrize("job,module,func", JOBS)
 def test_job_swallows_errors(ts, app, monkeypatch, job, module, func):
     import importlib
+    monkeypatch.setenv("RETENTION_ENABLED", "true")
 
     def boom(*a, **k):
         raise RuntimeError("boom")
@@ -82,3 +84,20 @@ def test_init_scheduler_registers_expected_jobs_once(ts, app, monkeypatch):
 def test_status_when_not_initialised(ts, monkeypatch):
     monkeypatch.setattr(ts, "scheduler", None)
     assert ts.get_scheduler_status() == {"status": "not_initialized", "jobs": []}
+
+
+def test_retention_is_off_by_default(ts, app, monkeypatch, admin_user):
+    import importlib
+    from superviseme.utils import privacy
+    monkeypatch.delenv("RETENTION_ENABLED", raising=False)
+    monkeypatch.setattr(ts, "_flask_app", app)
+    called = []
+    monkeypatch.setattr(privacy, "purge_expired", lambda *a, **k: called.append(1) or {})
+    ts._retention_job()
+    assert called == []
+    with app.app_context():
+        assert privacy.retention_enabled() is False
+    monkeypatch.setenv("RETENTION_ENABLED", "true")
+    ts._retention_job()
+    assert called == [1]
+    importlib.import_module("superviseme.utils.privacy")

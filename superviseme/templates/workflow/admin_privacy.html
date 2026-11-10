@@ -3,10 +3,12 @@
 {% block page_content %}
 {% call hero(_('Data retention'), _('Retention policy of this installation'), 'fa-user-shield') %}{% endcall %}
 {% call panel(_('Policy'), 'fa-hourglass-half') %}
-    <p>{{ _('Notifications, reminder history and profile-view logs older than %(m)d months are deleted every night. Change the period with the RETENTION_MONTHS setting.', m=months) }}</p>
+    {% if enabled %}<div class="alert alert-warning small">{{ _('Automatic deletion is enabled (RETENTION_ENABLED).') }}</div>
+    {% else %}<div class="alert alert-secondary small">{{ _('Automatic deletion is disabled: no data is removed. Set RETENTION_ENABLED=true to enable it.') }}</div>{% endif %}
+    <p>{{ _('Notifications, reminder history and profile-view logs older than %(m)d months are deleted every night when automatic deletion is enabled. Change the period with the RETENTION_MONTHS setting.', m=months) }}</p>
     <form method="POST" action="{{ url_for('workflow.admin_privacy') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="btn btn-outline-danger btn-sm">{{ _('Run the cleanup now') }}</button>
+        <button class="btn btn-outline-danger btn-sm"{% if not enabled %} disabled{% endif %}>{{ _('Run the cleanup now') }}</button>
     </form>
     {% if purged is not none %}<div class="alert alert-success mt-3 small mb-0">{{ _('Removed: %(n)d notifications, %(r)d reminders, %(v)d profile views.', n=purged.notifications, r=purged.reminders, v=purged.profile_views) }}</div>{% endif %}
 {% endcall %}

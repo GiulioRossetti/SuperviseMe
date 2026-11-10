@@ -30,6 +30,14 @@ VIEW_DEDUP_SECONDS = 3600
 SENSITIVE_COLUMNS = {"password", "orcid_access_token"}
 
 
+def retention_enabled():
+    """Automatic deletion is opt-in: off unless RETENTION_ENABLED is set to a truthy value."""
+    raw = current_app.config.get("RETENTION_ENABLED")
+    if raw is None:
+        raw = os.environ.get("RETENTION_ENABLED")
+    return str(raw if raw is not None else "").strip().lower() in ("1", "true", "yes", "on")
+
+
 def retention_months():
     try:
         return max(1, int(current_app.config.get("RETENTION_MONTHS") or os.environ.get("RETENTION_MONTHS") or 24))

@@ -891,8 +891,9 @@ def privacy_delete():
 @login_required
 def admin_privacy():
     _admin_only()
-    purged = pv.purge_expired() if request.method == "POST" else None
-    return render_template("workflow/admin_privacy.html", months=pv.retention_months(), purged=purged)
+    enabled = pv.retention_enabled()
+    purged = pv.purge_expired() if request.method == "POST" and enabled else None
+    return render_template("workflow/admin_privacy.html", months=pv.retention_months(), purged=purged, enabled=enabled)
 
 
 # ---------------------------------------------------------------- external calendar (iCal feed)

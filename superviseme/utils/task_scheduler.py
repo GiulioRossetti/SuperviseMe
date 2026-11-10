@@ -43,7 +43,10 @@ def _retention_job():
         return
     with app.app_context():
         try:
-            from superviseme.utils.privacy import purge_expired
+            from superviseme.utils.privacy import purge_expired, retention_enabled
+            if not retention_enabled():
+                logger.info("APScheduler: retention purge skipped (RETENTION_ENABLED is off)")
+                return
             logger.info("APScheduler: retention purge: %s", purge_expired())
         except Exception as exc:
             logger.error("APScheduler: retention purge failed: %s", exc, exc_info=True)

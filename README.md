@@ -137,6 +137,7 @@ Configuration is read from environment variables (see `.env.example` and [docs/c
 | `COOKIE_SECURE` | Force the `Secure` flag on session cookies on/off (default: on in production) |
 | `CSP_MODE`, `CSP_EXTRA_SOURCES`, `CSP_REPORT_URI` | Content-Security-Policy: `enforce` (default), `report-only` or `off`; extra allowed sources; optional report endpoint |
 | `UPLOAD_FOLDER` | Where uploaded documents and images are stored |
+| `RETENTION_ENABLED` | Set to `true` to enable the nightly data-retention deletion (default: off) |
 | `RETENTION_MONTHS` | Data retention window (default 24) |
 | `ENABLE_SCHEDULER` | Enable background jobs; set to `true` on exactly one worker |
 | `SKIP_DB_SEED`, `USE_PROXY_FIX` | Skip sample data seeding; trust reverse-proxy headers |
