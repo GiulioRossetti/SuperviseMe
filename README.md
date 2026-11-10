@@ -1,19 +1,9 @@
 <p align="center">
-  <img src="docs/assets/img/logo.svg" alt="SuperviseMe logo" width="120">
-</p>
-
-<h1 align="center">SuperviseMe</h1>
-
-<p align="center">
-  Thesis supervision and research project management for academic environments.
+  <img src="docs/assets/img/header.png" alt="SuperviseMe — thesis supervision and research project management for academic environments" width="100%">
 </p>
 
 <p align="center">
   📘 <a href="https://giuliorossetti.github.io/SuperviseMe/">Full documentation</a>
-</p>
-
-<p align="center">
-  <img src="docs/assets/images/admin-dashboard.png" alt="SuperviseMe admin dashboard" width="760">
 </p>
 
 SuperviseMe is a Flask web application that brings supervisors, students, researchers and administrators onto a single platform: thesis catalog and assignment, progress tracking, milestones, documents, meetings, graduation checklists, research projects, reports and notifications. Every role gets a dashboard and navigation tailored to its tasks, all built on a shared design language.
