@@ -4371,3 +4371,9 @@ msgstr "Attività"
 
 msgid "Settings"
 msgstr "Impostazioni"
+
+msgid "Grant supervisor privileges"
+msgstr "Concedi privilegi di relatore"
+
+msgid "Revoke supervisor privileges"
+msgstr "Revoca privilegi di relatore"

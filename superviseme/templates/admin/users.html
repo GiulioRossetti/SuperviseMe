@@ -78,6 +78,13 @@
                                                     <button type="button" class="dropdown-item js-toggle" data-id="{{ u.id }}" data-enabled="{{ 1 if u.is_enabled else 0 }}">
                                                         <i class="fas fa-{{ 'user-slash' if u.is_enabled else 'user-check' }} fa-fw mr-1 text-warning"></i> {{ _('Disable') if u.is_enabled else _('Enable') }}
                                                     </button>
+                                                    {% if u.user_type == 'researcher' %}
+                                                    <form action="{{ url_for('admin.revoke_supervisor_role' if sup else 'admin.grant_supervisor_role') }}" method="POST" class="m-0">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <input type="hidden" name="researcher_id" value="{{ u.id }}">
+                                                        <button type="submit" class="dropdown-item"><i class="fas fa-{{ 'user-minus' if sup else 'chalkboard-teacher' }} fa-fw mr-1 text-success"></i> {{ _('Revoke supervisor privileges') if sup else _('Grant supervisor privileges') }}</button>
+                                                    </form>
+                                                    {% endif %}
                                                     {% if u.id != current_user.id %}
                                                     <div class="dropdown-divider"></div>
                                                     <button type="button" class="dropdown-item text-danger js-delete" data-id="{{ u.id }}" data-name="{{ u.name }} {{ u.surname }}"><i class="fas fa-trash fa-fw mr-1"></i> {{ _('Delete') }}</button>

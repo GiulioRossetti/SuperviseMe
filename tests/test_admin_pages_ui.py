@@ -59,3 +59,16 @@ def test_admin_user_detail_roles(client, admin_user, supervisor_user, student_us
         assert r.status_code == 200 and "sp-banner" in html and u.email in html
     sup = client.get("/admin/user/%d" % supervisor_user.id).get_data(as_text=True)
     assert "Supervised Theses" in sup
+
+
+def test_users_board_offers_supervisor_toggle_for_researchers(client, admin_user, researcher_user, app):
+    from superviseme.models import Supervisor_Role
+    login(client, admin_user)
+    page = client.get("/admin/users").get_data(as_text=True)
+    assert "Grant supervisor privileges" in page or "Concedi privilegi" in page
+    client.post("/admin/grant_supervisor_role", data={"researcher_id": researcher_user.id},
+                headers={"Referer": "/admin/users"})
+    with app.app_context():
+        assert Supervisor_Role.query.filter_by(researcher_id=researcher_user.id, active=True).count() == 1
+    page = client.get("/admin/users").get_data(as_text=True)
+    assert "Revoke supervisor privileges" in page or "Revoca privilegi" in page
