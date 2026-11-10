@@ -181,6 +181,8 @@ def delete_user(uid):
         if user.user_type == "supervisor":
             Thesis_Supervisor.query.filter_by(supervisor_id=uid).delete()
         
+        from superviseme.models import Calendar_Feed
+        Calendar_Feed.query.filter_by(user_id=uid).delete()
         db.session.delete(user)
         db.session.commit()
         flash("User deleted successfully")

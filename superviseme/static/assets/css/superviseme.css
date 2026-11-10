@@ -967,3 +967,8 @@ a.doc-item:hover { border-color: var(--sm-primary); color: inherit; }
 .doc-diff { max-height: 320px; overflow: auto; font-family: ui-monospace, monospace; font-size: .78rem; border: 1px solid var(--sm-border); border-radius: var(--sm-radius-sm); }
 .doc-diff .add { background: #e6f7ef; } .doc-diff .del { background: #fdecea; } .doc-diff div { padding: .1rem .5rem; } .doc-diff span { display: inline-block; width: 1rem; font-weight: 800; }
 .dash-feed li.doc-resolved { opacity: .55; }
+
+/* external calendar */
+.ag-chip.conflict { background: #fff3cd; border-color: #f6c23e; color: #856404; }
+.ag-busy { max-height: 11rem; overflow: auto; font-size: .8rem; }
+.ag-busy div { padding: .15rem 0; border-bottom: 1px dashed var(--sm-border, #e3e6f0); }

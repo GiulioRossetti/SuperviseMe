@@ -3900,3 +3900,78 @@ msgstr "Rimossi: %(n)d notifiche, %(r)d promemoria, %(v)d visualizzazioni del pr
 
 msgid "Privacy"
 msgstr "Privacy"
+
+msgid "%(n)d slots were skipped because you are busy in your external calendar."
+msgstr "%(n)d slot sono stati saltati perché risulti occupato nel tuo calendario esterno."
+
+msgid "Heads up: this time overlaps with an event in your external calendar."
+msgstr "Attenzione: questo orario si sovrappone a un evento del tuo calendario esterno."
+
+msgid "Calendar connected."
+msgstr "Calendario collegato."
+
+msgid "Calendar updated."
+msgstr "Calendario aggiornato."
+
+msgid "Calendar disconnected."
+msgstr "Calendario scollegato."
+
+msgid "Busy in your external calendar"
+msgstr "Occupato nel tuo calendario esterno"
+
+msgid "External calendar"
+msgstr "Calendario esterno"
+
+msgid "updated"
+msgstr "aggiornato"
+
+msgid "Busy in the next 14 days"
+msgstr "Occupato nei prossimi 14 giorni"
+
+msgid "No busy time in the next 14 days."
+msgstr "Nessun impegno nei prossimi 14 giorni."
+
+msgid "Update now"
+msgstr "Aggiorna ora"
+
+msgid "Disconnect"
+msgstr "Scollega"
+
+msgid "Paste the private iCal address of your Google, Outlook, Apple or Nextcloud calendar. Only busy time is used: event details are never stored or shown, and busy slots are hidden from students."
+msgstr "Incolla l'indirizzo iCal privato del tuo calendario Google, Outlook, Apple o Nextcloud. Viene usato solo il tempo occupato: i dettagli degli eventi non vengono mai salvati né mostrati e gli slot occupati sono nascosti agli studenti."
+
+msgid "Connect"
+msgstr "Collega"
+
+msgid "Enter the calendar's private iCal address."
+msgstr "Inserisci l'indirizzo iCal privato del calendario."
+
+msgid "Only https:// (or webcal://) addresses are accepted."
+msgstr "Sono accettati solo indirizzi https:// (o webcal://)."
+
+msgid "Addresses with embedded credentials are not supported."
+msgstr "Gli indirizzi con credenziali incorporate non sono supportati."
+
+msgid "The address could not be resolved."
+msgstr "L'indirizzo non può essere risolto."
+
+msgid "The address points to a private network and cannot be used."
+msgstr "L'indirizzo punta a una rete privata e non può essere usato."
+
+msgid "The calendar could not be downloaded."
+msgstr "Impossibile scaricare il calendario."
+
+msgid "The calendar is too large."
+msgstr "Il calendario è troppo grande."
+
+msgid "Too many redirects."
+msgstr "Troppi reindirizzamenti."
+
+msgid "The address does not contain a valid iCal calendar."
+msgstr "L'indirizzo non contiene un calendario iCal valido."
+
+msgid "Calendar support is not installed on this server (icalendar, recurring-ical-events)."
+msgstr "Il supporto ai calendari non è installato su questo server (icalendar, recurring-ical-events)."
+
+msgid "Unexpected error while reading the calendar."
+msgstr "Errore imprevisto durante la lettura del calendario."

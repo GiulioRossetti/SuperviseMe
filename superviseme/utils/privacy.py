@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash
 
 from superviseme import db
 from superviseme.models import (
+    Calendar_Feed,
     Document_Comment,
     MeetingNote,
     Notification,
@@ -78,6 +79,8 @@ def export_user_data(user):
         "thesis_interests": [_row(r) for r in Thesis_Interest.query.filter_by(student_id=uid)],
         "notifications": [_row(r) for r in Notification.query.filter_by(recipient_id=uid).order_by(Notification.created_at.desc()).limit(1000)],
         "profile_views_received": [_row(r) for r in Profile_View.query.filter_by(target_id=uid)],
+        # the secret feed address itself is deliberately not exported
+        "calendar_feed": [{"connected_since": r.created_at, "last_sync": r.fetched_at} for r in Calendar_Feed.query.filter_by(user_id=uid)],
         "profile_views_made": [_row(r) for r in Profile_View.query.filter_by(viewer_id=uid)],
     }
 
@@ -111,6 +114,7 @@ def anonymize_user(user):
     user.telegram_enabled = False
     user.email_notifications = False
     user.weekly_digest = False
+    Calendar_Feed.query.filter_by(user_id=uid).delete()
     Notification.query.filter_by(recipient_id=uid).delete()
     Profile_View.query.filter((Profile_View.viewer_id == uid) | (Profile_View.target_id == uid)).delete()
     ReminderLog.query.filter_by(user_id=uid).delete()

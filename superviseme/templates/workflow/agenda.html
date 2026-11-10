@@ -95,10 +95,39 @@
         <hr><div class="small text-muted mb-2">{{ _('Your upcoming slots') }}</div>
         <div class="ag-slots">
             {% for s in slots %}
-            <span class="ag-chip {{ 'booked' if s.booked_by }}" title="{{ s.location or '' }}">{{ dt(s.start_ts).strftime('%d %b %H:%M') }}
+            <span class="ag-chip {{ 'booked' if s.booked_by }} {{ 'conflict' if s.id in conflicting }}" title="{{ _('Busy in your external calendar') if s.id in conflicting else (s.location or '') }}">{% if s.id in conflicting %}<i class="fas fa-exclamation-triangle"></i> {% endif %}{{ dt(s.start_ts).strftime('%d %b %H:%M') }}
                 {% if not s.booked_by %}<form method="POST" action="{{ url_for('workflow.delete_slot', slot_id=s.id) }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button aria-label="{{ _('Delete') }}">&times;</button></form>{% else %}<i class="fas fa-lock"></i>{% endif %}</span>
             {% endfor %}
         </div>
+        {% endif %}
+    {% endcall %}
+
+    {% call panel(_('External calendar'), 'fa-link') %}
+        {% if feed %}
+            <div class="small mb-2"><i class="fas fa-check-circle text-success"></i> {{ _('Connected') }}
+                {% if feed.fetched_at %}· {{ _('updated') }} {{ dt(feed.fetched_at).strftime('%d %b, %H:%M') }}{% endif %}</div>
+            {% if feed.error %}<div class="alert alert-warning small py-1">{{ _(feed.error) }}</div>{% endif %}
+            {% if busy %}
+            <div class="small text-muted mb-1">{{ _('Busy in the next 14 days') }}</div>
+            {% set ns = namespace(day=None) %}
+            <div class="ag-busy">
+            {% for b in busy[:30] %}
+                {% set day = dt(b[0]).strftime('%a %d %b') %}
+                <div><strong>{{ day }}</strong> {{ dt(b[0]).strftime('%H:%M') }}–{{ dt(b[1]).strftime('%H:%M') }}</div>
+            {% endfor %}
+            </div>
+            {% else %}<div class="small text-muted">{{ _('No busy time in the next 14 days.') }}</div>{% endif %}
+            <div class="mt-2">
+                <form method="POST" action="{{ url_for('workflow.refresh_calendar') }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-primary btn-sm">{{ _('Update now') }}</button></form>
+                <form method="POST" action="{{ url_for('workflow.disconnect_calendar') }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-danger btn-sm">{{ _('Disconnect') }}</button></form>
+            </div>
+        {% else %}
+            <p class="small text-muted">{{ _('Paste the private iCal address of your Google, Outlook, Apple or Nextcloud calendar. Only busy time is used: event details are never stored or shown, and busy slots are hidden from students.') }}</p>
+            <form method="POST" action="{{ url_for('workflow.connect_calendar') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group"><input class="form-control form-control-sm" name="url" type="url" maxlength="1000" autocomplete="off" required placeholder="https://calendar.google.com/calendar/ical/…/basic.ics"></div>
+                <button class="btn btn-primary btn-sm btn-block">{{ _('Connect') }}</button>
+            </form>
         {% endif %}
     {% endcall %}
 

@@ -736,3 +736,90 @@ def test_privacy_export_erasure_views_and_retention(client, app, admin_user, sup
     login(client, admin_user)
     assert client.get("/admin/privacy").status_code == 200
     assert client.post("/admin/privacy").status_code == 200
+
+
+ICS_FEED = """BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//test//EN
+BEGIN:VEVENT
+UID:a@test
+DTSTAMP:20260101T000000Z
+DTSTART:{s}
+DTEND:{e}
+SUMMARY:Secret dentist
+END:VEVENT
+BEGIN:VEVENT
+UID:free@test
+DTSTAMP:20260101T000000Z
+DTSTART:{s2}
+DTEND:{e2}
+TRANSP:TRANSPARENT
+SUMMARY:Free thing
+END:VEVENT
+BEGIN:VEVENT
+UID:weekly@test
+DTSTAMP:20260101T000000Z
+DTSTART:{ws}
+DTEND:{we}
+RRULE:FREQ=WEEKLY;COUNT=4
+SUMMARY:Weekly
+END:VEVENT
+END:VCALENDAR
+"""
+
+
+def test_calendar_feed_busy_and_agenda(client, app, supervisor_user, student_user, monkeypatch):
+    from datetime import datetime as _dt, timezone as _tz
+    from superviseme.models import Availability_Slot, Calendar_Feed
+    from superviseme.utils import calendar_feed as cf
+    f = lambda ts: _dt.fromtimestamp(ts, _tz.utc).strftime("%Y%m%dT%H%M%SZ")  # noqa: E731
+    base = (int(time.time()) // 3600 + 48) * 3600
+    ics = ICS_FEED.format(s=f(base), e=f(base + 3600), s2=f(base + 7200), e2=f(base + 10800),
+                          ws=f(base + 5 * 86400), we=f(base + 5 * 86400 + 1800))
+    monkeypatch.setattr(cf, "fetch_ics", lambda url: ics)
+    # url validation / SSRF guards
+    for bad in ("http://example.com/x.ics", "https://user:pw@example.com/x.ics", "file:///etc/passwd", ""):
+        try:
+            cf.normalize_url(bad)
+            assert False, bad
+        except cf.FeedError:
+            pass
+    assert cf.normalize_url("webcal://example.com/a.ics") == "https://example.com/a.ics"
+    monkeypatch.undo()
+    try:
+        cf._assert_public_host("localhost", 443)
+        assert False
+    except cf.FeedError:
+        pass
+    monkeypatch.setattr(cf, "fetch_ics", lambda url: ics)
+
+    _assign(student_user, supervisor_user)
+    login(client, supervisor_user)
+    r = client.post("/agenda/calendar/connect", data={"url": "webcal://calendar.example.org/private/abc.ics"}, follow_redirects=True)
+    assert r.status_code == 200
+    feed = Calendar_Feed.query.one()
+    assert "calendar.example.org" in feed.url_enc or feed.url_enc  # stored (encrypted when a key is configured)
+    busy = cf.busy_for(supervisor_user.id, base - 3600, base + 30 * 86400)
+    assert [base, base + 3600] in busy and not any(b[0] == base + 7200 for b in busy)  # transparent event ignored
+    assert len(busy) == 1 + 4  # one-off + 4 weekly occurrences
+    assert b"Secret dentist" not in client.get("/agenda").data  # titles are never exposed
+
+    # publishing a slot over the busy block is skipped, outside it works
+    day = _dt.fromtimestamp(base).strftime("%Y-%m-%d"); hhmm = _dt.fromtimestamp(base).strftime("%H:%M")
+    client.post("/agenda/slots/add", data={"date": day, "time": hhmm, "duration": 30})
+    assert Availability_Slot.query.count() == 0
+    free = base + 3 * 86400
+    client.post("/agenda/slots/add", data={"date": _dt.fromtimestamp(free).strftime("%Y-%m-%d"), "time": _dt.fromtimestamp(free).strftime("%H:%M"), "duration": 30})
+    slot = Availability_Slot.query.one()
+    # a new busy event appears after publication: students no longer see / can't book that slot
+    feed.busy_json = '[[%d, %d]]' % (slot.start_ts - 60, slot.end_ts + 60)
+    db.session.commit()
+    client.post("/logout"); login(client, student_user)
+    assert b"ag-slot" not in client.get("/agenda").data
+    client.post(f"/agenda/slots/{slot.id}/book")
+    assert Availability_Slot.query.get(slot.id).booked_by is None
+    client.post("/logout"); login(client, supervisor_user)
+    assert b"Disconnect" in client.get("/agenda").data
+    client.post("/agenda/calendar/disconnect")
+    assert Calendar_Feed.query.count() == 0
+    assert cf.busy_for(supervisor_user.id, 0, 2**31) == []

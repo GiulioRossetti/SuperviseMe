@@ -103,11 +103,21 @@ def agenda():
                 .filter(Thesis_Supervisor.supervisor_id == current_user.id, Thesis.author_id.isnot(None),
                         Thesis.frozen.isnot(True)).all())
         ctx["schedulable"] = rows
+        from superviseme.utils import calendar_feed as cf
+        ctx["feed"] = cf.status(current_user.id)
+        horizon = now + 14 * 86400
+        busy = cf.busy_for(current_user.id, now, horizon) if ctx["feed"] else []
+        ctx["busy"] = busy
+        ctx["conflicting"] = {sl.id for sl in ctx["slots"] if not sl.booked_by and any(b[0] < sl.end_ts and b[1] > sl.start_ts for b in busy)}
+        ctx["feed_status"] = cf.status(current_user.id)
     if current_user.user_type == "student":
         sup_ids = meeting_utils.supervisors_of_student(current_user.id)
         ctx["bookable"] = (Availability_Slot.query.filter(Availability_Slot.supervisor_id.in_(sup_ids), Availability_Slot.booked_by.is_(None),
                                                           Availability_Slot.start_ts > now)
                            .order_by(Availability_Slot.start_ts.asc()).limit(40).all()) if sup_ids else []
+        from superviseme.utils import calendar_feed as cf
+        # slots overlapping the supervisor's external calendar are hidden (the reason is never disclosed)
+        ctx["bookable"] = [sl for sl in ctx["bookable"] if not cf.conflicts(sl.supervisor_id, sl.start_ts, sl.end_ts)]
         ctx["has_thesis"] = bool(sup_ids)
     return render_template("workflow/agenda.html", **ctx)
 
@@ -128,17 +138,23 @@ def add_slots():
         flash(_("Choose a valid date and time in the future."), "error")
         return _agenda_back()
     location = (request.form.get("location") or "").strip()[:200] or None
-    added = 0
+    added = skipped = 0
+    from superviseme.utils import calendar_feed as cf
     for w in range(repeat):
         for i in range(count):
             s = start + w * 7 * 86400 + i * minutes * 60
             exists = Availability_Slot.query.filter_by(supervisor_id=current_user.id, start_ts=s).first()
+            if not exists and cf.conflicts(current_user.id, s, s + minutes * 60):
+                skipped += 1
+                continue
             if not exists:
                 db.session.add(Availability_Slot(supervisor_id=current_user.id, start_ts=s, end_ts=s + minutes * 60,
                                                  location=location, created_at=int(time.time())))
                 added += 1
     db.session.commit()
     flash(_("%(n)d slots published.", n=added), "success")
+    if skipped:
+        flash(_("%(n)d slots were skipped because you are busy in your external calendar.", n=skipped), "warning")
     return _agenda_back()
 
 
@@ -166,6 +182,10 @@ def book_slot(slot_id):
               .filter(Thesis.author_id == current_user.id, Thesis_Supervisor.supervisor_id == slot.supervisor_id).first())
     if not thesis:
         abort(403)
+    from superviseme.utils import calendar_feed as cf
+    if cf.conflicts(slot.supervisor_id, slot.start_ts, slot.end_ts):
+        flash(_("Sorry, this slot is no longer available."), "error")
+        return _agenda_back()
     meeting = meeting_utils.book_slot(slot_id, current_user, thesis)
     if not meeting:
         flash(_("Sorry, this slot is no longer available."), "error")
@@ -198,8 +218,12 @@ def add_meeting():
     m = Meeting(thesis_id=thesis.id, supervisor_id=current_user.id, student_id=thesis.author_id, title=title, start_ts=start,
                 end_ts=start + minutes * 60, location=(request.form.get("location") or "").strip()[:200] or None,
                 created_by=current_user.id, created_at=int(time.time()))
+    from superviseme.utils import calendar_feed as cf
+    clash = cf.conflicts(current_user.id, start, start + minutes * 60)
     db.session.add(m)
     db.session.commit()
+    if clash:
+        flash(_("Heads up: this time overlaps with an event in your external calendar."), "warning")
     from superviseme.utils.notifications import create_notification
     create_notification(thesis.author_id, current_user.id, "deadline_reminder", _("Meeting scheduled: %(t)s", t=title),
                         datetime.fromtimestamp(start).strftime("%d %b %Y, %H:%M"), thesis_id=thesis.id)
@@ -745,3 +769,43 @@ def admin_privacy():
     _admin_only()
     purged = pv.purge_expired() if request.method == "POST" else None
     return render_template("workflow/admin_privacy.html", months=pv.retention_months(), purged=purged)
+
+
+# ---------------------------------------------------------------- external calendar (iCal feed)
+@workflow.route("/agenda/calendar/connect", methods=["POST"])
+@login_required
+def connect_calendar():
+    if not _is_supervisor():
+        abort(403)
+    from superviseme.utils import calendar_feed as cf
+    try:
+        cf.connect(current_user, request.form.get("url"))
+        flash(_("Calendar connected."), "success")
+    except cf.FeedError as exc:
+        flash(_(str(exc)), "error")
+    return _agenda_back()
+
+
+@workflow.route("/agenda/calendar/refresh", methods=["POST"])
+@login_required
+def refresh_calendar():
+    if not _is_supervisor():
+        abort(403)
+    from superviseme.models import Calendar_Feed
+    from superviseme.utils import calendar_feed as cf
+    feed = Calendar_Feed.query.filter_by(user_id=current_user.id).first()
+    if feed:
+        cf.refresh(feed, force=True)
+        flash(_("Calendar updated.") if not feed.last_error else _(feed.last_error), "success" if not feed.last_error else "error")
+    return _agenda_back()
+
+
+@workflow.route("/agenda/calendar/disconnect", methods=["POST"])
+@login_required
+def disconnect_calendar():
+    if not _is_supervisor():
+        abort(403)
+    from superviseme.utils import calendar_feed as cf
+    cf.disconnect(current_user)
+    flash(_("Calendar disconnected."), "success")
+    return _agenda_back()

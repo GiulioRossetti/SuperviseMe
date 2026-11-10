@@ -662,3 +662,16 @@ class Profile_View(db.Model):
     viewed_at = db.Column(db.Integer, nullable=False)
 
     viewer = db.relationship("User_mgmt", foreign_keys=[viewer_id], lazy=True)
+
+
+class Calendar_Feed(db.Model):
+    """Read-only external calendar (iCal feed URL) used to show a supervisor's busy time in the agenda."""
+    __tablename__ = "calendar_feed"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False, unique=True)
+    url_enc = db.Column(db.Text, nullable=False)  # encrypted: the secret feed address is a credential
+    busy_json = db.Column(db.Text, nullable=True)  # cached merged busy intervals [[start, end], ...]
+    fetched_at = db.Column(db.Integer, nullable=True)
+    last_attempt_at = db.Column(db.Integer, nullable=True)
+    last_error = db.Column(db.String(200), nullable=True)
+    created_at = db.Column(db.Integer, nullable=False)
