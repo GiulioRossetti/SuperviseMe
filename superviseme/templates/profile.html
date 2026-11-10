@@ -159,6 +159,38 @@
                                 </div>
                             </div>
 
+                            <!-- Web links -->
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-link"></i> {{ _('Web links') }}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="small text-muted mb-3">{{ _('Personal website, LinkedIn, Google Scholar... Visible to other users on your profile page.') }}</div>
+                                    {% if user.web_links %}
+                                    <ul class="list-unstyled mb-3">
+                                        {% for l in user.web_links %}
+                                        {% set meta = link_meta(l) %}
+                                        <li class="d-flex align-items-center py-1 border-bottom">
+                                            <i class="{{ meta[1] }} fa-fw mr-2 text-gray-600"></i>
+                                            <a href="{{ l.url }}" target="_blank" rel="noopener noreferrer nofollow" class="flex-grow-1 text-truncate">{{ meta[0] }}</a>
+                                            <small class="text-muted text-truncate d-none d-md-inline mx-2" style="max-width: 18rem">{{ l.url }}</small>
+                                            <form method="POST" action="{{ url_for('profile.delete_web_link', link_id=l.id) }}">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button class="btn btn-link btn-sm text-danger p-0" aria-label="{{ _('Remove') }}" title="{{ _('Remove') }}"><i class="fas fa-times"></i></button>
+                                            </form>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('profile.add_web_link') }}" class="form-row">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="col-md-6 mb-2"><input type="text" class="form-control form-control-sm" name="url" maxlength="500" required placeholder="https://www.linkedin.com/in/..." aria-label="URL"></div>
+                                        <div class="col-md-4 mb-2"><input type="text" class="form-control form-control-sm" name="label" maxlength="100" placeholder="{{ _('Label (optional)') }}" aria-label="{{ _('Label (optional)') }}"></div>
+                                        <div class="col-md-2 mb-2"><button class="btn btn-primary btn-sm btn-block"><i class="fas fa-plus"></i> {{ _('Add') }}</button></div>
+                                    </form>
+                                </div>
+                            </div>
+
                             </div>
                             <div class="tab-pane fade" id="tabSecurity" role="tabpanel">
 

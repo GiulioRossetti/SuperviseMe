@@ -62,6 +62,7 @@ def profile_page():
     return render_template("/profile.html",
                          views=views, blockers=pv.erasure_blockers(current_user), months=pv.retention_months(),
                          user=current_user,
+                         link_meta=__import__("superviseme.utils.user_links", fromlist=["x"]).link_meta,
                          authored_theses=authored_theses,
                          supervised_theses=supervised_theses,
                          dashboard_endpoint=_dashboard_endpoint_for_user(current_user),
@@ -154,6 +155,23 @@ def update_profile():
 
     db.session.commit()
     flash("Profile updated successfully", "success")
+    return redirect(url_for("profile.profile_page"))
+
+
+@profile.route("/profile/links", methods=["POST"])
+@login_required
+def add_web_link():
+    from superviseme.utils import user_links
+    error = user_links.add_link(current_user, request.form.get("url"), request.form.get("label"))
+    flash(error or _("Link added."), "error" if error else "success")
+    return redirect(url_for("profile.profile_page"))
+
+
+@profile.route("/profile/links/<int:link_id>/delete", methods=["POST"])
+@login_required
+def delete_web_link(link_id):
+    from superviseme.utils import user_links
+    user_links.delete_link(current_user, link_id)
     return redirect(url_for("profile.profile_page"))
 
 

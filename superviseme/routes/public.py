@@ -193,6 +193,7 @@ def user_profile(user_id):
         archived_count=archived_count,
         student_theses=student_theses,
         projects_count=projects_count,
+        link_meta=__import__("superviseme.utils.user_links", fromlist=["x"]).link_meta,
     )
 
 

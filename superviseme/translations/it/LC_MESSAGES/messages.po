@@ -4239,3 +4239,21 @@ msgstr "Nessuna immagine. La prima immagine è la copertina della card del proge
 
 msgid "Delete this project? Sub-projects are kept and moved up one level. This cannot be undone."
 msgstr "Eliminare questo progetto? I sotto-progetti vengono mantenuti e spostati di un livello. Non si può annullare."
+
+msgid "Link added."
+msgstr "Link aggiunto."
+
+msgid "At most %(n)d links."
+msgstr "Al massimo %(n)d link."
+
+msgid "This link is already in your profile."
+msgstr "Questo link è già nel tuo profilo."
+
+msgid "Web links"
+msgstr "Link web"
+
+msgid "Personal website, LinkedIn, Google Scholar... Visible to other users on your profile page."
+msgstr "Sito personale, LinkedIn, Google Scholar... Visibili agli altri utenti sulla tua pagina profilo."
+
+msgid "Label (optional)"
+msgstr "Etichetta (facoltativa)"

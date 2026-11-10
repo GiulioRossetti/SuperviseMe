@@ -20,6 +20,11 @@
                 {% if target.orcid_id %}
                     <div class="mt-2"><a class="small" href="https://orcid.org/{{ target.orcid_id }}" target="_blank" rel="noopener noreferrer"><i class="fab fa-orcid text-success"></i> {{ target.orcid_id }}</a></div>
                 {% endif %}
+                {% if target.web_links %}
+                <div class="mt-2 d-flex flex-wrap justify-content-center">
+                    {% for l in target.web_links %}{% set meta = link_meta(l) %}<a class="btn btn-light btn-sm border m-1" href="{{ l.url }}" target="_blank" rel="noopener noreferrer nofollow"><i class="{{ meta[1] }}"></i> {{ meta[0] }}</a>{% endfor %}
+                </div>
+                {% endif %}
                 <div class="up-actions mt-3">
                     <a class="btn btn-primary btn-sm" href="mailto:{{ mail }}"><i class="fas fa-envelope"></i> {{ _('Email') }}</a>
                     {% if target.phone %}<a class="btn btn-outline-primary btn-sm" href="tel:{{ target.phone|replace(' ', '') }}"><i class="fas fa-phone"></i> {{ _('Call') }}</a>{% endif %}

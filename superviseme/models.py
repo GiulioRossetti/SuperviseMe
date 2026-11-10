@@ -712,3 +712,16 @@ class Calendar_Feed(db.Model):
     last_attempt_at = db.Column(db.Integer, nullable=True)
     last_error = db.Column(db.String(200), nullable=True)
     created_at = db.Column(db.Integer, nullable=False)
+
+
+class User_Link(db.Model):
+    """Web page shown on a user's profile (personal site, LinkedIn, Google Scholar, ...)."""
+    __tablename__ = "user_link"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False, index=True)
+    url = db.Column(db.String(500), nullable=False)
+    label = db.Column(db.String(100), nullable=True)
+    position = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    user = db.relationship("User_mgmt", backref=db.backref("web_links", lazy=True, order_by="User_Link.position, User_Link.id"))
