@@ -4926,3 +4926,78 @@ msgstr "Eliminato"
 
 msgid "Leave empty to remove the limit."
 msgstr "Lascia vuoto per rimuovere il limite."
+
+msgid "Publication updated"
+msgstr "Pubblicazione aggiornata"
+
+msgid "Select at least one work and one project"
+msgstr "Seleziona almeno un lavoro e un progetto"
+
+msgid "Action"
+msgstr "Azione"
+
+msgid "Already in this project"
+msgstr "Già presente in questo progetto"
+
+msgid "Any action"
+msgstr "Qualsiasi azione"
+
+msgid "Assign ORCID works to projects"
+msgstr "Assegna lavori ORCID ai progetti"
+
+msgid "Assign selected"
+msgstr "Assegna selezionati"
+
+msgid "Assign to projects"
+msgstr "Assegna ai progetti"
+
+msgid "Assign to several projects"
+msgstr "Assegna a più progetti"
+
+msgid "Cite all outputs (BibTeX)"
+msgstr "Cita tutti i prodotti (BibTeX)"
+
+msgid "Close to the limit"
+msgstr "Vicino al limite"
+
+msgid "Complete authors and venue from Crossref (by DOI)"
+msgstr "Completa autori e sede da Crossref (tramite DOI)"
+
+msgid "Limit reached"
+msgstr "Limite raggiunto"
+
+msgid "No activity recorded yet"
+msgstr "Nessuna attività registrata"
+
+msgid "No works imported from ORCID yet. Connect your ORCID iD and sync it from your profile."
+msgstr "Nessun lavoro importato da ORCID. Collega il tuo ORCID iD e sincronizzalo dal profilo."
+
+msgid "ORCID works"
+msgstr "Lavori ORCID"
+
+msgid "Output activity"
+msgstr "Attività sui prodotti"
+
+msgid "Search by title, person, project..."
+msgstr "Cerca per titolo, persona, progetto..."
+
+msgid "Select all"
+msgstr "Seleziona tutto"
+
+msgid "When"
+msgstr "Quando"
+
+msgid "Who created, edited, moved, associated or deleted publications, datasets and software."
+msgstr "Chi ha creato, modificato, spostato, associato o eliminato pubblicazioni, dataset e software."
+
+msgid "Who"
+msgstr "Chi"
+
+msgid "Works already present in a project are skipped."
+msgstr "I lavori già presenti in un progetto vengono saltati."
+
+msgid "Works"
+msgstr "Lavori"
+
+msgid "You have no project you can edit."
+msgstr "Non hai progetti modificabili."
