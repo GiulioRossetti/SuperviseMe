@@ -160,3 +160,45 @@ def test_researcher_edits_datasets_and_software(client, researcher_user, supervi
     assert client.post(f"/researcher/project/{other.id}/software/{sw.id}/edit", data={"title": "x"}).status_code in (302, 403, 404)
     db.session.refresh(sw)
     assert sw.title == "tool2"
+
+
+def test_publication_edit_and_bulk_orcid_assignment(client, monkeypatch, researcher_user, supervisor_user):
+    from superviseme import db
+    from superviseme.models import OrcidActivity, ResearchProject, ResearchProject_Publication as P
+    now = int(time.time())
+    a = ResearchProject(title="Alpha", description="d", researcher_id=researcher_user.id, created_at=now)
+    b = ResearchProject(title="Beta", description="d", researcher_id=researcher_user.id, created_at=now)
+    foreign = ResearchProject(title="Foreign", description="d", researcher_id=supervisor_user.id, created_at=now)
+    db.session.add_all([a, b, foreign]); db.session.commit()
+    w1 = OrcidActivity(user_id=researcher_user.id, title="Work one", type="journal-article", publication_date="2021-05",
+                       external_ids=json.dumps([{"type": "doi", "value": "10.1234/one", "url": None}]), created_at=now, updated_at=now)
+    w2 = OrcidActivity(user_id=researcher_user.id, title="Work two", type="conference-paper", publication_date="2022", created_at=now, updated_at=now)
+    job = OrcidActivity(user_id=researcher_user.id, title="Job", type="employment", created_at=now, updated_at=now)
+    db.session.add_all([w1, w2, job]); db.session.commit()
+    monkeypatch.setattr("superviseme.utils.academic_apis.get_crossref_doi",
+                        lambda doi: {"title": "Work one", "authors": ["A. Rossi", "B. Bianchi"], "venue": "J. Tests", "year": 2021, "doi": doi, "type": "journal-article"})
+    _login(client, researcher_user.email)
+    page = client.get("/researcher/orcid-works").data.decode()
+    assert "Work one" in page and "Work two" in page and "Job" not in page and "Alpha" in page and "Foreign" not in page
+    # nothing selected -> nothing happens
+    client.post("/researcher/orcid-works", data={"activity_id": [w1.id]})
+    assert P.query.count() == 0
+    client.post("/researcher/orcid-works", data={"activity_id": [w1.id, w2.id, job.id], "project_id": [a.id, b.id, foreign.id], "enrich": "on"})
+    assert P.query.filter_by(project_id=a.id).count() == 2 and P.query.filter_by(project_id=b.id).count() == 2
+    assert P.query.filter_by(project_id=foreign.id).count() == 0
+    one = P.query.filter_by(project_id=a.id, title="Work one").one()
+    assert one.authors == "A. Rossi, B. Bianchi" and one.venue == "J. Tests" and one.doi == "10.1234/one"
+    # running it again skips duplicates
+    client.post("/researcher/orcid-works", data={"activity_id": [w1.id], "project_id": [a.id]})
+    assert P.query.filter_by(project_id=a.id).count() == 2
+    assert "Alpha" in client.get("/researcher/orcid-works").data.decode()
+    # edit a publication
+    client.post(f"/researcher/project/{a.id}/publications/{one.id}/edit", data={"title": "Work 1 (rev)", "authors": "X", "year": "2020", "venue": "V", "doi": "10.1234/one", "pub_type": "conference"})
+    db.session.refresh(one)
+    assert (one.title, one.authors, one.year, one.venue, one.pub_type) == ("Work 1 (rev)", "X", 2020, "V", "conference")
+    client.post(f"/researcher/project/{a.id}/publications/{one.id}/edit", data={"title": ""})
+    db.session.refresh(one)
+    assert one.title == "Work 1 (rev)"
+    assert f"editP{one.id}" in client.get(f"/researcher/project/{a.id}/output").data.decode()
+    other_pub = P(project_id=foreign.id, title="x", created_at=now); db.session.add(other_pub); db.session.commit()
+    assert client.post(f"/researcher/project/{foreign.id}/publications/{other_pub.id}/edit", data={"title": "hack"}).status_code == 403

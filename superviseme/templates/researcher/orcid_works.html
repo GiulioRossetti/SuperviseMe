@@ -1,0 +1,65 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'researcher/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800"><i class="fab fa-orcid"></i> {{ _('ORCID works') }}</h1>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('researcher.all_publications') }}">{{ _('Publications') }}</a>
+                    </div>
+                    {% with messages = get_flashed_messages() %}{% for m in messages %}<div class="alert alert-info">{{ _(m) }}</div>{% endfor %}{% endwith %}
+                    {% if not works %}
+                    <div class="card shadow mb-4"><div class="card-body text-muted">{{ _('No works imported from ORCID yet. Connect your ORCID iD and sync it from your profile.') }} <a href="{{ url_for('profile.profile_page') }}">{{ _('Profile') }}</a></div></div>
+                    {% elif not projects %}
+                    <div class="card shadow mb-4"><div class="card-body text-muted">{{ _('You have no project you can edit.') }}</div></div>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('researcher.orcid_works_bulk') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="row">
+                            <div class="col-lg-8 mb-4"><div class="card shadow"><div class="card-header py-3 d-flex align-items-center">
+                                <h6 class="m-0 font-weight-bold text-primary mr-auto">{{ _('Works') }} ({{ works|length }})</h6>
+                                <input type="search" class="form-control form-control-sm mr-2" style="max-width:220px" id="owFilter" placeholder="{{ _('Search') }}" aria-label="{{ _('Search') }}" autocomplete="off">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="owAll">{{ _('Select all') }}</button></div>
+                                <div class="card-body" style="max-height:600px;overflow-y:auto">
+                                {% for a in works %}
+                                <div class="form-check mb-2 ow-item" data-q="{{ a.title|lower }}">
+                                    <input class="form-check-input" type="checkbox" name="activity_id" value="{{ a.id }}" id="ow{{ a.id }}">
+                                    <label class="form-check-label" for="ow{{ a.id }}">{{ a.title }} <small class="text-muted">{{ a.publication_date or '' }}</small></label>
+                                    {% for pr in present[a.id] %}<span class="badge badge-light border" title="{{ _('Already in this project') }}">{{ pr.title }}</span> {% endfor %}
+                                </div>
+                                {% endfor %}
+                                </div></div></div>
+                            <div class="col-lg-4 mb-4"><div class="card shadow"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Assign to projects') }}</h6></div>
+                                <div class="card-body">
+                                {% for pr in projects %}<div class="form-check"><input class="form-check-input" type="checkbox" name="project_id" value="{{ pr.id }}" id="opr{{ pr.id }}"><label class="form-check-label" for="opr{{ pr.id }}">{{ pr.title }}</label></div>{% endfor %}
+                                <hr><div class="form-check mb-3"><input class="form-check-input" type="checkbox" name="enrich" id="enrich" checked><label class="form-check-label" for="enrich">{{ _('Complete authors and venue from Crossref (by DOI)') }}</label></div>
+                                <button class="btn btn-primary btn-block" type="submit">{{ _('Assign selected') }}</button>
+                                <small class="text-muted d-block mt-2">{{ _('Works already present in a project are skipped.') }}</small>
+                                </div></div></div>
+                        </div>
+                    </form>
+                    <script>
+                    (function () {
+                        var f = document.getElementById('owFilter');
+                        f.addEventListener('input', function () {
+                            var t = f.value.toLowerCase().split(/\s+/).filter(Boolean);
+                            document.querySelectorAll('.ow-item').forEach(function (e) { e.style.display = t.every(function (x) { return e.dataset.q.indexOf(x) !== -1; }) ? '' : 'none'; });
+                        });
+                        document.getElementById('owAll').addEventListener('click', function () {
+                            document.querySelectorAll('.ow-item').forEach(function (e) { if (e.style.display !== 'none') { e.querySelector('input').checked = true; } });
+                        });
+                    })();
+                    </script>
+                    {% endif %}
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+</body>
+</html>

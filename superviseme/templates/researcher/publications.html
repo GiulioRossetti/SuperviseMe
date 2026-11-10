@@ -9,7 +9,7 @@
                 <div class="container-fluid">
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">{{ _('Publications') }}</h1>
-                        {% if pubs %}<a class="btn btn-outline-secondary btn-sm" href="{{ url_for('researcher.all_publications', format='bib') }}"><i class="fas fa-download"></i> BibTeX</a>{% endif %}
+                        <span><a class="btn btn-outline-primary btn-sm mr-1" href="{{ url_for('researcher.orcid_works_bulk') }}"><i class="fab fa-orcid"></i> {{ _('Assign ORCID works to projects') }}</a>{% if pubs %}<a class="btn btn-outline-secondary btn-sm" href="{{ url_for('researcher.all_publications', format='bib') }}"><i class="fas fa-download"></i> BibTeX</a>{% endif %}</span>
                     </div>
                     <div class="card shadow mb-4"><div class="card-body">
                     {% for p, pr in pubs %}

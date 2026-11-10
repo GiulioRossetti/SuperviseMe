@@ -104,6 +104,32 @@ def add_publication(project_id):
     return _back(project)
 
 
+@researcher.route("/researcher/project/<int:project_id>/publications/<int:pub_id>/edit", methods=["POST"])
+@login_required
+def edit_publication(project_id, pub_id):
+    project, gate = _load(project_id, write=True)
+    if gate is not None:
+        return gate
+    pub = ResearchProject_Publication.query.filter_by(id=pub_id, project_id=project.id).first_or_404()
+    f = request.form
+    title = (f.get("title") or "").strip()
+    if not title:
+        flash("A title is required")
+        return _back(project)
+    year = f.get("year", type=int)
+    pub.title = title[:300]
+    pub.authors = (f.get("authors") or "").strip()[:500] or None
+    pub.year = year if year and 1900 <= year <= 2100 else None
+    pub.venue = (f.get("venue") or "").strip()[:300] or None
+    pub.doi = ro.clean_doi(f.get("doi"))
+    pub.url = ro.safe_url(f.get("url"))
+    if f.get("pub_type") in ro.PUB_TYPES:
+        pub.pub_type = f.get("pub_type")
+    db.session.commit()
+    flash("Publication updated")
+    return _back(project)
+
+
 @researcher.route("/researcher/project/<int:project_id>/publications/<int:pub_id>/delete", methods=["POST"])
 @login_required
 def delete_publication(project_id, pub_id):
@@ -563,3 +589,69 @@ def duplicate_project_route(project_id):
     copy = ro.duplicate_project(project, current_user, (request.form.get("title") or "").strip() or None, request.form.get("start_date"))
     flash("Project created from the template")
     return redirect(url_for("researcher.project_detail", project_id=copy.id))
+
+
+# ---- bulk ORCID import: many works -> many projects ---------------------------------------------------------
+
+def _writable_projects(user):
+    return [pr for pr in accessible_projects(user) if (ro.role_in(pr, user) or "") not in ro.READ_ONLY_ROLES and ro.role_in(pr, user)]
+
+
+def _orcid_works(user):
+    from superviseme.models import OrcidActivity
+    return OrcidActivity.query.filter(OrcidActivity.user_id == user.id, OrcidActivity.type.notin_(("funding",) + ro.AFFILIATION_TYPES)) \
+        .order_by(OrcidActivity.publication_date.desc()).all()
+
+
+@researcher.route("/researcher/orcid-works", methods=["GET", "POST"])
+@login_required
+def orcid_works_bulk():
+    """Assign works imported from ORCID to one or more of the user's projects at once (optionally enriched via Crossref)."""
+    gate = check_privileges(current_user.username, role="researcher")
+    if gate is not True:
+        return gate
+    works = _orcid_works(current_user)
+    projects = _writable_projects(current_user)
+    if request.method == "POST":
+        wanted = set(request.form.getlist("activity_id", type=int))
+        chosen = [pr for pr in projects if pr.id in set(request.form.getlist("project_id", type=int))]
+        if not wanted or not chosen:
+            flash("Select at least one work and one project")
+            return redirect(url_for("researcher.orcid_works_bulk"))
+        enrich = bool(request.form.get("enrich"))
+        cache, added, skipped = {}, 0, 0
+        for a in works:
+            if a.id not in wanted:
+                continue
+            fields = ro.work_fields(a)
+            if enrich and fields["doi"]:
+                if fields["doi"] not in cache:
+                    try:
+                        from superviseme.utils.academic_apis import get_crossref_doi
+                        meta = get_crossref_doi(fields["doi"])
+                        cache[fields["doi"]] = ro.crossref_to_fields(meta) if meta and meta.get("title") else None
+                    except Exception:
+                        current_app.logger.exception("Crossref enrichment failed")
+                        cache[fields["doi"]] = None
+                extra = cache[fields["doi"]]
+                if extra:
+                    for k in ("authors", "venue", "year", "url"):
+                        fields[k] = fields.get(k) or extra.get(k)
+                    if fields.get("pub_type") in (None, "other"):
+                        fields["pub_type"] = extra["pub_type"]
+            for pr in chosen:
+                dup = any((fields["doi"] and p.doi and p.doi.lower() == fields["doi"].lower()) or p.title.strip().lower() == fields["title"].strip().lower()
+                          for p in pr.publications)
+                if dup:
+                    skipped += 1
+                    continue
+                db.session.add(ResearchProject_Publication(project_id=pr.id, added_by=current_user.id, created_at=int(time.time()), **fields))
+                db.session.flush()
+                added += 1
+        db.session.commit()
+        flash(f"{added} publication(s) added, {skipped} already present")
+        return redirect(url_for("researcher.orcid_works_bulk"))
+    present = {a.id: [pr for pr in projects if any((ro.activity_doi(a) and p.doi and p.doi.lower() == ro.activity_doi(a).lower())
+                                                    or p.title.strip().lower() == a.title.strip().lower() for p in pr.publications)] for a in works}
+    return render_template("researcher/orcid_works.html", works=works, projects=projects, present=present,
+                           connected=bool(getattr(current_user, "orcid_id", None)))
