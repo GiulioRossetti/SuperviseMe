@@ -2,484 +2,134 @@
 
 <body id="page-top">
 
-    <!-- Page Wrapper -->
     <div id="wrapper">
-
-        <!-- Sidebar -->
         {% include 'admin/components/sidebar.html' %}
-        <!-- End of Sidebar -->
 
-        <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">
-
-            <!-- Main Content -->
             <div id="content">
-
-                <!-- Topbar -->
                 {% include 'admin/components/topbar.html' %}
-                <!-- End of Topbar -->
 
-                <!-- Begin Page Content -->
                 <div class="container-fluid">
 
-                    <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">{{ _('Dashboard') }}</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Theses') }}</h1>
+                        <button class="btn btn-primary" data-toggle="modal" data-target="#createThesisModal">
+                            <i class="fas fa-plus"></i> {{ _('Create New Thesis') }}
+                        </button>
                     </div>
 
+                    {% with detail_endpoint='admin.thesis_detail', show_supervisors=True %}{% include 'components/theses_board.html' %}{% endwith %}
 
-                    <!-- Content Row -->
-                    <div class="row">
-                         <div class="col-xl-12 col-lg-16">
-
-                             <div class="card mb-4">
-                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Theses') }}</h6>
-                                 </div>
-                                <div class="card-body">
-
-                                <div id="table"></div>
-                                <div id="fallback-table" style="display:none;">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                            <thead>
-                                                <tr>
-                                                    <th>{{ _('Title') }}</th>
-                                                    <th>{{ _('Assigned') }}</th>
-                                                    <th>{{ _('Assignee CDL') }}</th>
-                                                    <th>{{ _('Level') }}</th>
-                                                    <th>{{ _('Actions') }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="theses-tbody">
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-3">
-                                        <div>
-                                            <input type="text" id="search-input" class="form-control" placeholder="{{ _('Search theses...') }}" style="width: 200px;">
-                                        </div>
-                                        <div>
-                                            <button id="refresh-btn" class="btn btn-secondary">{{ _('Refresh') }}</button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
-
-                                <style>
-                                  #table td {
-                                    vertical-align: middle !important;
-                                  }
-                                </style>
-
-                                <script>
-// Check if GridJS is available, otherwise use fallback
-const tableDiv = document.getElementById('table');
-const fallbackDiv = document.getElementById('fallback-table');
-
-function updateUrl(prev, params) {
-  const url = new URL(prev, window.location.origin);
-  for (const key in params) {
-    if (params[key] !== undefined) {
-      url.searchParams.set(key, params[key]);
-    }
-  }
-  return url.toString();
-}
-
-// Function to load theses data
-async function loadThesesData(searchTerm = '') {
-  try {
-    const url = searchTerm ? `/admin/theses_data?search=${encodeURIComponent(searchTerm)}` : '/admin/theses_data';
-    const response = await fetch(url);
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error loading theses:', error);
-    return { data: [], total: 0 };
-  }
-}
-
-// Function to render fallback table
-function renderFallbackTable(thesesData) {
-  const tbody = document.getElementById('theses-tbody');
-  tbody.innerHTML = '';
-  
-  thesesData.forEach(thesis => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${thesis.title || ''}</td>
-      <td>${thesis.assigned || 'Not assigned'}</td>
-      <td>${thesis.author_cdl || ''}</td>
-      <td><span class="badge badge-info">${thesis.level || ''}</span></td>
-      <td>
-        <div style="display: flex; gap: 8px; justify-content: center;">
-          <a href="/admin/thesis/${thesis.thesis_id}" class="btn btn-success btn-sm">{{ _('Details') }}</a>
-          <button class="btn btn-danger btn-sm delete-button" data-id="${thesis.thesis_id}">{{ _('Delete') }}</button>
-        </div>
-      </td>
-    `;
-    tbody.appendChild(row);
-  });
-}
-
-// Function to handle delete
-function handleDelete(thesisId) {
-  if (confirm('Are you sure you want to delete this thesis? This action cannot be undone.')) {
-    fetch(`/admin/delete_thesis/${thesisId}`, {
-      method: 'DELETE',
-    })
-    .then(response => {
-      if (!response.ok) throw new Error('Failed to delete');
-      return response.json();
-    })
-    .then(data => {
-      if (data.status === 'success') {
-        location.reload(); // Refresh the table
-      } else {
-        throw new Error('Delete failed');
-      }
-    })
-    .catch(err => {
-      alert('Error deleting thesis.');
-      console.error(err);
-    });
-  }
-}
-
-// Try to initialize GridJS
-try {
-  if (typeof gridjs !== 'undefined') {
-    // GridJS is available
-    const editableCellAttributes = (data, row, col) => {
-      if (row) {
-        return {
-          contentEditable: 'true',
-          'data-element-id': row.cells[0].data,
-          'data-column-id': col.id
-        };
-      } else {
-        return {};
-      }
-    };
-
-    new gridjs.Grid({
-    columns: [
-        { id: 'thesis_id', hidden: true },
-        { id: 'title', name: 'Title', attributes: editableCellAttributes },
-        {id: "assigned", name: 'Assigned'},
-        {id: "author_cdl", name: 'Assignee CDL'},
-        { id: 'level', name: 'Level', attributes: editableCellAttributes },
-      {
-        id: 'actions',
-        name: 'Actions',
-        sort: false,
-        formatter: (cell, row) => {
-          if (!row || !row.cells || !row.cells[0]) {
-            return '';
-          }
-          const id = row.cells[0].data;
-          return gridjs.html(`
-            <div style="display: flex; gap: 8px; justify-content: center;">
-              <a href="/admin/thesis/${id}"
-                 style="background-color: #28a745; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.85rem;">
-                Details
-              </a>
-              <button class="delete-button" data-id="${id}"
-                style="background-color: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">
-                Delete
-              </button>
-            </div>
-          `);
-        }
-      },
-    ],
-    server: {
-      url: '/admin/theses_data',
-      then: results => results.data,
-      total: results => results.total,
-    },
-    search: {
-      enabled: true,
-      server: {
-        url: (prev, search) => {
-          return updateUrl(prev, { search });
-        },
-      },
-    },
-    sort: {
-      enabled: true,
-      multiColumn: true,
-      server: {
-        url: (prev, columns) => {
-          const columnIds = ['thesis_id', 'title', 'assigned', 'level', 'author_cdl'];
-          const sort = columns.map(col => (col.direction === 1 ? '+' : '-') + columnIds[col.index]);
-          return updateUrl(prev, { sort });
-        },
-      },
-    },
-    pagination: {
-      enabled: true,
-      server: {
-        url: (prev, page, limit) => {
-          return updateUrl(prev, { start: page * limit, length: limit });
-        },
-      },
-    },
-  }).render(tableDiv);
-
-  let savedValue;
-
-  // Handle inline edits
-  tableDiv.addEventListener('focusin', ev => {
-    if (ev.target.tagName === 'TD') {
-      savedValue = ev.target.textContent;
-    }
-  });
-
-  tableDiv.addEventListener('focusout', ev => {
-    if (ev.target.tagName === 'TD') {
-      if (savedValue !== ev.target.textContent) {
-        fetch('/admin/theses_data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id: ev.target.dataset.elementId,
-            [ev.target.dataset.columnId]: ev.target.textContent
-          }),
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to update');
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (data.status !== 'success') {
-            ev.target.textContent = savedValue; // Revert on failure
-            alert('Update failed');
-          }
-        })
-        .catch(err => {
-          ev.target.textContent = savedValue; // Revert on error
-          alert('Error updating thesis.');
-          console.error(err);
-        });
-      }
-      savedValue = undefined;
-    }
-  });
-
-  tableDiv.addEventListener('keydown', ev => {
-    if (ev.target.tagName === 'TD') {
-      if (ev.key === 'Escape') {
-        ev.target.textContent = savedValue;
-        ev.target.blur();
-      } else if (ev.key === 'Enter') {
-        ev.preventDefault();
-        ev.target.blur();
-      }
-    }
-  });
-
-  // Handle delete button clicks
-  tableDiv.addEventListener('click', function (event) {
-    const target = event.target;
-    if (target.classList.contains('delete-button')) {
-      const id = target.getAttribute('data-id');
-      handleDelete(id);
-    }
-  });
-  
-  } else {
-    throw new Error('GridJS not available');
-  }
-  
-} catch (error) {
-  // GridJS failed, show fallback table
-  console.warn('GridJS not available, using fallback table:', error);
-  tableDiv.style.display = 'none';
-  fallbackDiv.style.display = 'block';
-  
-  // Load initial data
-  loadThesesData().then(data => {
-    renderFallbackTable(data.data);
-  });
-  
-  // Search functionality
-  const searchInput = document.getElementById('search-input');
-  const refreshBtn = document.getElementById('refresh-btn');
-  
-  searchInput.addEventListener('input', async (e) => {
-    const searchTerm = e.target.value;
-    const data = await loadThesesData(searchTerm);
-    renderFallbackTable(data.data);
-  });
-  
-  refreshBtn.addEventListener('click', async () => {
-    const data = await loadThesesData(searchInput.value);
-    renderFallbackTable(data.data);
-  });
-  
-  // Handle delete button clicks
-  fallbackDiv.addEventListener('click', function (event) {
-    const target = event.target;
-    if (target.classList.contains('delete-button')) {
-      const id = target.getAttribute('data-id');
-      handleDelete(id);
-    }
-  });
-}
-</script>
-
-
-
-                            </div>
-                        </div>
-
-                         </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-xl-2 col-lg-16">
-                        </div>
-
-                        <div class="col-xl-8 col-lg-16">
-                            <div class="card mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Create Thesis') }}</h6>
-                                 </div>
-                                <div class="card-body">
-                                    <form class="user" action="/admin/create_thesis" method="POST">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <div class="form-group row">
-                                            <div class="col-sm-12 mb-3 mb-sm-0">
-                                                <input type="text" class="form-control form-control-user" id="title" name="title"
-                                                    placeholder="{{ _('Title') }}">
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <div class="col-sm-12">
-                                                <textarea type="text" class="form-control form-control-user" id="description" name="description">{{ _('Description of the thesis') }}</textarea>
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <div class="col-sm-6 mb-3 mb-sm-0">
-                                                <label for="short_description">{{ _('Short Description') }}</label>
-                                                <textarea class="form-control" id="short_description" name="short_description" rows="2" placeholder="{{ _('Card preview text') }}"></textarea>
-                                            </div>
-                                            <div class="col-sm-6 mb-3 mb-sm-0">
-                                                <label for="topic">{{ _('Topic') }}</label>
-                                                <input type="text" class="form-control" id="topic" name="topic" placeholder="{{ _('e.g. Distributed Systems') }}">
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <div class="col-sm-12">
-                                                <label for="long_description">{{ _('Long Description') }}</label>
-                                                <textarea class="form-control" id="long_description" name="long_description" rows="4" placeholder="{{ _('Detailed public description') }}"></textarea>
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <div class="col-sm-6 mb-3 mb-sm-0">
-                                                <label for="prerequisites">{{ _('Prerequisites') }}</label>
-                                                <textarea class="form-control" id="prerequisites" name="prerequisites" rows="2" placeholder="{{ _('Skills, courses, tools') }}"></textarea>
-                                            </div>
-                                            <div class="col-sm-6 mb-3 mb-sm-0">
-                                                <label for="keywords">{{ _('Keywords') }}</label>
-                                                <input type="text" class="form-control" id="keywords" name="keywords" placeholder="{{ _('AI, NLP, Python') }}">
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <div class="col-sm-4 mb-3 mb-sm-0">
-                                                {{ _('Student') }}
-                                                <select name="student_id" class="form-control form-select form-select-user">
-                                                    <option value=""></option>
-                                                    {% for student in students %}
-                                                        <option value="{{ student.id }}">{{ student.name }} {{ student.surname }}</option>
-                                                    {% endfor %}
-                                                </select>
-
-                                            </div>
-                                            <div class="col-sm-4 mb-3 mb-sm-0">
-                                                {{ _('Main Supervisor') }}
-                                                <select name="supervisor_id" class="form-control form-select form-select-user">
-                                                    <option value=""> </option>
-                                                    {% for supervisor in supervisors %}
-                                                        <option value="{{ supervisor.id }}">{{ supervisor.name }} {{ supervisor.surname }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-
-                                            <div class="col-sm-4 mb-3 mb-sm-0">
-                                                {{ _('Level') }}
-                                                <select name="level" class="form-control form-select form-select-user">
-                                                    <option value="bachelor">{{ _('Bachelor') }}</option>
-                                                    <option value="master">{{ _('Master') }}</option>
-                                                    <option value="other">{{ _('Other') }}</option>
-                                                </select>
-
-                                            </div>
-                                            <div class="col-sm-4 mb-3 mb-sm-0 d-flex align-items-end">
-                                                <div class="form-check">
-                                                    <input type="checkbox" class="form-check-input" id="is_public" name="is_public" value="1" checked>
-                                                    <label class="form-check-label" for="is_public">{{ _('Publish publicly (only if unassigned)') }}</label>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-
-
-
-                                <button class="btn btn-primary btn-user btn-block">
-                                    {{ _('Create Thesis') }}
-                                </button>
-                            </form>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Content Row -->
                 </div>
-                <!-- /.container-fluid -->
-
             </div>
-            <!-- End of Main Content -->
 
-            <!-- Footer -->
             {% include 'admin/components/footer.html' %}
-            <!-- End of Footer -->
-
         </div>
-        <!-- End of Content Wrapper -->
-
     </div>
-    <!-- End of Page Wrapper -->
 
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
+    <div class="modal fade" id="createThesisModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">{{ _('Ready to Leave?') }}</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
+                    <h5 class="modal-title">{{ _('Create New Thesis') }}</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
                 </div>
-                <div class="modal-body">{{ _('Select "Logout" below if you are ready to end your current session.') }}</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">{{ _('Cancel') }}</button>
-                    <a class="btn btn-primary" href="login.html">{{ _('Logout') }}</a>
-                </div>
+                <form method="POST" action="{{ url_for('admin.create_thesis') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="title">{{ _('Thesis Title:') }}</label>
+                            <input type="text" class="form-control" name="title" id="title" required placeholder="{{ _('Enter thesis title...') }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="description">{{ _('Description:') }}</label>
+                            <textarea class="form-control" name="description" id="description" rows="3" required placeholder="{{ _('Provide a detailed description of the thesis...') }}"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="short_description">{{ _('Short Description:') }}</label>
+                            <textarea class="form-control" name="short_description" id="short_description" rows="2" placeholder="{{ _('Short summary for the public card') }}"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="long_description">{{ _('Long Description:') }}</label>
+                            <textarea class="form-control" name="long_description" id="long_description" rows="3" placeholder="{{ _('Extended public description') }}"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="topic">{{ _('Topic:') }}</label>
+                                <input type="text" class="form-control" name="topic" id="topic" placeholder="{{ _('e.g. Computer Vision') }}">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="keywords">{{ _('Keywords (comma separated):') }}</label>
+                                <input type="text" class="form-control" name="keywords" id="keywords" placeholder="{{ _('deep learning, python, healthcare') }}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="prerequisites">{{ _('Prerequisites:') }}</label>
+                            <textarea class="form-control" name="prerequisites" id="prerequisites" rows="2" placeholder="{{ _('Required skills/tools/courses') }}"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="level">{{ _('Level:') }}</label>
+                                <select class="form-control" name="level" id="level" required>
+                                    <option value="">{{ _('Select Level') }}</option>
+                                    <option value="bachelor">{{ _('Bachelor') }}</option>
+                                    <option value="master">{{ _('Master') }}</option>
+                                    <option value="phd">{{ _('PhD') }}</option>
+                                    <option value="other">{{ _('Other') }}</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="supervisor_id">{{ _('Supervisor:') }}</label>
+                                <select class="form-control" name="supervisor_id" id="supervisor_id">
+                                    <option value="">{{ _('No supervisor') }}</option>
+                                    {% for sp in supervisors %}<option value="{{ sp.id }}">{{ sp.name }} {{ sp.surname }}</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="student_id">{{ _('Student:') }}</label>
+                                <select class="form-control" name="student_id" id="student_id">
+                                    <option value="">{{ _('Not assigned') }}</option>
+                                    {% for st in students %}<option value="{{ st.id }}">{{ st.name }} {{ st.surname }}</option>{% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="admin_publish_create" name="is_public" value="1" checked>
+                            <label class="form-check-label" for="admin_publish_create">{{ _('Publish in the public catalog (students can find it and express interest)') }}</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Create Thesis') }}</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    {% include 'admin/components/logout_modal.html' %}
+
+    <script>
+        function _postThesisAction(action, thesisId) {
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ url_for("admin.archive_thesis") }}';
+            [['csrf_token', '{{ csrf_token() }}'], ['thesis_id', thesisId], ['action', action], ['next', 'list']].forEach(function (kv) {
+                var i = document.createElement('input'); i.type = 'hidden'; i.name = kv[0]; i.value = kv[1]; form.appendChild(i);
+            });
+            document.body.appendChild(form); form.submit();
+        }
+        function freezeThesis(id) { if (confirm({{ _('Are you sure you want to freeze this thesis? Students will not be able to make changes.')|tojson }})) _postThesisAction('archive', id); }
+        function unfreezeThesis(id) { if (confirm({{ _('Are you sure you want to unfreeze this thesis?')|tojson }})) _postThesisAction('unarchive', id); }
+        function deleteThesis(id) {
+            if (!confirm({{ _('Are you sure you want to delete this thesis? This action cannot be undone.')|tojson }})) return;
+            fetch('{{ url_for("admin.delete_thesis", thesis_id=0) }}'.replace(/0$/, id), {method: 'DELETE', headers: {'X-CSRFToken': '{{ csrf_token() }}'}})
+                .then(function (r) { return r.json().catch(function () { return {}; }).then(function (p) { if (!r.ok) throw new Error(p.message || 'Failed'); location.reload(); }); })
+                .catch(function (err) { alert(err.message); });
+        }
+    </script>
+
+</body>
+
+</html>

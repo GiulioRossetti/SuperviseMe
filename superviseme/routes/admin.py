@@ -108,7 +108,14 @@ def users():
     privilege_check = check_privileges(current_user.username, role="admin")
     if privilege_check is not True:
         return privilege_check
-    return render_template("/admin/users.html", current_user=current_user)
+    all_users = User_mgmt.query.order_by(User_mgmt.surname, User_mgmt.name).all()
+    sup_researchers = {r[0] for r in db.session.query(Supervisor_Role.researcher_id).filter(Supervisor_Role.active.is_(True)).all()}
+    counts = {}
+    for u in all_users:
+        counts[u.user_type] = counts.get(u.user_type, 0) + 1
+    return render_template("/admin/users.html", current_user=current_user, users=all_users,
+                           sup_researchers=sup_researchers, counts=counts, datetime=__import__("datetime").datetime,
+                           disabled_count=sum(1 for u in all_users if not u.is_enabled))
 
 
 @admin.route("/admin/create_user", methods=["POST"])
@@ -427,10 +434,13 @@ def theses():
     privilege_check = check_privileges(current_user.username, role="admin")
     if privilege_check is not True:
         return privilege_check
-    students = User_mgmt.query.filter_by(user_type="student").all()
-    supervisors = User_mgmt.query.filter_by(user_type="supervisor").all()
-    return render_template("/admin/theses.html", current_user=current_user,
-                           students=students, supervisors=supervisors)
+    from datetime import datetime
+    from superviseme.utils.thesis_board import build_thesis_cards
+    students = User_mgmt.query.filter_by(user_type="student").order_by(User_mgmt.surname).all()
+    supervisors = User_mgmt.query.filter_by(user_type="supervisor").order_by(User_mgmt.surname).all()
+    cards, archived = build_thesis_cards(Thesis.query.all())
+    return render_template("/admin/theses.html", current_user=current_user, cards=cards, archived=archived,
+                           students=students, supervisors=supervisors, dt=datetime.fromtimestamp)
 
 
 @admin.route("/admin/theses_data", methods=["GET", "POST"])
@@ -1046,6 +1056,8 @@ def archive_thesis():
     
     status_text = "archived" if thesis.frozen else "unarchived"
     flash(f"Thesis {status_text} successfully")
+    if request.form.get("next") == "list":
+        return redirect(url_for("admin.theses"))
     return redirect(url_for("admin.thesis_detail", thesis_id=thesis_id))
 
 

@@ -43,20 +43,42 @@
                                 {% set maxn = [1] %}
                                 {% for l, theses in theses_by_supervisor.items() %}{% if theses|length > maxn[0] %}{% set _x = maxn.__setitem__(0, theses|length) %}{% endif %}{% endfor %}
                                 {% if theses_by_supervisor %}
-                                <div class="dash-people">
+                                <div class="dash-people wl-grid" id="wlGrid">
                                     {% for l, theses in workload %}
-                                    <a class="dash-person" data-toggle="collapse" href="#wl{{ l.id }}" role="button" aria-expanded="false">
-                                        <div class="top">{{ avatar(l) }}<div style="min-width:0"><div class="nm">{{ l.name }} {{ l.surname }}</div><div class="th">{{ l.email }}</div></div></div>
-                                        <div class="progress"><div class="progress-bar" style="width: {{ 100 * theses|length / maxn[0] }}%"></div></div>
-                                        <div class="foot">{% set cap = capacity_info(l) %}<span>{{ theses|length }} {{ _('assigned theses') }}{% if cap.max is not none %} · <strong class="{{ 'text-danger' if cap.full }}">{{ cap.used }}/{{ cap.max }}</strong>{% endif %}</span><span><i class="fas fa-chevron-down"></i></span></div>
-                                        <div class="collapse mt-2" id="wl{{ l.id }}" onclick="event.stopPropagation()">
+                                    <div class="dash-person wl-card" id="wl{{ l.id }}">
+                                        <button type="button" class="wl-head" aria-expanded="false" aria-controls="wl{{ l.id }}d">
+                                            <span class="top">{{ avatar(l) }}<span style="min-width:0"><span class="nm">{{ l.name }} {{ l.surname }}</span><span class="th">{{ l.email }}</span></span></span>
+                                            <span class="progress"><span class="progress-bar" style="width: {{ 100 * theses|length / maxn[0] }}%"></span></span>
+                                            <span class="foot">{% set cap = capacity_info(l) %}<span>{{ theses|length }} {{ _('assigned theses') }}{% if cap.max is not none %} · <strong class="{{ 'text-danger' if cap.full }}">{{ cap.used }}/{{ cap.max }}</strong>{% endif %}</span><span><i class="fas fa-chevron-down wl-chev"></i></span></span>
+                                        </button>
+                                        <div class="wl-detail" id="wl{{ l.id }}d" hidden>
                                             {% for t in theses %}
-                                            <div class="small border-top pt-1 mt-1"><strong>{{ user_link(t['student']) }}</strong><br><span class="text-muted">{{ t['thesis'].title }}</span></div>
+                                            <div class="wl-row"><i class="fas fa-user-graduate"></i><div><strong>{{ user_link(t['student']) }}</strong><span>{{ t['thesis'].title }}</span></div></div>
                                             {% else %}<div class="small text-muted">{{ _('No assigned students yet') }}</div>{% endfor %}
+                                            <div class="mt-2"><a class="dash-link" href="{{ url_for('admin.user_detail', user_id=l.id) }}">{{ _('Supervisor profile') }} <i class="fas fa-arrow-right"></i></a></div>
                                         </div>
-                                    </a>
+                                    </div>
                                     {% endfor %}
                                 </div>
+                                <script>
+                                (function () {
+                                    var grid = document.getElementById('wlGrid');
+                                    if (!grid) return;
+                                    function setOpen(card, open) {
+                                        card.classList.toggle('is-open', open);
+                                        card.querySelector('.wl-head').setAttribute('aria-expanded', open ? 'true' : 'false');
+                                        card.querySelector('.wl-detail').hidden = !open;
+                                    }
+                                    grid.addEventListener('click', function (e) {
+                                        var head = e.target.closest('.wl-head');
+                                        if (!head) return;
+                                        var card = head.parentNode, willOpen = !card.classList.contains('is-open');
+                                        grid.querySelectorAll('.wl-card.is-open').forEach(function (c) { setOpen(c, false); });
+                                        if (willOpen) { setOpen(card, true); card.scrollIntoView({block: 'nearest', behavior: 'smooth'}); }
+                                        grid.classList.toggle('has-open', willOpen);
+                                    });
+                                })();
+                                </script>
                                 {% else %}{{ empty('fas fa-chalkboard-teacher', _('No supervisors yet')) }}{% endif %}
                             {% endcall %}
                         </div>

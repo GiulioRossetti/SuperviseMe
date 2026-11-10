@@ -108,7 +108,7 @@
             {% set icon = {'bachelor': 'fa-seedling', 'master': 'fa-graduation-cap', 'phd': 'fa-microscope'}.get(lvl, 'fa-book-open') %}
             <div class="sv-item"
                  data-title="{{ t.title|lower }}"
-                 data-student="{{ ((c.student.name ~ ' ' ~ c.student.surname ~ ' ' ~ c.student.email) if c.student else '')|lower }}"
+                 data-student="{{ (((c.student.name ~ ' ' ~ c.student.surname ~ ' ' ~ c.student.email) if c.student else '') ~ ((' ' ~ c.supervisors|map(attribute='surname')|join(' ')) if show_supervisors else ''))|lower }}"
                  data-topic="{{ ((t.topic or '') ~ ' ' ~ (c.keywords|join(' ')))|lower }}"
                  data-level="{{ lvl }}" data-state="{{ c.state }}" data-status="{{ (c.status or '__none')|lower }}"
                  data-public="{{ 1 if t.is_public else 0 }}" data-interests="{{ c.pending_interests }}"
@@ -152,6 +152,10 @@
                     </div>
                     {% endif %}
 
+                    {% if show_supervisors %}
+                    <div class="th-meta"><span title="{{ _('Supervisors') }}"><i class="fas fa-chalkboard-teacher"></i>
+                        {% for sp in c.supervisors %}{{ user_link(sp) }}{% if not loop.last %}, {% endif %}{% else %}<em>{{ _('No supervisor') }}</em>{% endfor %}</span></div>
+                    {% endif %}
                     <div class="th-meta">
                         <span title="{{ _('Created') }}"><i class="far fa-calendar"></i> {{ dt(t.created_at).strftime('%b %d, %Y') if t.created_at else '—' }}</span>
                         {% if c.images %}<span><i class="fas fa-images"></i> {{ c.images }}</span>{% endif %}

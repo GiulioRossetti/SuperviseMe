@@ -1,5 +1,5 @@
 """View-models for the supervisor/researcher "My theses" board."""
-from superviseme.models import Thesis_Interest, Thesis_Status, Todo
+from superviseme.models import Thesis_Interest, Thesis_Status, Thesis_Supervisor, Todo
 
 
 def build_thesis_cards(theses):
@@ -26,6 +26,7 @@ def build_thesis_cards(theses):
             "keywords": [tag.tag for tag in t.tags],
             "images": len(t.images),
             "links": len(t.links),
+            "supervisors": [r.supervisor for r in Thesis_Supervisor.query.filter_by(thesis_id=t.id) if r.supervisor],
         }
         (archived if t.frozen else active).append(card)
     key = lambda c: -(c["thesis"].created_at or 0)

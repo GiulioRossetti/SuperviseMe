@@ -4257,3 +4257,66 @@ msgstr "Sito personale, LinkedIn, Google Scholar... Visibili agli altri utenti s
 
 msgid "Label (optional)"
 msgstr "Etichetta (facoltativa)"
+
+msgid "Supervisor profile"
+msgstr "Profilo del relatore"
+
+msgid "Create New User"
+msgstr "Crea nuovo utente"
+
+msgid "Supervisors & researchers"
+msgstr "Relatori e ricercatori"
+
+msgid "Disabled"
+msgstr "Disabilitati"
+
+msgid "All users"
+msgstr "Tutti gli utenti"
+
+msgid "Search by name, email or username..."
+msgstr "Cerca per nome, email o username..."
+
+msgid "Any status"
+msgstr "Qualsiasi stato"
+
+msgid "Supervisor role"
+msgstr "Ruolo di relatore"
+
+msgid "Last online:"
+msgstr "Ultimo accesso:"
+
+msgid "Show more"
+msgstr "Mostra altri"
+
+msgid "No users match your search."
+msgstr "Nessun utente corrisponde alla ricerca."
+
+msgid "Repeat password"
+msgstr "Ripeti la password"
+
+msgid "Are you sure you want to enable this user?"
+msgstr "Abilitare questo utente?"
+
+msgid "Are you sure you want to disable this user?"
+msgstr "Disabilitare questo utente?"
+
+msgid "Error updating user status."
+msgstr "Errore durante l'aggiornamento dello stato dell'utente."
+
+msgid "Error deleting user."
+msgstr "Errore durante l'eliminazione dell'utente."
+
+msgid "No supervisor"
+msgstr "Nessun relatore"
+
+msgid "Back to Theses"
+msgstr "Torna alle tesi"
+
+msgid "Are you sure you want to freeze this thesis? Students will not be able to make changes."
+msgstr "Congelare questa tesi? Gli studenti non potranno più apportare modifiche."
+
+msgid "Are you sure you want to unfreeze this thesis?"
+msgstr "Scongelare questa tesi?"
+
+msgid "Are you sure you want to delete this thesis? This action cannot be undone."
+msgstr "Eliminare questa tesi? L'azione non può essere annullata."

@@ -2,560 +2,223 @@
 
 <body id="page-top">
 
-    <!-- Page Wrapper -->
     <div id="wrapper">
-
-        <!-- Sidebar -->
         {% include 'admin/components/sidebar.html' %}
-        <!-- End of Sidebar -->
 
-        <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">
-
-            <!-- Main Content -->
             <div id="content">
-
-                <!-- Topbar -->
                 {% include 'admin/components/topbar.html' %}
-                <!-- End of Topbar -->
 
-                <!-- Begin Page Content -->
                 <div class="container-fluid">
 
-                    <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">{{ _('Dashboard') }}</h1>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Users') }}</h1>
+                        <button class="btn btn-primary" data-toggle="modal" data-target="#createUserModal">
+                            <i class="fas fa-user-plus"></i> {{ _('Create New User') }}
+                        </button>
                     </div>
 
+                    {% with messages = get_flashed_messages() %}
+                        {% for message in messages %}
+                            <div class="alert alert-info alert-dismissible fade show" role="alert">{{ message }}
+                                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                            </div>
+                        {% endfor %}
+                    {% endwith %}
 
-                    <!-- Content Row -->
+                    <div class="row mb-2">
+                        <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ users|length }}</div><div class="l">{{ _('Users') }}</div></div></div>
+                        <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ counts.get('student', 0) }}</div><div class="l">{{ _('Students') }}</div></div></div>
+                        <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ counts.get('supervisor', 0) + counts.get('researcher', 0) }}</div><div class="l">{{ _('Supervisors & researchers') }}</div></div></div>
+                        <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ disabled_count }}</div><div class="l">{{ _('Disabled') }}</div></div></div>
+                    </div>
 
-                    <div class="row">
-                         <div class="col-xl-12 col-lg-16">
+                    <div class="card shadow mb-4" id="usSection">
+                        <div class="card-header py-3 d-flex flex-wrap align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">{{ _('All users') }}</h6>
+                            <span class="small text-muted" id="usCount"></span>
+                        </div>
+                        <div class="card-body">
+                            <div class="sv-toolbar mb-3">
+                                <div class="input-group sv-search">
+                                    <div class="input-group-prepend"><span class="input-group-text bg-white"><i class="fas fa-search"></i></span></div>
+                                    <input type="search" class="form-control" id="usQuery" placeholder="{{ _('Search by name, email or username...') }}" autocomplete="off">
+                                </div>
+                                <div class="btn-group btn-group-sm sv-chips" id="usChips">
+                                    <button type="button" class="btn btn-outline-primary active" data-role="">{{ _('All') }}</button>
+                                    <button type="button" class="btn btn-outline-primary" data-role="student">{{ _('Students') }}</button>
+                                    <button type="button" class="btn btn-outline-primary" data-role="supervisor">{{ _('Supervisors') }}</button>
+                                    <button type="button" class="btn btn-outline-primary" data-role="researcher">{{ _('Researchers') }}</button>
+                                    <button type="button" class="btn btn-outline-primary" data-role="admin">{{ _('Admins') }}</button>
+                                </div>
+                                <select id="usStatus" class="custom-select custom-select-sm" style="width:auto" aria-label="{{ _('Status') }}">
+                                    <option value="">{{ _('Any status') }}</option>
+                                    <option value="1">{{ _('Enabled') }}</option>
+                                    <option value="0">{{ _('Disabled') }}</option>
+                                </select>
+                            </div>
 
-                             <div class="card mb-4">
-                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Users') }}</h6>
-                                 </div>
-                                <div class="card-body">
-
-                                <div id="table"></div>
-                                <div id="fallback-table" style="display:none;">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                            <thead>
-                                                <tr>
-                                                    <th>{{ _('Name') }}</th>
-                                                    <th>{{ _('Surname') }}</th>
-                                                    <th>{{ _('Gender') }}</th>
-                                                    <th>{{ _('Role') }}</th>
-                                                    <th>{{ _('Researcher + Supervisor') }}</th>
-                                                    <th>{{ _('Status') }}</th>
-                                                    <th>{{ _('ID') }}</th>
-                                                    <th>{{ _('Actions') }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="users-tbody">
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-3">
-                                        <div>
-                                            <input type="text" id="search-input" class="form-control" placeholder="{{ _('Search users...') }}" style="width: 200px;">
+                            <div class="pj-grid" id="usGrid">
+                                {% for u in users %}
+                                {% set sup = u.user_type == 'researcher' and u.id in sup_researchers %}
+                                <div class="pj-slot us-item" data-role="{{ u.user_type }}" data-enabled="{{ 1 if u.is_enabled else 0 }}"
+                                     data-q="{{ (u.name ~ ' ' ~ u.surname ~ ' ' ~ u.email ~ ' ' ~ u.username)|lower }}">
+                                    <div class="sv-card {{ '' if u.is_enabled else 'is-inactive' }}">
+                                        <div class="sv-card-top">
+                                            {% if u.profile_pic %}<img class="sm-avatar" src="{{ avatar_url(u) }}" alt="">{% else %}<div class="sm-avatar">{{ (u.name or '?')[:1] }}{{ (u.surname or '')[:1] }}</div>{% endif %}
+                                            <div class="sv-id">
+                                                <a class="sv-name" href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ u.name }} {{ u.surname }}</a>
+                                                <div class="sv-email" title="{{ u.email }}">{{ u.email }}</div>
+                                            </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-link btn-sm text-muted p-0" data-toggle="dropdown" aria-label="{{ _('More') }}"><i class="fas fa-ellipsis-v"></i></button>
+                                                <div class="dropdown-menu dropdown-menu-right">
+                                                    <a class="dropdown-item" href="{{ url_for('admin.user_detail', user_id=u.id) }}"><i class="fas fa-eye fa-fw mr-1"></i> {{ _('Details') }}</a>
+                                                    <a class="dropdown-item" href="mailto:{{ u.email }}"><i class="fas fa-envelope fa-fw mr-1"></i> {{ _('Email') }}</a>
+                                                    <button type="button" class="dropdown-item js-toggle" data-id="{{ u.id }}" data-enabled="{{ 1 if u.is_enabled else 0 }}">
+                                                        <i class="fas fa-{{ 'user-slash' if u.is_enabled else 'user-check' }} fa-fw mr-1 text-warning"></i> {{ _('Disable') if u.is_enabled else _('Enable') }}
+                                                    </button>
+                                                    {% if u.id != current_user.id %}
+                                                    <div class="dropdown-divider"></div>
+                                                    <button type="button" class="dropdown-item text-danger js-delete" data-id="{{ u.id }}" data-name="{{ u.name }} {{ u.surname }}"><i class="fas fa-trash fa-fw mr-1"></i> {{ _('Delete') }}</button>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <button id="refresh-btn" class="btn btn-secondary">{{ _('Refresh') }}</button>
+                                        <div class="sv-badges">
+                                            <span class="badge badge-primary">{{ _(u.user_type|capitalize) }}</span>
+                                            {% if sup %}<span class="badge badge-success">{{ _('Supervisor role') }}</span>{% endif %}
+                                            <span class="badge {{ 'badge-success' if u.is_enabled else 'badge-warning' }}">{{ _('Enabled') if u.is_enabled else _('Disabled') }}</span>
+                                            {% if u.google_id %}<span class="badge badge-light border" title="{{ _('Google User') }}"><i class="fab fa-google"></i></span>{% endif %}
+                                            {% if u.orcid_id %}<span class="badge badge-light border" title="{{ _('ORCID User') }}"><i class="fab fa-orcid text-success"></i></span>{% endif %}
+                                        </div>
+                                        <div class="sv-activity {{ 'ok' if u.last_activity else 'warn' }}">
+                                            <i class="fas fa-circle"></i>
+                                            {% if u.last_activity %}{{ _('Last online:') }} {{ datetime.fromtimestamp(u.last_activity).strftime('%b %d, %Y') }}{% else %}{{ _('Not yet logged') }}{% endif %}
+                                        </div>
+                                        <div class="sv-actions">
+                                            <a href="{{ url_for('admin.user_detail', user_id=u.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-id-card"></i> {{ _('Open') }}</a>
                                         </div>
                                     </div>
                                 </div>
-
-                                <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
-
-                                <style>
-                                  #table td {
-                                    vertical-align: middle !important;
-                                  }
-                                </style>
-
-                                <script>
-// Check if GridJS is available, otherwise use fallback
-const tableDiv = document.getElementById('table');
-const fallbackDiv = document.getElementById('fallback-table');
-
-function updateUrl(prev, params) {
-  const url = new URL(prev, window.location.origin);
-  for (const key in params) {
-    if (params[key] !== undefined) {
-      url.searchParams.set(key, params[key]);
-    }
-  }
-  return url.toString();
-}
-
-// Function to load users data
-async function loadUsersData(searchTerm = '') {
-  try {
-    const url = searchTerm ? `/admin/users_data?search=${encodeURIComponent(searchTerm)}` : '/admin/users_data';
-    const response = await fetch(url);
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error loading users:', error);
-    return { data: [], total: 0 };
-  }
-}
-
-// Function to render fallback table
-function renderFallbackTable(usersData) {
-  const tbody = document.getElementById('users-tbody');
-  tbody.innerHTML = '';
-  
-  usersData.forEach(user => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${user.name || ''}</td>
-      <td>${user.surname || ''}</td>
-      <td>${user.gender || ''}</td>
-      <td><span class="badge badge-primary">${user.user_type}</span></td>
-      <td>
-        ${user.user_type === 'researcher'
-          ? (user.has_supervisor_privileges
-              ? '<span class="badge badge-success">{{ _('Enabled') }}</span>'
-              : '<span class="badge badge-secondary">No</span>')
-          : '<span class="text-muted">{{ _('N/A') }}</span>'}
-      </td>
-      <td>
-        <span class="badge ${user.is_enabled ? 'badge-success' : 'badge-warning'}">
-          ${user.is_enabled ? 'Enabled' : 'Disabled'}
-        </span>
-        <button class="btn btn-sm btn-link toggle-status" data-id="${user.id}" data-enabled="${user.is_enabled}">
-          ${user.is_enabled ? 'Disable' : 'Enable'}
-        </button>
-      </td>
-      <td>
-          ${user.google_id ? '<i class="fab fa-google" title="{{ _('Google User') }}"></i>' : ''}
-          ${user.orcid_id ? '<i class="fab fa-orcid" title="{{ _('ORCID User') }}"></i>' : ''}
-      </td>
-      <td>
-        <div style="display: flex; gap: 8px; justify-content: center;">
-          <a href="/admin/user/${user.id}" class="btn btn-success btn-sm">{{ _('Details') }}</a>
-          <button class="btn btn-danger btn-sm delete-button" data-id="${user.id}">{{ _('Delete') }}</button>
-        </div>
-      </td>
-    `;
-    tbody.appendChild(row);
-  });
-}
-
-// Function to handle delete
-function handleDelete(userId) {
-  if (confirm('Are you sure you want to delete this user?')) {
-    fetch(`/admin/delete_user/${userId}`, {
-      method: 'DELETE',
-    })
-    .then(response => {
-      if (!response.ok) throw new Error('Failed to delete');
-      location.reload(); // Refresh the page
-    })
-    .catch(err => {
-      alert('Error deleting user.');
-      console.error(err);
-    });
-  }
-}
-
-// Function to handle status toggle
-function handleToggleStatus(userId, currentStatus) {
-  const newStatus = !currentStatus;
-  const action = newStatus ? 'enable' : 'disable';
-
-  if (confirm(`Are you sure you want to ${action} this user?`)) {
-    fetch('/admin/users_data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: userId,
-        is_enabled: newStatus
-      }),
-    })
-    .then(response => {
-      if (!response.ok) throw new Error('Failed to update status');
-      return response.json();
-    })
-    .then(data => {
-        location.reload(); // Refresh to see changes
-    })
-    .catch(err => {
-      alert('Error updating user status.');
-      console.error(err);
-    });
-  }
-}
-
-// Try to initialize GridJS
-try {
-  if (typeof gridjs !== 'undefined') {
-    // GridJS is available
-    const editableCellAttributes = (data, row, column) => {
-      if (column.id === 'id') {
-        return {};
-      } else {
-        return {
-          contentEditable: 'true',
-          'data-element-id': row && row.cells && row.cells[0] ? row.cells[0].data : '',
-          'data-column-id': column.id
-        };
-      }
-    };
-
-    new gridjs.Grid({
-      columns: [
-          { id: 'id', hidden: true },
-          { id: 'google_id', hidden: true },
-          { id: 'orcid_id', hidden: true },
-          { id: 'has_supervisor_privileges', hidden: true },
-          { id: 'name', name: 'Name', attributes: editableCellAttributes },
-          { id: 'surname', name: 'Surname', attributes: editableCellAttributes },
-          {id: "gender", name: 'Gender', attributes: editableCellAttributes},
-          { id: 'user_type', name: 'Role', attributes: editableCellAttributes },
-          {
-            id: 'researcher_supervisor',
-            name: 'Researcher + Supervisor',
-            sort: false,
-            formatter: (cell, row) => {
-              const userType = row.cells[7].data;
-              const hasPrivileges = row.cells[3].data;
-              if (userType !== 'researcher') {
-                return gridjs.html('<span class="text-muted">{{ _('N/A') }}</span>');
-              }
-              return gridjs.html(
-                hasPrivileges
-                  ? '<span class="badge badge-success">{{ _('Enabled') }}</span>'
-                  : '<span class="badge badge-secondary">No</span>'
-              );
-            }
-          },
-          {
-            id: 'is_enabled',
-            name: 'Status',
-            formatter: (cell, row) => {
-              const isEnabled = cell;
-              const id = row.cells[0].data;
-              return gridjs.html(`
-                <span class="badge ${isEnabled ? 'badge-success' : 'badge-warning'}">
-                  ${isEnabled ? 'Enabled' : 'Disabled'}
-                </span>
-                <button class="btn btn-sm btn-link toggle-status" data-id="${id}" data-enabled="${isEnabled}">
-                  ${isEnabled ? 'Disable' : 'Enable'}
-                </button>
-              `);
-            }
-          },
-          {
-            name: 'ID',
-            formatter: (cell, row) => {
-               const googleId = row.cells[1].data;
-               const orcidId = row.cells[2].data;
-               let html = '';
-               if (googleId) html += '<i class="fab fa-google" title="Google User" style="margin-right: 5px;"></i>';
-               if (orcidId) html += '<i class="fab fa-orcid" title="ORCID User" style="margin-right: 5px;"></i>';
-               return gridjs.html(html);
-            }
-          },
-        {
-          id: 'actions',
-          name: 'Actions',
-          sort: false,
-          formatter: (cell, row) => {
-            if (!row || !row.cells || !row.cells[0]) {
-              return '';
-            }
-            const id = row.cells[0].data;
-            return gridjs.html(`
-              <div style="display: flex; gap: 8px; justify-content: center;">
-                <a href="/admin/user/${id}"
-                   style="background-color: #28a745; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 0.85rem;">
-                  {{ _('Details') }}
-                </a>
-                <button class="delete-button" data-id="${id}"
-                  style="background-color: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;">
-                  {{ _('Delete') }}
-                </button>
-              </div>
-            `);
-          }
-        },
-      ],
-      server: {
-        url: '/admin/users_data',
-        then: results => results.data,
-        total: results => results.total,
-      },
-      search: {
-        enabled: true,
-        server: {
-          url: (prev, search) => {
-            return updateUrl(prev, { search });
-          },
-        },
-      },
-      sort: {
-        enabled: true,
-        multiColumn: true,
-        server: {
-          url: (prev, columns) => {
-            const columnIds = ['name', 'surname', 'gender', 'user_type'];
-            const sort = columns
-              .map(col => ({ ...col, field: columnIds[col.index] }))
-              .filter(col => !!col.field)
-              .map(col => (col.direction === 1 ? '+' : '-') + col.field);
-            return updateUrl(prev, { sort });
-          },
-        },
-      },
-      pagination: {
-        enabled: true,
-        server: {
-          url: (prev, page, limit) => {
-            return updateUrl(prev, { start: page * limit, length: limit });
-          },
-        },
-      },
-    }).render(tableDiv);
-
-    let savedValue;
-
-    // Handle inline edits
-    tableDiv.addEventListener('focusin', ev => {
-      if (ev.target.tagName === 'TD') {
-        savedValue = ev.target.textContent;
-      }
-    });
-
-    tableDiv.addEventListener('focusout', ev => {
-      if (ev.target.tagName === 'TD') {
-        if (savedValue !== ev.target.textContent) {
-          fetch('/admin/users_data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              id: ev.target.dataset.elementId,
-              [ev.target.dataset.columnId]: ev.target.textContent
-            }),
-          });
-        }
-        savedValue = undefined;
-      }
-    });
-
-    tableDiv.addEventListener('keydown', ev => {
-      if (ev.target.tagName === 'TD') {
-        if (ev.key === 'Escape') {
-          ev.target.textContent = savedValue;
-          ev.target.blur();
-        } else if (ev.key === 'Enter') {
-          ev.preventDefault();
-          ev.target.blur();
-        }
-      }
-    });
-
-    // Handle delete and toggle button clicks
-    tableDiv.addEventListener('click', function (event) {
-      const target = event.target;
-      if (target.classList.contains('delete-button')) {
-        const id = target.getAttribute('data-id');
-        handleDelete(id);
-      } else if (target.classList.contains('toggle-status')) {
-        const id = target.getAttribute('data-id');
-        const enabled = target.getAttribute('data-enabled') === 'true';
-        handleToggleStatus(id, enabled);
-      }
-    });
-    
-  } else {
-    throw new Error('GridJS not available');
-  }
-  
-} catch (error) {
-  // GridJS failed, show fallback table
-  console.warn('GridJS not available, using fallback table:', error);
-  tableDiv.style.display = 'none';
-  fallbackDiv.style.display = 'block';
-  
-  // Load initial data
-  loadUsersData().then(data => {
-    renderFallbackTable(data.data);
-  });
-  
-  // Search functionality
-  const searchInput = document.getElementById('search-input');
-  const refreshBtn = document.getElementById('refresh-btn');
-  
-  searchInput.addEventListener('input', async (e) => {
-    const searchTerm = e.target.value;
-    const data = await loadUsersData(searchTerm);
-    renderFallbackTable(data.data);
-  });
-  
-  refreshBtn.addEventListener('click', async () => {
-    const data = await loadUsersData(searchInput.value);
-    renderFallbackTable(data.data);
-  });
-  
-  // Handle delete and toggle button clicks
-  fallbackDiv.addEventListener('click', function (event) {
-    const target = event.target;
-    if (target.classList.contains('delete-button')) {
-      const id = target.getAttribute('data-id');
-      handleDelete(id);
-    } else if (target.classList.contains('toggle-status')) {
-        const id = target.getAttribute('data-id');
-        const enabled = target.getAttribute('data-enabled') === 'true';
-        handleToggleStatus(id, enabled);
-    }
-  });
-}
-</script>
-
-
-
+                                {% endfor %}
+                            </div>
+                            <div class="text-center mt-3"><button type="button" class="btn btn-outline-primary btn-sm" id="usMore" style="display:none">{{ _('Show more') }}</button></div>
+                            <div class="text-center text-muted py-4" id="usEmpty" style="display:none">
+                                <i class="fas fa-users fa-2x mb-2"></i><div>{{ _('No users match your search.') }}</div>
                             </div>
                         </div>
-
-                         </div>
                     </div>
 
-
-                    <div class="row">
-                        <div class="col-xl-2 col-lg-16">
-                        </div>
-
-                        <div class="col-xl-8 col-lg-16">
-                            <div class="card mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">{{ _('Create User') }}</h6>
-                                 </div>
-                                <div class="card-body">
-                                    <form class="user" action="/admin/create_user" method="POST">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <div class="form-group row">
-                                            <div class="col-sm-4 mb-3 mb-sm-0">
-                                                <input type="text" class="form-control form-control-user" id="name" name="name"
-                                                    placeholder="{{ _('First Name') }}">
-                                            </div>
-                                            <div class="col-sm-4">
-                                                <input type="text" class="form-control form-control-user" id="surname" name="surname"
-                                                    placeholder="{{ _('Last Name') }}">
-                                            </div>
-                                            <div class="col-sm-4">
-                                                <input type="text" class="form-control form-control-user" id="nationality" name="nationality"
-                                                    placeholder="{{ _('Nationality') }}">
-                                            </div>
-
-
-                                        </div>
-                                         <div class="form-group row">
-                                            <div class="col-sm-6 ">
-                                            <input type="email" class="form-control form-control-user" id="email" name="email"
-                                                placeholder="{{ _('Email Address') }}">
-                                            </div>
-                                            <div class="col-sm-6 ">
-                                                <input type="text" class="form-control form-control-user"
-                                                    id="username" placeholder="{{ _('Username') }}" name="username">
-                                            </div>
-                                        </div>
-
-                                        <div class="form-group row">
-                                            <div class="col-sm-4 mb-3 mb-sm-0">
-                                                Role
-                                                <select name="role" class="form-control form-select form-select-user">
-                                                    <option value="admin">{{ _('Admin') }}</option>
-                                                    <option value="supervisor">{{ _('Supervisor') }}</option>
-                                                    <option value="researcher">{{ _('Researcher') }}</option>
-                                                    <option value="student">{{ _('Student') }}</option>
-                                                </select>
-
-                                            </div>
-                                            <div class="col-sm-4 mb-3 mb-sm-0">
-                                                {{ _('Gender') }}
-                                                <select name="gender" class="form-control form-select form-select-user">
-                                                    <option value=""> </option>
-                                                    <option value="male">{{ _('male') }}</option>
-                                                    <option value="female">{{ _('female') }}</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-sm-4">
-                                                {{ _('Degree Enrolled') }}
-                                                <select name="cdl" class="form-control form-select form-select-user">
-                                                    <option value=""></option>
-                                                    <option value="computer science">{{ _('Computer Science') }}</option>
-                                                    <option value="data science">{{ _('Data Science') }}</option>
-                                                    <option value="digital humanities">{{ _('Digital Humanities') }}</option>
-                                                    <option value="physics">{{ _('Physics') }}</option>
-                                                </select>
-                                            </div>
-
-                                        </div>
-
-                                        <div class="form-group row">
-                                            <div class="col-sm-6 mb-3 mb-sm-0">
-                                                <input type="password" class="form-control form-control-user"
-                                                    id="password" placeholder="{{ _('Password') }}" name="password">
-                                            </div>
-                                            <div class="col-sm-6">
-                                                <input type="password" class="form-control form-control-user"
-                                                    id="password2" placeholder="{{ _('Repeat Password') }}" name="password2">
-                                            </div>
-                                        </div>
-                                <button class="btn btn-primary btn-user btn-block">
-                                    {{ _('Register Account') }}
-                                </button>
-                            </form>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- Content Row -->
                 </div>
-                <!-- /.container-fluid -->
-
             </div>
-            <!-- End of Main Content -->
 
-            <!-- Footer -->
             {% include 'admin/components/footer.html' %}
-            <!-- End of Footer -->
-
         </div>
-        <!-- End of Content Wrapper -->
-
     </div>
-    <!-- End of Page Wrapper -->
 
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
+    <div class="modal fade" id="createUserModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">{{ _('Ready to Leave?') }}</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
+                    <h5 class="modal-title">{{ _('Create New User') }}</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
                 </div>
-                <div class="modal-body">{{ _('Select "Logout" below if you are ready to end your current session.') }}</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">{{ _('Cancel') }}</button>
-                    <a class="btn btn-primary" href="login.html">{{ _('Logout') }}</a>
-                </div>
+                <form method="POST" action="{{ url_for('admin.create_user') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-6"><label for="cu_name">{{ _('First Name') }}</label><input type="text" class="form-control" name="name" id="cu_name" required></div>
+                            <div class="form-group col-md-6"><label for="cu_surname">{{ _('Last Name') }}</label><input type="text" class="form-control" name="surname" id="cu_surname" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6"><label for="cu_email">{{ _('Email') }}</label><input type="email" class="form-control" name="email" id="cu_email" required></div>
+                            <div class="form-group col-md-6"><label for="cu_username">{{ _('Username') }}</label><input type="text" class="form-control" name="username" id="cu_username" required></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="cu_role">{{ _('Role') }}</label>
+                                <select class="form-control" name="role" id="cu_role" required>
+                                    <option value="student">{{ _('Student') }}</option>
+                                    <option value="supervisor">{{ _('Supervisor') }}</option>
+                                    <option value="researcher">{{ _('Researcher') }}</option>
+                                    <option value="admin">{{ _('Admin') }}</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="cu_gender">{{ _('Gender') }}</label>
+                                <select class="form-control" name="gender" id="cu_gender">
+                                    <option value="">{{ _('Not specified') }}</option>
+                                    <option value="male">{{ _('Male') }}</option>
+                                    <option value="female">{{ _('Female') }}</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4"><label for="cu_nat">{{ _('Nationality') }}</label><input type="text" class="form-control" name="nationality" id="cu_nat"></div>
+                        </div>
+                        <div class="form-group"><label for="cu_cdl">{{ _('Degree Course') }}</label><input type="text" class="form-control" name="cdl" id="cu_cdl"></div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6"><label for="cu_pw">{{ _('Password') }}</label><input type="password" class="form-control" name="password" id="cu_pw" required autocomplete="new-password"></div>
+                            <div class="form-group col-md-6"><label for="cu_pw2">{{ _('Repeat password') }}</label><input type="password" class="form-control" name="password2" id="cu_pw2" required autocomplete="new-password"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ _('Create User') }}</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    {% include 'admin/components/logout_modal.html' %}
+
+    <script>
+    (function () {
+        var CSRF = {{ csrf_token()|tojson }}, PAGE = 24;
+        var items = Array.prototype.slice.call(document.querySelectorAll('.us-item')), role = '', shown = PAGE;
+        function matches(el) {
+            var q = document.getElementById('usQuery').value.trim().toLowerCase(), st = document.getElementById('usStatus').value;
+            if (role && el.dataset.role !== role) return false;
+            if (st !== '' && el.dataset.enabled !== st) return false;
+            return !q || q.split(/\s+/).every(function (t) { return el.dataset.q.indexOf(t) !== -1; });
+        }
+        function render() {
+            var hits = items.filter(matches), n = 0;
+            items.forEach(function (el) { el.style.display = 'none'; });
+            hits.forEach(function (el) { if (n++ < shown) el.style.display = ''; });
+            document.getElementById('usCount').textContent = hits.length + ' / ' + items.length;
+            document.getElementById('usMore').style.display = hits.length > shown ? '' : 'none';
+            document.getElementById('usEmpty').style.display = hits.length ? 'none' : '';
+        }
+        document.getElementById('usQuery').addEventListener('input', function () { shown = PAGE; render(); });
+        document.getElementById('usStatus').addEventListener('change', function () { shown = PAGE; render(); });
+        document.getElementById('usMore').addEventListener('click', function () { shown += PAGE; render(); });
+        document.getElementById('usChips').addEventListener('click', function (e) {
+            var b = e.target.closest('button'); if (!b) return;
+            Array.prototype.forEach.call(this.children, function (c) { c.classList.remove('active'); });
+            b.classList.add('active'); role = b.dataset.role; shown = PAGE; render();
+        });
+        document.getElementById('usGrid').addEventListener('click', function (e) {
+            var t = e.target.closest('.js-toggle'), d = e.target.closest('.js-delete');
+            if (t) {
+                var enable = t.dataset.enabled !== '1';
+                if (!confirm(enable ? {{ _('Are you sure you want to enable this user?')|tojson }} : {{ _('Are you sure you want to disable this user?')|tojson }})) return;
+                fetch('{{ url_for("admin.users_data") }}', {method: 'POST', headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+                      body: JSON.stringify({id: t.dataset.id, is_enabled: enable})})
+                    .then(function (r) { if (!r.ok) throw new Error(); location.reload(); })
+                    .catch(function () { alert({{ _('Error updating user status.')|tojson }}); });
+            } else if (d) {
+                if (!confirm({{ _('Are you sure you want to delete this user?')|tojson }} + '\n' + d.dataset.name)) return;
+                fetch('{{ url_for("admin.delete_user", uid=0) }}'.replace(/0$/, d.dataset.id), {method: 'DELETE', headers: {'X-CSRFToken': CSRF}})
+                    .then(function (r) { if (!r.ok) throw new Error(); location.reload(); })
+                    .catch(function () { alert({{ _('Error deleting user.')|tojson }}); });
+            }
+        });
+        render();
+    })();
+    </script>
+
+</body>
+
+</html>
