@@ -556,3 +556,4 @@ def revoke_supervisor_role():
 from superviseme.routes.admin_theses import *  # noqa: E402,F401,F403
 from superviseme.routes.admin_system import *  # noqa: E402,F401,F403
 from superviseme.routes.admin_research import *  # noqa: E402,F401,F403
+from superviseme.routes.admin_backup import *  # noqa: E402,F401,F403

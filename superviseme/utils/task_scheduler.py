@@ -90,6 +90,26 @@ def _reminders_job():
             logger.error("APScheduler: reminders failed: %s", exc, exc_info=True)
 
 
+def _backup_job():
+    """Nightly automatic backup (opt-in with BACKUP_AUTO) keeping the newest BACKUP_KEEP ones."""
+    import os
+    app = _flask_app
+    if app is None:
+        logger.error("APScheduler: _flask_app not set; skipping backup job")
+        return
+    if (os.environ.get("BACKUP_AUTO") or "").strip().lower() not in ("1", "true", "yes", "on"):
+        logger.info("APScheduler: automatic backup skipped (BACKUP_AUTO is off)")
+        return
+    with app.app_context():
+        try:
+            from superviseme.utils.backup import create_backup, prune_auto
+            name = create_backup("auto")
+            removed = prune_auto(int(os.environ.get("BACKUP_KEEP", "7") or 7))
+            logger.info("APScheduler: backup %s created, %d old removed", name, removed)
+        except Exception as exc:
+            logger.error("APScheduler: backup failed: %s", exc, exc_info=True)
+
+
 # ---------------------------------------------------------------------------
 # Scheduler lifecycle
 # ---------------------------------------------------------------------------
@@ -164,6 +184,14 @@ def init_scheduler(app):
         trigger=CronTrigger(hour=3, minute=30),
         id="retention_purge",
         name="Apply data retention policy",
+        replace_existing=True,
+    )
+
+    scheduler.add_job(
+        func="superviseme.utils.task_scheduler:_backup_job",
+        trigger=CronTrigger(hour=2, minute=30),
+        id="nightly_backup",
+        name="Nightly backup",
         replace_existing=True,
     )
 

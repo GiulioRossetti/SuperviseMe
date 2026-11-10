@@ -1,0 +1,62 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'admin/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Backup and restore') }}</h1>
+                    </div>
+                    {% with messages = get_flashed_messages() %}{% for m in messages %}<div class="alert alert-info">{{ _(m) }}</div>{% endfor %}{% endwith %}
+                    <div class="row">
+                        <div class="col-lg-4 mb-4">
+                            <div class="card shadow mb-3"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('New backup') }}</h6></div>
+                                <div class="card-body">
+                                    <form method="POST" action="{{ url_for('admin.backup_create') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input class="form-control form-control-sm mb-2" name="note" maxlength="200" placeholder="{{ _('Note (optional)') }}" aria-label="{{ _('Note (optional)') }}">
+                                        <button class="btn btn-primary btn-sm btn-block" type="submit"><i class="fas fa-save"></i> {{ _('Create backup now') }}</button></form>
+                                    <hr>
+                                    <p class="small text-muted mb-1">{{ _('Automatic nightly backup') }}: <strong>{{ _('on') if auto else _('off') }}</strong>
+                                        {% if auto %}({{ _('keeps the last %(n)s', n=keep) }}){% else %}— {{ _('enable it with BACKUP_AUTO=true') }}{% endif %}</p>
+                                    <p class="small text-muted mb-1">{{ _('Schema revision') }}: <code>{{ revision or '—' }}</code></p>
+                                    <p class="small text-muted mb-0">{{ _('Backups include password hashes and tokens: keep the backup folder private.') }}</p>
+                                </div></div>
+                            <div class="card shadow"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-danger">{{ _('Restore from a file') }}</h6></div>
+                                <div class="card-body">
+                                    <form method="POST" action="{{ url_for('admin.backup_restore') }}" enctype="multipart/form-data"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="file" class="form-control-file mb-2" name="file" accept=".zip" required aria-label="{{ _('Backup file') }}">
+                                        <input class="form-control form-control-sm mb-2" name="confirm" autocomplete="off" placeholder="{{ _('Type RESTORE to confirm') }}" aria-label="{{ _('Type RESTORE to confirm') }}" required>
+                                        <button class="btn btn-outline-danger btn-sm btn-block" type="submit"><i class="fas fa-upload"></i> {{ _('Restore') }}</button></form>
+                                    <p class="small text-muted mt-2 mb-0">{{ _('The current data and uploads are replaced. A safety backup is taken first.') }}</p>
+                                </div></div>
+                        </div>
+                        <div class="col-lg-8 mb-4"><div class="card shadow"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Backups') }} ({{ backups|length }})</h6></div>
+                            <div class="card-body">
+                                {% for b in backups %}
+                                <div class="d-flex flex-wrap align-items-center border-bottom py-2">
+                                    <div class="mr-auto"><strong>{{ fmt(b.created_at) }}</strong>
+                                        <span class="badge badge-{{ 'success' if b.kind == 'auto' else 'secondary' if b.kind == 'manual' else 'warning' }}">{{ b.kind }}</span>
+                                        {% if not b.valid %}<span class="badge badge-danger">{{ _('invalid') }}</span>{% endif %}<br>
+                                        <small class="text-muted">{{ (b.size / 1048576)|round(2) }} MB · {{ b.rows }} {{ _('rows') }} · {{ b.uploads or 0 }} {{ _('files') }}{% if b.note %} · {{ b.note }}{% endif %}</small></div>
+                                    <a class="btn btn-outline-secondary btn-sm mr-1" href="{{ url_for('admin.backup_download', name=b.name) }}"><i class="fas fa-download"></i></a>
+                                    {% if b.valid %}<button class="btn btn-outline-danger btn-sm mr-1" type="button" data-toggle="collapse" data-target="#rs{{ loop.index }}">{{ _('Restore') }}</button>{% endif %}
+                                    <form method="POST" action="{{ url_for('admin.backup_delete', name=b.name) }}" onsubmit="return confirm('{{ _('Delete this backup?') }}')"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-secondary btn-sm" type="submit" aria-label="{{ _('Delete') }}"><i class="fas fa-trash"></i></button></form>
+                                    {% if b.valid %}<div class="collapse w-100 mt-2" id="rs{{ loop.index }}">
+                                        <form method="POST" action="{{ url_for('admin.backup_restore') }}" class="form-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="name" value="{{ b.name }}">
+                                            <input class="form-control form-control-sm mr-2" name="confirm" autocomplete="off" placeholder="{{ _('Type RESTORE to confirm') }}" required>
+                                            <button class="btn btn-danger btn-sm" type="submit">{{ _('Restore this backup') }}</button></form></div>{% endif %}
+                                </div>
+                                {% else %}<p class="text-muted mb-0">{{ _('No backups yet') }}</p>{% endfor %}
+                            </div></div></div>
+                    </div>
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+</body>
+</html>
