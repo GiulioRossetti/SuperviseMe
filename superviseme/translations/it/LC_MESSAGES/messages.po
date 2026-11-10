@@ -4083,3 +4083,9 @@ msgstr "Le manifestazioni di interesse sono disponibili solo finché non hai una
 
 msgid "This student already has an active thesis: complete or archive it before assigning another one."
 msgstr "Questo studente ha già una tesi attiva: concludila o archiviala prima di assegnarne un'altra."
+
+msgid "or"
+msgstr "oppure"
+
+msgid "No account needed"
+msgstr "Nessun account necessario"

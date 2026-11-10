@@ -933,3 +933,10 @@ def test_interests_only_without_active_thesis(client, supervisor_user, student_u
     login(client, student_user)
     assert b"/student/interests" in client.get("/student/dashboard").data
     assert client.get("/student/interests").status_code == 200
+
+
+def test_login_has_prominent_catalog_link(client):
+    html = client.get("/login").get_data(as_text=True)
+    assert 'class="btn-browse"' in html and 'href="/theses"' in html
+    assert "Browse thesis opportunities" in html and "No account needed" in html
+    assert html.index("btn-browse") > html.index("btn-login")  # below the sign-in button

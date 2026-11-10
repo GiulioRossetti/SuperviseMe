@@ -262,9 +262,36 @@
         .btn-oauth.orcid  i { color: #A6CE39; }
 
         /* Links */
+        /* Prominent entry point to the public thesis catalog */
+        .btn-browse {
+            display: flex; align-items: center; gap: .85rem;
+            width: 100%; padding: .8rem 1rem;
+            border-radius: .75rem;
+            border: 1px solid rgba(79,70,229,.35);
+            background: linear-gradient(135deg, rgba(79,70,229,.09), rgba(14,165,233,.09));
+            color: var(--text); text-decoration: none;
+            transition: border-color .12s, box-shadow .12s, transform .12s, background .12s;
+        }
+        .btn-browse:hover {
+            border-color: var(--primary); text-decoration: none; color: var(--text);
+            box-shadow: 0 4px 14px rgba(79,70,229,.18); transform: translateY(-1px);
+            background: linear-gradient(135deg, rgba(79,70,229,.14), rgba(14,165,233,.14));
+        }
+        .btn-browse:focus-visible { outline: 3px solid rgba(79,70,229,.35); outline-offset: 2px; }
+        .btn-browse .ic {
+            flex: none; width: 2.4rem; height: 2.4rem; border-radius: .65rem;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--primary); color: #fff; font-size: 1rem;
+        }
+        .btn-browse .tx { flex: 1; display: flex; flex-direction: column; line-height: 1.25; text-align: left; }
+        .btn-browse .tx strong { font-size: .88rem; font-weight: 700; }
+        .btn-browse .tx small { font-size: .74rem; color: var(--text-muted); }
+        .btn-browse .arrow { color: var(--primary); transition: transform .12s; }
+        .btn-browse:hover .arrow { transform: translateX(3px); }
+
         .login-links {
-            display: flex; justify-content: space-between;
-            margin-top: 1.25rem;
+            display: flex; justify-content: center;
+            margin-top: 1.1rem;
         }
         .login-links a {
             font-size: 0.78rem; color: var(--text-muted); text-decoration: none; transition: color .12s;
@@ -362,10 +389,15 @@
                 </a>
                 {% endif %}
 
+                <div class="divider">{{ _('or') }}</div>
+
+                <a href="{{ url_for('public.public_thesis_dashboard') }}" class="btn-browse">
+                    <span class="ic"><i class="fas fa-compass"></i></span>
+                    <span class="tx"><strong>{{ _('Browse thesis opportunities') }}</strong><small>{{ _('No account needed') }}</small></span>
+                    <i class="fas fa-arrow-right arrow"></i>
+                </a>
+
                 <div class="login-links">
-                    <a href="{{ url_for('public.public_thesis_dashboard') }}">
-                        <i class="fas fa-search mr-1"></i>{{ _('Browse thesis opportunities') }}
-                    </a>
                     <a href="forgot-password.html">{{ _('Forgot password?') }}</a>
                 </div>
 
