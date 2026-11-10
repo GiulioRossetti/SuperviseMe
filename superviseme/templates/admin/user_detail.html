@@ -114,7 +114,7 @@
                                             </div>
                                             {% if user.user_type in ('supervisor', 'researcher', 'admin') %}
                                             <div class="form-row"><div class="form-group col-md-6"><label for="max_students">{{ _('Maximum active students') }}</label>
-                                                <input type="number" min="0" max="100" class="form-control" id="max_students" name="max_students" value="{{ user.max_students if user.max_students is not none else '' }}" placeholder="{{ _('No limit') }}">
+                                                <input type="number" min="0" max="100" class="form-control" id="max_students" name="max_students" value="{{ user.max_students if user.max_students is not none else '' }}" placeholder="{{ default_max_students() if default_max_students() is not none else _('No limit') }}">
                                                 <small class="form-text text-muted">{{ _('Leave empty to remove the limit.') }}</small></div></div>
                                             {% endif %}
                                             <div class="form-row">

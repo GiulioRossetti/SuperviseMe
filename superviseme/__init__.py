@@ -604,7 +604,7 @@ def create_app(db_type="sqlite", skip_user_init=False):
 
     def _team_helpers():
         from superviseme.models import Thesis_Reviewer, Thesis_Supervisor, User_mgmt
-        from superviseme.utils.capacity import capacity_info
+        from superviseme.utils.capacity import capacity_info, default_limit
         from superviseme.utils.workflow import can_manage_team
         from flask_login import current_user as _cu
 
@@ -629,7 +629,7 @@ def create_app(db_type="sqlite", skip_user_init=False):
         from superviseme.utils.checklist import templates_for, links_for as checklist_links_for
         from superviseme.utils.capacity import student_has_active_thesis
         return {"student_has_active_thesis": student_has_active_thesis, "checklist_templates_for": templates_for, "checklist_links_for": checklist_links_for, "checklist_resources": __import__("superviseme.utils.checklist", fromlist=["parse_resources"]).parse_resources, "team_members": team_members, "team_candidates": team_candidates, "has_reviews": has_reviews,
-                "can_manage_team": lambda t: _cu.is_authenticated and can_manage_team(_cu, t), "capacity_info": capacity_info}
+                "can_manage_team": lambda t: _cu.is_authenticated and can_manage_team(_cu, t), "capacity_info": capacity_info, "default_max_students": default_limit}
 
     app.jinja_env.globals.update(_team_helpers())
 

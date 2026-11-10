@@ -63,7 +63,7 @@
                                         <button type="button" class="wl-head" aria-expanded="false">
                                             <span class="top">{{ avatar(l) }}<span style="min-width:0"><span class="nm">{{ l.name }} {{ l.surname }}</span><span class="th">{{ l.email }}</span></span></span>
                                             <span class="progress"><span class="progress-bar" style="width: {{ 100 * theses|length / maxn[0] }}%"></span></span>
-                                            <span class="foot">{% set cap = capacity_info(l) %}<span>{{ theses|length }} {{ _('assigned theses') }}{% if cap.max is not none %} · <strong class="{{ 'text-danger' if cap.full }}">{{ cap.used }}/{{ cap.max }}</strong>{% endif %}</span><span><i class="fas fa-chevron-down wl-chev"></i></span></span>
+                                            <span class="foot">{% set cap = capacity_info(l) %}<span>{{ theses|length }} {{ _('assigned theses') }}{% if cap.max is not none %} · <strong class="{{ 'text-danger' if cap.full else 'text-warning' if cap.near }}" title="{{ _('Limit reached') if cap.full else _('Close to the limit') if cap.near else '' }}">{{ cap.used }}/{{ cap.max }}</strong>{% if cap.full or cap.near %} <i class="fas fa-exclamation-triangle {{ 'text-danger' if cap.full else 'text-warning' }}"></i>{% endif %}{% endif %}</span><span><i class="fas fa-chevron-down wl-chev"></i></span></span>
                                         </button>
                                         <div class="wl-detail">
                                             {% for t in theses %}

@@ -1075,3 +1075,50 @@ def test_reports_page_research_tab_and_exports(client, admin_user, supervisor_us
     client.post("/logout")
     login(client, student_user)
     assert client.get("/reports/research/summary.csv").status_code == 403
+
+
+def test_capacity_default_threshold_and_reminders(app, monkeypatch, admin_user, supervisor_user, student_user):
+    from superviseme.models import Notification
+    from superviseme.utils.capacity import capacity_info, capacity_message
+    from superviseme.utils.reminders import run_reminders
+    t = _assign(student_user, supervisor_user)
+    supervisor_user.max_students = None
+    db.session.commit()
+    monkeypatch.delenv("DEFAULT_MAX_STUDENTS", raising=False)
+    assert capacity_info(supervisor_user)["max"] is None and run_reminders()["capacity"] == 0
+    monkeypatch.setenv("DEFAULT_MAX_STUDENTS", "1")  # platform default applies without a personal limit
+    info = capacity_info(supervisor_user)
+    assert info["max"] == 1 and info["full"] and info["inherited"] and "(1)" in capacity_message(t)
+    sent = run_reminders()["capacity"]
+    assert sent == 2  # admin + supervisor
+    assert run_reminders()["capacity"] == 0  # once per week and state
+    assert Notification.query.filter(Notification.recipient_id == admin_user.id, Notification.message.like("%1 active students out of 1%")).count() == 1
+    supervisor_user.max_students = 10  # personal limit wins; 1/10 is far from the threshold
+    db.session.commit()
+    info = capacity_info(supervisor_user)
+    assert info["max"] == 10 and not info["full"] and not info["near"] and not info["inherited"]
+    supervisor_user.max_students = 1
+    db.session.commit()
+    monkeypatch.setenv("CAPACITY_WARN_RATIO", "0.5")
+    supervisor_user.max_students = 2
+    db.session.commit()
+    assert capacity_info(supervisor_user)["near"]
+
+
+def test_project_reminders(app, researcher_user):
+    from superviseme.models import Notification, ResearchProject, ResearchProject_Milestone, ResearchProject_Publication
+    from superviseme.utils.reminders import run_reminders
+    now = int(time.time())
+    old = now - 90 * 86400
+    p = ResearchProject(title="Dormant", description="d", researcher_id=researcher_user.id, created_at=old, is_public=True)
+    frozen = ResearchProject(title="Frozen one", description="d", researcher_id=researcher_user.id, created_at=old, frozen=True)
+    db.session.add_all([p, frozen]); db.session.commit()
+    db.session.add_all([ResearchProject_Milestone(project_id=p.id, title="Late", due_date=now - 86400, created_at=old),
+                        ResearchProject_Publication(project_id=p.id, title="No DOI", created_at=old)])
+    db.session.commit()
+    out = run_reminders()
+    assert out["project"] == 3  # overdue milestone, stale, missing DOI (frozen project ignored)
+    assert run_reminders()["project"] == 0
+    titles = [n.title for n in Notification.query.filter_by(recipient_id=researcher_user.id)]
+    assert any("Late" in x for x in titles) and any("No activity" in x for x in titles) and any("without DOI" in x for x in titles)
+    assert not any("Frozen one" in x for x in titles)

@@ -148,7 +148,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label for="max_students">{{ _('Maximum active students') }}</label>
-                                                    <input type="number" min="0" max="100" class="form-control" id="max_students" name="max_students" value="{{ user.max_students if user.max_students is not none else '' }}" placeholder="{{ _('No limit') }}">
+                                                    <input type="number" min="0" max="100" class="form-control" id="max_students" name="max_students" value="{{ user.max_students if user.max_students is not none else '' }}" placeholder="{{ default_max_students() if default_max_students() is not none else _('No limit') }}">
                                                     <small class="text-muted">{{ _('New assignments are blocked once you reach this number.') }}</small>
                                                 </div>
                                             </div>

@@ -13,10 +13,36 @@ def active_student_count(supervisor_id):
     ) or 0
 
 
+def default_limit():
+    """Platform-wide default (DEFAULT_MAX_STUDENTS), applied to supervisors without a personal limit; None = unlimited."""
+    import os
+    from flask import current_app
+    raw = current_app.config.get("DEFAULT_MAX_STUDENTS")
+    if raw is None:
+        raw = os.environ.get("DEFAULT_MAX_STUDENTS")
+    raw = str(raw).strip() if raw is not None else ""
+    return int(raw) if raw.isdigit() and int(raw) <= 100 else None
+
+
+def warn_ratio():
+    import os
+    try:
+        return min(1.0, max(0.1, float(os.environ.get("CAPACITY_WARN_RATIO", "0.8"))))
+    except ValueError:
+        return 0.8
+
+
+def effective_limit(user):
+    return user.max_students if user.max_students is not None else default_limit()
+
+
 def capacity_info(user):
+    import math
     used = active_student_count(user.id)
-    limit = user.max_students
-    return {"used": used, "max": limit, "full": limit is not None and used >= limit,
+    limit = effective_limit(user)
+    full = limit is not None and used >= limit
+    return {"used": used, "max": limit, "full": full, "inherited": user.max_students is None and limit is not None,
+            "near": limit is not None and not full and limit > 0 and used >= math.ceil(limit * warn_ratio()),
             "left": None if limit is None else max(0, limit - used)}
 
 
@@ -35,7 +61,7 @@ def capacity_message(thesis):
     blocked = full_supervisors(thesis)
     if not blocked:
         return None
-    names = ", ".join(f"{u.name} {u.surname} ({u.max_students})" for u in blocked)
+    names = ", ".join(f"{u.name} {u.surname} ({effective_limit(u)})" for u in blocked)
     return f"Supervision capacity reached: {names}. Raise the limit in the profile or free a place first."
 
 
