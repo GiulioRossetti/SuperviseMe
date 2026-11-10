@@ -153,25 +153,36 @@ def app(_restore_real_modules):
     """
     from superviseme import create_app, db as _db
 
-    db_fd, db_path = tempfile.mkstemp(suffix=".db")
-    os.environ["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+    use_pg = os.environ.get("TEST_DB") == "postgresql"  # CI: run the suite on PostgreSQL (PG_* env vars)
+    db_fd = db_path = None
+    if use_pg:
+        os.environ.pop("SQLALCHEMY_DATABASE_URI", None)
+    else:
+        db_fd, db_path = tempfile.mkstemp(suffix=".db")
+        os.environ["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
     os.environ["WTF_CSRF_ENABLED"] = "False"
     os.environ.setdefault("FLASK_ENV", "testing")
     os.environ.setdefault("SECRET_KEY", "test-secret-key-not-for-production")
     os.environ.setdefault("TOKEN_ENCRYPTION_KEY", "")
     os.environ.setdefault("ADMIN_BOOTSTRAP_PASSWORD", "")
 
-    flask_app = create_app(db_type="sqlite", skip_user_init=True)
+    flask_app = create_app(db_type="postgresql" if use_pg else "sqlite", skip_user_init=True)
     flask_app.config["TESTING"] = True
     flask_app.config["WTF_CSRF_ENABLED"] = False
 
     with flask_app.app_context():
+        if use_pg:
+            _db.session.remove()
+            _db.drop_all()
         _db.create_all()
         yield flask_app
         _db.session.remove()
+        if use_pg:
+            _db.drop_all()
 
-    os.close(db_fd)
-    os.unlink(db_path)
+    if db_fd is not None:
+        os.close(db_fd)
+        os.unlink(db_path)
 
 
 @pytest.fixture

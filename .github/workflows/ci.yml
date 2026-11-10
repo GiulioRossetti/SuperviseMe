@@ -103,6 +103,70 @@ jobs:
               print(f"OK: {len(tables)} tables after migrations")
           PY
 
+  postgres-tests:
+    # Runs the whole test-suite on PostgreSQL and checks that the migrations match the models.
+    # Non-blocking for now: it reports SQLite/PostgreSQL differences without failing the build.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: superviseme
+          POSTGRES_PASSWORD: superviseme
+          POSTGRES_DB: superviseme
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U superviseme"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      FLASK_ENV: development
+      SECRET_KEY: ci-secret-key
+      ADMIN_BOOTSTRAP_PASSWORD: ci-bootstrap-password
+      ENABLE_SCHEDULER: "false"
+      TEST_DB: postgresql
+      PG_USER: superviseme
+      PG_PASSWORD: superviseme
+      PG_HOST: localhost
+      PG_PORT: "5432"
+      PG_DBNAME: superviseme
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Migrations match the models
+        run: |
+          python - <<'PY'
+          from alembic.autogenerate import compare_metadata
+          from alembic.migration import MigrationContext
+          from flask_migrate import upgrade
+          from superviseme import create_app, db
+
+          app = create_app(db_type="postgresql", skip_user_init=True)
+          with app.app_context():
+              upgrade()
+              with db.engine.connect() as conn:
+                  diff = compare_metadata(MigrationContext.configure(conn), db.metadata)
+              missing = [d for d in diff if d[0] in ("add_table", "add_column", "remove_table")]
+              assert not missing, missing
+              print("OK: migrations cover every table and column of the models")
+          PY
+      - name: Tests on PostgreSQL
+        run: |
+          pytest -q -x --maxfail=5
+
   dependency-audit:
     runs-on: ubuntu-latest
     continue-on-error: true
