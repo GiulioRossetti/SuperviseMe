@@ -210,3 +210,34 @@ def test_admin_sets_supervisor_capacity(client, admin_user, supervisor_user):
     client.post("/admin/update_user", data={**base, "max_students": ""})
     db.session.refresh(supervisor_user)
     assert supervisor_user.max_students is None
+
+
+def test_output_audit_trail(client, app, admin_user, researcher_user):
+    import time as _t
+    from superviseme import db
+    from superviseme.models import ResearchOutput_Audit, ResearchProject_Dataset
+    pid, _gid = _data(app, researcher_user)
+    _login(client, researcher_user.email)
+    client.post(f"/researcher/project/{pid}/datasets/add", data={"title": "Audited set"})
+    ds = ResearchProject_Dataset.query.filter_by(title="Audited set").one()
+    client.post(f"/researcher/project/{pid}/datasets/{ds.id}/edit", data={"title": "Audited set v2"})
+    client.post(f"/researcher/project/{pid}/software/add", data={"title": "audited-tool"})
+    client.post(f"/researcher/project/{pid}/datasets/{ds.id}/delete")
+    acts = [(e.action, e.kind, e.title) for e in ResearchOutput_Audit.query.order_by(ResearchOutput_Audit.id)]
+    assert ("create", "dataset", "Audited set") in acts and ("update", "dataset", "Audited set v2") in acts
+    assert ("create", "software", "audited-tool") in acts and ("delete", "dataset", "Audited set v2") in acts
+    assert all(e.actor_id == researcher_user.id for e in ResearchOutput_Audit.query)
+    client.post("/logout")
+    assert client.get("/admin/research/activity").status_code in (302, 403)
+    _login(client, admin_user.email)
+    client.post("/admin/research/output/software/new", data={"title": "adm-sw", "project_id": pid})
+    page = client.get("/admin/research/activity").data.decode()
+    assert "Audited set v2" in page and "adm-sw" in page and "audited-tool" in page
+    live = client.get("/admin/research/activity?q=adm-sw").data.decode()
+    assert "adm-sw" in live and "audited-tool" not in live
+    assert "Audited set v2" in client.get("/admin/research/activity?action=delete&kind=dataset").data.decode()
+    assert "audited-tool" not in client.get("/admin/research/activity?action=delete").data.decode()
+    assert "audited-tool" not in client.get("/admin/research/activity?from=2000-01-01&to=2000-01-02").data.decode()
+    csv_r = client.get("/admin/research/activity?format=csv")
+    assert csv_r.mimetype == "text/csv" and b"adm-sw" in csv_r.data and b"when,who,action" in csv_r.data
+    assert "Output activity" in client.get("/admin/research").data.decode()

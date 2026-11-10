@@ -155,6 +155,29 @@ def links_map(kind, ids):
     return out
 
 
+def audit(action, kind, obj=None, title=None, project_id=None, details=None):
+    """Record a change of a publication/dataset/software record in the persistent audit trail (never raises)."""
+    import json, time
+    try:
+        from flask_login import current_user
+        from superviseme import db
+        from superviseme.models import ResearchOutput_Audit
+        actor = current_user.id if getattr(current_user, "is_authenticated", False) else None
+        db.session.add(ResearchOutput_Audit(
+            actor_id=actor, action=action, kind=kind, output_id=getattr(obj, "id", None),
+            title=(title or getattr(obj, "title", None) or "")[:300] or None,
+            project_id=project_id if project_id is not None else getattr(obj, "project_id", None),
+            details=json.dumps(details, ensure_ascii=False)[:2000] if details else None, created_at=int(time.time())))
+        db.session.commit()
+    except Exception:
+        from flask import current_app
+        current_app.logger.exception("Could not record output audit entry")
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+
+
 def match_associated(kind, model, like):
     """SQL condition: the output is owned by a matching project (title, or owner name) or linked to a matching user or thesis."""
     from sqlalchemy import or_

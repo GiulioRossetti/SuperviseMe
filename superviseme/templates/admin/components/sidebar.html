@@ -68,6 +68,11 @@
             <i class="fas fa-fw fa-code"></i><span>{{ _('Software') }}</span>
         </a>
     </li>
+    <li class="nav-item{% if request.endpoint == 'admin.research_activity' %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('admin.research_activity') }}">
+            <i class="fas fa-fw fa-history"></i><span>{{ _('Output activity') }}</span>
+        </a>
+    </li>
 
     <hr class="sidebar-divider">
     <div class="sidebar-heading">{{ _('Planning') }}</div>

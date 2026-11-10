@@ -1,0 +1,52 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'admin/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    {% from 'admin/components/pager.html' import pager %}
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Output activity') }} <span class="text-muted h6">({{ pagination.total }}{% if filters %} / {{ total }}{% endif %})</span></h1>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.research_activity', format='csv', **filters) }}"><i class="fas fa-download"></i> CSV</a>
+                    </div>
+                    <div class="card shadow mb-4"><div class="card-body">
+                        <p class="small text-muted">{{ _('Who created, edited, moved, associated or deleted publications, datasets and software.') }}</p>
+                        <form method="get" class="form-inline mb-3" data-live-region="#actResults">
+                            <input type="search" name="q" value="{{ filters.q or '' }}" class="form-control form-control-sm mr-2 mb-2" placeholder="{{ _('Search by title, person, project...') }}" style="min-width:240px">
+                            <select name="kind" class="form-control form-control-sm mr-2 mb-2"><option value="">{{ _('Any type') }}</option>
+                                {% for k in kinds %}<option value="{{ k }}" {{ 'selected' if filters.kind == k }}>{{ k }}</option>{% endfor %}</select>
+                            <select name="action" class="form-control form-control-sm mr-2 mb-2"><option value="">{{ _('Any action') }}</option>
+                                {% for a in actions %}<option value="{{ a }}" {{ 'selected' if filters.action == a }}>{{ a }}</option>{% endfor %}</select>
+                            <input type="date" name="from" value="{{ filters['from'] or '' }}" class="form-control form-control-sm mr-2 mb-2" aria-label="{{ _('From') }}">
+                            <input type="date" name="to" value="{{ filters.to or '' }}" class="form-control form-control-sm mr-2 mb-2" aria-label="{{ _('To') }}">
+                            <button class="btn btn-primary btn-sm mb-2 mr-2" type="submit"><i class="fas fa-search"></i> {{ _('Filter') }}</button>
+                            {% if filters %}<a href="{{ url_for('admin.research_activity') }}" class="btn btn-link btn-sm mb-2">{{ _('Reset') }}</a>{% endif %}
+                        </form>
+                        <div id="actResults">
+                            <div class="table-responsive"><table class="table table-sm">
+                                <thead><tr><th>{{ _('When') }}</th><th>{{ _('Who') }}</th><th>{{ _('Action') }}</th><th>{{ _('Type') }}</th><th>{{ _('Title') }}</th><th>{{ _('Project') }}</th></tr></thead>
+                                <tbody>
+                                {% for e in entries %}
+                                <tr><td class="text-nowrap">{{ fmt(e.created_at) }}</td>
+                                    <td>{% if e.actor %}{{ e.actor.name }} {{ e.actor.surname }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                                    <td><span class="badge badge-{{ 'danger' if e.action in ('delete', 'unlink') else 'success' if e.action in ('create', 'import') else 'secondary' }}">{{ e.action }}</span></td>
+                                    <td>{{ e.kind }}</td>
+                                    <td>{% if e.output_id and e.action != 'delete' %}<a href="{{ url_for('admin.research_output', kind=e.kind, oid=e.output_id) }}">{{ e.title or '—' }}</a>{% else %}{{ e.title or '—' }}{% endif %}
+                                        {% if e.details %}<br><small class="text-muted">{{ e.details }}</small>{% endif %}</td>
+                                    <td>{% if e.project_id and e.project_id in projects %}<a href="{{ url_for('admin.research_project', project_id=e.project_id) }}">{{ projects[e.project_id] }}</a>{% endif %}</td></tr>
+                                {% else %}<tr><td colspan="6" class="text-muted">{{ _('No activity recorded yet') }}</td></tr>{% endfor %}
+                                </tbody></table></div>
+                            {{ pager(pagination, filters) }}
+                        </div>
+                    </div></div>
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+</body>
+</html>

@@ -100,6 +100,7 @@ def add_publication(project_id):
         return _back(project)
     db.session.add(ResearchProject_Publication(project_id=project.id, added_by=current_user.id, created_at=int(time.time()), **fields))
     db.session.commit()
+    ro.audit("create", "publication", title=fields["title"], project_id=project.id)
     flash("Publication added")
     return _back(project)
 
@@ -126,6 +127,7 @@ def edit_publication(project_id, pub_id):
     if f.get("pub_type") in ro.PUB_TYPES:
         pub.pub_type = f.get("pub_type")
     db.session.commit()
+    ro.audit("update", "publication", pub)
     flash("Publication updated")
     return _back(project)
 
@@ -137,8 +139,10 @@ def delete_publication(project_id, pub_id):
     if gate is not None:
         return gate
     pub = ResearchProject_Publication.query.filter_by(id=pub_id, project_id=project.id).first_or_404()
+    title = pub.title
     db.session.delete(pub)
     db.session.commit()
+    ro.audit("delete", "publication", title=title, project_id=project.id)
     flash("Publication removed")
     return _back(project)
 
@@ -250,6 +254,7 @@ def add_dataset(project_id):
         project_id=project.id, title=title[:300], doi=ro.clean_doi(f.get("doi")), url=ro.safe_url(f.get("url")),
         license=(f.get("license") or "").strip()[:100] or None, fair=",".join(flags) or None, created_at=int(time.time())))
     db.session.commit()
+    ro.audit("create", "dataset", title=title, project_id=project.id)
     flash("Dataset added")
     return _back(project)
 
@@ -272,6 +277,7 @@ def edit_dataset(project_id, did):
     d.license = (f.get("license") or "").strip()[:100] or None
     d.fair = ",".join(x for x in ro.FAIR_FLAGS if f.get(f"fair_{x}")) or None
     db.session.commit()
+    ro.audit("update", "dataset", d)
     flash("Dataset updated")
     return _back(project)
 
@@ -282,8 +288,11 @@ def delete_dataset(project_id, did):
     project, gate = _load(project_id, write=True)
     if gate is not None:
         return gate
-    db.session.delete(ResearchProject_Dataset.query.filter_by(id=did, project_id=project.id).first_or_404())
+    d = ResearchProject_Dataset.query.filter_by(id=did, project_id=project.id).first_or_404()
+    title = d.title
+    db.session.delete(d)
     db.session.commit()
+    ro.audit("delete", "dataset", title=title, project_id=project.id)
     return _back(project)
 
 
@@ -306,6 +315,7 @@ def add_software(project_id):
         license=(f.get("license") or "").strip()[:100] or None, language=(f.get("language") or "").strip()[:100] or None,
         description=(f.get("description") or "").strip()[:500] or None, added_by=current_user.id, created_at=int(time.time())))
     db.session.commit()
+    ro.audit("create", "software", title=title, project_id=project.id)
     flash("Software added")
     return _back(project)
 
@@ -330,6 +340,7 @@ def edit_software(project_id, sid):
     sw.language = (f.get("language") or "").strip()[:100] or None
     sw.description = (f.get("description") or "").strip()[:500] or None
     db.session.commit()
+    ro.audit("update", "software", sw)
     flash("Software updated")
     return _back(project)
 
@@ -340,8 +351,11 @@ def delete_software(project_id, sid):
     project, gate = _load(project_id, write=True)
     if gate is not None:
         return gate
-    db.session.delete(ResearchProject_Software.query.filter_by(id=sid, project_id=project.id).first_or_404())
+    sw = ResearchProject_Software.query.filter_by(id=sid, project_id=project.id).first_or_404()
+    title = sw.title
+    db.session.delete(sw)
     db.session.commit()
+    ro.audit("delete", "software", title=title, project_id=project.id)
     return _back(project)
 
 
@@ -477,6 +491,8 @@ def import_orcid_publications(project_id):
                                                    **ro.work_fields(allowed[aid])))
         added += 1
     db.session.commit()
+    if added:
+        ro.audit("import", "publication", title=f"{added} work(s) from ORCID", project_id=project.id, details={"count": added})
     flash(f"{added} publication(s) imported from ORCID")
     return _back(project)
 
@@ -649,6 +665,8 @@ def orcid_works_bulk():
                 db.session.flush()
                 added += 1
         db.session.commit()
+        if added:
+            ro.audit("import", "publication", title=f"{added} work(s) from ORCID (bulk)", details={"count": added, "projects": [pr.title for pr in chosen]})
         flash(f"{added} publication(s) added, {skipped} already present")
         return redirect(url_for("researcher.orcid_works_bulk"))
     present = {a.id: [pr for pr in projects if any((ro.activity_doi(a) and p.doi and p.doi.lower() == ro.activity_doi(a).lower())

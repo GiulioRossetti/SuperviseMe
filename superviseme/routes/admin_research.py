@@ -278,6 +278,55 @@ def research_outputs(kind):
                            projects=_all_projects(), filters=filters, total=model.query.count())
 
 
+@admin.route("/admin/research/activity")
+@login_required
+def research_activity():
+    """Audit trail of who created, edited, moved, associated or deleted publications, datasets and software."""
+    gate = _admin_gate()
+    if gate is not None:
+        return gate
+    import csv, io
+    from datetime import datetime
+    q = ResearchOutput_Audit.query
+    term = (request.args.get("q") or "").strip()
+    if term:
+        like = f"%{term}%"
+        actors = db.session.query(User_mgmt.id).filter(or_(User_mgmt.name.ilike(like), User_mgmt.surname.ilike(like), User_mgmt.username.ilike(like)))
+        projs = db.session.query(ResearchProject.id).filter(ResearchProject.title.ilike(like))
+        q = q.filter(or_(ResearchOutput_Audit.title.ilike(like), ResearchOutput_Audit.details.ilike(like),
+                         ResearchOutput_Audit.actor_id.in_(actors), ResearchOutput_Audit.project_id.in_(projs)))
+    for arg, col in (("kind", ResearchOutput_Audit.kind), ("action", ResearchOutput_Audit.action)):
+        if request.args.get(arg):
+            q = q.filter(col == request.args[arg])
+    def _ts(raw, end=False):
+        try:
+            return int(datetime.strptime(raw, "%Y-%m-%d").timestamp()) + (86400 if end else 0)
+        except (TypeError, ValueError):
+            return None
+    if _ts(request.args.get("from")):
+        q = q.filter(ResearchOutput_Audit.created_at >= _ts(request.args["from"]))
+    if _ts(request.args.get("to")):
+        q = q.filter(ResearchOutput_Audit.created_at < _ts(request.args["to"], end=True))
+    q = q.order_by(ResearchOutput_Audit.created_at.desc(), ResearchOutput_Audit.id.desc())
+    projects = {p.id: p.title for p in ResearchProject.query.with_entities(ResearchProject.id, ResearchProject.title)}
+    filters = {k: request.args.get(k) for k in ("q", "kind", "action", "from", "to") if request.args.get(k)}
+    if request.args.get("format") == "csv":
+        _audit_admin_action("research_activity_export", "research_output_audit")
+        out = io.StringIO()
+        w = csv.writer(out)
+        w.writerow(["when", "who", "action", "kind", "title", "project", "details"])
+        for e in q.limit(20000).all():
+            cells = [datetime.utcfromtimestamp(e.created_at).strftime("%Y-%m-%d %H:%M"), f"{e.actor.name} {e.actor.surname}" if e.actor else "",
+                     e.action, e.kind, e.title or "", projects.get(e.project_id, ""), e.details or ""]
+            w.writerow([("'" + c) if isinstance(c, str) and c[:1] in "=+-@" else c for c in cells])
+        return Response(out.getvalue(), mimetype="text/csv", headers={"Content-Disposition": "attachment; filename=research_activity.csv"})
+    pagination = q.paginate(page=_page(), per_page=PER_PAGE, error_out=False)
+    return render_template("admin/research_activity.html", current_user=current_user, pagination=pagination, entries=pagination.items,
+                           projects=projects, filters=filters, total=ResearchOutput_Audit.query.count(),
+                           actions=("create", "update", "delete", "move", "link", "unlink", "import"), kinds=tuple(ro.OUTPUT_MODELS),
+                           fmt=lambda ts: datetime.utcfromtimestamp(ts).strftime("%Y-%m-%d %H:%M"))
+
+
 # ---- associate output with projects, users and theses ----------------------------------------------------------
 
 def _all_projects():
@@ -324,6 +373,7 @@ def research_output_new(kind):
     db.session.add(obj)
     db.session.commit()
     _audit_admin_action("research_output_create", f"research_{kind}", obj.id, details={"project_id": project.id})
+    ro.audit("create", kind, obj)
     flash("Added")
     return redirect(url_for("admin.research_output", kind=kind, oid=obj.id))
 
@@ -356,6 +406,7 @@ def research_output_project(kind, oid):
         obj.project_id = project.id
         db.session.commit()
         _audit_admin_action("research_output_move", f"research_{kind}", oid, details={"project_id": project.id})
+        ro.audit("move", kind, obj, details={"project": project.title})
         flash("Project updated")
     return redirect(url_for("admin.research_output", kind=kind, oid=oid))
 
@@ -366,7 +417,7 @@ def research_output_link_add(kind, oid):
     gate = _admin_gate()
     if gate is not None:
         return gate
-    _model(kind).query.get_or_404(oid)
+    obj = _model(kind).query.get_or_404(oid)
     user = db.session.get(User_mgmt, request.form.get("user_id", type=int) or 0)
     thesis = db.session.get(Thesis, request.form.get("thesis_id", type=int) or 0)
     if not user and not thesis:
@@ -377,6 +428,7 @@ def research_output_link_add(kind, oid):
             db.session.add(ResearchOutput_Link(kind=kind, output_id=oid, created_by=current_user.id, created_at=int(time.time()), **{col: val}))
     db.session.commit()
     _audit_admin_action("research_output_link", f"research_{kind}", oid, details={"user_id": getattr(user, "id", None), "thesis_id": getattr(thesis, "id", None)})
+    ro.audit("link", kind, obj, details={"user": f"{user.name} {user.surname}" if user else None, "thesis": thesis.title if thesis else None})
     flash("Association added")
     return redirect(url_for("admin.research_output", kind=kind, oid=oid))
 
@@ -387,11 +439,13 @@ def research_output_link_remove(kind, oid, link_id):
     gate = _admin_gate()
     if gate is not None:
         return gate
-    _model(kind)
+    obj = _model(kind).query.get(oid)
     link = ResearchOutput_Link.query.filter_by(id=link_id, kind=kind, output_id=oid).first_or_404()
+    who = {"user": f"{link.user.name} {link.user.surname}" if link.user else None, "thesis": link.thesis.title if link.thesis else None}
     db.session.delete(link)
     db.session.commit()
     _audit_admin_action("research_output_unlink", f"research_{kind}", oid)
+    ro.audit("unlink", kind, obj, details=who)
     return redirect(url_for("admin.research_output", kind=kind, oid=oid))
 
 
@@ -402,9 +456,11 @@ def research_output_delete(kind, oid):
     if gate is not None:
         return gate
     obj = _model(kind).query.get_or_404(oid)
+    title, project_id = obj.title, obj.project_id
     ResearchOutput_Link.query.filter_by(kind=kind, output_id=oid).delete(synchronize_session=False)
     db.session.delete(obj)
     db.session.commit()
     _audit_admin_action("research_output_delete", f"research_{kind}", oid)
+    ro.audit("delete", kind, title=title, project_id=project_id, details={"output_id": oid})
     flash("Deleted")
     return redirect(url_for("admin.research_publications" if kind == "publication" else "admin.research_outputs", **({} if kind == "publication" else {"kind": ro.KIND_PLURAL[kind]})))

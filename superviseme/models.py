@@ -401,6 +401,22 @@ class ResearchProject_Software(db.Model):
     project = db.relationship("ResearchProject", backref=db.backref("software", lazy=True, order_by="ResearchProject_Software.id"))
 
 
+class ResearchOutput_Audit(db.Model):
+    """Who created, edited, moved, associated or deleted a publication/dataset/software record."""
+    __tablename__ = "research_output_audit"
+    id = db.Column(db.Integer, primary_key=True)
+    actor_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True, index=True)
+    action = db.Column(db.String(30), nullable=False)  # create | update | delete | move | link | unlink | import
+    kind = db.Column(db.String(20), nullable=False)
+    output_id = db.Column(db.Integer, nullable=True)
+    title = db.Column(db.String(300), nullable=True)
+    project_id = db.Column(db.Integer, nullable=True, index=True)
+    details = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.Integer, nullable=False, index=True)
+
+    actor = db.relationship("User_mgmt", foreign_keys=[actor_id], lazy=True)
+
+
 class ResearchOutput_Link(db.Model):
     """Admin-managed association of a publication/dataset/software record with a platform user or thesis."""
     __tablename__ = "research_output_link"
