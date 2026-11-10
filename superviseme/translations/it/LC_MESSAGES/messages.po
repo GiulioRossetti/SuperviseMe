@@ -4110,3 +4110,132 @@ msgstr "Crea nuovo progetto"
 
 msgid "Create Your First Project"
 msgstr "Crea il tuo primo progetto"
+
+msgid "Research programme"
+msgstr "Programma di ricerca"
+
+msgid "Research project"
+msgstr "Progetto di ricerca"
+
+msgid "Full-scale study"
+msgstr "Studio su larga scala"
+
+msgid "Longitudinal study"
+msgstr "Studio longitudinale"
+
+msgid "Pilot study"
+msgstr "Studio pilota"
+
+msgid "Grant proposal"
+msgstr "Proposta di finanziamento"
+
+msgid "Journal article"
+msgstr "Articolo su rivista"
+
+msgid "Conference paper"
+msgstr "Articolo a conferenza"
+
+msgid "Preprint"
+msgstr "Preprint"
+
+msgid "Software / tool"
+msgstr "Software / strumento"
+
+msgid "Workshop / event"
+msgstr "Workshop / evento"
+
+msgid "Related to"
+msgstr "Correlato a"
+
+msgid "Extends"
+msgstr "Estende"
+
+msgid "Uses results of"
+msgstr "Usa i risultati di"
+
+msgid "Derived from"
+msgstr "Derivato da"
+
+msgid "Parent project not found."
+msgstr "Progetto padre non trovato."
+
+msgid "A project cannot be nested inside itself or its own sub-projects."
+msgstr "Un progetto non può essere annidato in sé stesso o nei propri sotto-progetti."
+
+msgid "Sub-projects can be nested at most %(n)d levels deep."
+msgstr "I sotto-progetti possono essere annidati al massimo per %(n)d livelli."
+
+msgid "Project not found."
+msgstr "Progetto non trovato."
+
+msgid "A project cannot be linked to itself."
+msgstr "Un progetto non può essere collegato a sé stesso."
+
+msgid "These projects are already linked."
+msgstr "Questi progetti sono già collegati."
+
+msgid "At most %(n)d images per project."
+msgstr "Al massimo %(n)d immagini per progetto."
+
+msgid "Projects linked."
+msgstr "Progetti collegati."
+
+msgid "Thematic area:"
+msgstr "Area tematica:"
+
+msgid "e.g. Network science"
+msgstr "es. Network science"
+
+msgid "Parent project:"
+msgstr "Progetto padre:"
+
+msgid "None (top-level project)"
+msgstr "Nessuno (progetto di primo livello)"
+
+msgid "Comma-separated, e.g. graph mining, nlp"
+msgstr "Separati da virgola, es. graph mining, nlp"
+
+msgid "Images (used on the project card):"
+msgstr "Immagini (usate nella card del progetto):"
+
+msgid "Up to 5 images, PNG/JPEG/GIF/WEBP, max 5 MB each. The first one is the cover."
+msgstr "Fino a 5 immagini, PNG/JPEG/GIF/WEBP, max 5 MB ciascuna. La prima è la copertina."
+
+msgid "Structure"
+msgstr "Struttura"
+
+msgid "Report (PDF)"
+msgstr "Report (PDF)"
+
+msgid "Parent projects"
+msgstr "Progetti padre"
+
+msgid "Sub-projects"
+msgstr "Sotto-progetti"
+
+msgid "No sub-projects. Create a project and choose this one as its parent (e.g. one paper per research project)."
+msgstr "Nessun sotto-progetto. Crea un progetto e scegli questo come padre (es. un paper per ogni progetto di ricerca)."
+
+msgid "Linked projects"
+msgstr "Progetti collegati"
+
+msgid "No linked projects."
+msgstr "Nessun progetto collegato."
+
+msgid "Unlink"
+msgstr "Scollega"
+
+msgid "Relation"
+msgstr "Relazione"
+
+msgid "Project"
+msgstr "Progetto"
+
+msgid "Select a project…"
+msgstr "Seleziona un progetto…"
+
+msgid "No images yet. The first image is used as the cover of the project card."
+msgstr "Nessuna immagine. La prima immagine è la copertina della card del progetto."
+
+msgid "Delete this project? Sub-projects are kept and moved up one level. This cannot be undone."
+msgstr "Eliminare questo progetto? I sotto-progetti vengono mantenuti e spostati di un livello. Non si può annullare."

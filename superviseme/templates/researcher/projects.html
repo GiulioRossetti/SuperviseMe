@@ -52,11 +52,11 @@
                         {% for item in projects_with_collaborators %}
                         {% set project = item.project %}
                         {% set collaborators = item.collaborators %}
-                        <div class="pj-slot" data-q="{{ (project.title ~ ' ' ~ (project.description or '') ~ ' ' ~ (project.level or ''))|lower }}">
+                        <div class="pj-slot" data-q="{{ (project.title ~ ' ' ~ (project.description or '') ~ ' ' ~ level_label(project.level) ~ ' ' ~ (project.area or '') ~ ' ' ~ (project.tags or ''))|lower }}">
                             <div class="sv-card th-card {{ 'is-inactive' if project.frozen else 'is-open' }}">
-                                <a class="th-cover placeholder g{{ project.id % 6 }}" href="{{ url_for('researcher.project_detail', project_id=project.id) }}">
-                                    <i class="fas fa-flask"></i>
-                                    {% if project.level %}<span class="th-level">{{ project.level|title }}</span>{% endif %}
+                                <a class="th-cover {% if not project.images %}placeholder g{{ project.id % 6 }}{% endif %}" href="{{ url_for('researcher.project_detail', project_id=project.id) }}">
+                                    {% if project.images %}<img src="{{ url_for('media.project_image', filename=project.images[0].filename[8:]) }}" alt="" loading="lazy">{% else %}<i class="fas fa-flask"></i>{% endif %}
+                                    {% if project.level %}<span class="th-level">{{ level_label(project.level) }}</span>{% endif %}
                                 </a>
                                 <div class="d-flex align-items-start">
                                     <a class="sv-thesis flex-grow-1 text-dark" href="{{ url_for('researcher.project_detail', project_id=project.id) }}" title="{{ project.title }}">{{ project.title }}</a>
@@ -64,7 +64,7 @@
                                         <button class="btn btn-link btn-sm text-muted p-0" data-toggle="dropdown" aria-label="{{ _('More') }}"><i class="fas fa-ellipsis-v"></i></button>
                                         <div class="dropdown-menu dropdown-menu-right">
                                             <a class="dropdown-item" href="{{ url_for('researcher.project_detail', project_id=project.id) }}"><i class="fas fa-eye fa-fw mr-1"></i> {{ _('View Details') }}</a>
-                                            <a class="dropdown-item js-edit" href="#" data-id="{{ project.id }}" data-title="{{ project.title }}" data-description="{{ project.description }}" data-level="{{ project.level or '' }}"><i class="fas fa-edit fa-fw mr-1"></i> {{ _('Edit') }}</a>
+                                            <a class="dropdown-item js-edit" href="#" data-id="{{ project.id }}" data-title="{{ project.title }}" data-description="{{ project.description }}" data-level="{{ project.level or '' }}" data-area="{{ project.area or '' }}" data-tags="{{ project.tag_list|join(', ') }}" data-parent="{{ project.parent_id or '' }}"><i class="fas fa-edit fa-fw mr-1"></i> {{ _('Edit') }}</a>
                                             <div class="dropdown-divider"></div>
                                             <a class="dropdown-item text-danger js-delete" href="#" data-id="{{ project.id }}" data-title="{{ project.title }}"><i class="fas fa-trash fa-fw mr-1"></i> {{ _('Delete') }}</a>
                                         </div>
@@ -73,7 +73,11 @@
                                 <div class="sv-badges">
                                     {% if project.frozen %}<span class="badge badge-warning"><i class="fas fa-lock"></i> {{ _('Frozen') }}</span>
                                     {% else %}<span class="badge badge-success">{{ _('Active') }}</span>{% endif %}
+                                    {% if project.area %}<span class="badge badge-light border"><i class="fas fa-layer-group"></i> {{ project.area }}</span>{% endif %}
+                                    {% if project.parent %}<span class="badge badge-light border" title="{{ project.parent.title }}"><i class="fas fa-level-up-alt fa-rotate-90"></i> {{ project.parent.title|truncate(24) }}</span>{% endif %}
+                                    {% if project.subprojects %}<span class="badge badge-light border"><i class="fas fa-sitemap"></i> {{ project.subprojects|length }}</span>{% endif %}
                                 </div>
+                                {% if project.tag_list %}<div class="pj-tags">{% for t in project.tag_list[:5] %}<span class="pj-tag">#{{ t }}</span>{% endfor %}</div>{% endif %}
                                 <p class="small text-muted mb-0 mt-2 pj-desc">{{ (project.description or '')[:140] }}{% if (project.description or '')|length > 140 %}…{% endif %}</p>
                                 {% if collaborators %}
                                 <div class="th-student">
@@ -111,6 +115,8 @@
     </div>
     <!-- End of Page Wrapper -->
 
+    <datalist id="areaList">{% for a in known_areas %}<option value="{{ a }}">{% endfor %}</datalist>
+
     <!-- Create Project Modal -->
     <div class="modal fade" id="createProjectModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg" role="document">
@@ -121,7 +127,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form method="POST" action="{{ url_for('researcher.create_project') }}">
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('researcher.create_project') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="modal-body">
                         <div class="form-group">
@@ -134,14 +140,32 @@
                         </div>
                         <div class="form-group">
                             <label for="level">{{ _('Level:') }}</label>
-                            <select class="form-control" name="level">
+                            <select class="form-control" name="level" id="level">
                                 <option value="">{{ _('Select Level') }}</option>
-                                <option value="pilot">{{ _('Pilot Study') }}</option>
-                                <option value="research">{{ _('Research Project') }}</option>
-                                <option value="full-scale">{{ _('Full-Scale Study') }}</option>
-                                <option value="longitudinal">{{ _('Longitudinal Study') }}</option>
-                                <option value="other">{{ _('Other') }}</option>
+                                {% for v, lab in project_levels %}<option value="{{ v }}">{{ lab }}</option>{% endfor %}
                             </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="area">{{ _('Thematic area:') }}</label>
+                                <input type="text" class="form-control" name="area" id="area" maxlength="120" list="areaList" placeholder="{{ _('e.g. Network science') }}">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="parent">{{ _('Parent project:') }}</label>
+                                <select class="form-control" name="parent_id" id="parent">
+                                    <option value="">{{ _('None (top-level project)') }}</option>
+                                    {% for o in parent_options %}<option value="{{ o.id }}">{{ o.title }}</option>{% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="tags">{{ _('Tags:') }}</label>
+                            <input type="text" class="form-control" name="tags" id="tags" placeholder="{{ _('Comma-separated, e.g. graph mining, nlp') }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="images">{{ _('Images (used on the project card):') }}</label>
+                            <input type="file" class="form-control-file" name="images" id="images" accept="image/png,image/jpeg,image/gif,image/webp" multiple>
+                            <small class="text-muted">{{ _('Up to 5 images, PNG/JPEG/GIF/WEBP, max 5 MB each. The first one is the cover.') }}</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -163,7 +187,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form method="POST" action="{{ url_for('researcher.update_project') }}">
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('researcher.update_project') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="project_id" id="edit_project_id">
                     <div class="modal-body">
@@ -179,12 +203,30 @@
                             <label for="edit_level">{{ _('Level:') }}</label>
                             <select class="form-control" name="level" id="edit_level">
                                 <option value="">{{ _('Select Level') }}</option>
-                                <option value="pilot">{{ _('Pilot Study') }}</option>
-                                <option value="research">{{ _('Research Project') }}</option>
-                                <option value="full-scale">{{ _('Full-Scale Study') }}</option>
-                                <option value="longitudinal">{{ _('Longitudinal Study') }}</option>
-                                <option value="other">{{ _('Other') }}</option>
+                                {% for v, lab in project_levels %}<option value="{{ v }}">{{ lab }}</option>{% endfor %}
                             </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="edit_area">{{ _('Thematic area:') }}</label>
+                                <input type="text" class="form-control" name="area" id="edit_area" maxlength="120" list="areaList" placeholder="{{ _('e.g. Network science') }}">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="edit_parent">{{ _('Parent project:') }}</label>
+                                <select class="form-control" name="parent_id" id="edit_parent">
+                                    <option value="">{{ _('None (top-level project)') }}</option>
+                                    {% for o in parent_options %}<option value="{{ o.id }}">{{ o.title }}</option>{% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_tags">{{ _('Tags:') }}</label>
+                            <input type="text" class="form-control" name="tags" id="edit_tags" placeholder="{{ _('Comma-separated, e.g. graph mining, nlp') }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_images">{{ _('Images (used on the project card):') }}</label>
+                            <input type="file" class="form-control-file" name="images" id="edit_images" accept="image/png,image/jpeg,image/gif,image/webp" multiple>
+                            <small class="text-muted">{{ _('Up to 5 images, PNG/JPEG/GIF/WEBP, max 5 MB each. The first one is the cover.') }}</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -206,16 +248,21 @@
 
 
     <script>
-        function editProject(id, title, description, level) {
+        function editProject(id, title, description, level, area, tags, parent) {
             document.getElementById('edit_project_id').value = id;
             document.getElementById('edit_title').value = title;
             document.getElementById('edit_description').value = description;
             document.getElementById('edit_level').value = level || '';
+            document.getElementById('edit_area').value = area || '';
+            document.getElementById('edit_tags').value = tags || '';
+            var ps = document.getElementById('edit_parent');
+            Array.prototype.forEach.call(ps.options, function (o) { o.disabled = (o.value === String(id)); });
+            ps.value = parent || '';
             $('#editProjectModal').modal('show');
         }
         document.addEventListener('click', function (e) {
             var ed = e.target.closest('.js-edit'), del = e.target.closest('.js-delete');
-            if (ed) { e.preventDefault(); editProject(ed.dataset.id, ed.dataset.title, ed.dataset.description, ed.dataset.level); }
+            if (ed) { e.preventDefault(); editProject(ed.dataset.id, ed.dataset.title, ed.dataset.description, ed.dataset.level, ed.dataset.area, ed.dataset.tags, ed.dataset.parent); }
             if (del) { e.preventDefault(); deleteProject(del.dataset.id, del.dataset.title); }
         });
         var pjS = document.getElementById('pjSearch');

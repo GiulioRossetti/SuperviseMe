@@ -47,6 +47,8 @@
                         {% endif %}
                     {% endwith %}
 
+                    {% include 'researcher/components/project_meta.html' %}
+
                     <!-- Project Info Cards -->
                     <div class="row">
                         <!-- Project Overview -->
@@ -58,7 +60,7 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <p><strong>{{ _('Level:') }}</strong> {{ project.level|title if project.level else 'Not specified' }}</p>
+                                            <p><strong>{{ _('Level:') }}</strong> {{ level_label(project.level) if project.level else 'Not specified' }}</p>
                                             <p><strong>{{ _('Created:') }}</strong> {{ dt(project.created_at).strftime('%B %d, %Y') }}</p>
                                             <p><strong>{{ _('Principal Researcher:') }}</strong> {{ user_link(project.researcher) }}</p>
                                         </div>

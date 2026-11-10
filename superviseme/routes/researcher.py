@@ -68,6 +68,17 @@ def dashboard():
     )
 
 
+def _project_form_context(exclude=None):
+    from superviseme.utils import projects as pj
+    mine = [p for p in pj.accessible_projects(current_user) if p.id != getattr(exclude, "id", None)]
+    if exclude is not None:
+        blocked = pj.descendants_ids(exclude)
+        mine = [p for p in mine if p.id not in blocked]
+    areas = sorted({p.area for p in pj.accessible_projects(current_user) if p.area})
+    return {"project_levels": pj.PROJECT_LEVELS, "parent_options": mine, "known_areas": areas,
+            "link_relations": pj.LINK_RELATIONS, "level_label": pj.level_label}
+
+
 @researcher.route("/researcher/projects")
 @login_required
 def projects():
@@ -100,7 +111,8 @@ def projects():
         "researcher/projects.html",
         current_user=current_user,
         projects_with_collaborators=projects_with_collaborators,
-        has_supervisor_role=user_has_supervisor_role(current_user)
+        has_supervisor_role=user_has_supervisor_role(current_user),
+        **_project_form_context(),
     )
 
 
@@ -114,13 +126,15 @@ def create_project():
     if privilege_check is not True:
         return privilege_check
 
-    title = request.form.get("title")
+    from superviseme.utils import projects as pj
+
+    title = (request.form.get("title") or "").strip()[:100]
     description = request.form.get("description")
-    level = request.form.get("level")
+    level = pj.clean_level(request.form.get("level"))
 
     if not title or not description:
         flash("Title and description are required")
-        return redirect(request.referrer)
+        return redirect(request.referrer or url_for("researcher.projects"))
 
     try:
         new_project = ResearchProject(
@@ -129,10 +143,19 @@ def create_project():
             researcher_id=current_user.id,
             frozen=False,
             level=level,
+            area=pj.clean_area(request.form.get("area")),
+            tags=pj.normalize_tags(request.form.get("tags")),
             created_at=int(time.time()),
         )
+        error = pj.set_parent(new_project, request.form.get("parent_id"), current_user)
+        if error:
+            flash(error)
+            return redirect(request.referrer or url_for("researcher.projects"))
         db.session.add(new_project)
         db.session.commit()
+        added, errors = pj.add_images(new_project, request.files.getlist("images"))
+        for err in errors:
+            flash(err)
 
         flash("Research project created successfully")
         return redirect(url_for("researcher.projects"))
@@ -165,15 +188,28 @@ def update_project():
         flash("Project not found or access denied")
         return redirect(url_for("researcher.projects"))
 
+    from superviseme.utils import projects as pj
+
     try:
         if title:
-            project.title = title
+            project.title = title.strip()[:100]
         if description:
             project.description = description
         if level:
-            project.level = level
-
+            project.level = pj.clean_level(level)
+        if "area" in request.form:
+            project.area = pj.clean_area(request.form.get("area"))
+        if "tags" in request.form:
+            project.tags = pj.normalize_tags(request.form.get("tags"))
+        if "parent_id" in request.form:
+            error = pj.set_parent(project, request.form.get("parent_id"), current_user)
+            if error:
+                flash(error)
+                return redirect(request.referrer or url_for("researcher.projects"))
         db.session.commit()
+        added, errors = pj.add_images(project, request.files.getlist("images"))
+        for err in errors:
+            flash(err)
         flash("Project updated successfully")
         return redirect(url_for("researcher.projects"))
     except Exception as e:
@@ -196,12 +232,8 @@ def delete_project(project_id):
         return jsonify({"status": "error", "message": "Project not found or access denied"}), 404
 
     try:
-        # Remove collaborators first
-        ResearchProject_Collaborator.query.filter_by(project_id=project_id).delete()
-        
-        # Remove the project
-        db.session.delete(project)
-        db.session.commit()
+        from superviseme.utils import projects as pj
+        pj.delete_project_cascade(project)
 
         return jsonify({"status": "success", "message": "Project deleted successfully"})
     except Exception as e:
@@ -371,7 +403,10 @@ def project_detail(project_id):
         recent_todos=recent_todos,
         current_status=current_status,
         datetime=datetime,
-        dt=datetime.fromtimestamp
+        dt=datetime.fromtimestamp,
+        linked=__import__("superviseme.utils.projects", fromlist=["x"]).linked_projects(project),
+        ancestors=list(reversed(__import__("superviseme.utils.projects", fromlist=["x"]).ancestors(project))),
+        **_project_form_context(exclude=project),
     )
 
 
@@ -3832,3 +3867,89 @@ def delete_thesis_link(thesis_id, link_id):
     from superviseme.utils.thesis_media import delete_link
     flash(_("Link removed.") if delete_link(thesis, link_id) else _("Link not found."))
     return redirect(url_for("researcher.supervisor_thesis_detail", thesis_id=thesis_id))
+
+
+# --- Project presentation: images, links, structured report -------------------------------------------------
+
+def _owned_project_or_404(project_id):
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return None, privilege_check
+    project = ResearchProject.query.get_or_404(project_id)
+    if project.researcher_id != current_user.id:
+        abort(403)
+    return project, None
+
+
+@researcher.route("/researcher/project/<int:project_id>/images", methods=["POST"])
+@login_required
+def add_project_images(project_id):
+    from superviseme.utils import projects as pj
+    project, denied = _owned_project_or_404(project_id)
+    if denied is not None:
+        return denied
+    added, errors = pj.add_images(project, request.files.getlist("images"))
+    if added:
+        flash(_("%(n)d image(s) added.", n=added))
+    for err in errors:
+        flash(err)
+    if not added and not errors:
+        flash(_("No file selected."))
+    return redirect(url_for("researcher.project_detail", project_id=project_id))
+
+
+@researcher.route("/researcher/project/<int:project_id>/images/<int:image_id>/delete", methods=["POST"])
+@login_required
+def delete_project_image(project_id, image_id):
+    from superviseme.utils import projects as pj
+    project, denied = _owned_project_or_404(project_id)
+    if denied is not None:
+        return denied
+    pj.delete_image(project, image_id)
+    return redirect(url_for("researcher.project_detail", project_id=project_id))
+
+
+@researcher.route("/researcher/project/<int:project_id>/links", methods=["POST"])
+@login_required
+def add_project_link(project_id):
+    from superviseme.utils import projects as pj
+    project, denied = _owned_project_or_404(project_id)
+    if denied is not None:
+        return denied
+    error = pj.add_link(project, request.form.get("linked_id"), request.form.get("relation"), current_user)
+    flash(error or _("Projects linked."))
+    return redirect(url_for("researcher.project_detail", project_id=project_id))
+
+
+@researcher.route("/researcher/project/<int:project_id>/links/<int:link_id>/delete", methods=["POST"])
+@login_required
+def delete_project_link(project_id, link_id):
+    from superviseme.utils import projects as pj
+    project, denied = _owned_project_or_404(project_id)
+    if denied is not None:
+        return denied
+    pj.remove_link(project, link_id)
+    return redirect(url_for("researcher.project_detail", project_id=project_id))
+
+
+@researcher.route("/researcher/project/<int:project_id>/report")
+@login_required
+def project_report(project_id):
+    from flask import Response
+    from superviseme.utils import projects as pj
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    project = ResearchProject.query.get_or_404(project_id)
+    if not pj.user_can_access(current_user, project):
+        abort(403)
+    data = pj.project_report(project)
+    stem = "project-%d-report" % project.id
+    if request.args.get("format") == "md":
+        body, mimetype, ext = pj.report_markdown(data), "text/markdown; charset=utf-8", "md"
+    else:
+        body, mimetype, ext = pj.report_pdf(data), "application/pdf", "pdf"
+    resp = Response(body, mimetype=mimetype)
+    resp.headers["Content-Disposition"] = 'attachment; filename="%s.%s"' % (stem, ext)
+    resp.headers["X-Content-Type-Options"] = "nosniff"
+    return resp

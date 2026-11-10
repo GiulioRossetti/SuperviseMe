@@ -319,10 +319,42 @@ class ResearchProject(db.Model):
     description = db.Column(db.Text, nullable=False)
     researcher_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
     frozen = db.Column(db.Boolean, default=False)
-    level = db.Column(db.Text, nullable=True)  # e.g., "research", "pilot", "full-scale"
+    level = db.Column(db.Text, nullable=True)  # see utils/projects.py PROJECT_LEVELS
     created_at = db.Column(db.Integer, nullable=False)
+    area = db.Column(db.String(120), nullable=True)  # thematic area
+    tags = db.Column(db.Text, nullable=True)  # comma-separated, normalised (utils/projects.py)
+    parent_id = db.Column(db.Integer, db.ForeignKey("research_project.id"), nullable=True, index=True)
 
     researcher = db.relationship("User_mgmt", backref="research_projects", lazy=True)
+    parent = db.relationship("ResearchProject", remote_side=[id], backref=db.backref("subprojects", lazy=True), lazy=True)
+
+    @property
+    def tag_list(self):
+        return [t for t in (self.tags or "").split(",") if t]
+
+
+class ResearchProject_Image(db.Model):
+    """Illustration shown on the project card (stored on disk, see utils/uploads.py)."""
+    __tablename__ = "research_project_image"
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey("research_project.id"), nullable=False, index=True)
+    filename = db.Column(db.String(120), nullable=False, unique=True)
+    position = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    project = db.relationship(
+        "ResearchProject", backref=db.backref("images", lazy=True, order_by="ResearchProject_Image.position, ResearchProject_Image.id"))
+
+
+class ResearchProject_Link(db.Model):
+    """Typed, directed link between two projects (shown on both sides)."""
+    __tablename__ = "research_project_link"
+    __table_args__ = (db.UniqueConstraint("project_id", "linked_id", name="uq_research_project_link"),)
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey("research_project.id"), nullable=False, index=True)
+    linked_id = db.Column(db.Integer, db.ForeignKey("research_project.id"), nullable=False, index=True)
+    relation = db.Column(db.String(30), nullable=False, default="related")
+    created_at = db.Column(db.Integer, nullable=False)
 
 
 class ResearchProject_Collaborator(db.Model):

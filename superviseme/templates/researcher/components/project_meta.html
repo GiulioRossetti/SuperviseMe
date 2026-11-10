@@ -1,0 +1,140 @@
+{# Structure (hierarchy + links), cover images, report and edit/delete for a research project. Expects project, is_owner, ancestors, linked, parent_options, project_levels, known_areas, link_relations, level_label. #}
+<div class="row">
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-sitemap"></i> {{ _('Structure') }}</h6>
+                <div class="btn-group btn-group-sm">
+                    <a class="btn btn-outline-primary" href="{{ url_for('researcher.project_report', project_id=project.id) }}"><i class="fas fa-file-pdf"></i> {{ _('Report (PDF)') }}</a>
+                    <a class="btn btn-outline-primary" href="{{ url_for('researcher.project_report', project_id=project.id, format='md') }}"><i class="fas fa-file-alt"></i> Markdown</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if ancestors %}
+                <nav class="small mb-2" aria-label="{{ _('Parent projects') }}">
+                    {% for a in ancestors %}<a href="{{ url_for('researcher.project_detail', project_id=a.id) }}">{{ a.title }}</a> <i class="fas fa-angle-right text-muted"></i> {% endfor %}<strong>{{ project.title }}</strong>
+                </nav>
+                {% endif %}
+                <p class="mb-2">
+                    {% if project.level %}<span class="badge badge-info">{{ level_label(project.level) }}</span>{% endif %}
+                    {% if project.area %}<span class="badge badge-light border"><i class="fas fa-layer-group"></i> {{ project.area }}</span>{% endif %}
+                    {% for t in project.tag_list %}<span class="pj-tag">#{{ t }}</span> {% endfor %}
+                </p>
+
+                <h6 class="font-weight-bold mt-3">{{ _('Sub-projects') }}</h6>
+                {% if project.subprojects %}
+                <ul class="list-unstyled mb-2">
+                    {% for c in project.subprojects %}
+                    <li class="py-1 border-bottom"><i class="fas fa-level-up-alt fa-rotate-90 text-muted mr-1"></i>
+                        <a href="{{ url_for('researcher.project_detail', project_id=c.id) }}" class="font-weight-bold">{{ c.title }}</a>
+                        {% if c.level %}<span class="badge badge-light border ml-1">{{ level_label(c.level) }}</span>{% endif %}
+                        {% if c.frozen %}<span class="badge badge-warning">{{ _('Frozen') }}</span>{% endif %}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}<p class="small text-muted mb-2">{{ _('No sub-projects. Create a project and choose this one as its parent (e.g. one paper per research project).') }}</p>{% endif %}
+
+                <h6 class="font-weight-bold mt-3">{{ _('Linked projects') }}</h6>
+                {% if linked %}
+                <ul class="list-unstyled mb-2">
+                    {% for other, rel, direction, link in linked %}
+                    <li class="py-1 border-bottom d-flex align-items-center">
+                        <span class="text-muted small mr-2">{{ rel }} {{ '→' if direction == 'out' else '←' }}</span>
+                        <a href="{{ url_for('researcher.project_detail', project_id=other.id) }}" class="font-weight-bold flex-grow-1">{{ other.title }}</a>
+                        {% if is_owner %}
+                        <form method="POST" action="{{ url_for('researcher.delete_project_link', project_id=project.id, link_id=link.id) }}" class="ml-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-link btn-sm text-danger p-0" aria-label="{{ _('Unlink') }}" title="{{ _('Unlink') }}"><i class="fas fa-unlink"></i></button>
+                        </form>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}<p class="small text-muted mb-2">{{ _('No linked projects.') }}</p>{% endif %}
+
+                {% if is_owner and parent_options %}
+                <form method="POST" action="{{ url_for('researcher.add_project_link', project_id=project.id) }}" class="form-inline mt-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="relation" class="form-control form-control-sm mr-2 mb-1" aria-label="{{ _('Relation') }}">
+                        {% for v, lab in link_relations %}<option value="{{ v }}">{{ lab }}</option>{% endfor %}
+                    </select>
+                    <select name="linked_id" class="form-control form-control-sm mr-2 mb-1" required aria-label="{{ _('Project') }}">
+                        <option value="">{{ _('Select a project…') }}</option>
+                        {% for o in parent_options %}<option value="{{ o.id }}">{{ o.title }}</option>{% endfor %}
+                    </select>
+                    <button class="btn btn-sm btn-outline-primary mb-1"><i class="fas fa-link"></i> {{ _('Link') }}</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-images"></i> {{ _('Images') }}</h6></div>
+            <div class="card-body">
+                {% if project.images %}
+                <div class="pj-gallery mb-3">
+                    {% for img in project.images %}
+                    <figure>
+                        <img src="{{ url_for('media.project_image', filename=img.filename[8:]) }}" alt="" loading="lazy">
+                        {% if is_owner %}
+                        <form method="POST" action="{{ url_for('researcher.delete_project_image', project_id=project.id, image_id=img.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-sm btn-light py-0 px-1" aria-label="{{ _('Delete') }}"><i class="fas fa-times text-danger"></i></button>
+                        </form>
+                        {% endif %}
+                    </figure>
+                    {% endfor %}
+                </div>
+                {% else %}<p class="small text-muted">{{ _('No images yet. The first image is used as the cover of the project card.') }}</p>{% endif %}
+                {% if is_owner %}
+                <form method="POST" enctype="multipart/form-data" action="{{ url_for('researcher.add_project_images', project_id=project.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="file" name="images" class="form-control-file mb-2" accept="image/png,image/jpeg,image/gif,image/webp" multiple required>
+                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-upload"></i> {{ _('Upload') }}</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if is_owner %}
+<datalist id="areaList">{% for a in known_areas %}<option value="{{ a }}">{% endfor %}</datalist>
+<div class="modal fade" id="editProjectModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">{{ _('Edit Research Project') }}</h5>
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button></div>
+        <form method="POST" enctype="multipart/form-data" action="{{ url_for('researcher.update_project') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="project_id" value="{{ project.id }}">
+            <div class="modal-body">
+                <div class="form-group"><label>{{ _('Project Title:') }}</label><input type="text" class="form-control" name="title" value="{{ project.title }}" maxlength="100" required></div>
+                <div class="form-group"><label>{{ _('Description:') }}</label><textarea class="form-control" name="description" rows="4" required>{{ project.description }}</textarea></div>
+                <div class="form-row">
+                    <div class="form-group col-md-6"><label>{{ _('Level:') }}</label>
+                        <select class="form-control" name="level"><option value="">{{ _('Select Level') }}</option>
+                            {% for v, lab in project_levels %}<option value="{{ v }}" {{ 'selected' if project.level == v }}>{{ lab }}</option>{% endfor %}</select></div>
+                    <div class="form-group col-md-6"><label>{{ _('Thematic area:') }}</label><input type="text" class="form-control" name="area" value="{{ project.area or '' }}" maxlength="120" list="areaList"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6"><label>{{ _('Parent project:') }}</label>
+                        <select class="form-control" name="parent_id"><option value="">{{ _('None (top-level project)') }}</option>
+                            {% for o in parent_options %}<option value="{{ o.id }}" {{ 'selected' if project.parent_id == o.id }}>{{ o.title }}</option>{% endfor %}</select></div>
+                    <div class="form-group col-md-6"><label>{{ _('Tags:') }}</label><input type="text" class="form-control" name="tags" value="{{ project.tag_list|join(', ') }}"></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('Cancel') }}</button>
+                <button type="submit" class="btn btn-success">{{ _('Update Project') }}</button></div>
+        </form>
+    </div></div>
+</div>
+<script>
+function confirmDeleteProject() {
+    if (!confirm({{ _('Delete this project? Sub-projects are kept and moved up one level. This cannot be undone.')|tojson }})) return;
+    fetch({{ url_for('researcher.delete_project', project_id=project.id)|tojson }}, {method: 'DELETE', headers: {'X-CSRFToken': {{ csrf_token()|tojson }}}})
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if (d.status === 'success') { location.href = {{ url_for('researcher.projects')|tojson }}; } else { alert(d.message); } });
+}
+</script>
+{% endif %}

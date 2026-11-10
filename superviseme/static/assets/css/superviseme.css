@@ -1007,3 +1007,9 @@ a.doc-item:hover { border-color: var(--sm-primary); color: inherit; }
 .pj-slot { min-width: 0; }
 .pj-desc { min-height: 2.6rem; }
 .th-student .sm-avatar + .sm-avatar, .th-student span + span { margin-left: -.5rem; }
+.pj-tags { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .45rem; }
+.pj-tag { font-size: .7rem; background: var(--sm-bg); border: 1px solid var(--sm-border); color: var(--sm-text-muted); border-radius: 999px; padding: .05rem .5rem; }
+.pj-gallery { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+.pj-gallery figure { position: relative; margin: 0; }
+.pj-gallery img { width: 100%; height: 80px; object-fit: cover; border-radius: var(--sm-radius-sm); }
+.pj-gallery form { position: absolute; top: 2px; right: 2px; }
