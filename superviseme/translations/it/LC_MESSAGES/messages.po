@@ -4815,3 +4815,114 @@ msgstr "Nessun risultato corrisponde ai filtri"
 
 msgid "software"
 msgstr "software"
+
+msgid "Activity of this project"
+msgstr "Attività di questo progetto"
+
+msgid "Add publication"
+msgstr "Aggiungi pubblicazione"
+
+msgid "Concluded (archive)"
+msgstr "Concluse (archivio)"
+
+msgid "Export theses and research projects as PDF, Markdown or CSV, and browse the archive"
+msgstr "Esporta tesi e progetti di ricerca in PDF, Markdown o CSV e consulta l'archivio"
+
+msgid "No associated output"
+msgstr "Nessun prodotto associato"
+
+msgid "No match"
+msgstr "Nessun risultato"
+
+msgid "No research projects yet"
+msgstr "Nessun progetto di ricerca"
+
+msgid "One CSV with the activity of several theses in a period."
+msgstr "Un CSV con l'attività di più tesi in un periodo."
+
+msgid "One row per project: owner, funding, team size, outputs, tasks and overdue milestones."
+msgstr "Una riga per progetto: responsabile, finanziamento, dimensione del team, prodotti, attività e milestone in ritardo."
+
+msgid "Project reports"
+msgstr "Report dei progetti"
+
+msgid "Projects overview"
+msgstr "Panoramica progetti"
+
+msgid "Publication"
+msgstr "Pubblicazione"
+
+msgid "Research activity"
+msgstr "Attività di ricerca"
+
+msgid "Search by name, DOI, repository, project, user or thesis..."
+msgstr "Cerca per nome, DOI, repository, progetto, utente o tesi..."
+
+msgid "Search by title, DOI, repository, project, user or thesis..."
+msgstr "Cerca per titolo, DOI, repository, progetto, utente o tesi..."
+
+msgid "Search by title or student..."
+msgstr "Cerca per titolo o studente..."
+
+msgid "Search by title, area or owner..."
+msgstr "Cerca per titolo, area o responsabile..."
+
+msgid "Search by title, author, venue, DOI, project, user or thesis..."
+msgstr "Cerca per titolo, autore, sede, DOI, progetto, utente o tesi..."
+
+msgid "Updates, tasks, notes, milestones, publications, datasets and software in a period."
+msgstr "Aggiornamenti, attività, note, milestone, pubblicazioni, dataset e software in un periodo."
+
+msgid "Associate"
+msgstr "Associa"
+
+msgid "Associated users and theses"
+msgstr "Utenti e tesi associati"
+
+msgid "Authors (comma separated)"
+msgstr "Autori (separati da virgola)"
+
+msgid "Delete this record?"
+msgstr "Eliminare questo record?"
+
+msgid "Linked users find it in their own lists; linked theses show it on their page."
+msgstr "Gli utenti associati lo trovano nelle proprie liste; le tesi associate lo mostrano nella propria pagina."
+
+msgid "Manage associations"
+msgstr "Gestisci associazioni"
+
+msgid "Move"
+msgstr "Sposta"
+
+msgid "No associations yet"
+msgstr "Nessuna associazione"
+
+msgid "Project..."
+msgstr "Progetto..."
+
+msgid "Thesis..."
+msgstr "Tesi..."
+
+msgid "User..."
+msgstr "Utente..."
+
+msgid "You can associate users and theses on the next page."
+msgstr "Nella pagina successiva puoi associare utenti e tesi."
+
+msgid "A title and a project are required"
+msgstr "Titolo e progetto sono obbligatori"
+
+msgid "Project updated"
+msgstr "Progetto aggiornato"
+
+msgid "Choose a user or a thesis"
+msgstr "Scegli un utente o una tesi"
+
+msgid "Association added"
+msgstr "Associazione aggiunta"
+
+msgid "Deleted"
+msgstr "Eliminato"
+
+msgid "Leave empty to remove the limit."
+msgstr "Lascia vuoto per rimuovere il limite."

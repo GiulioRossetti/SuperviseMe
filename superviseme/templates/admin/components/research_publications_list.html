@@ -1,9 +1,11 @@
 <span class="d-none" data-total="{{ pagination.total }}" data-all="{{ total }}" data-filtered="{{ '1' if filters else '' }}"></span>
 {% from 'admin/components/pager.html' import pager %}
+{% from 'admin/components/output_assoc.html' import assoc %}
                         {% for p in pubs %}
                             <div class="mb-3"><strong>{{ p.title }}</strong>{% if p.year %} ({{ p.year }}){% endif %} <span class="badge badge-light">{{ p.pub_type }}</span><br>
                                 <small class="text-muted">{{ p.authors or '' }}{% if p.venue %} · {{ p.venue }}{% endif %} ·
                                     <a href="{{ url_for('admin.research_project', project_id=p.project_id) }}">{{ p.project.title }}</a></small>
-                                {% if p.doi %}<br><a class="small" href="https://doi.org/{{ p.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ p.doi }}</a>{% endif %}</div>
+                                {% if p.doi %}<br><a class="small" href="https://doi.org/{{ p.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ p.doi }}</a>{% endif %}
+                                {{ assoc(lmap[p.id], 'publication', p.id) }}</div>
                         {% else %}<p class="text-muted mb-0">{{ _('No publications match the filters') }}</p>{% endfor %}
                         {{ pager(pagination, filters) }}

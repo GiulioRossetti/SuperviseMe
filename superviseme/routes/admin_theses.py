@@ -350,8 +350,9 @@ def thesis_detail(thesis_id):
     todos = Todo.query.filter_by(thesis_id=thesis_id).order_by(Todo.created_at.desc()).all()
     meeting_notes = MeetingNote.query.filter_by(thesis_id=thesis_id).order_by(MeetingNote.created_at.desc()).all()
     resources = Resource.query.filter_by(thesis_id=thesis_id).all()
+    from superviseme.utils.research_output import linked_outputs
     return render_template("/admin/thesis_detail.html", 
-                         current_user=current_user,
+                         current_user=current_user, linked_outputs=linked_outputs(thesis_id=thesis_id),
                          objectives=objectives, hypotheses=hypotheses, todos=todos,
                          meeting_notes=meeting_notes, resources=resources,
                          dt=datetime.datetime.fromtimestamp,

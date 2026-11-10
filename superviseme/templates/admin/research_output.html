@@ -1,0 +1,74 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'admin/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    {% set back = url_for('admin.research_publications') if kind == 'publication' else url_for('admin.research_outputs', kind=plural) %}
+                    {% set label = {'publication': _('Publications'), 'dataset': _('Datasets'), 'software': _('Software')}[kind] %}
+                    <nav aria-label="breadcrumb"><ol class="breadcrumb bg-transparent px-0 mb-2">
+                        <li class="breadcrumb-item"><a href="{{ url_for('admin.research') }}">{{ _('Research') }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ back }}">{{ label }}</a></li>
+                        <li class="breadcrumb-item active">{{ obj.title[:60] }}</li></ol></nav>
+                    <div class="d-sm-flex align-items-start justify-content-between mb-4">
+                        <h1 class="h4 mb-0 text-gray-800">{{ obj.title }}</h1>
+                        <form method="POST" action="{{ url_for('admin.research_output_delete', kind=kind, oid=obj.id) }}" onsubmit="return confirm({{ _('Delete this record?')|tojson|forceescape }})">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-danger btn-sm" type="submit">{{ _('Delete') }}</button></form>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Details') }}</h6></div>
+                                <div class="card-body small">
+                                    {% if kind == 'publication' %}<div>{{ obj.authors or '' }}{% if obj.year %} ({{ obj.year }}){% endif %}{% if obj.venue %} · {{ obj.venue }}{% endif %} <span class="badge badge-light">{{ obj.pub_type }}</span></div>{% endif %}
+                                    {% if kind == 'software' %}<div>{% if obj.version %}v{{ obj.version }}{% endif %} {{ obj.language or '' }} {{ obj.description or '' }}</div>{% endif %}
+                                    {% if obj.license %}<div>{{ _('License') }}: {{ obj.license }}</div>{% endif %}
+                                    {% if obj.doi %}<div><a href="https://doi.org/{{ obj.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ obj.doi }}</a></div>{% endif %}
+                                    {% set link = obj.repo_url if kind == 'software' else obj.url %}{% if link %}<div><a href="{{ link }}" target="_blank" rel="noopener noreferrer nofollow">{{ link }}</a></div>{% endif %}
+                                </div></div>
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Project') }}</h6></div>
+                                <div class="card-body">
+                                    <div class="mb-2"><a href="{{ url_for('admin.research_project', project_id=obj.project_id) }}">{{ obj.project.title }}</a></div>
+                                    <form method="POST" action="{{ url_for('admin.research_output_project', kind=kind, oid=obj.id) }}" class="input-group input-group-sm">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <select name="project_id" class="custom-select">{% for p in projects %}<option value="{{ p.id }}" {{ 'selected' if p.id == obj.project_id }}>{{ p.title }}</option>{% endfor %}</select>
+                                        <div class="input-group-append"><button class="btn btn-outline-primary" type="submit">{{ _('Move') }}</button></div>
+                                    </form>
+                                </div></div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Associated users and theses') }}</h6></div>
+                                <div class="card-body">
+                                    {% for l, u in links.users %}
+                                    <div class="d-flex justify-content-between mb-1"><span><i class="fas fa-user text-info"></i> <a href="{{ url_for('admin.user_detail', user_id=u.id) }}">{{ u.name }} {{ u.surname }}</a> <span class="text-muted small">({{ u.user_type }})</span></span>
+                                        <form method="POST" action="{{ url_for('admin.research_output_link_remove', kind=kind, oid=obj.id, link_id=l.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-link btn-sm text-danger p-0" aria-label="{{ _('Remove') }}"><i class="fas fa-times"></i></button></form></div>
+                                    {% endfor %}
+                                    {% for l, t in links.theses %}
+                                    <div class="d-flex justify-content-between mb-1"><span><i class="fas fa-book text-secondary"></i> <a href="{{ url_for('admin.thesis_detail', thesis_id=t.id) }}">{{ t.title }}</a></span>
+                                        <form method="POST" action="{{ url_for('admin.research_output_link_remove', kind=kind, oid=obj.id, link_id=l.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-link btn-sm text-danger p-0" aria-label="{{ _('Remove') }}"><i class="fas fa-times"></i></button></form></div>
+                                    {% endfor %}
+                                    {% if not links.users and not links.theses %}<p class="text-muted small">{{ _('No associations yet') }}</p>{% endif %}
+                                    <hr>
+                                    <form method="POST" action="{{ url_for('admin.research_output_link_add', kind=kind, oid=obj.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="form-group mb-2"><select name="user_id" class="custom-select custom-select-sm"><option value="">{{ _('User...') }}</option>
+                                            {% for u in people %}<option value="{{ u.id }}">{{ u.surname }} {{ u.name }} ({{ u.user_type }})</option>{% endfor %}</select></div>
+                                        <div class="form-group mb-2"><select name="thesis_id" class="custom-select custom-select-sm"><option value="">{{ _('Thesis...') }}</option>
+                                            {% for t in theses %}<option value="{{ t.id }}">{{ t.title[:80] }}</option>{% endfor %}</select></div>
+                                        <button class="btn btn-primary btn-sm" type="submit"><i class="fas fa-link"></i> {{ _('Associate') }}</button>
+                                        <span class="small text-muted ml-2">{{ _('Linked users find it in their own lists; linked theses show it on their page.') }}</span>
+                                    </form>
+                                </div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    {% include 'admin/components/logout_modal.html' %}
+</body>
+</html>

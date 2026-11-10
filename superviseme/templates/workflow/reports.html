@@ -1,33 +1,126 @@
 {% extends 'public/base_public.html' %}
 {% from 'components/dash.html' import hero, panel with context %}
 {% block page_content %}
-{% call hero(_('Reports and archive'), _('Export thesis history as PDF or CSV and browse concluded theses'), 'fa-file-export') %}{% endcall %}
-{% call panel(_('Activity export'), 'fa-file-csv') %}
-<form method="GET" action="{{ url_for('workflow.activity_report') }}" class="form-row align-items-end">
-    <div class="col-md-3 mb-2"><label class="small mb-0">{{ _('From') }}</label><input type="date" class="form-control form-control-sm" name="from"></div>
-    <div class="col-md-3 mb-2"><label class="small mb-0">{{ _('To') }}</label><input type="date" class="form-control form-control-sm" name="to"></div>
-    <div class="col-md-3 mb-2"><label class="small mb-0">{{ _('Theses') }}</label>
-        <select class="form-control form-control-sm" name="scope"><option value="all">{{ _('All') }}</option><option value="active">{{ _('Active') }}</option><option value="concluded">{{ _('Concluded') }}</option></select></div>
-    <div class="col-md-3 mb-2"><button class="btn btn-primary btn-sm btn-block"><i class="fas fa-download"></i> CSV</button></div>
-</form>
-{% endcall %}
-<div class="row">
-{% for title, rows, icon in ((_('Concluded theses (archive)'), concluded, 'fa-archive'), (_('Active theses'), active, 'fa-book-open')) %}
-<div class="col-xl-6">
-{% call panel(title, icon) %}
-    {% if rows %}<div class="doc-list">
-        {% for t in rows %}
-        <div class="doc-item">
-            <span class="doc-ic"><i class="fas fa-book"></i></span>
-            <span class="doc-main"><strong>{{ t.title }}</strong><small>{{ status(t) or '' }}{% if t.author_id %} · {{ user_link(t.author_id|user_by_id) }}{% endif %}</small></span>
-            <a class="btn btn-outline-primary btn-sm mr-1" href="{{ url_for('workflow.thesis_report', thesis_id=t.id, fmt='pdf') }}">PDF</a>
-            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('workflow.thesis_report', thesis_id=t.id, fmt='csv') }}">CSV</a>
+{% call hero(_('Reports and archive'), _('Export theses and research projects as PDF, Markdown or CSV, and browse the archive'), 'fa-file-export') %}{% endcall %}
+{% set cur = tab or ('research' if (projects and not active and not concluded) else 'theses') %}
+{% set can_research = projects or current_user.user_type in ('admin', 'researcher') %}
+
+<ul class="nav nav-tabs mb-3" id="reportTabs" role="tablist">
+    <li class="nav-item"><a class="nav-link {{ 'active' if cur == 'theses' }}" id="tabThesesLink" data-toggle="tab" href="#tabTheses" role="tab" aria-controls="tabTheses" aria-selected="{{ 'true' if cur == 'theses' else 'false' }}"><i class="fas fa-book-open"></i> {{ _('Theses') }} <span class="badge badge-light border">{{ active|length + concluded|length }}</span></a></li>
+    {% if can_research %}<li class="nav-item"><a class="nav-link {{ 'active' if cur == 'research' }}" id="tabResearchLink" data-toggle="tab" href="#tabResearch" role="tab" aria-controls="tabResearch" aria-selected="{{ 'true' if cur == 'research' else 'false' }}"><i class="fas fa-flask"></i> {{ _('Research') }} <span class="badge badge-light border">{{ projects|length }}</span></a></li>{% endif %}
+</ul>
+
+<div class="tab-content">
+{# ---------------- theses ---------------- #}
+<div class="tab-pane fade {{ 'show active' if cur == 'theses' }}" id="tabTheses" role="tabpanel" aria-labelledby="tabThesesLink">
+    <div class="card shadow-sm mb-3"><div class="card-body py-3">
+        <form method="GET" action="{{ url_for('workflow.activity_report') }}" class="form-row align-items-end">
+            <div class="col-12 mb-2"><strong><i class="fas fa-file-csv text-muted"></i> {{ _('Activity export') }}</strong> <span class="small text-muted">{{ _('One CSV with the activity of several theses in a period.') }}</span></div>
+            <div class="col-6 col-md-3 mb-2"><label class="small mb-0">{{ _('From') }}</label><input type="date" class="form-control form-control-sm" name="from"></div>
+            <div class="col-6 col-md-3 mb-2"><label class="small mb-0">{{ _('To') }}</label><input type="date" class="form-control form-control-sm" name="to"></div>
+            <div class="col-6 col-md-3 mb-2"><label class="small mb-0">{{ _('Theses') }}</label>
+                <select class="form-control form-control-sm" name="scope"><option value="all">{{ _('All') }}</option><option value="active">{{ _('Active') }}</option><option value="concluded">{{ _('Concluded') }}</option></select></div>
+            <div class="col-6 col-md-3 mb-2"><button class="btn btn-primary btn-sm btn-block"><i class="fas fa-download"></i> CSV</button></div>
+        </form>
+    </div></div>
+
+    <div class="card shadow-sm mb-4"><div class="card-body">
+        <div class="d-flex flex-wrap align-items-center mb-3">
+            <ul class="nav nav-pills nav-pills-sm mr-auto" role="tablist">
+                <li class="nav-item"><a class="nav-link py-1 active" data-toggle="pill" href="#thActive" role="tab">{{ _('Active') }} <span class="badge badge-light">{{ active|length }}</span></a></li>
+                <li class="nav-item"><a class="nav-link py-1" data-toggle="pill" href="#thConcluded" role="tab">{{ _('Concluded (archive)') }} <span class="badge badge-light">{{ concluded|length }}</span></a></li>
+            </ul>
+            <input type="search" class="form-control form-control-sm" style="max-width:280px" data-filter="#tabTheses .rep-item" placeholder="{{ _('Search by title or student...') }}" aria-label="{{ _('Search') }}" autocomplete="off">
+        </div>
+        <div class="tab-content">
+        {% for pane, rows, icon in (('thActive', active, 'fa-book-open'), ('thConcluded', concluded, 'fa-archive')) %}
+        <div class="tab-pane fade {{ 'show active' if loop.first }}" id="{{ pane }}" role="tabpanel">
+            {% if rows %}<div class="doc-list rep-scroll">
+                {% for t in rows %}
+                <div class="doc-item rep-item" data-q="{{ ((t.title or '') ~ ' ' ~ (status(t) or '') ~ ' ' ~ ((t.author_id|user_by_id).surname if t.author_id and (t.author_id|user_by_id) else ''))|lower }}">
+                    <span class="doc-ic"><i class="fas {{ icon }}"></i></span>
+                    <span class="doc-main"><strong>{{ t.title }}</strong><small>{{ status(t) or '' }}{% if t.author_id %} · {{ user_link(t.author_id|user_by_id) }}{% endif %}</small></span>
+                    <a class="btn btn-outline-primary btn-sm mr-1" href="{{ url_for('workflow.thesis_report', thesis_id=t.id, fmt='pdf') }}">PDF</a>
+                    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('workflow.thesis_report', thesis_id=t.id, fmt='csv') }}">CSV</a>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="dash-empty rep-none d-none"><i class="fas fa-search"></i>{{ _('No match') }}</div>
+            {% else %}<div class="dash-empty"><i class="fas {{ icon }}"></i>{{ _('Nothing here yet') }}</div>{% endif %}
         </div>
         {% endfor %}
+        </div>
+    </div></div>
+</div>
+
+{# ---------------- research ---------------- #}
+{% if can_research %}
+<div class="tab-pane fade {{ 'show active' if cur == 'research' }}" id="tabResearch" role="tabpanel" aria-labelledby="tabResearchLink">
+    <div class="row">
+        <div class="col-lg-6 mb-3"><div class="card shadow-sm h-100"><div class="card-body py-3">
+            <form method="GET" action="{{ url_for('workflow.research_summary_report') }}" class="form-row align-items-end">
+                <div class="col-12 mb-2"><strong><i class="fas fa-table text-muted"></i> {{ _('Projects overview') }}</strong>
+                    <div class="small text-muted">{{ _('One row per project: owner, funding, team size, outputs, tasks and overdue milestones.') }}</div></div>
+                <div class="col-7 mb-2"><label class="small mb-0">{{ _('Projects') }}</label>
+                    <select class="form-control form-control-sm" name="scope"><option value="all">{{ _('All') }}</option><option value="active">{{ _('Active') }}</option><option value="frozen">{{ _('Frozen') }}</option></select></div>
+                <div class="col-5 mb-2"><button class="btn btn-primary btn-sm btn-block"><i class="fas fa-download"></i> CSV</button></div>
+            </form>
+        </div></div></div>
+        <div class="col-lg-6 mb-3"><div class="card shadow-sm h-100"><div class="card-body py-3">
+            <form method="GET" action="{{ url_for('workflow.research_activity_report') }}" class="form-row align-items-end">
+                <div class="col-12 mb-2"><strong><i class="fas fa-stream text-muted"></i> {{ _('Research activity') }}</strong>
+                    <div class="small text-muted">{{ _('Updates, tasks, notes, milestones, publications, datasets and software in a period.') }}</div></div>
+                <div class="col-6 col-md-3 mb-2"><label class="small mb-0">{{ _('From') }}</label><input type="date" class="form-control form-control-sm" name="from"></div>
+                <div class="col-6 col-md-3 mb-2"><label class="small mb-0">{{ _('To') }}</label><input type="date" class="form-control form-control-sm" name="to"></div>
+                <div class="col-6 col-md-3 mb-2"><label class="small mb-0">{{ _('Projects') }}</label>
+                    <select class="form-control form-control-sm" name="scope"><option value="all">{{ _('All') }}</option><option value="active">{{ _('Active') }}</option><option value="frozen">{{ _('Frozen') }}</option></select></div>
+                <div class="col-6 col-md-3 mb-2"><button class="btn btn-primary btn-sm btn-block"><i class="fas fa-download"></i> CSV</button></div>
+            </form>
+        </div></div></div>
     </div>
-    {% else %}<div class="dash-empty"><i class="fas {{ icon }}"></i>{{ _('Nothing here yet') }}</div>{% endif %}
-{% endcall %}
+
+    <div class="card shadow-sm mb-4"><div class="card-body">
+        <div class="d-flex flex-wrap align-items-center mb-3">
+            <strong class="mr-auto">{{ _('Project reports') }} <span class="badge badge-light border">{{ projects|length }}</span></strong>
+            <input type="search" class="form-control form-control-sm" style="max-width:280px" data-filter="#tabResearch .rep-item" placeholder="{{ _('Search by title, area or owner...') }}" aria-label="{{ _('Search') }}" autocomplete="off">
+        </div>
+        {% if projects %}
+        <div class="doc-list rep-scroll">
+            {% for p in projects %}
+            <div class="doc-item rep-item" data-q="{{ ((p.title or '') ~ ' ' ~ (p.area or '') ~ ' ' ~ (p.funder or '') ~ ' ' ~ p.researcher.name ~ ' ' ~ p.researcher.surname)|lower }}">
+                <span class="doc-ic"><i class="fas fa-flask"></i></span>
+                <span class="doc-main"><strong>{{ p.title }}</strong><small>{{ level_label(p.level) if p.level else '' }}{% if p.area %} · {{ p.area }}{% endif %} · {{ p.researcher.name }} {{ p.researcher.surname }}
+                    {% if p.frozen %}<span class="badge badge-warning">{{ _('Frozen') }}</span>{% endif %}</small></span>
+                <a class="btn btn-outline-primary btn-sm mr-1" href="{{ url_for('workflow.project_report_file', project_id=p.id, fmt='pdf') }}">PDF</a>
+                <a class="btn btn-outline-secondary btn-sm mr-1" href="{{ url_for('workflow.project_report_file', project_id=p.id, fmt='md') }}">Markdown</a>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('workflow.project_report_file', project_id=p.id, fmt='csv') }}" title="{{ _('Activity of this project') }}">CSV</a>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="dash-empty rep-none d-none"><i class="fas fa-search"></i>{{ _('No match') }}</div>
+        {% else %}<div class="dash-empty"><i class="fas fa-flask"></i>{{ _('No research projects yet') }}</div>{% endif %}
+    </div></div>
 </div>
-{% endfor %}
+{% endif %}
 </div>
+
+<style>.rep-scroll { max-height: 520px; overflow-y: auto; }</style>
+<script>
+(function () {
+    document.querySelectorAll('input[data-filter]').forEach(function (inp) {
+        inp.addEventListener('input', function () {
+            var terms = inp.value.toLowerCase().split(/\s+/).filter(Boolean), sel = inp.getAttribute('data-filter');
+            document.querySelectorAll(sel).forEach(function (el) {
+                el.style.display = terms.every(function (t) { return (el.dataset.q || '').indexOf(t) !== -1; }) ? '' : 'none';
+            });
+            document.querySelectorAll(sel.split(' ')[0] + ' .tab-pane, ' + sel.split(' ')[0] + ' .card-body').forEach(function (pane) {
+                var none = pane.querySelector('.rep-none');
+                if (none) { none.classList.toggle('d-none', Array.prototype.some.call(pane.querySelectorAll('.rep-item'), function (e) { return e.style.display !== 'none'; })); }
+            });
+        });
+    });
+    var hash = location.hash;
+    if (hash === '#tabResearch' || hash === '#tabTheses') { var l = document.querySelector('a[href="' + hash + '"]'); if (l && window.jQuery) { jQuery(l).tab('show'); } }
+})();
+</script>
 {% endblock %}

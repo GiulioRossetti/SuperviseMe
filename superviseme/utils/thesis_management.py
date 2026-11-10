@@ -87,6 +87,10 @@ def delete_thesis_with_dependencies(thesis_id):
         )
         MeetingNote.query.filter_by(thesis_id=thesis_id).delete(synchronize_session=False)
         Todo.query.filter_by(thesis_id=thesis_id).delete(synchronize_session=False)
+        from superviseme.models import ResearchProject_Thesis
+        from superviseme.utils.research_output import delete_links_for
+        ResearchProject_Thesis.query.filter_by(thesis_id=thesis_id).delete(synchronize_session=False)
+        delete_links_for(thesis_id=thesis_id)
         Thesis_Update.query.filter_by(thesis_id=thesis_id).delete(synchronize_session=False)
 
         db.session.delete(thesis)

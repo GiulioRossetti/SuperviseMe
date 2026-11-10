@@ -55,7 +55,8 @@ SuperviseMe is a Flask web application that brings supervisors, students, resear
 
 ### Cross-cutting
 - **Agenda** with meetings, milestones and deadlines, plus an iCalendar (`.ics`) feed.
-- **Reports** (PDF/CSV) and global search.
+- **Reports** (PDF/CSV) for theses and research projects (per-project PDF/Markdown/CSV, portfolio overview and activity exports) in a tabbed page, and global search.
+- Admins can associate publications, datasets and software with platform users and their projects/theses, and search the catalogs by associated project, user or thesis.
 - **Notifications** by in-app alerts, email (weekly digests, reminders) and **Telegram** ([setup](docs/telegram_setup_detailed.md)).
 - **Internationalisation** in English and Italian via Flask-Babel ([docs](docs/i18n.md)).
 - Public thesis and profile pages, and a versioned REST API ([docs](docs/api.md)).

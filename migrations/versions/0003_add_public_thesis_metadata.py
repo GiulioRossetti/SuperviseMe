@@ -33,7 +33,7 @@ def upgrade():
         if "prerequisites" not in columns:
             batch_op.add_column(sa.Column("prerequisites", sa.Text(), nullable=True))
         if "is_public" not in columns:
-            batch_op.add_column(sa.Column("is_public", sa.Boolean(), nullable=False, server_default=sa.text("0")))
+            batch_op.add_column(sa.Column("is_public", sa.Boolean(), nullable=False, server_default=sa.false()))
 
     # Backfill defaults/normalized values for existing rows.
     op.execute("UPDATE thesis SET is_public = 0 WHERE is_public IS NULL")

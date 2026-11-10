@@ -140,3 +140,73 @@ def test_avatars_default_or_custom(client, app, admin_user, supervisor_user, stu
     assert "/media/avatar/mine.png" in html
     # an initials-only fallback must not exist any more
     assert 'class="sm-avatar">' not in html
+
+
+def test_associate_outputs_with_users_and_theses(client, app, admin_user, researcher_user, supervisor_user, student_user):
+    from superviseme import db
+    from superviseme.models import ResearchOutput_Link, ResearchProject_Software, ResearchProject_Publication
+    from tests.test_ui_pages import _assign
+    pid, gid = _data(app, researcher_user)
+    t = _assign(student_user, supervisor_user)
+    _login(client, admin_user.email)
+    # create software from the catalog, then associate a user and a thesis
+    r = client.post("/admin/research/output/software/new", data={"title": "adm-tool", "project_id": pid, "version": "2.0", "url": "https://github.com/x/adm"})
+    sw = ResearchProject_Software.query.filter_by(title="adm-tool").one()
+    assert r.status_code == 302 and sw.repo_url == "https://github.com/x/adm" and sw.project_id == pid
+    assert client.post("/admin/research/output/software/new", data={"title": "x", "project_id": 99999}).status_code == 302
+    assert ResearchProject_Software.query.count() == 1
+    client.post(f"/admin/research/output/software/{sw.id}/link", data={"user_id": student_user.id, "thesis_id": t.id})
+    client.post(f"/admin/research/output/software/{sw.id}/link", data={"user_id": student_user.id})  # duplicate ignored
+    assert ResearchOutput_Link.query.filter_by(kind="software", output_id=sw.id).count() == 2
+    page = client.get(f"/admin/research/output/software/{sw.id}").data.decode()
+    assert "adm-tool" in page and student_user.surname in page
+    assert "adm-tool" in client.get("/admin/research/software").data.decode()
+    assert "Manage associations" in client.get("/admin/research/software").data.decode()
+    assert "adm-tool" in client.get(f"/admin/user/{student_user.id}").data.decode()
+    assert "adm-tool" in client.get(f"/admin/thesis/{t.id}").data.decode()
+    # search finds outputs by associated user or thesis (live partial too)
+    hdr = {"X-Requested-With": "fetch"}
+    assert "adm-tool" in client.get(f"/admin/research/software?q={student_user.surname}").data.decode()
+    assert "adm-tool" in client.get(f"/admin/research/software?q={t.title[:12]}").data.decode()
+    assert "adm-tool" not in client.get("/admin/research/software?q=zzzznomatch").data.decode()
+    pub0 = ResearchProject_Publication.query.first()
+    client.post(f"/admin/research/output/publication/{pub0.id}/link", data={"thesis_id": t.id})
+    assert pub0.title in client.get(f"/admin/research/publications?q={t.title[:12]}", headers=hdr).data.decode()
+    client.post(f"/admin/research/output/publication/{pub0.id}/link/{ResearchOutput_Link.query.filter_by(kind='publication', output_id=pub0.id, thesis_id=t.id).one().id}/remove")
+    # an associated researcher sees it in their own list even outside their projects
+    client.post(f"/admin/research/output/software/{sw.id}/link", data={"user_id": supervisor_user.id})
+    other = ResearchProject_Software.query.get(sw.id)
+    from superviseme.models import ResearchProject
+    from superviseme.utils import research_output as ro
+    assert [o.id for o in ro.linked_for_user(supervisor_user, "software")] == [sw.id]
+    # publications: move to another project, unlink, delete
+    pub = ResearchProject_Publication.query.first()
+    link = ResearchOutput_Link.query.filter_by(kind="software", output_id=sw.id, thesis_id=t.id).one()
+    client.post(f"/admin/research/output/software/{sw.id}/link/{link.id}/remove")
+    assert ResearchOutput_Link.query.filter_by(id=link.id).count() == 0
+    client.post(f"/admin/research/output/publication/{pub.id}/link", data={"user_id": researcher_user.id})
+    assert "Manage associations" in client.get("/admin/research/publications").data.decode()
+    client.post(f"/admin/research/output/software/{sw.id}/delete")
+    assert ResearchProject_Software.query.count() == 0 and ResearchOutput_Link.query.filter_by(kind="software").count() == 0
+    assert client.get("/admin/research/output/bogus/1").status_code == 404
+    # deleting the thesis removes its links
+    client.post(f"/admin/research/output/publication/{pub.id}/link", data={"thesis_id": t.id})
+    from superviseme.utils.thesis_management import delete_thesis_with_dependencies
+    assert delete_thesis_with_dependencies(t.id)[0]
+    assert ResearchOutput_Link.query.filter_by(thesis_id=t.id).count() == 0
+
+
+def test_admin_sets_supervisor_capacity(client, admin_user, supervisor_user):
+    _login(client, admin_user.email)
+    base = {"user_id": supervisor_user.id, "name": supervisor_user.name, "surname": supervisor_user.surname,
+            "email": supervisor_user.email, "username": supervisor_user.username, "user_type": "supervisor"}
+    client.post("/admin/update_user", data={**base, "max_students": "3"})
+    from superviseme import db
+    db.session.refresh(supervisor_user)
+    assert supervisor_user.max_students == 3
+    client.post("/admin/update_user", data={**base, "max_students": "500"})
+    db.session.refresh(supervisor_user)
+    assert supervisor_user.max_students == 3
+    client.post("/admin/update_user", data={**base, "max_students": ""})
+    db.session.refresh(supervisor_user)
+    assert supervisor_user.max_students is None

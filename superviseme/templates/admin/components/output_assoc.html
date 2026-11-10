@@ -1,0 +1,35 @@
+{# Associations of an output: {% from 'admin/components/output_assoc.html' import assoc, new_form %} #}
+{% macro assoc(entry, kind, oid) %}
+<div class="small mt-1">
+    {% for l, u in entry.users %}<a class="badge badge-info" href="{{ url_for('admin.user_detail', user_id=u.id) }}"><i class="fas fa-user"></i> {{ u.name }} {{ u.surname }}</a> {% endfor %}
+    {% for l, t in entry.theses %}<a class="badge badge-secondary" href="{{ url_for('admin.thesis_detail', thesis_id=t.id) }}"><i class="fas fa-book"></i> {{ t.title[:40] }}</a> {% endfor %}
+    <a class="ml-1" href="{{ url_for('admin.research_output', kind=kind, oid=oid) }}"><i class="fas fa-link"></i> {{ _('Manage associations') }}</a>
+</div>
+{% endmacro %}
+
+{% macro new_form(kind, projects, pub_types=none) %}
+<form method="POST" action="{{ url_for('admin.research_output_new', kind=kind) }}" class="border rounded p-3 mb-3 bg-light">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-row">
+        <div class="col-md-6 mb-2"><input class="form-control form-control-sm" name="title" maxlength="300" required placeholder="{{ _('Title') }}"></div>
+        <div class="col-md-6 mb-2"><select class="custom-select custom-select-sm" name="project_id" required>
+            <option value="">{{ _('Project...') }}</option>{% for p in projects %}<option value="{{ p.id }}">{{ p.title }}</option>{% endfor %}</select></div>
+        {% if kind == 'publication' %}
+        <div class="col-md-6 mb-2"><input class="form-control form-control-sm" name="authors" placeholder="{{ _('Authors (comma separated)') }}"></div>
+        <div class="col-md-2 mb-2"><input class="form-control form-control-sm" name="year" type="number" min="1900" max="2100" placeholder="{{ _('Year') }}"></div>
+        <div class="col-md-4 mb-2"><input class="form-control form-control-sm" name="venue" placeholder="{{ _('Venue') }}"></div>
+        <div class="col-md-3 mb-2"><select class="custom-select custom-select-sm" name="pub_type">{% for t in pub_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}</select></div>
+        {% elif kind == 'software' %}
+        <div class="col-md-3 mb-2"><input class="form-control form-control-sm" name="version" placeholder="{{ _('Version') }}"></div>
+        <div class="col-md-3 mb-2"><input class="form-control form-control-sm" name="language" placeholder="{{ _('Language') }}"></div>
+        <div class="col-md-3 mb-2"><input class="form-control form-control-sm" name="license" placeholder="{{ _('License') }}"></div>
+        {% else %}
+        <div class="col-md-3 mb-2"><input class="form-control form-control-sm" name="license" placeholder="{{ _('License') }}"></div>
+        {% endif %}
+        <div class="col-md-5 mb-2"><input class="form-control form-control-sm" name="url" placeholder="{{ _('Repository / link (https://...)') }}"></div>
+        <div class="col-md-4 mb-2"><input class="form-control form-control-sm" name="doi" placeholder="DOI"></div>
+    </div>
+    <button class="btn btn-primary btn-sm" type="submit"><i class="fas fa-plus"></i> {{ _('Add') }}</button>
+    <span class="small text-muted ml-2">{{ _('You can associate users and theses on the next page.') }}</span>
+</form>
+{% endmacro %}

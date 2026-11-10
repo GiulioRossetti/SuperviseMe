@@ -401,6 +401,23 @@ class ResearchProject_Software(db.Model):
     project = db.relationship("ResearchProject", backref=db.backref("software", lazy=True, order_by="ResearchProject_Software.id"))
 
 
+class ResearchOutput_Link(db.Model):
+    """Admin-managed association of a publication/dataset/software record with a platform user or thesis."""
+    __tablename__ = "research_output_link"
+    id = db.Column(db.Integer, primary_key=True)
+    kind = db.Column(db.String(20), nullable=False)  # publication | dataset | software
+    output_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True, index=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=True, index=True)
+    created_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    user = db.relationship("User_mgmt", foreign_keys=[user_id], lazy=True)
+    thesis = db.relationship("Thesis", foreign_keys=[thesis_id], lazy=True)
+
+    __table_args__ = (db.Index("ix_output_link_output", "kind", "output_id"),)
+
+
 class ResearchProject_Review(db.Model):
     """Internal review of a project resource (document or link) requested from a team member."""
     __tablename__ = "research_project_review"

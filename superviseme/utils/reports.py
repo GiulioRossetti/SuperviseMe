@@ -157,3 +157,84 @@ def theses_for_reports(user):
     ids = {r.thesis_id for r in Thesis_Supervisor.query.filter_by(supervisor_id=user.id)}
     q = Thesis.query.filter(Thesis.id.in_(ids)) if ids else Thesis.query.filter(False)
     return q.order_by(Thesis.created_at.desc()).all()
+
+
+# ---- research projects ---------------------------------------------------------------------------------------
+
+def projects_for_reports(user):
+    """Projects a user can report on: admin all, everyone else the ones they own or collaborate on."""
+    from superviseme.models import ResearchProject
+    from superviseme.utils.projects import accessible_projects
+    if user.user_type == "admin":
+        return ResearchProject.query.order_by(ResearchProject.title).all()
+    return accessible_projects(user)
+
+
+def project_activity_rows(project, since=None, until=None):
+    """[(ts, kind, author, title, status, detail)] of a project's research activity in a period."""
+    from superviseme.models import (ResearchProject_Dataset, ResearchProject_Hypothesis, ResearchProject_MeetingNote,
+                                    ResearchProject_Milestone, ResearchProject_Objective, ResearchProject_Publication,
+                                    ResearchProject_Review, ResearchProject_Software, ResearchProject_Todo, ResearchProject_Update)
+    pid, rows = project.id, []
+
+    def add(ts, kind, author, title, status="", detail=""):
+        if _in_range(ts, since, until):
+            rows.append((ts, kind, author, title or "", status or "", detail or ""))
+
+    for u in ResearchProject_Update.query.filter_by(project_id=pid):
+        add(u.created_at, "update", _name(u.author_id), u.update_type, "", u.content)
+    for t in ResearchProject_Todo.query.filter_by(project_id=pid):
+        add(t.created_at, "task", _name(t.author_id), t.title, t.status, t.description)
+    for n in ResearchProject_MeetingNote.query.filter_by(project_id=pid):
+        add(n.created_at, "meeting note", _name(n.author_id), n.title, "", n.content)
+    for o in ResearchProject_Objective.query.filter_by(project_id=pid):
+        add(o.created_at, "objective", _name(o.author_id), o.title, o.status, o.description)
+    for h in ResearchProject_Hypothesis.query.filter_by(project_id=pid):
+        add(h.created_at, "hypothesis", _name(h.author_id), h.title, h.status, h.description)
+    for m in ResearchProject_Milestone.query.filter_by(project_id=pid):
+        add(m.due_date, "milestone", "", m.title, m.status)
+    for p in ResearchProject_Publication.query.filter_by(project_id=pid):
+        add(p.created_at, "publication", _name(p.added_by), p.title, "", " · ".join(x for x in (p.authors, str(p.year or ""), p.venue, p.doi) if x))
+    for d in ResearchProject_Dataset.query.filter_by(project_id=pid):
+        add(d.created_at, "dataset", "", d.title, "", " · ".join(x for x in (d.license, d.doi, d.url) if x))
+    for sw in ResearchProject_Software.query.filter_by(project_id=pid):
+        add(sw.created_at, "software", _name(sw.added_by), sw.title, "", " · ".join(x for x in (sw.version, sw.license, sw.repo_url, sw.doi) if x))
+    for r in ResearchProject_Review.query.filter_by(project_id=pid):
+        add(r.created_at, "review", _name(r.requested_by), f"review by {_name(r.reviewer_id)}", r.status, r.comment or r.note)
+    rows.sort(key=lambda r: (r[0] is None, r[0] or 0))
+    return rows
+
+
+def research_activity_csv(projects, since=None, until=None):
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["project", "owner", "date", "type", "author", "title", "status", "detail"])
+    for p in projects:
+        owner = _name(p.researcher_id)
+        for ts, kind, author, title, status, detail in project_activity_rows(p, since, until):
+            w.writerow([safe_cell(x) for x in (p.title, owner, fmt_ts(ts), kind, author, title, status, detail)])
+    return buf.getvalue()
+
+
+def research_summary_csv(projects):
+    """One row per project: metadata, funding and output/task counters."""
+    from superviseme.models import (ResearchProject_Collaborator, ResearchProject_Dataset, ResearchProject_Milestone,
+                                    ResearchProject_Publication, ResearchProject_Software, ResearchProject_Todo)
+    from superviseme.utils.projects import level_label
+    now = int(datetime.now(timezone.utc).timestamp())
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["project", "owner", "type", "area", "state", "funder", "grant", "start", "end", "team", "publications", "datasets",
+                "software", "tasks_done", "tasks_total", "milestones_overdue", "public_page"])
+    for p in projects:
+        todos = ResearchProject_Todo.query.filter_by(project_id=p.id).all()
+        overdue = ResearchProject_Milestone.query.filter(ResearchProject_Milestone.project_id == p.id, ResearchProject_Milestone.status == "pending",
+                                                         ResearchProject_Milestone.due_date < now).count()
+        w.writerow([safe_cell(x) for x in (
+            p.title, _name(p.researcher_id), level_label(p.level) if p.level else "", p.area or "", "frozen" if p.frozen else "active",
+            p.funder or "", p.grant_id or "", p.start_date or "", p.end_date or "",
+            1 + ResearchProject_Collaborator.query.filter_by(project_id=p.id, status="accepted").count(),
+            ResearchProject_Publication.query.filter_by(project_id=p.id).count(), ResearchProject_Dataset.query.filter_by(project_id=p.id).count(),
+            ResearchProject_Software.query.filter_by(project_id=p.id).count(), sum(1 for t in todos if t.status == "completed"), len(todos),
+            overdue, "yes" if p.is_public else "no")])
+    return buf.getvalue()

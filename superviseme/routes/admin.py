@@ -216,6 +216,8 @@ def delete_user(uid):
         
         from superviseme.models import Calendar_Feed
         Calendar_Feed.query.filter_by(user_id=uid).delete()
+        from superviseme.utils.research_output import delete_links_for
+        delete_links_for(user_id=uid)
         db.session.delete(user)
         db.session.commit()
         flash("User deleted successfully")
@@ -259,7 +261,13 @@ def update_user():
     cdl = request.form.get("cdl")
     
     user = User_mgmt.query.get_or_404(user_id)
-    
+    if "max_students" in request.form:
+        raw_max = (request.form.get("max_students") or "").strip()
+        if raw_max and not (raw_max.isdigit() and int(raw_max) <= 100):
+            flash("The maximum number of students must be between 0 and 100.")
+            return redirect(url_for("admin.user_detail", user_id=user_id))
+        user.max_students = int(raw_max) if raw_max else None
+
     # Check if email or username is already taken by another user
     if email != user.email:
         existing_email = User_mgmt.query.filter_by(email=email).filter(User_mgmt.id != user_id).first()
@@ -359,8 +367,9 @@ def user_detail(user_id):
     recent_updates = Thesis_Update.query.filter_by(author_id=user_id).order_by(Thesis_Update.created_at.desc()).limit(6).all()
     projects = ResearchProject.query.filter_by(researcher_id=user_id).order_by(ResearchProject.created_at.desc()).all() \
         if user.user_type == "researcher" else []
+    from superviseme.utils.research_output import linked_outputs
     return render_template("/admin/user_detail.html",
-                         current_user=current_user,
+                         current_user=current_user, linked_outputs=linked_outputs(user_id=user_id),
                          thesis_cards=thesis_cards, recent_updates=recent_updates, projects=projects,
                          dt=datetime.datetime.fromtimestamp,
                          user=user,

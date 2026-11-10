@@ -134,7 +134,10 @@ def all_publications():
     if gate is not True:
         return gate
     projects = accessible_projects(current_user)
-    pubs = sorted(((p, pr) for pr in projects for p in pr.publications), key=lambda x: (-(x[0].year or 0), x[0].title))
+    pubs = {p.id: (p, pr) for pr in projects for p in pr.publications}
+    for p in ro.linked_for_user(current_user, "publication"):
+        pubs.setdefault(p.id, (p, p.project))
+    pubs = sorted(pubs.values(), key=lambda x: (-(x[0].year or 0), x[0].title))
     if request.args.get("format") == "bib":
         return Response(ro.bibtex([p for p, _pr in pubs]), mimetype="application/x-bibtex",
                         headers={"Content-Disposition": "attachment; filename=publications.bib"})
@@ -276,7 +279,10 @@ def _outputs_page(kind):
         return gate
     projects = accessible_projects(current_user)
     attr = "software" if kind == "software" else "datasets"
-    rows = sorted(((o, pr) for pr in projects for o in getattr(pr, attr)), key=lambda x: (x[0].title.lower(), x[0].id))
+    found = {o.id: (o, pr) for pr in projects for o in getattr(pr, attr)}
+    for o in ro.linked_for_user(current_user, "software" if kind == "software" else "dataset"):
+        found.setdefault(o.id, (o, o.project))
+    rows = sorted(found.values(), key=lambda x: (x[0].title.lower(), x[0].id))
     if request.args.get("format") == "bib":
         return Response(ro.output_bibtex([o for o, _pr in rows], kind), mimetype="application/x-bibtex",
                         headers={"Content-Disposition": f"attachment; filename={attr}.bib"})

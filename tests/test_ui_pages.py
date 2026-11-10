@@ -686,7 +686,7 @@ def test_reports_csv_pdf_and_archive(client, supervisor_user, student_user, rese
     assert client.get(f"/thesis/{other.id}/report.csv").status_code == 403
     assert client.get("/thesis/1/report.exe").status_code == 404
     page = client.get("/reports")
-    assert page.status_code == 200 and b"Concluded theses" in page.data
+    assert page.status_code == 200 and b"tabTheses" in page.data
     assert client.get("/reports/activity.csv?scope=concluded&from=2000-01-01").status_code == 200
     client.post("/logout")
     login(client, student_user)
@@ -1039,3 +1039,39 @@ def test_agenda_week_is_ajax_swappable(client, admin_user):
     html = client.get("/agenda?week=2026-11-02").data.decode()
     assert 'id="agWeek"' in html and "__agWeekBound" in html and 'onchange="this.form.submit()"' not in html.split('id="agWeek"')[1].split("</section>")[0]
     assert "week=2026-11-09" in html
+
+
+def test_reports_page_research_tab_and_exports(client, admin_user, supervisor_user, student_user, researcher_user):
+    import time as _t
+    from superviseme import db as _db
+    from superviseme.models import ResearchProject, ResearchProject_Todo, ResearchProject_Publication, ResearchProject_Software
+    now = int(_t.time())
+    p = ResearchProject(title="Reportable", description="d", researcher_id=researcher_user.id, level="research", area="NLP", funder="ERC", created_at=now)
+    q = ResearchProject(title="Mine only", description="d", researcher_id=admin_user.id, created_at=now, frozen=True)
+    _db.session.add_all([p, q]); _db.session.commit()
+    _db.session.add_all([ResearchProject_Todo(project_id=p.id, author_id=researcher_user.id, title="Do it", status="completed", priority="high", created_at=now, updated_at=now),
+                         ResearchProject_Publication(project_id=p.id, title="A paper", year=2025, created_at=now),
+                         ResearchProject_Software(project_id=p.id, title="A tool", version="1", created_at=now)])
+    _db.session.commit()
+    login(client, admin_user)
+    page = client.get("/reports").data.decode()
+    assert 'id="tabResearch"' in page and "Reportable" in page and "Mine only" in page and 'id="tabTheses"' in page
+    summary = client.get("/reports/research/summary.csv")
+    assert summary.status_code == 200 and b"Reportable" in summary.data and b"ERC" in summary.data and b"project,owner,type" in summary.data
+    assert b"Mine only" not in client.get("/reports/research/summary.csv?scope=active").data
+    act = client.get("/reports/research/activity.csv").data
+    assert b"Do it" in act and b"A paper" in act and b"A tool" in act and b"software" in act
+    assert b"Do it" not in client.get("/reports/research/activity.csv?from=2000-01-01&to=2000-01-02").data
+    assert client.get(f"/reports/project/{p.id}.pdf").data[:4] == b"%PDF"
+    assert b"# Reportable" in client.get(f"/reports/project/{p.id}.md").data
+    assert b"A paper" in client.get(f"/reports/project/{p.id}.csv").data
+    assert client.get(f"/reports/project/{p.id}.xml").status_code == 404 and client.get("/reports/project/9999.pdf").status_code == 404
+    client.post("/logout")
+    login(client, researcher_user)
+    page = client.get("/reports").data.decode()
+    assert "Reportable" in page and "Mine only" not in page
+    assert client.get(f"/reports/project/{q.id}.pdf").status_code == 403
+    assert b"Mine only" not in client.get("/reports/research/summary.csv").data
+    client.post("/logout")
+    login(client, student_user)
+    assert client.get("/reports/research/summary.csv").status_code == 403

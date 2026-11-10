@@ -887,8 +887,11 @@ def reports():
     theses = rp.theses_for_reports(current_user)
     concluded = [t for t in theses if rp.is_concluded(t)]
     active = [t for t in theses if t not in concluded]
+    projects = rp.projects_for_reports(current_user)
+    from superviseme.utils.projects import level_label
     return render_template("workflow/reports.html", active=active, concluded=concluded, status=rp.latest_status,
-                           dt=datetime.fromtimestamp)
+                           dt=datetime.fromtimestamp, projects=projects, level_label=level_label,
+                           tab=request.args.get("tab") if request.args.get("tab") in ("theses", "research") else None)
 
 
 @workflow.route("/reports/activity.csv")
@@ -904,6 +907,59 @@ def activity_report():
     elif only == "active":
         theses = [t for t in theses if not rp.is_concluded(t)]
     return _download(rp.activity_csv([rp.thesis_report(t, since, until) for t in theses]), "text/csv; charset=utf-8", "activity-report.csv")
+
+
+def _research_projects_for_export():
+    projects = rp.projects_for_reports(current_user)
+    scope = request.args.get("scope") or "all"
+    if scope == "active":
+        projects = [p for p in projects if not p.frozen]
+    elif scope == "frozen":
+        projects = [p for p in projects if p.frozen]
+    return projects
+
+
+@workflow.route("/reports/research/activity.csv")
+@login_required
+def research_activity_report():
+    if current_user.user_type not in ("admin", "supervisor", "researcher"):
+        abort(403)
+    since, until = _period()
+    return _download(rp.research_activity_csv(_research_projects_for_export(), since, until), "text/csv; charset=utf-8", "research-activity-report.csv")
+
+
+@workflow.route("/reports/research/summary.csv")
+@login_required
+def research_summary_report():
+    if current_user.user_type not in ("admin", "supervisor", "researcher"):
+        abort(403)
+    return _download(rp.research_summary_csv(_research_projects_for_export()), "text/csv; charset=utf-8", "research-projects-summary.csv")
+
+
+@workflow.route("/reports/project/<int:project_id>.<fmt>")
+@login_required
+def project_report_file(project_id, fmt):
+    """PDF / Markdown / CSV report of one research project (admin, owner and accepted collaborators)."""
+    from superviseme.models import ResearchProject
+    from superviseme.utils import projects as pj
+    if fmt not in ("pdf", "md", "csv"):
+        abort(404)
+    project = db.session.get(ResearchProject, project_id)
+    if project is None:
+        abort(404)
+    if not pj.user_can_access(current_user, project):
+        abort(403)
+    name = f"project-{project.id}-report.{fmt}"
+    if fmt == "csv":
+        since, until = _period()
+        return _download(rp.research_activity_csv([project], since, until), "text/csv; charset=utf-8", name)
+    data = pj.project_report(project)
+    if fmt == "md":
+        return _download(pj.report_markdown(data), "text/markdown; charset=utf-8", name)
+    try:
+        return _download(pj.report_pdf(data), "application/pdf", name)
+    except ImportError:
+        abort(501)
 
 
 # ---------------------------------------------------------------- privacy / GDPR

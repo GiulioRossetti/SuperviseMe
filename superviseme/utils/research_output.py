@@ -7,6 +7,7 @@ from superviseme import db
 from superviseme.models import (
     ResearchProject, ResearchProject_Collaborator, ResearchProject_Dataset, ResearchProject_Milestone,
     ResearchProject_Publication, ResearchProject_Review, ResearchProject_Software, ResearchProject_Thesis,
+    ResearchOutput_Link,
 )
 
 PUBLIC_FIELDS = ("description", "funding", "publications", "datasets", "software", "milestones", "collaborators")
@@ -135,6 +136,63 @@ def crossref_to_fields(meta):
     }
 
 
+# ---- admin associations (users / theses) --------------------------------------------------------------------
+
+OUTPUT_MODELS = {"publication": ResearchProject_Publication, "dataset": ResearchProject_Dataset, "software": ResearchProject_Software}
+KIND_PLURAL = {"publication": "publications", "dataset": "datasets", "software": "software"}
+
+
+def links_map(kind, ids):
+    """{output_id: {"users": [(link, User)], "theses": [(link, Thesis)]}} for the given outputs."""
+    out = {i: {"users": [], "theses": []} for i in ids}
+    if not ids:
+        return out
+    for l in ResearchOutput_Link.query.filter(ResearchOutput_Link.kind == kind, ResearchOutput_Link.output_id.in_(list(ids))).order_by(ResearchOutput_Link.id):
+        if l.user:
+            out[l.output_id]["users"].append((l, l.user))
+        if l.thesis:
+            out[l.output_id]["theses"].append((l, l.thesis))
+    return out
+
+
+def match_associated(kind, model, like):
+    """SQL condition: the output is owned by a matching project (title, or owner name) or linked to a matching user or thesis."""
+    from sqlalchemy import or_
+    from superviseme import db
+    from superviseme.models import User_mgmt, Thesis, ResearchProject
+    ids = db.session.query(ResearchOutput_Link.output_id).outerjoin(User_mgmt, User_mgmt.id == ResearchOutput_Link.user_id) \
+        .outerjoin(Thesis, Thesis.id == ResearchOutput_Link.thesis_id) \
+        .filter(ResearchOutput_Link.kind == kind,
+                or_(User_mgmt.name.ilike(like), User_mgmt.surname.ilike(like), User_mgmt.username.ilike(like), Thesis.title.ilike(like)))
+    owners = db.session.query(User_mgmt.id).filter(or_(User_mgmt.name.ilike(like), User_mgmt.surname.ilike(like)))
+    projs = db.session.query(ResearchProject.id).filter(or_(ResearchProject.title.ilike(like), ResearchProject.researcher_id.in_(owners)))
+    return or_(model.id.in_(ids), model.project_id.in_(projs))
+
+
+def linked_outputs(user_id=None, thesis_id=None):
+    """[(kind, output)] associated with a user or a thesis by an admin."""
+    q = ResearchOutput_Link.query
+    q = q.filter_by(user_id=user_id) if user_id else q.filter_by(thesis_id=thesis_id)
+    rows = []
+    for l in q.order_by(ResearchOutput_Link.id.desc()):
+        o = db.session.get(OUTPUT_MODELS[l.kind], l.output_id) if l.kind in OUTPUT_MODELS else None
+        if o:
+            rows.append((l.kind, o))
+    return rows
+
+
+def linked_for_user(user, kind):
+    """Outputs of ``kind`` linked to ``user`` that are not already in one of their projects."""
+    ids = [l.output_id for l in ResearchOutput_Link.query.filter_by(kind=kind, user_id=user.id)]
+    return [o for o in OUTPUT_MODELS[kind].query.filter(OUTPUT_MODELS[kind].id.in_(ids)).all()] if ids else []
+
+
+def delete_links_for(user_id=None, thesis_id=None):
+    q = ResearchOutput_Link.query
+    q = q.filter_by(user_id=user_id) if user_id else q.filter_by(thesis_id=thesis_id)
+    q.delete(synchronize_session=False)
+
+
 # ---- cascade ------------------------------------------------------------------------------------------------
 
 def delete_output(project_id):
@@ -150,6 +208,10 @@ def delete_output(project_id):
     if todo_ids or note_ids:
         ResearchProject_MeetingNoteReference.query.filter(db.or_(ResearchProject_MeetingNoteReference.todo_id.in_(todo_ids),
                                                                  ResearchProject_MeetingNoteReference.meeting_note_id.in_(note_ids))).delete(synchronize_session=False)
+    for kind, model in OUTPUT_MODELS.items():
+        out_ids = [i for (i,) in db.session.query(model.id).filter_by(project_id=project_id)]
+        if out_ids:
+            ResearchOutput_Link.query.filter(ResearchOutput_Link.kind == kind, ResearchOutput_Link.output_id.in_(out_ids)).delete(synchronize_session=False)
     for model in (ResearchProject_Review, ResearchProject_Publication, ResearchProject_Milestone, ResearchProject_Dataset, ResearchProject_Software,
                   ResearchProject_Thesis, ResearchProject_Todo, ResearchProject_Update, ResearchProject_MeetingNote,
                   ResearchProject_Resource, ResearchProject_Objective, ResearchProject_Hypothesis, ResearchProject_Status):

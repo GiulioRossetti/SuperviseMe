@@ -218,7 +218,8 @@ def research_publications():
     if term:
         like = f"%{term}%"
         q = q.filter(or_(ResearchProject_Publication.title.ilike(like), ResearchProject_Publication.authors.ilike(like),
-                         ResearchProject_Publication.venue.ilike(like), ResearchProject_Publication.doi.ilike(like)))
+                         ResearchProject_Publication.venue.ilike(like), ResearchProject_Publication.doi.ilike(like),
+                         ro.match_associated("publication", ResearchProject_Publication, like)))
     year = request.args.get("year", type=int)
     if year:
         q = q.filter(ResearchProject_Publication.year == year)
@@ -236,9 +237,11 @@ def research_publications():
     filters = {k: request.args.get(k) for k in ("q", "year", "type") if request.args.get(k)}
     if request.headers.get("X-Requested-With") == "fetch":
         return render_template("admin/components/research_publications_list.html", pagination=pagination, pubs=pagination.items,
+                               lmap=ro.links_map("publication", [p.id for p in pagination.items]),
                                filters=filters, total=ResearchProject_Publication.query.count())
     return render_template("admin/research_publications.html", current_user=current_user, pagination=pagination,
-                           pubs=pagination.items, years=years, types=ro.PUB_TYPES, filters=filters,
+                           pubs=pagination.items, lmap=ro.links_map("publication", [p.id for p in pagination.items]),
+                           projects=_all_projects(), years=years, types=ro.PUB_TYPES, filters=filters,
                            total=ResearchProject_Publication.query.count())
 
 
@@ -258,7 +261,7 @@ def research_outputs(kind):
     if term:
         like = f"%{term}%"
         cols = [model.title, model.doi, model.license, link] + ([model.language, model.description] if is_sw else [])
-        q = q.filter(or_(*[c.ilike(like) for c in cols], ResearchProject.title.ilike(like)))
+        q = q.filter(or_(*[c.ilike(like) for c in cols], ro.match_associated(kind[:-1] if kind == "datasets" else kind, model, like)))
     lic = request.args.get("license")
     if lic:
         q = q.filter(model.license == lic)
@@ -271,4 +274,137 @@ def research_outputs(kind):
     licenses = [l for (l,) in db.session.query(model.license).filter(model.license.isnot(None), model.license != "").distinct().order_by(model.license).all()]
     filters = {k: request.args.get(k) for k in ("q", "license") if request.args.get(k)}
     return render_template("admin/research_outputs.html", current_user=current_user, kind=kind, is_sw=is_sw, pagination=pagination,
-                           items=pagination.items, licenses=licenses, filters=filters, total=model.query.count())
+                           items=pagination.items, licenses=licenses, lmap=ro.links_map(kind[:-1] if kind == "datasets" else kind, [i.id for i in pagination.items]),
+                           projects=_all_projects(), filters=filters, total=model.query.count())
+
+
+# ---- associate output with projects, users and theses ----------------------------------------------------------
+
+def _all_projects():
+    return ResearchProject.query.order_by(ResearchProject.title).all()
+
+
+def _model(kind):
+    model = ro.OUTPUT_MODELS.get(kind)
+    if model is None:
+        abort(404)
+    return model
+
+
+def _fields(kind, f):
+    """Validated column values of a new/edited output from a form."""
+    title = (f.get("title") or "").strip()[:300]
+    doi, lic = ro.clean_doi(f.get("doi")), (f.get("license") or "").strip()[:100] or None
+    if kind == "publication":
+        year = f.get("year", type=int)
+        return {"title": title, "authors": (f.get("authors") or "").strip()[:500] or None, "venue": (f.get("venue") or "").strip()[:300] or None,
+                "year": year if year and 1900 <= year <= 2100 else None, "doi": doi, "url": ro.safe_url(f.get("url")),
+                "pub_type": f.get("pub_type") if f.get("pub_type") in ro.PUB_TYPES else "article"}
+    if kind == "dataset":
+        return {"title": title, "doi": doi, "url": ro.safe_url(f.get("url")), "license": lic}
+    return {"title": title, "doi": doi, "license": lic, "repo_url": ro.safe_url(f.get("url") or f.get("repo_url")),
+            "version": (f.get("version") or "").strip()[:50] or None, "language": (f.get("language") or "").strip()[:100] or None,
+            "description": (f.get("description") or "").strip()[:500] or None}
+
+
+@admin.route("/admin/research/output/<kind>/new", methods=["POST"])
+@login_required
+def research_output_new(kind):
+    gate = _admin_gate()
+    if gate is not None:
+        return gate
+    model = _model(kind)
+    project = db.session.get(ResearchProject, request.form.get("project_id", type=int) or 0)
+    fields = _fields(kind, request.form)
+    back = url_for("admin.research_publications" if kind == "publication" else "admin.research_outputs", **({} if kind == "publication" else {"kind": ro.KIND_PLURAL[kind]}))
+    if not project or not fields["title"]:
+        flash("A title and a project are required")
+        return redirect(back)
+    obj = model(project_id=project.id, created_at=int(time.time()), **({"added_by": current_user.id} if hasattr(model, "added_by") else {}), **fields)
+    db.session.add(obj)
+    db.session.commit()
+    _audit_admin_action("research_output_create", f"research_{kind}", obj.id, details={"project_id": project.id})
+    flash("Added")
+    return redirect(url_for("admin.research_output", kind=kind, oid=obj.id))
+
+
+@admin.route("/admin/research/output/<kind>/<int:oid>")
+@login_required
+def research_output(kind, oid):
+    gate = _admin_gate()
+    if gate is not None:
+        return gate
+    obj = _model(kind).query.get_or_404(oid)
+    taken_users = {l.user_id for l, _u in ro.links_map(kind, [oid])[oid]["users"]}
+    taken_theses = {l.thesis_id for l, _t in ro.links_map(kind, [oid])[oid]["theses"]}
+    people = User_mgmt.query.filter(User_mgmt.user_type != "admin").order_by(User_mgmt.surname, User_mgmt.name).all()
+    theses = Thesis.query.order_by(Thesis.title).all()
+    return render_template("admin/research_output.html", current_user=current_user, kind=kind, obj=obj, links=ro.links_map(kind, [oid])[oid],
+                           people=[u for u in people if u.id not in taken_users], theses=[t for t in theses if t.id not in taken_theses],
+                           projects=_all_projects(), pub_types=ro.PUB_TYPES, plural=ro.KIND_PLURAL[kind])
+
+
+@admin.route("/admin/research/output/<kind>/<int:oid>/project", methods=["POST"])
+@login_required
+def research_output_project(kind, oid):
+    gate = _admin_gate()
+    if gate is not None:
+        return gate
+    obj = _model(kind).query.get_or_404(oid)
+    project = db.session.get(ResearchProject, request.form.get("project_id", type=int) or 0)
+    if project:
+        obj.project_id = project.id
+        db.session.commit()
+        _audit_admin_action("research_output_move", f"research_{kind}", oid, details={"project_id": project.id})
+        flash("Project updated")
+    return redirect(url_for("admin.research_output", kind=kind, oid=oid))
+
+
+@admin.route("/admin/research/output/<kind>/<int:oid>/link", methods=["POST"])
+@login_required
+def research_output_link_add(kind, oid):
+    gate = _admin_gate()
+    if gate is not None:
+        return gate
+    _model(kind).query.get_or_404(oid)
+    user = db.session.get(User_mgmt, request.form.get("user_id", type=int) or 0)
+    thesis = db.session.get(Thesis, request.form.get("thesis_id", type=int) or 0)
+    if not user and not thesis:
+        flash("Choose a user or a thesis")
+        return redirect(url_for("admin.research_output", kind=kind, oid=oid))
+    for col, val in (("user_id", user.id if user else None), ("thesis_id", thesis.id if thesis else None)):
+        if val and not ResearchOutput_Link.query.filter_by(kind=kind, output_id=oid, **{col: val}).first():
+            db.session.add(ResearchOutput_Link(kind=kind, output_id=oid, created_by=current_user.id, created_at=int(time.time()), **{col: val}))
+    db.session.commit()
+    _audit_admin_action("research_output_link", f"research_{kind}", oid, details={"user_id": getattr(user, "id", None), "thesis_id": getattr(thesis, "id", None)})
+    flash("Association added")
+    return redirect(url_for("admin.research_output", kind=kind, oid=oid))
+
+
+@admin.route("/admin/research/output/<kind>/<int:oid>/link/<int:link_id>/remove", methods=["POST"])
+@login_required
+def research_output_link_remove(kind, oid, link_id):
+    gate = _admin_gate()
+    if gate is not None:
+        return gate
+    _model(kind)
+    link = ResearchOutput_Link.query.filter_by(id=link_id, kind=kind, output_id=oid).first_or_404()
+    db.session.delete(link)
+    db.session.commit()
+    _audit_admin_action("research_output_unlink", f"research_{kind}", oid)
+    return redirect(url_for("admin.research_output", kind=kind, oid=oid))
+
+
+@admin.route("/admin/research/output/<kind>/<int:oid>/delete", methods=["POST"])
+@login_required
+def research_output_delete(kind, oid):
+    gate = _admin_gate()
+    if gate is not None:
+        return gate
+    obj = _model(kind).query.get_or_404(oid)
+    ResearchOutput_Link.query.filter_by(kind=kind, output_id=oid).delete(synchronize_session=False)
+    db.session.delete(obj)
+    db.session.commit()
+    _audit_admin_action("research_output_delete", f"research_{kind}", oid)
+    flash("Deleted")
+    return redirect(url_for("admin.research_publications" if kind == "publication" else "admin.research_outputs", **({} if kind == "publication" else {"kind": ro.KIND_PLURAL[kind]})))

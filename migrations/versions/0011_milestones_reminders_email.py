@@ -21,7 +21,7 @@ def upgrade():
     with op.batch_alter_table("user_mgmt", schema=None) as b:
         for name in ("email_notifications", "weekly_digest"):
             if name not in cols:
-                b.add_column(sa.Column(name, sa.Boolean(), nullable=False, server_default="1"))
+                b.add_column(sa.Column(name, sa.Boolean(), nullable=False, server_default=sa.true()))
     if "thesis_milestone" not in tables:
         op.create_table(
             "thesis_milestone",

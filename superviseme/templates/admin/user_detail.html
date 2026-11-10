@@ -112,6 +112,11 @@
                                                 <div class="form-group col-md-6"><label for="email">{{ _('Email') }}</label><input type="email" class="form-control" id="email" name="email" value="{{ user.email or '' }}"></div>
                                                 <div class="form-group col-md-6"><label for="username">{{ _('Username') }}</label><input type="text" class="form-control" id="username" name="username" value="{{ user.username or '' }}"></div>
                                             </div>
+                                            {% if user.user_type in ('supervisor', 'researcher', 'admin') %}
+                                            <div class="form-row"><div class="form-group col-md-6"><label for="max_students">{{ _('Maximum active students') }}</label>
+                                                <input type="number" min="0" max="100" class="form-control" id="max_students" name="max_students" value="{{ user.max_students if user.max_students is not none else '' }}" placeholder="{{ _('No limit') }}">
+                                                <small class="form-text text-muted">{{ _('Leave empty to remove the limit.') }}</small></div></div>
+                                            {% endif %}
                                             <div class="form-row">
                                                 <div class="form-group col-md-4">
                                                     <label for="user_type">{{ _('User Type') }}</label>
@@ -160,6 +165,13 @@
                             </div>
                             {% endif %}
 
+                            {% if linked_outputs %}<div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Research output') }}</h6></div>
+    <div class="card-body small">
+    {% for k, o in linked_outputs %}<div class="mb-1"><span class="badge badge-light border">{{ {'publication': _('Publication'), 'dataset': _('Dataset'), 'software': _('Software')}[k] }}</span>
+        <a href="{{ url_for('admin.research_output', kind=k, oid=o.id) }}">{{ o.title }}</a></div>
+    {% else %}<span class="text-muted">{{ _('No associated output') }}</span>{% endfor %}
+    </div></div>
+{% endif %}
                             {% if projects %}
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Research Projects') }}</h6></div>

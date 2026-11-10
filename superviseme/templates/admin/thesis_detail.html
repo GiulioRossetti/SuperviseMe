@@ -273,6 +273,13 @@
                         <div class="col-xl-4 col-lg-6 mb-4">
                             {% with mm_role='admin', mm_next=url_for('admin.thesis_detail', thesis_id=thesis.id) %}{% include 'components/documents.html' %}{% endwith %}
                         </div>
+                        {% if linked_outputs %}<div class="col-xl-4 col-lg-6 mb-4"><div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Research output') }}</h6></div>
+    <div class="card-body small">
+    {% for k, o in linked_outputs %}<div class="mb-1"><span class="badge badge-light border">{{ {'publication': _('Publication'), 'dataset': _('Dataset'), 'software': _('Software')}[k] }}</span>
+        <a href="{{ url_for('admin.research_output', kind=k, oid=o.id) }}">{{ o.title }}</a></div>
+    {% else %}<span class="text-muted">{{ _('No associated output') }}</span>{% endfor %}
+    </div></div>
+</div>{% endif %}
                         <div class="col-xl-4 col-lg-12 mb-4">
                             {% with mm_role='admin', mm_next=url_for('admin.thesis_detail', thesis_id=thesis.id) %}{% include 'components/checklist.html' %}{% endwith %}
                         </div>
