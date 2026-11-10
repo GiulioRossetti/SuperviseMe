@@ -278,6 +278,28 @@ def research_outputs(kind):
                            projects=_all_projects(), filters=filters, total=model.query.count())
 
 
+@admin.route("/admin/stats")
+@login_required
+def stats():
+    """Platform statistics: outputs per year/area/project, projects, theses, supervisor load, monthly activity."""
+    gate = _admin_gate()
+    if gate is not None:
+        return gate
+    from superviseme.utils import stats as st
+    since = request.args.get("since", type=int)
+    data = st.build(since_year=since if since and 1900 <= since <= 2200 else None)
+    if request.args.get("format") == "csv":
+        import csv, io
+        _audit_admin_action("stats_export", "statistics")
+        out = io.StringIO()
+        w = csv.writer(out)
+        w.writerow(["section", "label", "series", "value"])
+        for row in st.csv_rows(data):
+            w.writerow([("'" + str(c)) if isinstance(c, str) and c[:1] in "=+-@" else c for c in row])
+        return Response(out.getvalue(), mimetype="text/csv", headers={"Content-Disposition": "attachment; filename=statistics.csv"})
+    return render_template("admin/stats.html", current_user=current_user, d=data, since=since)
+
+
 @admin.route("/admin/research/activity")
 @login_required
 def research_activity():

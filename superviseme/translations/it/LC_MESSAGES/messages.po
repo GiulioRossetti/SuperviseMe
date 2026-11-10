@@ -5001,3 +5001,210 @@ msgstr "Lavori"
 
 msgid "You have no project you can edit."
 msgstr "Non hai progetti modificabili."
+
+msgid "Activity in the last 12 months"
+msgstr "Attività negli ultimi 12 mesi"
+
+msgid "Apply"
+msgstr "Applica"
+
+msgid "Automatic nightly backup"
+msgstr "Backup notturno automatico"
+
+msgid "Backup and restore"
+msgstr "Backup e ripristino"
+
+msgid "Backup file"
+msgstr "File di backup"
+
+msgid "Backups"
+msgstr "Backup"
+
+msgid "Backups include password hashes and tokens: keep the backup folder private."
+msgstr "I backup includono hash delle password e token: tieni privata la cartella dei backup."
+
+msgid "Create backup now"
+msgstr "Crea backup ora"
+
+msgid "Delete this backup?"
+msgstr "Eliminare questo backup?"
+
+msgid "Licenses (datasets and software)"
+msgstr "Licenze (dataset e software)"
+
+msgid "Merge"
+msgstr "Unisci"
+
+msgid "Merge these records?"
+msgstr "Unire questi record?"
+
+msgid "New backup"
+msgstr "Nuovo backup"
+
+msgid "No backups yet"
+msgstr "Nessun backup"
+
+msgid "No data yet"
+msgstr "Ancora nessun dato"
+
+msgid "No duplicates found"
+msgstr "Nessun duplicato trovato"
+
+msgid "No supervision yet"
+msgstr "Ancora nessuna supervisione"
+
+msgid "Note (optional)"
+msgstr "Nota (facoltativa)"
+
+msgid "Only inside the same project"
+msgstr "Solo nello stesso progetto"
+
+msgid "Outputs"
+msgstr "Prodotti"
+
+msgid "Outputs by research area"
+msgstr "Prodotti per area di ricerca"
+
+msgid "Outputs per year"
+msgstr "Prodotti per anno"
+
+msgid "Outputs since"
+msgstr "Prodotti dal"
+
+msgid "Outputs with a DOI"
+msgstr "Prodotti con DOI"
+
+msgid "Outputs, projects, theses and supervision load across the platform."
+msgstr "Prodotti, progetti, tesi e carico di supervisione sull'intera piattaforma."
+
+msgid "Possible duplicates"
+msgstr "Possibili duplicati"
+
+msgid "Projects with most outputs"
+msgstr "Progetti con più prodotti"
+
+msgid "Records with the same DOI, the same title or a very similar title. Choose the record to keep: empty fields are completed from the others, associations are moved to it and the others are deleted."
+msgstr "Record con lo stesso DOI, lo stesso titolo o un titolo molto simile. Scegli quello da tenere: i campi vuoti vengono completati dagli altri, le associazioni vengono spostate su di esso e gli altri vengono eliminati."
+
+msgid "Restore"
+msgstr "Ripristina"
+
+msgid "Restore from a file"
+msgstr "Ripristina da file"
+
+msgid "Restore this backup"
+msgstr "Ripristina questo backup"
+
+msgid "Schema revision"
+msgstr "Revisione dello schema"
+
+msgid "Show also records of different projects"
+msgstr "Mostra anche record di progetti diversi"
+
+msgid "Supervision load"
+msgstr "Carico di supervisione"
+
+msgid "The current data and uploads are replaced. A safety backup is taken first."
+msgstr "I dati e i file caricati attuali vengono sostituiti. Prima viene creata una copia di sicurezza."
+
+msgid "Theses by status"
+msgstr "Tesi per stato"
+
+msgid "Type RESTORE to confirm"
+msgstr "Scrivi RESTORE per confermare"
+
+msgid "assigned"
+msgstr "assegnate"
+
+msgid "available"
+msgstr "disponibili"
+
+msgid "concluded"
+msgstr "concluse"
+
+msgid "datasets"
+msgstr "dataset"
+
+msgid "different projects"
+msgstr "progetti diversi"
+
+msgid "enable it with BACKUP_AUTO=true"
+msgstr "attivalo con BACKUP_AUTO=true"
+
+msgid "invalid"
+msgstr "non valido"
+
+msgid "keep"
+msgstr "tieni"
+
+msgid "keeps the last %(n)s"
+msgstr "conserva gli ultimi %(n)s"
+
+msgid "merge"
+msgstr "unisci"
+
+msgid "off"
+msgstr "disattivato"
+
+msgid "on"
+msgstr "attivo"
+
+msgid "public"
+msgstr "pubblici"
+
+msgid "rows"
+msgstr "righe"
+
+msgid "same DOI"
+msgstr "stesso DOI"
+
+msgid "same project"
+msgstr "stesso progetto"
+
+msgid "same title"
+msgstr "stesso titolo"
+
+msgid "similar title"
+msgstr "titolo simile"
+
+msgid "supervisors and researchers"
+msgstr "supervisori e ricercatori"
+
+msgid "year"
+msgstr "anno"
+
+msgid "The backup could not be created"
+msgstr "Impossibile creare il backup"
+
+msgid "Backup created"
+msgstr "Backup creato"
+
+msgid "Backup deleted"
+msgstr "Backup eliminato"
+
+msgid "Type RESTORE to confirm: the current data will be replaced"
+msgstr "Scrivi RESTORE per confermare: i dati attuali verranno sostituiti"
+
+msgid "Backup restored. Please sign in again."
+msgstr "Backup ripristinato. Accedi di nuovo."
+
+msgid "Not a valid SuperviseMe backup"
+msgstr "Non è un backup valido di SuperviseMe"
+
+msgid "Unknown backup"
+msgstr "Backup sconosciuto"
+
+msgid "The backup contains none of this application's tables"
+msgstr "Il backup non contiene nessuna tabella di questa applicazione"
+
+msgid "Unsafe file name in the backup"
+msgstr "Nome di file non sicuro nel backup"
+
+msgid "The restore failed and the database was not changed"
+msgstr "Ripristino non riuscito: il database non è stato modificato"
+
+msgid "Records merged"
+msgstr "Record uniti"
+
+msgid "Choose the record to keep and at least one duplicate"
+msgstr "Scegli il record da tenere e almeno un duplicato"

@@ -58,6 +58,7 @@ SuperviseMe is a Flask web application that brings supervisors, students, resear
 - **Reports** (PDF/CSV) for theses and research projects (per-project PDF/Markdown/CSV, portfolio overview and activity exports) in a tabbed page, and global search.
 - Researchers can edit publications, datasets and software, and assign works imported from ORCID to several projects at once (authors and venue completed from Crossref). Public project pages offer BibTeX for all outputs and CodeMeta / `CITATION.cff` for software; researchers can export their whole portfolio as BibTeX.
 - Daily reminders also cover overdue project milestones, projects without activity, public outputs missing a DOI and supervisors close to or at their student limit. Admins get a persistent *Output activity* trail of who created, edited, moved, associated or deleted outputs.
+- Admins get a **Statistics** page (outputs per year/area/project, theses by status, supervision load, monthly activity, CSV export), a **Possible duplicates** page (same DOI, same or similar title) with guided merge, and **Backup and restore**: a portable zip with every table and the uploaded files (SQLite or PostgreSQL), manual or nightly, with an automatic safety copy before each restore.
 - Admins can associate publications, datasets and software with platform users and their projects/theses, and search the catalogs by associated project, user or thesis.
 - **Notifications** by in-app alerts, email (weekly digests, reminders) and **Telegram** ([setup](docs/telegram_setup_detailed.md)).
 - **Internationalisation** in English and Italian via Flask-Babel ([docs](docs/i18n.md)).
@@ -140,6 +141,7 @@ Configuration is read from environment variables (see `.env.example` and [docs/c
 | `BASE_URL` | Public URL used in emails and links |
 | `COOKIE_SECURE` | Force the `Secure` flag on session cookies on/off (default: on in production) |
 | `DEFAULT_MAX_STUDENTS`, `CAPACITY_WARN_RATIO` | Default maximum of active students for supervisors without a personal limit (empty = unlimited); fraction of the limit that triggers the "close to the limit" warning (default `0.8`) |
+| `BACKUP_DIR`, `BACKUP_AUTO`, `BACKUP_KEEP` | Backup folder (default `superviseme/db/backups`); `BACKUP_AUTO=true` enables the nightly backup (02:30); number of automatic backups kept (default `7`) |
 | `CSP_MODE`, `CSP_EXTRA_SOURCES`, `CSP_REPORT_URI` | Content-Security-Policy: `enforce` (default), `report-only` or `off`; extra allowed sources; optional report endpoint |
 | `UPLOAD_FOLDER` | Where uploaded documents and images are stored |
 | `RETENTION_ENABLED` | Set to `true` to enable the nightly data-retention deletion (default: off) |

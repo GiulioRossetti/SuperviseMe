@@ -18,6 +18,11 @@
             <i class="fas fa-fw fa-chart-pie"></i><span>{{ _('sidebar.dashboard') }}</span>
         </a>
     </li>
+    <li class="nav-item{% if request.endpoint == 'admin.stats' %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('admin.stats') }}">
+            <i class="fas fa-fw fa-chart-line"></i><span>{{ _('Statistics') }}</span>
+        </a>
+    </li>
 
     <hr class="sidebar-divider">
     <div class="sidebar-heading">{{ _('People') }}</div>

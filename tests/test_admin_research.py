@@ -293,3 +293,41 @@ def test_duplicates_detection_and_merge(client, app, admin_user, researcher_user
     assert D.query.count() == 1 and D.query.one().fair == "findable,reusable" and D.query.one().url == "https://zenodo.org/x"
     assert "merge" in client.get("/admin/research/activity?action=merge").data.decode()
     assert "Possible duplicates" in client.get("/admin/research/duplicates").data.decode()
+
+
+def test_admin_statistics(client, app, admin_user, researcher_user, supervisor_user, student_user):
+    import csv, io, json, re, time as _t
+    from superviseme import db
+    from superviseme.models import ResearchProject, ResearchProject_Dataset as D, ResearchProject_Publication as P, ResearchProject_Software as S, Thesis_Status
+    from superviseme.utils import stats as st
+    from tests.test_ui_pages import _assign
+    now = int(_t.time())
+    this_year = _t.gmtime(now).tm_year
+    t = _assign(student_user, supervisor_user)
+    db.session.add(Thesis_Status(thesis_id=t.id, status="completed", updated_at=now)); db.session.commit()
+    pr = ResearchProject(title="Stats project", description="d", researcher_id=researcher_user.id, area="NLP", level="research", created_at=now)
+    db.session.add(pr); db.session.commit()
+    db.session.add_all([P(project_id=pr.id, title="p1", year=2019, doi="10.1234/a", created_at=now), P(project_id=pr.id, title="p2", year=2019, created_at=now),
+                        D(project_id=pr.id, title="d1", license="CC-BY", fair="findable,reusable", created_at=now),
+                        S(project_id=pr.id, title="s1", license="MIT", created_at=now)]); db.session.commit()
+    data = st.build()
+    assert data["outputs"]["total"] == 4 and data["outputs"]["publications"] == 2 and data["outputs"]["doi_pct"] == 25
+    assert data["per_year"][2019]["publications"] == 2 and data["per_year"][this_year]["datasets"] == 1 and data["per_year"][this_year]["software"] == 1
+    assert data["by_area"] == {"NLP": 4} and data["top_projects"][0] == ("Stats project", 4)
+    assert data["theses"]["concluded"] == 1 and data["theses"]["by_status"]["completed"] == 1
+    assert data["months"][-1] == _t.strftime("%Y-%m", _t.gmtime(now)) and data["monthly"]["outputs"][-1] == 4 and len(data["months"]) == 12
+    assert data["outputs"]["fair"]["2"] == 1 and data["outputs"]["licenses"] == {"CC-BY": 1, "MIT": 1}
+    assert [s["name"] for s in data["supervisors"]] and data["supervisors"][0]["used"] >= 1
+    assert st.build(since_year=this_year)["years"] == [this_year]
+    _login(client, researcher_user.email)
+    assert client.get("/admin/stats").status_code in (302, 403)
+    client.post("/logout")
+    _login(client, admin_user.email)
+    page = client.get("/admin/stats").data.decode()
+    assert "Statistics" in page and 'id="chYear"' in page and 'id="stats-data"' in page
+    blob = json.loads(re.search(r'id="stats-data" type="application/json">(.*?)</script>', page, re.S).group(1))
+    assert blob["per_year"]["2019"]["publications"] == 2 and blob["area"] == {"NLP": 4}
+    assert 'id="chYear"' not in client.get(f"/admin/stats?since={this_year + 1}").data.decode()
+    rows = list(csv.reader(io.StringIO(client.get("/admin/stats?format=csv").data.decode())))
+    assert rows[0] == ["section", "label", "series", "value"] and ["outputs_per_year", "2019", "publications", "2"] in rows
+    assert client.get("/admin/stats?since=abc").status_code == 200

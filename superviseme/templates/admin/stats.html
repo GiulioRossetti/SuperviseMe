@@ -1,0 +1,94 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'admin/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    {% from 'components/dash.html' import hero, tile, panel, empty with context %}
+                    {% call hero(_('Statistics'), _('Outputs, projects, theses and supervision load across the platform.'), 'fa-chart-line') %}
+                        <form method="get" class="form-inline d-inline-block mr-2">
+                            <label class="small text-muted mr-1" for="since">{{ _('Outputs since') }}</label>
+                            <input type="number" id="since" name="since" min="1900" max="2200" value="{{ since or '' }}" class="form-control form-control-sm mr-1" style="width:90px" placeholder="{{ _('year') }}">
+                            <button class="btn btn-outline-primary btn-sm" type="submit">{{ _('Apply') }}</button>
+                        </form>
+                        <a href="{{ url_for('admin.stats', format='csv', since=since) }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-download"></i> CSV</a>
+                    {% endcall %}
+
+                    <div class="dash-tiles">
+                        {{ tile('fa-users', 'indigo', d.people.values()|sum, _('Users'), (d.people.get('student', 0) ~ ' ' ~ _('students') ~ ' · ' ~ (d.people.get('supervisor', 0) + d.people.get('researcher', 0)) ~ ' ' ~ _('supervisors and researchers'))) }}
+                        {{ tile('fa-book-open', 'sky', d.theses.total, _('Theses'), (d.theses.assigned ~ ' ' ~ _('assigned') ~ ' · ' ~ d.theses.available ~ ' ' ~ _('available') ~ ' · ' ~ d.theses.concluded ~ ' ' ~ _('concluded'))) }}
+                        {{ tile('fa-flask', 'amber', d.projects.total, _('Projects'), (d.projects.frozen ~ ' ' ~ _('frozen') ~ ' · ' ~ d.projects.public ~ ' ' ~ _('public'))) }}
+                        {{ tile('fa-file-alt', 'green', d.outputs.total, _('Outputs'), (d.outputs.publications ~ ' ' ~ _('publications') ~ ' · ' ~ d.outputs.datasets ~ ' ' ~ _('datasets') ~ ' · ' ~ d.outputs.software ~ ' software')) }}
+                        {{ tile('fa-link', 'rose', d.outputs.doi_pct ~ '%', _('Outputs with a DOI')) }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-xl-8 mb-4">{% call panel(_('Outputs per year'), 'fa-chart-bar') %}
+                            {% if d.years %}<div style="height:280px"><canvas id="chYear" aria-label="{{ _('Outputs per year') }}" role="img"></canvas></div>{% else %}{{ empty('fa-chart-bar', _('No data yet')) }}{% endif %}{% endcall %}</div>
+                        <div class="col-xl-4 mb-4">{% call panel(_('Theses by status'), 'fa-chart-pie') %}
+                            {% if d.theses.total %}<div style="height:280px"><canvas id="chStatus" aria-label="{{ _('Theses by status') }}" role="img"></canvas></div>{% else %}{{ empty('fa-chart-pie', _('No data yet')) }}{% endif %}{% endcall %}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl-6 mb-4">{% call panel(_('Activity in the last 12 months'), 'fa-chart-line') %}
+                            <div style="height:260px"><canvas id="chMonthly" aria-label="{{ _('Activity in the last 12 months') }}" role="img"></canvas></div>{% endcall %}</div>
+                        <div class="col-xl-6 mb-4">{% call panel(_('Outputs by research area'), 'fa-sitemap') %}
+                            {% if d.by_area %}<div style="height:260px"><canvas id="chArea" aria-label="{{ _('Outputs by research area') }}" role="img"></canvas></div>{% else %}{{ empty('fa-sitemap', _('No data yet')) }}{% endif %}{% endcall %}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl-6 mb-4">{% call panel(_('Supervision load'), 'fa-user-friends') %}
+                            {% for s in d.supervisors %}
+                            <div class="mb-2"><div class="d-flex justify-content-between small"><span>{{ s.name }}</span>
+                                <strong class="{{ 'text-danger' if s.full else 'text-warning' if s.near }}">{{ s.used }}{% if s.max is not none %} / {{ s.max }}{% endif %}</strong></div>
+                                <div class="progress" style="height:6px"><div class="progress-bar {{ 'bg-danger' if s.full else 'bg-warning' if s.near }}" style="width: {{ (100 * s.used / s.max)|round|int if s.max else (100 * s.used / (d.supervisors[0].used or 1))|round|int }}%"></div></div></div>
+                            {% else %}{{ empty('fa-user-friends', _('No supervision yet')) }}{% endfor %}{% endcall %}</div>
+                        <div class="col-xl-6 mb-4">{% call panel(_('Projects with most outputs'), 'fa-trophy') %}
+                            {% for title, n in d.top_projects %}<div class="d-flex justify-content-between border-bottom py-1 small"><span>{{ title }}</span><strong>{{ n }}</strong></div>
+                            {% else %}{{ empty('fa-trophy', _('No data yet')) }}{% endfor %}
+                            {% if d.outputs.licenses %}<h6 class="mt-3 small font-weight-bold">{{ _('Licenses (datasets and software)') }}</h6>
+                            {% for l, n in d.outputs.licenses.items() %}<span class="badge badge-light border mr-1">{{ l }} · {{ n }}</span>{% endfor %}{% endif %}{% endcall %}</div>
+                    </div>
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    <script id="stats-data" type="application/json">{{ {'years': d.years|map('string')|list, 'per_year': d.per_year, 'status': d.theses.by_status, 'months': d.months, 'monthly': d.monthly, 'area': d.by_area,
+        'labels': {'publications': _('Publications'), 'datasets': _('Datasets'), 'software': 'Software', 'outputs': _('Outputs'), 'theses': _('Theses'), 'projects': _('Projects')}}|tojson }}</script>
+    <script>
+    window.addEventListener('load', function () {
+        if (!window.Chart) { return; }
+        var D = JSON.parse(document.getElementById('stats-data').textContent), L = D.labels;
+        var colors = ['#4e73df', '#1cc88a', '#f6c23e', '#e74a3b', '#36b9cc', '#858796', '#6f42c1', '#fd7e14'];
+        function el(id) { var e = document.getElementById(id); return e ? e.getContext('2d') : null; }
+        var y = el('chYear');
+        if (y) {
+            new Chart(y, {type: 'bar', data: {labels: D.years, datasets: ['publications', 'datasets', 'software'].map(function (k, i) {
+                return {label: L[k], backgroundColor: colors[i], data: D.years.map(function (yr) { return D.per_year[yr][k]; })}; })},
+                options: {maintainAspectRatio: false, scales: {xAxes: [{stacked: true}], yAxes: [{stacked: true, ticks: {beginAtZero: true, precision: 0}}]}}});
+        }
+        var s = el('chStatus');
+        if (s) {
+            var keys = Object.keys(D.status);
+            new Chart(s, {type: 'doughnut', data: {labels: keys, datasets: [{data: keys.map(function (k) { return D.status[k]; }), backgroundColor: colors}]},
+                options: {maintainAspectRatio: false, legend: {position: 'bottom'}}});
+        }
+        var m = el('chMonthly');
+        if (m) {
+            new Chart(m, {type: 'line', data: {labels: D.months, datasets: ['outputs', 'theses', 'projects'].map(function (k, i) {
+                return {label: L[k], borderColor: colors[i], backgroundColor: 'transparent', data: D.monthly[k], lineTension: 0.2}; })},
+                options: {maintainAspectRatio: false, scales: {yAxes: [{ticks: {beginAtZero: true, precision: 0}}]}}});
+        }
+        var a = el('chArea');
+        if (a) {
+            var ak = Object.keys(D.area);
+            new Chart(a, {type: 'horizontalBar', data: {labels: ak, datasets: [{label: L.outputs, backgroundColor: colors[0], data: ak.map(function (k) { return D.area[k]; })}]},
+                options: {maintainAspectRatio: false, legend: {display: false}, scales: {xAxes: [{ticks: {beginAtZero: true, precision: 0}}]}}});
+        }
+    });
+    </script>
+</body>
+</html>

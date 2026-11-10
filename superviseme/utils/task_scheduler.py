@@ -92,7 +92,6 @@ def _reminders_job():
 
 def _backup_job():
     """Nightly automatic backup (opt-in with BACKUP_AUTO) keeping the newest BACKUP_KEEP ones."""
-    import os
     app = _flask_app
     if app is None:
         logger.error("APScheduler: _flask_app not set; skipping backup job")
