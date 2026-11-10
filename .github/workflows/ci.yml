@@ -165,7 +165,7 @@ jobs:
           PY
       - name: Tests on PostgreSQL
         run: |
-          pytest -q -x --maxfail=5
+          pytest -q
 
   dependency-audit:
     runs-on: ubuntu-latest

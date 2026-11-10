@@ -10,9 +10,9 @@ class User_mgmt(UserMixin, db.Model):
     username = db.Column(db.String(50), nullable=False, unique=True)
     name = db.Column(db.String(50))
     surname = db.Column(db.String(50))
-    cdl = db.Column(db.String(15))
+    cdl = db.Column(db.String(120))
     email = db.Column(db.String(50), nullable=False, unique=True)
-    password = db.Column(db.String(80), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
     user_type = db.Column(
         db.String(10),
         db.CheckConstraint(

@@ -233,3 +233,24 @@ def researcher_user(app):
 @pytest.fixture
 def student_user(app):
     return _make_user("student", "student_test", "student@test.com")
+
+
+# ---------------------------------------------------------------------------
+# SQLite does not enforce VARCHAR(n); PostgreSQL does. Fail early, on any backend, when a value is too long.
+# ---------------------------------------------------------------------------
+from sqlalchemy import String as _String, event as _event  # noqa: E402
+from sqlalchemy.orm import Session as _Session  # noqa: E402
+
+
+@_event.listens_for(_Session, "before_flush")
+def _enforce_string_lengths(session, _ctx, _instances):
+    for obj in list(session.new) + list(session.dirty):
+        table = getattr(obj, "__table__", None)
+        if table is None:
+            continue
+        for col in table.columns:
+            if isinstance(col.type, _String) and col.type.length:
+                val = getattr(obj, col.key, None)
+                if isinstance(val, str) and len(val) > col.type.length:
+                    raise AssertionError(f"{table.name}.{col.name} is VARCHAR({col.type.length}) but got {len(val)} characters "
+                                         "(PostgreSQL would reject it)")

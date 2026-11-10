@@ -72,11 +72,11 @@ def test_init_scheduler_registers_expected_jobs_once(ts, app, monkeypatch):
     ts.init_scheduler(app)  # second call is ignored
     assert len(FakeScheduler.instances) == 1
     sched = FakeScheduler.instances[0]
-    assert set(sched.jobs) == {"weekly_supervisor_reports", "daily_reminders", "retention_purge"}
+    assert set(sched.jobs) == {"weekly_supervisor_reports", "daily_reminders", "retention_purge", "nightly_backup"}
     assert "day_of_week='mon'" in sched.jobs["weekly_supervisor_reports"][1]
     assert all(f.startswith("superviseme.utils.task_scheduler:") for f, _ in sched.jobs.values())
     status = ts.get_scheduler_status()
-    assert status["status"] == "running" and len(status["jobs"]) == 3
+    assert status["status"] == "running" and len(status["jobs"]) == 4
     monkeypatch.setattr(ts.scheduler, "running", False)
     assert ts.get_scheduler_status()["status"] == "stopped"
 
