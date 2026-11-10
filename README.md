@@ -129,10 +129,18 @@ Configuration is read from environment variables (see `.env.example` and [docs/c
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` | Telegram notifications |
 | `BASE_URL` | Public URL used in emails and links |
+| `COOKIE_SECURE` | Force the `Secure` flag on session cookies on/off (default: on in production) |
 | `UPLOAD_FOLDER` | Where uploaded documents and images are stored |
 | `RETENTION_MONTHS` | Data retention window (default 24) |
 | `ENABLE_SCHEDULER` | Enable background jobs; set to `true` on exactly one worker |
 | `SKIP_DB_SEED`, `USE_PROXY_FIX` | Skip sample data seeding; trust reverse-proxy headers |
+
+### Security notes
+
+- Login attempts are throttled (5 failures per account/IP and 30 per IP in 15 minutes by default; counters are per process, add an nginx `limit_req` or shared limiter when running many workers).
+- New passwords need at least 8 characters with a letter and a digit; admin password resets need 12.
+- Session cookies are `HttpOnly` and, in production, `Secure`; responses carry `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` and (over HTTPS) HSTS.
+- Research-project collaborators with the `viewer` role are read-only.
 
 ### Production notes
 
@@ -161,6 +169,7 @@ Run the scheduler (`ENABLE_SCHEDULER=true`) in a single service only and keep ev
 ## 🧪 Development
 
 ```bash
+pip install -r requirements-dev.txt   # test and lint tools
 make ci       # lint + compile + schema alignment + migrations + tests
 make test     # pytest
 make smoke    # smoke checks against a local server
