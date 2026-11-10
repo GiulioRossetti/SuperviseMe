@@ -9,7 +9,8 @@
                 <div class="container-fluid">
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">{{ _('Portfolio') }}</h1>
-                        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('researcher.all_publications') }}"><i class="fas fa-book"></i> {{ _('Publications') }}</a>
+                        <span><a class="btn btn-outline-secondary btn-sm mr-1" href="{{ url_for('researcher.portfolio_bib') }}"><i class="fas fa-download"></i> BibTeX</a>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('researcher.all_publications') }}"><i class="fas fa-book"></i> {{ _('Publications') }}</a></span>
                     </div>
                     <div class="row">
                         {% for label, value in [(_('Projects'), pf.total), (_('Active'), pf.by_state.get('active', 0)), (_('Publications'), pf.publications), (_('Datasets'), pf.datasets), (_('Software'), pf.software), (_('Linked theses'), pf.theses), (_('Supervised theses'), pf.supervised)] %}

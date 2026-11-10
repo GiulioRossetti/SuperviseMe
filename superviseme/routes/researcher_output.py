@@ -463,6 +463,22 @@ def transfer_project(project_id):
 
 # ---- portfolio ----------------------------------------------------------------------------------------------
 
+@researcher.route("/researcher/portfolio.bib")
+@login_required
+def portfolio_bib():
+    """BibTeX of every publication, dataset and software record of the user's projects (and outputs linked to them)."""
+    gate = check_privileges(current_user.username, role="researcher")
+    if gate is not True:
+        return gate
+    projects = accessible_projects(current_user)
+    found = {k: {o.id: o for pr in projects for o in getattr(pr, attr)} for k, attr in (("publication", "publications"), ("dataset", "datasets"), ("software", "software"))}
+    for k in found:
+        for o in ro.linked_for_user(current_user, k):
+            found[k].setdefault(o.id, o)
+    text = ro.all_bibtex(found["publication"].values(), found["dataset"].values(), found["software"].values())
+    return Response(text, mimetype="application/x-bibtex", headers={"Content-Disposition": "attachment; filename=portfolio.bib"})
+
+
 @researcher.route("/researcher/portfolio")
 @login_required
 def portfolio():

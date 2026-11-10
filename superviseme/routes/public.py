@@ -232,3 +232,47 @@ def public_project(project_id):
                          ResearchProject_Collaborator.query.filter_by(project_id=project.id, status="accepted") if c.collaborator]
     return render_template("public/project_detail.html", project=project, fields=fields, collaborators=collaborators,
                            milestones=project.milestones if "milestones" in fields else [], iso=ro.iso)
+
+
+def _public_outputs(project_id):
+    from superviseme.models import ResearchProject
+    from superviseme.utils import research_output as ro
+    project = ResearchProject.query.filter_by(id=project_id, is_public=True).first_or_404()
+    return project, ro.public_fields(project), ro
+
+
+@public.route("/projects/<int:project_id>/outputs.bib")
+def public_project_bib(project_id):
+    """BibTeX of the publications, datasets and software the owner made public."""
+    from flask import Response
+    project, fields, ro = _public_outputs(project_id)
+    text = ro.all_bibtex(project.publications if "publications" in fields else (), project.datasets if "datasets" in fields else (),
+                         project.software if "software" in fields else ())
+    if not text:
+        abort(404)
+    return Response(text, mimetype="application/x-bibtex", headers={"Content-Disposition": f"attachment; filename=project_{project.id}.bib"})
+
+
+@public.route("/projects/<int:project_id>/software/<int:sid>/codemeta.json")
+def public_software_codemeta(project_id, sid):
+    import json
+    from flask import Response
+    from superviseme.models import ResearchProject_Software
+    project, fields, ro = _public_outputs(project_id)
+    if "software" not in fields:
+        abort(404)
+    sw = ResearchProject_Software.query.filter_by(id=sid, project_id=project.id).first_or_404()
+    return Response(json.dumps(ro.codemeta(sw, project, ro.software_authors(project, fields)), ensure_ascii=False, indent=2),
+                    mimetype="application/ld+json")
+
+
+@public.route("/projects/<int:project_id>/software/<int:sid>/CITATION.cff")
+def public_software_cff(project_id, sid):
+    from flask import Response
+    from superviseme.models import ResearchProject_Software
+    project, fields, ro = _public_outputs(project_id)
+    if "software" not in fields:
+        abort(404)
+    sw = ResearchProject_Software.query.filter_by(id=sid, project_id=project.id).first_or_404()
+    return Response(ro.citation_cff(sw, project, ro.software_authors(project, fields)), mimetype="text/yaml",
+                    headers={"Content-Disposition": "attachment; filename=CITATION.cff"})

@@ -18,6 +18,9 @@
         <small class="text-muted">{{ p.authors or '' }}{% if p.venue %} · {{ p.venue }}{% endif %}</small>
         {% if p.doi %} <a class="small" href="https://doi.org/{{ p.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ p.doi }}</a>{% endif %}</div>{% endfor %}
 </div></div>{% endif %}
+{% if ('publications' in fields and project.publications) or ('datasets' in fields and project.datasets) or ('software' in fields and project.software) %}
+<p class="text-right"><a class="btn btn-outline-secondary btn-sm" href="{{ url_for('public.public_project_bib', project_id=project.id) }}"><i class="fas fa-download"></i> {{ _('Cite all outputs (BibTeX)') }}</a></p>
+{% endif %}
 {% if 'datasets' in fields and project.datasets %}
 <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Datasets') }}</h6></div><div class="card-body">
     {% for d in project.datasets %}<div class="mb-2"><strong>{{ d.title }}</strong>{% if d.license %} <span class="badge badge-light border">{{ d.license }}</span>{% endif %}
@@ -29,7 +32,9 @@
     {% for sw in project.software %}<div class="mb-2"><strong>{{ sw.title }}</strong>{% if sw.version %} <span class="badge badge-light border">v{{ sw.version }}</span>{% endif %}{% if sw.license %} <span class="badge badge-light border">{{ sw.license }}</span>{% endif %}
         {% if sw.description %}<br><small class="text-muted">{{ sw.description }}</small>{% endif %}
         {% if sw.doi %} <a class="small" href="https://doi.org/{{ sw.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ sw.doi }}</a>{% endif %}
-        {% if sw.repo_url %} <a class="small" href="{{ sw.repo_url }}" target="_blank" rel="noopener noreferrer nofollow">{{ _('Repository') }}</a>{% endif %}</div>{% endfor %}
+        {% if sw.repo_url %} <a class="small" href="{{ sw.repo_url }}" target="_blank" rel="noopener noreferrer nofollow">{{ _('Repository') }}</a>{% endif %}
+        <a class="small" href="{{ url_for('public.public_software_cff', project_id=project.id, sid=sw.id) }}">CITATION.cff</a>
+        <a class="small" href="{{ url_for('public.public_software_codemeta', project_id=project.id, sid=sw.id) }}">CodeMeta</a></div>{% endfor %}
 </div></div>{% endif %}
 {% if milestones %}
 <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Milestones') }}</h6></div><div class="card-body">

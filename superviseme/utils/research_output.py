@@ -125,6 +125,70 @@ def output_bibtex(items, kind):
     return "\n\n".join(out) + ("\n" if out else "")
 
 
+def all_bibtex(pubs=(), datasets=(), software=()):
+    """One BibTeX file for publications, datasets and software; citation keys are made unique across the three."""
+    chunks = [c for c in (bibtex(list(pubs)), output_bibtex(list(datasets), "datasets"), output_bibtex(list(software), "software")) if c.strip()]
+    seen, out = {}, []
+    for chunk in chunks:
+        def fix(m):
+            key = m.group(2)
+            seen[key] = seen.get(key, 0) + 1
+            return f"{m.group(1)}{key if seen[key] == 1 else f'{key}_{seen[key]}'},"
+        out.append(re.sub(r"(?m)^(@\w+\{)([^,\s]+),", fix, chunk).rstrip("\n"))
+    return "\n\n".join(out) + ("\n" if out else "")
+
+
+def _person(user):
+    return {"given": (user.name or "").strip(), "family": (user.surname or "").strip(), "orcid": getattr(user, "orcid_id", None)}
+
+
+def software_authors(project, fields):
+    people = [project.researcher] if project.researcher else []
+    if "collaborators" in fields:
+        from superviseme.models import ResearchProject_Collaborator
+        for c in ResearchProject_Collaborator.query.filter_by(project_id=project.id, status="accepted"):
+            if c.collaborator and c.collaborator not in people:
+                people.append(c.collaborator)
+    return [_person(u) for u in people if (u.surname or u.name)]
+
+
+def _spdx(value):
+    return value if value and re.fullmatch(r"[A-Za-z0-9.+\-]+", value) else None
+
+
+def codemeta(sw, project, authors):
+    """CodeMeta (schema.org JSON-LD) description of a software record."""
+    doc = {"@context": "https://doi.org/10.5063/schema/codemeta-2.0", "@type": "SoftwareSourceCode", "name": sw.title,
+           "author": [dict({"@type": "Person", "givenName": a["given"], "familyName": a["family"]},
+                           **({"@id": f"https://orcid.org/{a['orcid']}"} if a["orcid"] else {})) for a in authors]}
+    for key, val in (("version", sw.version), ("description", sw.description), ("programmingLanguage", sw.language),
+                     ("codeRepository", sw.repo_url), ("identifier", f"https://doi.org/{sw.doi}" if sw.doi else None)):
+        if val:
+            doc[key] = val
+    if sw.license:
+        doc["license"] = f"https://spdx.org/licenses/{_spdx(sw.license)}" if _spdx(sw.license) else sw.license
+    return doc
+
+
+def citation_cff(sw, project, authors):
+    """CITATION.cff (Citation File Format 1.2.0) for a software record."""
+    import json as _json
+    q = lambda v: _json.dumps(str(v), ensure_ascii=False)
+    lines = ["cff-version: 1.2.0", "message: " + q("If you use this software, please cite it using these metadata."),
+             "title: " + q(sw.title), "type: software", "authors:"]
+    for a in authors or [{"given": "", "family": project.title, "orcid": None}]:
+        lines.append(f"  - family-names: {q(a['family'] or a['given'])}")
+        if a["family"] and a["given"]:
+            lines.append(f"    given-names: {q(a['given'])}")
+        if a["orcid"]:
+            lines.append(f"    orcid: {q('https://orcid.org/' + a['orcid'])}")
+    for key, val in (("version", sw.version), ("doi", sw.doi), ("repository-code", sw.repo_url), ("abstract", sw.description),
+                     ("license", _spdx(sw.license))):
+        if val:
+            lines.append(f"{key}: {q(val)}")
+    return "\n".join(lines) + "\n"
+
+
 def crossref_to_fields(meta):
     kind = (meta.get("type") or "").lower()
     pub_type = "conference" if "proceedings" in kind else "book" if "book" in kind else "preprint" if "posted" in kind else \

@@ -202,3 +202,46 @@ def test_publication_edit_and_bulk_orcid_assignment(client, monkeypatch, researc
     assert f"editP{one.id}" in client.get(f"/researcher/project/{a.id}/output").data.decode()
     other_pub = P(project_id=foreign.id, title="x", created_at=now); db.session.add(other_pub); db.session.commit()
     assert client.post(f"/researcher/project/{foreign.id}/publications/{other_pub.id}/edit", data={"title": "hack"}).status_code == 403
+
+
+def test_citation_exports(client, researcher_user):
+    import json
+    from superviseme import db
+    from superviseme.models import ResearchProject, ResearchProject_Software as S, ResearchProject_Dataset as D, ResearchProject_Publication as P
+    now = int(time.time())
+    pub_proj = ResearchProject(title="Open", description="d", researcher_id=researcher_user.id, created_at=now, is_public=True)
+    priv = ResearchProject(title="Closed", description="d", researcher_id=researcher_user.id, created_at=now)
+    db.session.add_all([pub_proj, priv]); db.session.commit()
+    sw = S(project_id=pub_proj.id, title="graphkit", version="1.2", license="MIT", language="Python", repo_url="https://github.com/x/gk",
+           doi="10.5281/zenodo.1", description="A: tool", created_at=now)
+    lic = S(project_id=pub_proj.id, title="odd", license="Custom license text", created_at=now)
+    hidden = S(project_id=priv.id, title="secret", created_at=now)
+    db.session.add_all([sw, lic, hidden, D(project_id=pub_proj.id, title="graphkit data", created_at=now),
+                        P(project_id=pub_proj.id, title="graphkit paper", year=2024, created_at=now)]); db.session.commit()
+    cm = client.get(f"/projects/{pub_proj.id}/software/{sw.id}/codemeta.json")
+    doc = json.loads(cm.data)
+    assert cm.status_code == 200 and doc["name"] == "graphkit" and doc["version"] == "1.2" and doc["codeRepository"] == "https://github.com/x/gk"
+    assert doc["license"] == "https://spdx.org/licenses/MIT" and doc["author"][0]["familyName"] == researcher_user.surname
+    cff = client.get(f"/projects/{pub_proj.id}/software/{sw.id}/CITATION.cff").data.decode()
+    assert cff.startswith("cff-version: 1.2.0") and 'title: "graphkit"' in cff and 'license: "MIT"' in cff and 'abstract: "A: tool"' in cff
+    assert "license:" not in client.get(f"/projects/{pub_proj.id}/software/{lic.id}/CITATION.cff").data.decode()  # non-SPDX text is left out
+    bib = client.get(f"/projects/{pub_proj.id}/outputs.bib").data.decode()
+    keys = [l.split("{")[1].rstrip(",") for l in bib.splitlines() if l.startswith("@")]
+    assert len(keys) == 4 and len(set(keys)) == 4 and "@software{" in bib and "graphkit paper" in bib
+    page = client.get(f"/projects/{pub_proj.id}").data.decode()
+    assert "CITATION.cff" in page and "outputs.bib" in page
+    # private projects and unknown records are not exposed
+    assert client.get(f"/projects/{priv.id}/outputs.bib").status_code == 404
+    assert client.get(f"/projects/{priv.id}/software/{hidden.id}/codemeta.json").status_code == 404
+    assert client.get(f"/projects/{pub_proj.id}/software/{hidden.id}/CITATION.cff").status_code == 404
+    # the owner's choice of public fields is respected
+    pub_proj.public_fields = "description,publications"
+    db.session.commit()
+    assert client.get(f"/projects/{pub_proj.id}/software/{sw.id}/codemeta.json").status_code == 404
+    only = client.get(f"/projects/{pub_proj.id}/outputs.bib").data.decode()
+    assert "graphkit paper" in only and "@software" not in only
+    # portfolio export for the researcher
+    _login(client, researcher_user.email)
+    allbib = client.get("/researcher/portfolio.bib").data.decode()
+    assert "secret" in allbib and "graphkit data" in allbib and "graphkit paper" in allbib
+    assert "BibTeX" in client.get("/researcher/portfolio").data.decode()
