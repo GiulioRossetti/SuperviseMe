@@ -170,6 +170,7 @@ Run the scheduler (`ENABLE_SCHEDULER=true`) in a single service only and keep ev
 
 ```bash
 pip install -r requirements-dev.txt   # test and lint tools
+pip install -r requirements.lock      # alternative: exact, reproducible runtime versions
 make ci       # lint + compile + schema alignment + migrations + tests
 make test     # pytest
 make smoke    # smoke checks against a local server
