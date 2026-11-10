@@ -34,12 +34,22 @@ def theses():
     if privilege_check is not True:
         return privilege_check
     from datetime import datetime
-    from superviseme.utils.thesis_board import build_thesis_cards
+    from superviseme.utils.thesis_board import admin_scope, board_context
     students = User_mgmt.query.filter_by(user_type="student").order_by(User_mgmt.surname).all()
     supervisors = User_mgmt.query.filter_by(user_type="supervisor").order_by(User_mgmt.surname).all()
-    cards, archived = build_thesis_cards(Thesis.query.all())
-    return render_template("/admin/theses.html", current_user=current_user, cards=cards, archived=archived,
+    return render_template("/admin/theses.html", current_user=current_user, **board_context(admin_scope()),
                            students=students, supervisors=supervisors, dt=datetime.fromtimestamp)
+
+
+@admin.route("/admin/theses/cards")
+@login_required
+def theses_cards():
+    """One page of thesis cards (JSON), filtered and paginated server-side."""
+    privilege_check = check_privileges(current_user.username, role="admin")
+    if privilege_check is not True:
+        return privilege_check
+    from superviseme.utils.thesis_board import admin_scope, board_response
+    return board_response(admin_scope(), request, "admin.thesis_detail", show_supervisors=True)
 
 
 @admin.route("/admin/theses_data", methods=["GET", "POST"])

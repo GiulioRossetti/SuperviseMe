@@ -3,15 +3,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 from flask_login import login_required, current_user
-from sqlalchemy import select, and_, func, or_
+from sqlalchemy import select, and_, or_
 from superviseme.utils import security
 from superviseme.utils.miscellanea import check_privileges, user_has_supervisor_role
 from superviseme.utils.thesis_resources import normalize_resource_url, resolve_resource_type
 from superviseme.utils.thesis_management import delete_thesis_with_dependencies
 from superviseme.utils.thesis_interest import (
-    accept_interest_and_close_others,
     close_interests_after_direct_assignment,
-    decline_interest,
 )
 from superviseme.utils.thesis_public import (
     normalize_thesis_descriptions,
@@ -23,7 +21,6 @@ from superviseme import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash
 import time
-from flask_babel import gettext as _
 
 # Collaborator roles. "viewer" members can read a project but not change it;
 # the owner and every other role can edit its content. Only the owner manages collaborators.
@@ -211,9 +208,8 @@ def supervisor_theses():
         return redirect(url_for("researcher.dashboard"))
 
     # Get theses supervised by this researcher
-    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id).all()
-    from superviseme.utils.thesis_board import build_thesis_cards
-    cards, archived = build_thesis_cards([ts.thesis for ts in thesis_supervisors])
+    from superviseme.utils.thesis_board import board_context, supervised_scope
+    board = board_context(supervised_scope(current_user.id))
 
     # Get all available students for assignment dropdown (students without active thesis assignments)
     available_students = User_mgmt.query.filter(
@@ -226,14 +222,26 @@ def supervisor_theses():
     return render_template(
         "researcher/supervisor_theses.html",
         current_user=current_user,
-        cards=cards,
-        archived=archived,
+        **board,
         available_students=available_students,
         has_supervisor_role=True,
         datetime=datetime,
         dt=datetime.fromtimestamp,
         str=str
     )
+
+
+@researcher.route("/researcher/supervisor/theses/cards")
+@login_required
+def supervisor_theses_cards():
+    """One page of thesis cards (JSON), filtered and paginated server-side."""
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    if not user_has_supervisor_role(current_user):
+        abort(403)
+    from superviseme.utils.thesis_board import board_response, supervised_scope
+    return board_response(supervised_scope(current_user.id), request, "researcher.supervisor_thesis_detail")
 
 
 @researcher.route("/researcher/supervisor/thesis/<thesis_id>")

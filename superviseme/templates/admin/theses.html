@@ -18,7 +18,7 @@
                         </button>
                     </div>
 
-                    {% with detail_endpoint='admin.thesis_detail', show_supervisors=True %}{% include 'components/theses_board.html' %}{% endwith %}
+                    {% with cards_url=url_for('admin.theses_cards'), detail_endpoint='admin.thesis_detail', show_supervisors=True %}{% include 'components/theses_board.html' %}{% endwith %}
 
                 </div>
             </div>

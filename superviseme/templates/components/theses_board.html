@@ -1,11 +1,10 @@
-{# Supervisor "My theses" board. Expects: cards (active), archived, detail_endpoint. #}
-{% set all_cards = cards %}
+{# Thesis board, paginated server-side. Expects: stats, status_options, archived, detail_endpoint, cards_url. #}
 <!-- Stats -->
 <div class="row mb-2">
-    {% set n_assigned = cards|selectattr('state','equalto','assigned')|list|length %}
-    {% set n_open = cards|selectattr('state','equalto','open')|list|length %}
-    {% set n_pending = cards|sum(attribute='pending_interests') %}
-    <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ cards|length }}</div><div class="l">{{ _('Active theses') }}</div></div></div>
+    {% set n_assigned = stats.assigned %}
+    {% set n_open = stats.open %}
+    {% set n_pending = stats.pending_interests %}
+    <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ stats.active }}</div><div class="l">{{ _('Active theses') }}</div></div></div>
     <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ n_assigned }}</div><div class="l">{{ _('Assigned') }}</div></div></div>
     <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ n_open }}</div><div class="l">{{ _('Open') }}</div></div></div>
     <div class="col-6 col-xl-3 mb-3"><div class="up-stat"><div class="n">{{ n_pending }}</div><div class="l">{{ _('Pending interests') }}</div></div></div>
@@ -25,7 +24,7 @@
         <span class="small text-muted" id="thCount"></span>
     </div>
     <div class="card-body">
-    {% if cards %}
+    {% if stats.active %}
         <div class="sv-toolbar mb-3">
             <div class="input-group sv-search">
                 <div class="input-group-prepend"><span class="input-group-text bg-white"><i class="fas fa-search"></i></span></div>
@@ -56,7 +55,7 @@
                         <label for="thStatus">{{ _('Thesis status') }}</label>
                         <select id="thStatus" class="form-control form-control-sm">
                             <option value="">{{ _('Any') }}</option>
-                            {% for st in cards|map(attribute='status')|select|unique|list %}
+                            {% for st in status_options %}
                                 <option value="{{ st|lower }}">{{ _(st|replace('-', ' ')|capitalize) }}</option>
                             {% endfor %}
                             <option value="__none">{{ _('No status set') }}</option>
@@ -99,74 +98,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div id="thSource" class="d-none">
-        {% for c in cards %}
-            {% set t = c.thesis %}
-            {% set lvl = (t.level or '')|lower %}
-            {% set icon = {'bachelor': 'fa-seedling', 'master': 'fa-graduation-cap', 'phd': 'fa-microscope'}.get(lvl, 'fa-book-open') %}
-            <div class="sv-item"
-                 data-title="{{ t.title|lower }}"
-                 data-student="{{ (((c.student.name ~ ' ' ~ c.student.surname ~ ' ' ~ c.student.email) if c.student else '') ~ ((' ' ~ c.supervisors|map(attribute='surname')|join(' ')) if show_supervisors else ''))|lower }}"
-                 data-topic="{{ ((t.topic or '') ~ ' ' ~ (c.keywords|join(' ')))|lower }}"
-                 data-level="{{ lvl }}" data-state="{{ c.state }}" data-status="{{ (c.status or '__none')|lower }}"
-                 data-public="{{ 1 if t.is_public else 0 }}" data-interests="{{ c.pending_interests }}"
-                 data-progress="{{ c.progress if c.progress is not none else -1 }}" data-created="{{ t.created_at or 0 }}">
-                <div class="sv-card th-card {{ 'is-assigned' if c.state == 'assigned' else 'is-open' }}">
-                    <a class="th-cover {% if not t.images %}placeholder g{{ t.id % 6 }}{% endif %}" href="{{ url_for(detail_endpoint, thesis_id=t.id) }}">
-                        {% if t.images %}<img src="{{ url_for('media.thesis_image', filename=t.images[0].filename[7:]) }}" alt="" loading="lazy">{% else %}<i class="fas {{ icon }}"></i>{% endif %}
-                        {% if t.level %}<span class="th-level">{{ _(t.level|title) }}</span>{% endif %}
-                        {% if c.pending_interests %}<span class="th-interest"><i class="fas fa-heart"></i> {{ c.pending_interests }}</span>{% endif %}
-                    </a>
-                    <div class="d-flex align-items-start">
-                        <a class="sv-thesis flex-grow-1 text-dark" href="{{ url_for(detail_endpoint, thesis_id=t.id) }}" title="{{ t.title }}">{{ t.title }}</a>
-                        <div class="dropdown ml-2">
-                            <button class="btn btn-link btn-sm text-muted p-0" data-toggle="dropdown" aria-label="{{ _('More') }}"><i class="fas fa-ellipsis-v"></i></button>
-                            <div class="dropdown-menu dropdown-menu-right">
-                                <a class="dropdown-item" href="{{ url_for(detail_endpoint, thesis_id=t.id) }}"><i class="fas fa-eye fa-fw mr-1"></i> {{ _('View Details') }}</a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="#" onclick="freezeThesis({{ t.id }}); return false;"><i class="fas fa-lock fa-fw mr-1 text-warning"></i> {{ _('Freeze') }}</a>
-                                <a class="dropdown-item text-danger" href="#" onclick="deleteThesis({{ t.id }}); return false;"><i class="fas fa-trash fa-fw mr-1"></i> {{ _('Delete') }}</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="sv-badges">
-                        {% if c.status %}<span class="badge badge-info">{{ _(c.status|replace('-', ' ')|capitalize) }}</span>{% endif %}
-                        {% if t.is_public %}<span class="badge badge-success"><i class="fas fa-globe"></i> {{ _('Public') }}</span>
-                        {% else %}<span class="badge badge-light border"><i class="fas fa-eye-slash"></i> {{ _('Private') }}</span>{% endif %}
-                    </div>
-
-                    {% if c.student %}
-                    <div class="th-student">
-                        {% if c.student.profile_pic %}<img class="sm-avatar" src="{{ avatar_url(c.student) }}" alt="">{% else %}<span class="sm-avatar">{{ (c.student.name or '?')[:1] }}{{ (c.student.surname or '')[:1] }}</span>{% endif %}
-                        <div class="min-w-0"><div class="sv-name">{{ user_link(c.student) }}</div><div class="sv-email">{{ c.student.email }}</div></div>
-                    </div>
-                    <div class="sv-progress">
-                        <div class="d-flex justify-content-between small text-muted"><span>{{ _('Tasks') }}</span><span>{% if c.progress is not none %}{{ c.todos_done }}/{{ c.todos_total }}{% else %}—{% endif %}</span></div>
-                        <div class="progress"><div class="progress-bar" style="width: {{ c.progress or 0 }}%"></div></div>
-                    </div>
-                    {% else %}
-                    <div class="th-student th-unassigned"><i class="fas fa-user-plus"></i> {{ _('Not assigned') }}
-                        {% if c.pending_interests %}<span class="badge badge-danger ml-auto">{{ c.pending_interests }} {{ _('interested') }}</span>{% endif %}
-                    </div>
-                    {% endif %}
-
-                    {% if show_supervisors %}
-                    <div class="th-meta"><span title="{{ _('Supervisors') }}"><i class="fas fa-chalkboard-teacher"></i>
-                        {% for sp in c.supervisors %}{{ user_link(sp) }}{% if not loop.last %}, {% endif %}{% else %}<em>{{ _('No supervisor') }}</em>{% endfor %}</span></div>
-                    {% endif %}
-                    <div class="th-meta">
-                        <span title="{{ _('Created') }}"><i class="far fa-calendar"></i> {{ dt(t.created_at).strftime('%b %d, %Y') if t.created_at else '—' }}</span>
-                        {% if c.images %}<span><i class="fas fa-images"></i> {{ c.images }}</span>{% endif %}
-                        {% if c.links %}<span><i class="fas fa-link"></i> {{ c.links }}</span>{% endif %}
-                    </div>
-                    <div class="sv-actions">
-                        <a href="{{ url_for(detail_endpoint, thesis_id=t.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-book-open"></i> {{ _('Open') }}</a>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
         </div>
 
         <div class="sv-carousel">
@@ -218,74 +149,31 @@
 </div>
 {% endif %}
 
+<script src="{{ url_for('static', filename='assets/js/sm-carousel.js') }}"></script>
 <script>
 window.addEventListener('load', function () {
-    var $src = $('#thSource .sv-item');
-    if (!$src.length) return;
-    var items = $src.toArray(), page = 0, filtered = items.slice(), state = '';
-    var $track = $('#thTrack');
-    function pageSize() { var w = window.innerWidth; return w >= 1200 ? 4 : w >= 992 ? 3 : w >= 576 ? 2 : 1; }
-    function val(id) { return ($('#' + id).val() || '').toString().trim().toLowerCase(); }
-    function matches(el) {
-        var d = el.dataset, q = val('thQuery');
-        if (q) {
-            var blob = [d.title, d.student, d.topic].join(' ');
-            if (!q.split(/\s+/).every(function (t) { return blob.indexOf(t) !== -1; })) return false;
-        }
-        if (state && d.state !== state) return false;
-        var v;
-        if ((v = val('thLevel')) && d.level !== v) return false;
-        if ((v = val('thStatus')) && d.status !== v) return false;
-        if ((v = val('thVisibility')) && d.public !== v) return false;
-        if (val('thInterest') === 'pending' && parseInt(d.interests, 10) < 1) return false;
-        if ((v = val('thTopic')) && d.topic.indexOf(v) === -1) return false;
-        if ((v = val('thStudent')) && d.student.indexOf(v) === -1) return false;
-        return true;
-    }
-    function sorter(a, b) {
-        var by = $('#thSort').val(), A = a.dataset, B = b.dataset;
-        if (by === 'title') return A.title.localeCompare(B.title);
-        if (by === 'progress') return parseInt(B.progress, 10) - parseInt(A.progress, 10);
-        if (by === 'level') return (A.level || '').localeCompare(B.level || '') || A.title.localeCompare(B.title);
-        return parseInt(B.created, 10) - parseInt(A.created, 10);
-    }
-    function filterCount() { var n = 0; ['thLevel','thStatus','thVisibility','thInterest','thTopic','thStudent'].forEach(function (id) { if (val(id)) n++; }); return n; }
-    function render() {
-        var size = pageSize(), pages = Math.max(1, Math.ceil(filtered.length / size));
-        page = Math.min(page, pages - 1);
-        $track.empty();
-        for (var i = 0; i < pages; i++) {
-            var $p = $('<div class="sv-page"></div>').css('grid-template-columns', 'repeat(' + size + ', minmax(0, 1fr))');
-            filtered.slice(i * size, (i + 1) * size).forEach(function (el) {
-                $p.append($('<div class="sv-slot"></div>').append($(el).children().first().clone(true, true)));
-            });
-            $track.append($p);
-        }
-        $track.css('transform', 'translateX(' + (-100 * page) + '%)');
-        var from = filtered.length ? page * size + 1 : 0, to = Math.min(filtered.length, (page + 1) * size);
-        $('#thCount').text(filtered.length ? from + '–' + to + ' / ' + filtered.length : '0');
-        $('#thPrev').prop('disabled', page === 0); $('#thNext').prop('disabled', page >= pages - 1);
-        $('#thSection .sv-carousel').toggle(filtered.length > 0); $('#thEmpty').toggle(filtered.length === 0);
-        var $dots = $('#thDots').empty();
-        if (pages > 1) for (var j = 0; j < pages; j++) $('<button type="button" class="sv-dot"></button>').toggleClass('active', j === page).attr('data-page', j).appendTo($dots);
-        var n = filterCount(); $('#thFilterBadge').text(n).toggle(n > 0);
-    }
-    function apply(reset) { filtered = items.filter(matches).sort(sorter); if (reset) page = 0; render(); }
-    $('#thQuery, #thTopic, #thStudent').on('input', function () { apply(true); });
-    $('#thLevel, #thStatus, #thVisibility, #thInterest, #thSort').on('change', function () { apply(true); });
-    $('#thChips').on('click', 'button', function () { $('#thChips button').removeClass('active'); $(this).addClass('active'); state = $(this).data('state'); apply(true); });
+    if (!document.getElementById('thTrack')) return;
+    var state = '';
+    function cols() { var w = window.innerWidth; return w >= 1200 ? 4 : w >= 992 ? 3 : w >= 576 ? 2 : 1; }
+    function val(id) { return ($('#' + id).val() || '').toString().trim(); }
+    var FILTERS = ['thLevel', 'thStatus', 'thVisibility', 'thInterest', 'thTopic', 'thStudent'];
+    var car = SmCarousel({
+        root: '#thSection', empty: '#thEmpty', count: '#thCount', cols: cols, rows: 1,
+        remote: {
+            url: {{ cards_url|tojson }},
+            params: function () {
+                return {q: val('thQuery'), state: state, level: val('thLevel'), status: val('thStatus'), visibility: val('thVisibility'),
+                        interest: val('thInterest'), topic: val('thTopic'), student: val('thStudent'), sort: val('thSort')};
+            }
+        },
+        onRender: function () { var n = FILTERS.filter(function (id) { return val(id); }).length; $('#thFilterBadge').text(n).toggle(n > 0); }
+    });
+    $('#thQuery, #thTopic, #thStudent').on('input', function () { car.apply(true); });
+    $('#thLevel, #thStatus, #thVisibility, #thInterest, #thSort').on('change', function () { car.apply(true); });
+    $('#thChips').on('click', 'button', function () { $('#thChips button').removeClass('active'); $(this).addClass('active'); state = $(this).data('state'); car.apply(true); });
     $('#thReset').on('click', function () {
         $('#thQuery, #thTopic, #thStudent').val(''); $('#thLevel, #thStatus, #thVisibility, #thInterest').val(''); $('#thSort').val('newest');
-        $('#thChips button').removeClass('active').first().addClass('active'); state = ''; apply(true);
+        $('#thChips button').removeClass('active').first().addClass('active'); state = ''; car.apply(true);
     });
-    $('#thPrev').on('click', function () { if (page > 0) { page--; render(); } });
-    $('#thNext').on('click', function () { page++; render(); });
-    $('#thDots').on('click', '.sv-dot', function () { page = parseInt($(this).attr('data-page'), 10); render(); });
-    var x0 = null;
-    $('#thSection .sv-viewport').on('touchstart', function (e) { x0 = e.originalEvent.touches[0].clientX; })
-        .on('touchend', function (e) { if (x0 === null) return; var dx = e.originalEvent.changedTouches[0].clientX - x0; if (dx > 50) $('#thPrev').click(); else if (dx < -50) $('#thNext').click(); x0 = null; });
-    var last = pageSize();
-    $(window).on('resize', function () { if (pageSize() !== last) { last = pageSize(); render(); } });
-    apply(true);
 });
 </script>

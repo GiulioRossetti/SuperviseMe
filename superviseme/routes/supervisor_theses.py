@@ -2,7 +2,6 @@
 """
 from flask import request, render_template, abort, redirect, url_for, flash
 from flask_login import login_required, current_user
-from sqlalchemy.orm import joinedload
 from superviseme.utils.miscellanea import check_privileges
 from superviseme.routes._supervision import ep, supervision_gate
 from superviseme.utils.thesis_management import delete_thesis_with_dependencies
@@ -36,13 +35,20 @@ def theses_data():
     if privilege_check is not True:
         return privilege_check
     
-    # Get theses through the supervisor relationship
-    thesis_supervisors = Thesis_Supervisor.query.filter_by(supervisor_id=current_user.id)\
-        .options(joinedload(Thesis_Supervisor.thesis).joinedload(Thesis.author))\
-        .all()
-    from superviseme.utils.thesis_board import build_thesis_cards
-    cards, archived = build_thesis_cards([ts.thesis for ts in thesis_supervisors])
-    return render_template("supervisor/theses.html", cards=cards, archived=archived, dt=datetime.fromtimestamp)
+    from superviseme.utils.thesis_board import board_context, supervised_scope
+    return render_template("supervisor/theses.html", dt=datetime.fromtimestamp,
+                           **board_context(supervised_scope(current_user.id)))
+
+
+@supervisor.route("/supervisor/theses/cards")
+@login_required
+def theses_cards():
+    """One page of thesis cards (JSON), filtered and paginated server-side."""
+    privilege_check = check_privileges(current_user.username, role="supervisor")
+    if privilege_check is not True:
+        return privilege_check
+    from superviseme.utils.thesis_board import board_response, supervised_scope
+    return board_response(supervised_scope(current_user.id), request, "supervisor.thesis_detail")
 
 
 @supervisor.route("/supervisor/thesis/<thesis_id>")

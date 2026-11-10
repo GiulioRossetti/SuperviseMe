@@ -324,7 +324,7 @@ def test_read_only_profile_pages_and_permissions(client, admin_user, supervisor_
 def test_names_are_links_on_supervisor_pages(client, supervisor_user, student_user):
     t = _assign(student_user, supervisor_user)
     login(client, supervisor_user)
-    assert f"/users/{student_user.id}".encode() in client.get("/supervisor/theses").data
+    assert f"/users/{student_user.id}".encode() in client.get("/supervisor/theses/cards").get_json()["html"].encode()
     assert f"/users/{student_user.id}".encode() in client.get(f"/supervisor/thesis/{t.id}").data
 
 
@@ -338,11 +338,11 @@ def test_supervisor_theses_board(client, supervisor_user, student_user):
     login(client, supervisor_user)
     r = client.get("/supervisor/theses")
     assert r.status_code == 200
-    assert b"thTrack" in r.data and b"thAdvanced" in r.data and b"thSource" in r.data
-    assert r.data.count(b'class="sv-item"') + r.data.count(b'class="sv-item\n') >= 0
+    assert b"thTrack" in r.data and b"thAdvanced" in r.data and b"/supervisor/theses/cards" in r.data
     assert b"thArchived" in r.data and b"createThesisModal" in r.data
     assert b"freezeThesis" in r.data and b"deleteThesis" in r.data
-    assert f"/users/{student_user.id}".encode() in r.data
+    cards = client.get("/supervisor/theses/cards").get_json()
+    assert cards["total"] == 2 and f"/users/{student_user.id}".encode() in cards["html"].encode()
 
 
 def test_researcher_theses_board(client, researcher_user, student_user):

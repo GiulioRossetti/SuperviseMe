@@ -30,7 +30,7 @@
                         </button>
                     </div>
 
-                    {% with detail_endpoint='researcher.supervisor_thesis_detail' %}{% include 'components/theses_board.html' %}{% endwith %}
+                    {% with cards_url=url_for('researcher.supervisor_theses_cards'), detail_endpoint='researcher.supervisor_thesis_detail' %}{% include 'components/theses_board.html' %}{% endwith %}
 
                 </div>
                 <!-- /.container-fluid -->
