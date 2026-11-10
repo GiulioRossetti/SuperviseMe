@@ -940,3 +940,18 @@ def test_login_has_prominent_catalog_link(client):
     assert 'class="btn-browse"' in html and 'href="/theses"' in html
     assert "Browse thesis opportunities" in html and "No account needed" in html
     assert html.index("btn-browse") > html.index("btn-login")  # below the sign-in button
+
+
+def test_admin_dashboard_with_several_supervisors(client, admin_user, supervisor_user, researcher_user, student_user):
+    from tests.conftest import _make_user
+    other_sup = _make_user("supervisor", "second_sup", "second_sup@test.com")
+    s2 = _make_user("student", "stud_two", "stud_two@test.com")
+    s3 = _make_user("student", "stud_three", "stud_three@test.com")
+    _assign(student_user, supervisor_user)
+    _assign(s2, supervisor_user)
+    _assign(s3, other_sup)
+    login(client, admin_user)
+    r = client.get("/admin/dashboard")
+    assert r.status_code == 200
+    html = r.get_data(as_text=True)
+    assert html.index("Supervisor_test") < html.index("Second_sup")  # busiest supervisor first

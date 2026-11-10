@@ -44,7 +44,7 @@
                                 {% for l, theses in theses_by_supervisor.items() %}{% if theses|length > maxn[0] %}{% set _x = maxn.__setitem__(0, theses|length) %}{% endif %}{% endfor %}
                                 {% if theses_by_supervisor %}
                                 <div class="dash-people">
-                                    {% for l, theses in theses_by_supervisor.items()|sort(attribute='1', reverse=True) %}
+                                    {% for l, theses in workload %}
                                     <a class="dash-person" data-toggle="collapse" href="#wl{{ l.id }}" role="button" aria-expanded="false">
                                         <div class="top">{{ avatar(l) }}<div style="min-width:0"><div class="nm">{{ l.name }} {{ l.surname }}</div><div class="th">{{ l.email }}</div></div></div>
                                         <div class="progress"><div class="progress-bar" style="width: {{ 100 * theses|length / maxn[0] }}%"></div></div>
