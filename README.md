@@ -130,6 +130,7 @@ Configuration is read from environment variables (see `.env.example` and [docs/c
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` | Telegram notifications |
 | `BASE_URL` | Public URL used in emails and links |
 | `COOKIE_SECURE` | Force the `Secure` flag on session cookies on/off (default: on in production) |
+| `CSP_MODE`, `CSP_EXTRA_SOURCES`, `CSP_REPORT_URI` | Content-Security-Policy: `enforce` (default), `report-only` or `off`; extra allowed sources; optional report endpoint |
 | `UPLOAD_FOLDER` | Where uploaded documents and images are stored |
 | `RETENTION_MONTHS` | Data retention window (default 24) |
 | `ENABLE_SCHEDULER` | Enable background jobs; set to `true` on exactly one worker |

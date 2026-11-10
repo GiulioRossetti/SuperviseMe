@@ -313,6 +313,9 @@ def create_app(db_type="sqlite", skip_user_init=False):
         REMEMBER_COOKIE_HTTPONLY=True,
         REMEMBER_COOKIE_SECURE=cookie_secure,
         REMEMBER_COOKIE_SAMESITE="Lax",
+        CSP_MODE=os.environ.get("CSP_MODE", "enforce"),
+        CSP_EXTRA_SOURCES=os.environ.get("CSP_EXTRA_SOURCES", ""),
+        CSP_REPORT_URI=os.environ.get("CSP_REPORT_URI", ""),
     )
     from superviseme.utils import security as _security
     _security.reset_throttle()

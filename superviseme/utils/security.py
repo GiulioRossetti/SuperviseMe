@@ -93,8 +93,41 @@ def validate_password(password):
     return None
 
 
+def build_csp():
+    """Content-Security-Policy string (pragmatic policy).
+
+    'unsafe-inline' stays for scripts/styles because templates still use inline
+    handlers and <script> blocks; everything else is restricted to this origin
+    plus the few CDNs the UI loads fonts/styles from. CSP_EXTRA_SOURCES (space
+    separated) is appended to script/style/font/img/connect, CSP_REPORT_URI
+    adds a report endpoint.
+    """
+    extra = " ".join((_cfg("CSP_EXTRA_SOURCES", "") or "").split())
+    def src(base):
+        return (base + " " + extra).strip()
+    directives = [
+        "default-src 'self'",
+        src("script-src 'self' 'unsafe-inline'"),
+        src("style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com"),
+        src("font-src 'self' data: https://fonts.gstatic.com"),
+        src("img-src 'self' data: blob: https:"),
+        src("connect-src 'self'"),
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'self'",
+    ]
+    report = _cfg("CSP_REPORT_URI", "")
+    if report:
+        directives.append(f"report-uri {report}")
+    return "; ".join(directives)
+
+
 def apply_security_headers(response):
     h = response.headers
+    mode = str(_cfg("CSP_MODE", "enforce")).lower()
+    if mode in ("enforce", "report-only"):
+        name = "Content-Security-Policy" + ("-Report-Only" if mode == "report-only" else "")
+        h.setdefault(name, build_csp())
     h.setdefault("X-Content-Type-Options", "nosniff")
     h.setdefault("X-Frame-Options", "SAMEORIGIN")
     h.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")

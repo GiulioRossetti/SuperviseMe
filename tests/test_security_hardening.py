@@ -72,3 +72,19 @@ def test_api_post_requires_same_origin_xhr(client, student_user):
                      headers={"X-Requested-With": "XMLHttpRequest", "Origin": "http://localhost"})
     assert ok.status_code == 200
     assert client.get("/api/v1/users/me").status_code == 200
+
+
+def test_csp_header_modes(app):
+    c = app.test_client()
+    csp = c.get("/login").headers.get("Content-Security-Policy")
+    assert csp and "default-src 'self'" in csp and "object-src 'none'" in csp
+    assert "frame-ancestors 'self'" in csp
+    app.config["CSP_MODE"] = "report-only"
+    h = app.test_client().get("/login").headers
+    assert "Content-Security-Policy" not in h and "Content-Security-Policy-Report-Only" in h
+    app.config["CSP_MODE"] = "off"
+    h = app.test_client().get("/login").headers
+    assert "Content-Security-Policy" not in h and "Content-Security-Policy-Report-Only" not in h
+    app.config.update(CSP_MODE="enforce", CSP_EXTRA_SOURCES="https://cdn.example", CSP_REPORT_URI="/csp")
+    csp = app.test_client().get("/login").headers["Content-Security-Policy"]
+    assert "https://cdn.example" in csp and "report-uri /csp" in csp
