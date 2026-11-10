@@ -102,7 +102,7 @@ def recreate_postgresql_database(app, force=False):
     print(f"Connecting to PostgreSQL: {user}@{host}:{port}/{dbname}")
     
     # Connect to postgres database to manage target database
-    admin_uri = f"postgresql://{user}:{password}@{host}:{port}/postgres"
+    admin_uri = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/postgres"
     admin_engine = create_engine(admin_uri)
     
     try:

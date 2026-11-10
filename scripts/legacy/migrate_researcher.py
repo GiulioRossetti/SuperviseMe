@@ -19,7 +19,7 @@ def get_db_engine():
         host = os.getenv("PG_HOST", "localhost")
         port = os.getenv("PG_PORT", "5432")
         dbname = os.getenv("PG_DBNAME", "dashboard")
-        return create_engine(f"postgresql://{user}:{password}@{host}:{port}/{dbname}")
+        return create_engine(f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}")
     else:
         # SQLite local development
         base_dir = os.path.dirname(os.path.abspath(__file__))

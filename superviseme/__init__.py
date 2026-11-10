@@ -116,14 +116,14 @@ def create_postgresql_db(app):
     dbname = os.getenv("PG_DBNAME", "dashboard")
     _validate_postgres_dbname(dbname)
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}"
 
     app.config["SQLALCHEMY_BINDS"] = {
-        "db_admin": f"postgresql://{user}:{password}@{host}:{port}/{dbname}",
+        "db_admin": f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{dbname}",
     }
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {}
 
-    admin_uri = f"postgresql://{user}:{password}@{host}:{port}/postgres"
+    admin_uri = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/postgres"
     created_db = False
     admin_engine = create_engine(admin_uri)
     try:
