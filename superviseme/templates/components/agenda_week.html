@@ -1,5 +1,5 @@
 {# Weekly agenda grid. Expects: week (see routes.workflow._week_view), dt, is_sup. #}
-<section class="dash-panel ag-week-panel">
+<section class="dash-panel ag-week-panel" id="agWeek">
     <header>
         <h6><i class="far fa-calendar-alt"></i> {{ week.monday.strftime('%d %b') }} – {{ week.sunday.strftime('%d %b %Y') }}</h6>
         <div class="ag-weeknav">
@@ -8,7 +8,7 @@
             <a class="btn btn-light btn-sm border" href="{{ url_for('workflow.agenda', week=week.next, person=person_id) }}" title="{{ _('Next week') }}" aria-label="{{ _('Next week') }}"><i class="fas fa-chevron-right"></i></a>
             <form method="GET" action="{{ url_for('workflow.agenda') }}" class="d-inline-flex ml-1">
                 {% if person_id %}<input type="hidden" name="person" value="{{ person_id }}">{% endif %}
-                <input type="date" name="week" class="form-control form-control-sm" value="{{ week.monday.isoformat() }}" onchange="this.form.submit()" aria-label="{{ _('Go to date') }}">
+                <input type="date" name="week" class="form-control form-control-sm" value="{{ week.monday.isoformat() }}" aria-label="{{ _('Go to date') }}">
             </form>
         </div>
     </header>
@@ -50,3 +50,39 @@
         </div>
     </div>
 </section>
+
+<script>
+(function () {
+    if (window.__agWeekBound || !window.fetch) { return; }
+    window.__agWeekBound = true;
+    var seq = 0;
+    function go(url, push) {
+        var box = document.getElementById('agWeek'), id = ++seq;
+        if (!box) { location.href = url; return; }
+        box.style.opacity = '.55';
+        fetch(url, {credentials: 'same-origin'})
+            .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+            .then(function (html) {
+                if (id !== seq) { return; }
+                var fresh = new DOMParser().parseFromString(html, 'text/html').getElementById('agWeek');
+                if (!fresh) { location.href = url; return; }
+                box.replaceWith(fresh);
+                if (push) { history.pushState({agWeek: true}, '', url); }
+            })
+            .catch(function () { location.href = url; });
+    }
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest('#agWeek .ag-weeknav a');
+        if (a && !e.metaKey && !e.ctrlKey && !e.shiftKey) { e.preventDefault(); go(a.href, true); }
+    });
+    document.addEventListener('change', function (e) {
+        var inp = e.target.closest('#agWeek .ag-weeknav input[type=date]');
+        if (inp && inp.value) { var f = inp.form; go(f.action + '?' + new URLSearchParams(new FormData(f)).toString(), true); }
+    });
+    document.addEventListener('submit', function (e) {
+        var f = e.target.closest('#agWeek .ag-weeknav form');
+        if (f) { e.preventDefault(); go(f.action + '?' + new URLSearchParams(new FormData(f)).toString(), true); }
+    });
+    window.addEventListener('popstate', function () { go(location.href, false); });
+})();
+</script>

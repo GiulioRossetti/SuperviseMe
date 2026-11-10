@@ -1032,3 +1032,10 @@ def test_admin_agenda_person_selector(client, admin_user, supervisor_user, stude
     assert "Export calendar" not in html
     # a non-supervisor/researcher id is ignored
     assert "Other meeting" in client.get(f"/agenda?person={student_user.id}").data.decode()
+
+
+def test_agenda_week_is_ajax_swappable(client, admin_user):
+    login(client, admin_user)
+    html = client.get("/agenda?week=2026-11-02").data.decode()
+    assert 'id="agWeek"' in html and "__agWeekBound" in html and 'onchange="this.form.submit()"' not in html.split('id="agWeek"')[1].split("</section>")[0]
+    assert "week=2026-11-09" in html
