@@ -9,7 +9,7 @@ Repository: <https://github.com/GiulioRossetti/SuperviseMe>
 Choose one setup path:
 
 - Local Python setup:
-  - Python 3.8+
+  - Python 3.10+ (3.12 recommended)
   - `pip`
   - (Optional) PostgreSQL if you do not want SQLite
 - Docker setup:

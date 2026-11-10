@@ -8,8 +8,9 @@ edit_uri: edit/main/docs/
 
 theme:
   name: material
-  logo: assets/img/logo.svg
-  favicon: assets/img/logo.svg
+  custom_dir: overrides
+  logo: assets/img/mark.svg
+  favicon: assets/img/mark.svg
   font:
     text: Inter
     code: JetBrains Mono
@@ -31,14 +32,14 @@ theme:
     - announce.dismiss
   palette:
     - scheme: default
-      primary: deep purple
-      accent: amber
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
     - scheme: slate
-      primary: deep purple
-      accent: amber
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
@@ -54,22 +55,28 @@ extra:
 extra_css:
   - stylesheets/extra.css
 
+extra_javascript:
+  - javascripts/extra.js
+
 exclude_docs: |
   archive/
 
 nav:
   - Home: index.md
-  - Setup:
+  - Get started:
     - Installation & First Run: installation.md
     - Configuration: configuration.md
     - Database: database_setup.md
-    - Social Logins: social_login.md
-    - Telegram Setup: telegram_setup.md
-  - Deployment:
     - Docker: docker_deployment.md
     - Runbook: deployment_runbook.md
-  - API:
+  - Platform:
+    - Roles & Workflows: platform.md
+    - Administration: administration.md
+  - Integrations:
+    - ORCID: features/orcid.md
     - REST API v1: api.md
+    - Social Logins: social_login.md
+    - Telegram: telegram_setup.md
   - Guides:
     - i18n & Multilingual: i18n.md
 

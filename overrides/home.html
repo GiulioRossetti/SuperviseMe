@@ -1,0 +1,113 @@
+{% extends "main.html" %}
+{% block tabs %}{{ super() }}{% endblock %}
+{% block content %}{% endblock %}
+{% block site_nav %}{% endblock %}
+{% block container %}
+<main class="sm-home md-typeset">
+  <div class="sm-bg" aria-hidden="true"></div>
+
+  <section class="sm-hero">
+    <div class="sm-hero__text">
+      <span class="sm-pill sm-pill--lg">NEW</span>
+      <span class="sm-hero__tag">Backup, statistics &amp; duplicate merge</span>
+      <h1>Thesis supervision,<br><span class="sm-grad">finally organised.</span></h1>
+      <p class="sm-lead">SuperviseMe brings students, supervisors, researchers and admins onto one open-source platform: thesis milestones, meetings, research projects, outputs and reminders — in a single clear workflow.</p>
+      <div class="sm-cta">
+        <a class="sm-btn sm-btn--primary" href="installation/">Get started</a>
+        <a class="sm-btn" href="platform/">Explore the platform</a>
+        <a class="sm-btn sm-btn--ghost" href="{{ config.repo_url }}">★ GitHub</a>
+      </div>
+      <ul class="sm-trust">
+        <li>Open source · GPL-3.0</li><li>Docker ready</li><li>ORCID &amp; REST API</li>
+      </ul>
+    </div>
+    <div class="sm-hero__card" role="img" aria-label="Illustrative supervision board">
+      <div class="sm-board">
+        <div class="sm-board__head"><span>Supervision board</span><em>illustrative</em></div>
+        <div class="sm-row"><b>Anna R.</b><span>Network diffusion models</span><div class="sm-bar"><i style="width:72%"></i></div><small>72%</small></div>
+        <div class="sm-row"><b>Marco T.</b><span>Graph embeddings for rec.</span><div class="sm-bar"><i style="width:45%"></i></div><small>45%</small></div>
+        <div class="sm-row"><b>Sara L.</b><span>Fair ranking in social nets</span><div class="sm-bar"><i style="width:90%"></i></div><small>90%</small></div>
+        <div class="sm-board__foot">
+          <div><small>Next milestone</small><strong>Draft chapter 3</strong></div>
+          <div><small>Next meeting</small><strong>Thu 15:00</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sm-section sm-reveal">
+    <h2>See it in action</h2>
+    <p class="sm-sub">Real screens from the running platform.</p>
+    <div class="sm-shots">
+      <figure><img src="assets/images/supervisor-dashboard.png" alt="Supervisor dashboard" loading="lazy"><figcaption>Supervisor dashboard</figcaption></figure>
+      <figure><img src="assets/images/student-thesis.png" alt="Student thesis page" loading="lazy"><figcaption>Student thesis</figcaption></figure>
+      <figure><img src="assets/images/agenda.png" alt="Agenda" loading="lazy"><figcaption>Agenda</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="sm-section">
+    <h2 class="sm-reveal">The interface</h2>
+    <div class="sm-split sm-reveal">
+      <div><h3>Everything about a thesis, in one place</h3><p>Milestones, to-dos, meetings, files and a shared timeline. Students always know what is next; supervisors see who needs attention at a glance.</p><a href="platform/">Roles &amp; workflows →</a></div>
+      <img src="assets/images/admin-thesis.png" alt="Admin thesis view" loading="lazy">
+    </div>
+    <div class="sm-split sm-split--rev sm-reveal">
+      <div><h3>Research projects and outputs</h3><p>Researchers manage projects, publications, datasets and software, import from ORCID and link outputs to people, projects and theses.</p><a href="features/orcid/">ORCID integration →</a></div>
+      <img src="assets/images/researcher-projects.png" alt="Researcher projects" loading="lazy">
+    </div>
+    <div class="sm-split sm-reveal">
+      <div><h3>Admin tools that scale</h3><p>Users, capacity limits, reminders, statistics, duplicate merge, activity trail and one-click backup and restore.</p><a href="administration/">Administration guide →</a></div>
+      <img src="assets/images/admin-dashboard.png" alt="Admin dashboard" loading="lazy">
+    </div>
+  </section>
+
+  <section class="sm-section sm-reveal">
+    <h2>What you get</h2>
+    <div class="sm-grid">
+      <div class="sm-card"><h3>Thesis lifecycle</h3><p>Proposals, assignments, milestones, to-dos, meetings and final state tracking.</p></div>
+      <div class="sm-card"><h3>Research outputs</h3><p>Publications, datasets and software with BibTeX, CodeMeta and CITATION.cff exports.</p></div>
+      <div class="sm-card"><h3>Smart reminders</h3><p>Email and Telegram nudges for deadlines, capacity and stalled projects.</p></div>
+      <div class="sm-card"><h3>Capacity control</h3><p>Per-supervisor limits with defaults and warning thresholds.</p></div>
+      <div class="sm-card"><h3>Integrations</h3><p>ORCID import with Crossref enrichment, social login and a REST API v1.</p></div>
+      <div class="sm-card"><h3>Safe operations</h3><p>Audit trail, duplicate detection and portable backups tied to the schema.</p></div>
+    </div>
+  </section>
+
+  <section class="sm-section sm-reveal">
+    <h2>Who uses it</h2>
+    <div class="sm-grid sm-grid--4">
+      <div class="sm-card"><h3>Students</h3><p>Track progress and deadlines, share files, book meetings.</p></div>
+      <div class="sm-card"><h3>Supervisors</h3><p>Oversee all theses, spot delays, keep an agenda.</p></div>
+      <div class="sm-card"><h3>Researchers</h3><p>Manage projects, outputs and ORCID imports.</p></div>
+      <div class="sm-card"><h3>Admins</h3><p>Run users, reports, statistics and backups.</p></div>
+    </div>
+  </section>
+
+  <section class="sm-section sm-reveal">
+    <h2>Start now</h2>
+    <div class="sm-steps">
+      <div><span>1</span><h3>Clone</h3><p>Get the code from GitHub.</p></div>
+      <div><span>2</span><h3>Configure</h3><p>Copy <code>.env.example</code> and set your secrets.</p></div>
+      <div><span>3</span><h3>Run</h3><p>Start with Docker or pip.</p></div>
+    </div>
+    <div class="sm-code">
+<pre><code>git clone https://github.com/GiulioRossetti/SuperviseMe.git
+cd SuperviseMe
+cp .env.example .env
+docker compose up -d</code></pre>
+    </div>
+  </section>
+
+  <section class="sm-section sm-reveal">
+    <h2>Keep exploring</h2>
+    <div class="sm-grid">
+      <a class="sm-card sm-card--link" href="installation/"><h3>Installation →</h3><p>Local setup and first run.</p></a>
+      <a class="sm-card sm-card--link" href="configuration/"><h3>Configuration →</h3><p>Environment variables reference.</p></a>
+      <a class="sm-card sm-card--link" href="deployment_runbook/"><h3>Runbook →</h3><p>Production deployment checklist.</p></a>
+      <a class="sm-card sm-card--link" href="api/"><h3>REST API →</h3><p>Endpoints and authentication.</p></a>
+      <a class="sm-card sm-card--link" href="i18n/"><h3>i18n →</h3><p>Multilingual interface.</p></a>
+      <a class="sm-card sm-card--link" href="administration/"><h3>Administration →</h3><p>Backups, stats, duplicates.</p></a>
+    </div>
+  </section>
+</main>
+{% endblock %}

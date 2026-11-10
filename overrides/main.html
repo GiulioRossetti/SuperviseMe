@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block announce %}
+  <a href="{{ config.repo_url }}/releases">
+    <span class="sm-pill">NEW</span> Backup &amp; restore, duplicate merge and platform statistics are here — see the <strong>Administration</strong> guide →
+  </a>
+{% endblock %}
+
+{% block header %}
+  <div id="sm-progress" aria-hidden="true"></div>
+  {{ super() }}
+{% endblock %}
+
+{% block footer %}
+  <footer class="sm-footer">
+    <div class="sm-footer__grid">
+      <div class="sm-footer__brand">
+        <a class="sm-footer__logo" href="{{ config.site_url }}"><img src="{{ 'assets/img/mark.svg' | url }}" alt="" width="28" height="28"> SuperviseMe</a>
+        <p>Open-source platform for thesis supervision and research project management.</p>
+      </div>
+      <div>
+        <h4>Get started</h4>
+        <a href="{{ 'installation/' | url }}">Installation</a>
+        <a href="{{ 'docker_deployment/' | url }}">Docker</a>
+        <a href="{{ 'configuration/' | url }}">Configuration</a>
+      </div>
+      <div>
+        <h4>Platform</h4>
+        <a href="{{ 'platform/' | url }}">Roles &amp; workflows</a>
+        <a href="{{ 'administration/' | url }}">Administration</a>
+        <a href="{{ 'features/orcid/' | url }}">ORCID</a>
+        <a href="{{ 'api/' | url }}">REST API</a>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <a href="{{ config.repo_url }}">GitHub</a>
+        <a href="{{ config.repo_url }}/issues">Issues</a>
+        <a href="{{ config.repo_url }}/blob/main/LICENSE">GPL-3.0 license</a>
+      </div>
+    </div>
+    <div class="sm-footer__bar">
+      <span>© Giulio Rossetti · KDDSNA, ISTI-CNR</span>
+      <span>Built with MkDocs Material</span>
+    </div>
+  </footer>
+{% endblock %}
