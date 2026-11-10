@@ -992,3 +992,12 @@ a.doc-item:hover { border-color: var(--sm-primary); color: inherit; }
 .ag-key { display: inline-block; width: .8rem; height: .8rem; border-radius: .2rem; margin: 0 .2rem 0 .6rem; vertical-align: -.1rem; }
 .ag-key.meeting { background: #4e73df; } .ag-key.slot { background: #1cc88a; } .ag-key.busy { background: #b5b9c7; }
 @media (max-width: 991px) { .ag-week { grid-template-columns: 1fr; } .ag-daycol { min-height: 0; } }
+
+/* compact panels: stack form fields and let the panel fill its column (4 panels on one row) */
+.sm-compact .dash-panel { height: 100%; margin-bottom: 0; }
+.sm-compact .form-row > [class*="col-"] { flex: 0 0 100%; max-width: 100%; }
+.sm-compact .dash-panel > header { flex-wrap: wrap; gap: .35rem; }
+.sm-compact .ms-list li { flex-wrap: wrap; }
+.sm-compact .ms-body { min-width: 0; overflow-wrap: anywhere; }
+.sm-compact .doc-item { min-width: 0; }
+.sm-compact .doc-main { min-width: 0; overflow-wrap: anywhere; }

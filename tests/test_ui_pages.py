@@ -883,3 +883,18 @@ def test_agenda_week_navigation_call_links_and_feed(client, supervisor_user, stu
     client.post("/agenda/feed/token", data={"action": "revoke"})
     assert User_mgmt.query.get(student_user.id).agenda_token is None
     assert "URL:" not in build_calendar([{"uid": 1, "title": "x", "start": 0, "end": 60}])
+
+
+def test_student_thesis_compact_row_under_activity(client, supervisor_user, student_user):
+    _assign(student_user, supervisor_user)
+    login(client, student_user)
+    html = client.get("/student/thesis").get_data(as_text=True)
+    act = html.index("My Activity")
+    row = html.index('class="row sm-compact"')
+    objectives = html.index('id="objectives"')
+    assert act < row < objectives
+    block = html[row:objectives]
+    positions = [block.index(i) for i in ('id="milestones"', 'id="documents"', 'id="checklist"', 'id="team"')]
+    assert positions == sorted(positions)
+    assert block.count("col-xl-3") == 4  # four panels sharing one row on wide screens
+    assert html.count('id="milestones"') == 1  # no leftover full-width copies

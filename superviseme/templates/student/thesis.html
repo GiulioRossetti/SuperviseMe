@@ -114,10 +114,6 @@
                     </div>
 
                     {% with uid='stu' %}{% include 'components/thesis_media_view.html' %}{% endwith %}
-                    {% with mm_role='student', mm_next=url_for('student.thesis_data') %}{% include 'components/milestones.html' %}{% endwith %}
-                    {% with mm_role='student', mm_next=url_for('student.thesis_data') %}{% include 'components/documents.html' %}{% endwith %}
-                    {% with mm_role='student', mm_next=url_for('student.thesis_data') %}{% include 'components/checklist.html' %}{% endwith %}
-                    {% with mm_role='student', mm_next=url_for('student.thesis_data') %}{% include 'components/team.html' %}{% endwith %}
 
                     <!-- Thesis Status Timeline -->
                     <div class="row">
@@ -187,6 +183,22 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Roadmap, documents, checklist and team: compact panels on a single row -->
+                    <div class="row sm-compact">
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            {% with mm_role='student', mm_next=url_for('student.thesis_data') %}{% include 'components/milestones.html' %}{% endwith %}
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            {% with mm_role='student', mm_next=url_for('student.thesis_data') %}{% include 'components/documents.html' %}{% endwith %}
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            {% with mm_role='student', mm_next=url_for('student.thesis_data') %}{% include 'components/checklist.html' %}{% endwith %}
+                        </div>
+                        <div class="col-xl-3 col-md-6 mb-4">
+                            {% with mm_role='student', mm_next=url_for('student.thesis_data') %}{% include 'components/team.html' %}{% endwith %}
                         </div>
                     </div>
 
