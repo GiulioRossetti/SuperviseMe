@@ -190,7 +190,7 @@ SuperviseMe/
 ├── superviseme/
 │   ├── __init__.py          # Application factory, config, startup upgrade
 │   ├── models.py            # SQLAlchemy models
-│   ├── routes/              # auth, admin, supervisor, student, researcher,
+│   ├── routes/              # auth, admin (+_theses, _system), supervisor (+_theses, _workspace), student, researcher (+_projects),
 │   │                        # profile, public, media, workflow, notifications, api_v1
 │   ├── services/            # Service layer
 │   ├── utils/               # Domain helpers: projects, checklist, documents,
