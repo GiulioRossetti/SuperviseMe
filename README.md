@@ -12,7 +12,9 @@
   📘 <a href="https://giuliorossetti.github.io/SuperviseMe/">Full documentation</a>
 </p>
 
-![SuperviseMe login](docs/assets/images/login.png)
+<p align="center">
+  <img src="docs/assets/images/admin-dashboard.png" alt="SuperviseMe admin dashboard" width="760">
+</p>
 
 SuperviseMe is a Flask web application that brings supervisors, students, researchers and administrators onto a single platform: thesis catalog and assignment, progress tracking, milestones, documents, meetings, graduation checklists, research projects, reports and notifications. Every role gets a dashboard and navigation tailored to its tasks, all built on a shared design language.
 
@@ -55,31 +57,14 @@ SuperviseMe is a Flask web application that brings supervisors, students, resear
 
 ## 📸 Screenshots
 
-Captured from the demo data produced by `scripts/seed_database.py`.
+Captured from the demo data produced by `scripts/seed_database.py`. Click a thumbnail for the full-size image.
 
-### Administrator
-
-![Admin dashboard](docs/assets/images/admin-dashboard.png)
-
-![Admin users](docs/assets/images/admin-users.png)
-
-![Admin thesis detail](docs/assets/images/admin-thesis.png)
-
-### Supervisor
-
-![Supervisor dashboard](docs/assets/images/supervisor-dashboard.png)
-
-### Student
-
-![Student thesis workspace](docs/assets/images/student-thesis.png)
-
-### Researcher
-
-![Research projects](docs/assets/images/researcher-projects.png)
-
-### Agenda
-
-![Agenda](docs/assets/images/agenda.png)
+<table>
+<tr><td align="center" width="50%"><a href="docs/assets/images/login.png"><img src="docs/assets/images/login.png" alt="Login" width="380"></a><br><sub>Login</sub></td><td align="center" width="50%"><a href="docs/assets/images/admin-dashboard.png"><img src="docs/assets/images/admin-dashboard.png" alt="Admin dashboard" width="380"></a><br><sub>Admin dashboard</sub></td></tr>
+<tr><td align="center" width="50%"><a href="docs/assets/images/admin-users.png"><img src="docs/assets/images/admin-users.png" alt="Admin users" width="380"></a><br><sub>Admin users</sub></td><td align="center" width="50%"><a href="docs/assets/images/admin-thesis.png"><img src="docs/assets/images/admin-thesis.png" alt="Admin thesis detail" width="380"></a><br><sub>Admin thesis detail</sub></td></tr>
+<tr><td align="center" width="50%"><a href="docs/assets/images/supervisor-dashboard.png"><img src="docs/assets/images/supervisor-dashboard.png" alt="Supervisor dashboard" width="380"></a><br><sub>Supervisor dashboard</sub></td><td align="center" width="50%"><a href="docs/assets/images/student-thesis.png"><img src="docs/assets/images/student-thesis.png" alt="Student thesis workspace" width="380"></a><br><sub>Student thesis workspace</sub></td></tr>
+<tr><td align="center" width="50%"><a href="docs/assets/images/researcher-projects.png"><img src="docs/assets/images/researcher-projects.png" alt="Research projects" width="380"></a><br><sub>Research projects</sub></td><td align="center" width="50%"><a href="docs/assets/images/agenda.png"><img src="docs/assets/images/agenda.png" alt="Agenda" width="380"></a><br><sub>Agenda</sub></td></tr>
+</table>
 
 ## 🚀 Installation
 
