@@ -1036,3 +1036,13 @@ a.doc-item:hover { border-color: var(--sm-primary); color: inherit; }
 .has-open .wl-card:not(.is-open) { opacity: .55; }
 .has-open .wl-card:not(.is-open):hover, .has-open .wl-card:not(.is-open):focus-within { opacity: 1; }
 #wlSection .sv-slot, #usSection .sv-slot { align-self: start; }
+
+/* Sidebar: wider on desktop and wrapping labels, so longer (e.g. Italian) texts are never cut */
+@media (min-width: 768px) {
+  .sidebar:not(.toggled) { width: 17rem !important; }
+}
+.sidebar .nav-item .nav-link span { white-space: normal; line-height: 1.25; min-width: 0; overflow-wrap: anywhere; }
+.sidebar .nav-item .nav-link { align-items: flex-start; }
+.sidebar .nav-item .nav-link i.fa-angle-down,
+.sidebar .nav-item .nav-link i.fa-angle-up { margin-left: auto; }
+.sidebar .nav-item .collapse-inner .collapse-item { overflow-wrap: anywhere; }
