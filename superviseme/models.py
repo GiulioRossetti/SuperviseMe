@@ -383,6 +383,26 @@ class ResearchProject_Dataset(db.Model):
     project = db.relationship("ResearchProject", backref=db.backref("datasets", lazy=True, order_by="ResearchProject_Dataset.id"))
 
 
+class ResearchProject_Review(db.Model):
+    """Internal review of a project resource (document or link) requested from a team member."""
+    __tablename__ = "research_project_review"
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey("research_project.id"), nullable=False, index=True)
+    resource_id = db.Column(db.Integer, db.ForeignKey("research_project_resource.id"), nullable=False)
+    requested_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
+    reviewer_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False, index=True)
+    note = db.Column(db.Text, nullable=True)  # request message
+    status = db.Column(db.String(20), nullable=False, default="pending")  # pending, approved, changes_requested
+    comment = db.Column(db.Text, nullable=True)  # reviewer's answer
+    created_at = db.Column(db.Integer, nullable=False)
+    updated_at = db.Column(db.Integer, nullable=False)
+
+    project = db.relationship("ResearchProject", backref=db.backref("reviews", lazy=True, order_by="ResearchProject_Review.created_at.desc()"))
+    resource = db.relationship("ResearchProject_Resource", backref=db.backref("reviews", lazy=True))
+    requester = db.relationship("User_mgmt", foreign_keys=[requested_by])
+    reviewer = db.relationship("User_mgmt", foreign_keys=[reviewer_id])
+
+
 class ResearchProject_Thesis(db.Model):
     """Link between a research project and a thesis done within it."""
     __tablename__ = "research_project_thesis"

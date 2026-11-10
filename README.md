@@ -46,7 +46,7 @@ SuperviseMe is a Flask web application that brings supervisors, students, resear
 - **Research projects** with structured metadata: level (programme, project, pilot study, paper, dataset, …), thematic area, tags, images used as the project card cover, external links.
 - **Sub-projects** and links between projects (for example several papers under one programme).
 - Collaborators with roles (viewer is read-only) and **invitations with acceptance**; ownership transfer.
-- **Research output** per project: publications (import by DOI from Crossref, BibTeX export), funding, milestones shown in the agenda and `.ics` feed, datasets with a FAIR checklist, linked theses.
+- **Research output** per project: publications (import by DOI from Crossref, BibTeX export), funding, milestones shown in the agenda and `.ics` feed, datasets with a FAIR checklist, linked theses, **internal review** of resources, import of works, funding and affiliations from ORCID, and **projects reusable as templates**.
 - **Portfolio** statistics (by area, level, year, collaborators), optional **public project page** with owner-chosen fields, weekly researcher digest.
 - A structured **project report** export, search and statistics.
 

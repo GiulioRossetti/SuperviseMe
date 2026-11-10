@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from superviseme import db
 from superviseme.models import (
     ResearchProject, ResearchProject_Collaborator, ResearchProject_Dataset, ResearchProject_Milestone,
-    ResearchProject_Publication, ResearchProject_Thesis,
+    ResearchProject_Publication, ResearchProject_Review, ResearchProject_Thesis,
 )
 
 PUBLIC_FIELDS = ("description", "funding", "publications", "datasets", "milestones", "collaborators")
@@ -108,7 +108,7 @@ def crossref_to_fields(meta):
 # ---- cascade ------------------------------------------------------------------------------------------------
 
 def delete_output(project_id):
-    for model in (ResearchProject_Publication, ResearchProject_Milestone, ResearchProject_Dataset, ResearchProject_Thesis):
+    for model in (ResearchProject_Publication, ResearchProject_Milestone, ResearchProject_Dataset, ResearchProject_Thesis, ResearchProject_Review):
         model.query.filter_by(project_id=project_id).delete(synchronize_session=False)
 
 
@@ -194,3 +194,93 @@ def agenda_milestones(user, now=None, horizon_days=180):
         ResearchProject_Milestone.project_id.in_(ids), ResearchProject_Milestone.status == "pending",
         ResearchProject_Milestone.due_date <= now + horizon_days * 86400)
         .order_by(ResearchProject_Milestone.due_date).all())
+
+
+# ---- ORCID import ---------------------------------------------------------------------------------------------
+
+AFFILIATION_TYPES = ("employment", "education")
+ORCID_TYPE_MAP = {"journal-article": "article", "conference-paper": "conference", "book": "book", "book-chapter": "book",
+                  "preprint": "preprint", "report": "report", "dissertation-thesis": "thesis"}
+
+
+def _ext_ids(activity):
+    import json
+    try:
+        return json.loads(activity.external_ids or "[]") or []
+    except ValueError:
+        return []
+
+
+def activity_doi(activity):
+    for e in _ext_ids(activity):
+        if (e.get("type") or "").lower() == "doi":
+            return clean_doi(e.get("value"))
+    return None
+
+
+def orcid_work_candidates(user, project):
+    """Imported ORCID works (not funding/affiliations) not yet listed among the project's publications."""
+    from superviseme.models import OrcidActivity
+    have_doi = {p.doi.lower() for p in project.publications if p.doi}
+    have_title = {p.title.strip().lower() for p in project.publications}
+    out = []
+    for a in OrcidActivity.query.filter(OrcidActivity.user_id == user.id, OrcidActivity.type.notin_(("funding",) + AFFILIATION_TYPES)) \
+            .order_by(OrcidActivity.publication_date.desc()):
+        doi = activity_doi(a)
+        if (doi and doi.lower() in have_doi) or a.title.strip().lower() in have_title:
+            continue
+        out.append(a)
+    return out
+
+
+def work_fields(activity):
+    year = (activity.publication_date or "")[:4]
+    return {"title": activity.title[:300], "authors": None, "year": int(year) if year.isdigit() else None, "venue": None,
+            "doi": activity_doi(activity), "url": safe_url(activity.url),
+            "pub_type": ORCID_TYPE_MAP.get((activity.type or "").lower(), "other")}
+
+
+def orcid_fundings(user):
+    from superviseme.models import OrcidActivity
+    return OrcidActivity.query.filter_by(user_id=user.id, type="funding").order_by(OrcidActivity.publication_date.desc()).all()
+
+
+def funding_fields(activity):
+    grant = next((e.get("value") for e in _ext_ids(activity) if (e.get("type") or "").lower() == "grant_number"), None)
+    return {"funder": (activity.organization or "")[:200] or None, "grant_id": (grant or "")[:100] or None}
+
+
+def affiliation_of(user_id):
+    """Most recent ORCID-imported employment (organisation name) of a user, or None."""
+    from superviseme.models import OrcidActivity
+    a = (OrcidActivity.query.filter_by(user_id=user_id, type="employment")
+         .order_by(OrcidActivity.publication_date.desc(), OrcidActivity.id.desc()).first())
+    return a.organization if a and a.organization else None
+
+
+# ---- reuse a project as a template ----------------------------------------------------------------------------
+
+def duplicate_project(project, user, title=None, start_date=None):
+    """Copy structure (metadata, objectives, hypotheses, open to-dos, milestones) into a new project owned by user."""
+    from superviseme.models import ResearchProject_Hypothesis, ResearchProject_Objective, ResearchProject_Todo
+    now = int(time.time())
+    copy = ResearchProject(title=(title or f"{project.title} (copy)")[:100], description=project.description,
+                           researcher_id=user.id, level=project.level, area=project.area, tags=project.tags,
+                           created_at=now, funder=None, grant_id=None)
+    db.session.add(copy)
+    db.session.flush()
+    for o in ResearchProject_Objective.query.filter_by(project_id=project.id):
+        db.session.add(ResearchProject_Objective(project_id=copy.id, author_id=user.id, title=o.title, description=o.description, created_at=now))
+    for h in ResearchProject_Hypothesis.query.filter_by(project_id=project.id):
+        db.session.add(ResearchProject_Hypothesis(project_id=copy.id, author_id=user.id, title=h.title, description=h.description, created_at=now))
+    for t in ResearchProject_Todo.query.filter_by(project_id=project.id, status="pending"):
+        db.session.add(ResearchProject_Todo(project_id=copy.id, author_id=user.id, title=t.title, description=t.description,
+                                            priority=t.priority, created_at=now, updated_at=now))
+    new_start = parse_date(start_date)
+    old_start = parse_date(project.start_date) or (project.milestones[0].due_date if project.milestones else None)
+    if new_start and old_start:
+        copy.start_date = iso(new_start)
+        for m in project.milestones:
+            db.session.add(ResearchProject_Milestone(project_id=copy.id, title=m.title, due_date=m.due_date + (new_start - old_start), created_at=now))
+    db.session.commit()
+    return copy

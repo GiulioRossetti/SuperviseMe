@@ -7,7 +7,7 @@ from flask_login import current_user, login_required
 from superviseme import db
 from superviseme.models import (
     ResearchProject, ResearchProject_Collaborator, ResearchProject_Dataset, ResearchProject_Milestone,
-    ResearchProject_Publication, ResearchProject_Thesis, Thesis, User_mgmt,
+    ResearchProject_Publication, ResearchProject_Resource, ResearchProject_Review, ResearchProject_Thesis, Thesis, User_mgmt,
 )
 from superviseme.routes.researcher import researcher
 from superviseme.utils import research_output as ro
@@ -46,8 +46,14 @@ def project_output(project_id):
     candidates = [t for t in Thesis.query.order_by(Thesis.title).all()
                   if t.id not in linked_ids and user_manages_thesis(current_user, t)] if role != "viewer" else []
     collabs = ResearchProject_Collaborator.query.filter_by(project_id=project.id, status="accepted").all()
+    members = [(project.researcher, "owner")] + [(u, r) for u, r in [(db.session.get(User_mgmt, c.collaborator_id), c.role) for c in collabs] if u]
+    team = [(u, r, ro.affiliation_of(u.id)) for u, r in members]
+    resources = ResearchProject_Resource.query.filter_by(project_id=project.id).order_by(ResearchProject_Resource.created_at.desc()).all()
     return render_template(
-        "researcher/project_output.html", project=project, role=role, is_owner=role == "owner",
+        "researcher/project_output.html", project=project, team=team, resources=resources,
+        reviewers=[(u, r) for u, r, _a in team if u.id != current_user.id],
+        orcid_works=ro.orcid_work_candidates(current_user, project) if role != "viewer" and current_user.orcid_id else [],
+        orcid_fundings=ro.orcid_fundings(current_user) if role != "viewer" and current_user.orcid_id else [], role=role, is_owner=role == "owner",
         can_edit=role not in ro.READ_ONLY_ROLES, linked_theses=linked, thesis_candidates=candidates,
         collab_users=[(db.session.get(User_mgmt, c.collaborator_id), c.role) for c in collabs],
         pub_types=ro.PUB_TYPES, fair_flags=ro.FAIR_FLAGS, public_field_names=ro.PUBLIC_FIELDS,
@@ -315,3 +321,131 @@ def portfolio():
     from superviseme.utils.projects import level_label
     return render_template("researcher/portfolio.html", pf=ro.portfolio(current_user, accessible_projects(current_user)),
                            level_label=level_label, iso=ro.iso, now=int(time.time()))
+
+
+# ---- ORCID import (works -> publications, funding -> funding fields) -----------------------------------------
+
+@researcher.route("/researcher/project/<int:project_id>/publications/import_orcid", methods=["POST"])
+@login_required
+def import_orcid_publications(project_id):
+    from superviseme.models import OrcidActivity
+    project, gate = _load(project_id, write=True)
+    if gate is not None:
+        return gate
+    wanted = {i for i in request.form.getlist("activity_id", type=int)}
+    allowed = {a.id: a for a in ro.orcid_work_candidates(current_user, project)}
+    added = 0
+    for aid in wanted & set(allowed):
+        db.session.add(ResearchProject_Publication(project_id=project.id, added_by=current_user.id, created_at=int(time.time()),
+                                                   **ro.work_fields(allowed[aid])))
+        added += 1
+    db.session.commit()
+    flash(f"{added} publication(s) imported from ORCID")
+    return _back(project)
+
+
+@researcher.route("/researcher/project/<int:project_id>/funding/from_orcid", methods=["POST"])
+@login_required
+def funding_from_orcid(project_id):
+    project, gate = _load(project_id, write=True)
+    if gate is not None:
+        return gate
+    act = next((a for a in ro.orcid_fundings(current_user) if a.id == request.form.get("activity_id", type=int)), None)
+    if act is None:
+        flash("Funding entry not found")
+        return _back(project)
+    fields = ro.funding_fields(act)
+    project.funder, project.grant_id = fields["funder"], fields["grant_id"]
+    year = (act.publication_date or "")[:4]
+    if year.isdigit() and not project.start_date:
+        project.start_date = f"{year}-01-01"
+    db.session.commit()
+    flash("Funding details imported from ORCID")
+    return _back(project)
+
+
+# ---- internal review of resources ---------------------------------------------------------------------------
+
+@researcher.route("/researcher/project/<int:project_id>/reviews/request", methods=["POST"])
+@login_required
+def request_review(project_id):
+    project, gate = _load(project_id, write=True)
+    if gate is not None:
+        return gate
+    resource = ResearchProject_Resource.query.filter_by(id=request.form.get("resource_id", type=int) or 0, project_id=project.id).first()
+    reviewer = db.session.get(User_mgmt, request.form.get("reviewer_id", type=int) or 0)
+    if resource is None or reviewer is None or reviewer.id == current_user.id or not ro.can_read(project, reviewer):
+        flash("Choose a resource and a different member of the team as reviewer")
+        return _back(project)
+    now = int(time.time())
+    if ResearchProject_Review.query.filter_by(resource_id=resource.id, reviewer_id=reviewer.id, status="pending").first():
+        flash("This reviewer already has a pending request for this resource")
+        return _back(project)
+    db.session.add(ResearchProject_Review(project_id=project.id, resource_id=resource.id, requested_by=current_user.id,
+                                          reviewer_id=reviewer.id, note=(request.form.get("note") or "").strip()[:2000] or None,
+                                          created_at=now, updated_at=now))
+    db.session.commit()
+    _notify(reviewer.id, "project_review_request", f"Review requested: {project.title}",
+            f"{current_user.name} {current_user.surname} asked you to review a resource of \"{project.title}\".",
+            url_for("researcher.project_output", project_id=project.id) + "#reviews")
+    flash("Review requested")
+    return _back(project)
+
+
+@researcher.route("/researcher/project/<int:project_id>/reviews/<int:review_id>/decide", methods=["POST"])
+@login_required
+def decide_review(project_id, review_id):
+    project, gate = _load(project_id)
+    if gate is not None:
+        return gate
+    review = ResearchProject_Review.query.filter_by(id=review_id, project_id=project.id).first_or_404()
+    if review.reviewer_id != current_user.id:
+        abort(403)
+    decision = request.form.get("decision")
+    if decision not in ("approved", "changes_requested") or review.status != "pending":
+        flash("Invalid decision")
+        return _back(project)
+    review.status, review.updated_at = decision, int(time.time())
+    review.comment = (request.form.get("comment") or "").strip()[:4000] or None
+    db.session.commit()
+    _notify(review.requested_by, "project_review_done", f"Review {decision.replace('_', ' ')}: {project.title}",
+            f"{current_user.name} {current_user.surname}: {decision.replace('_', ' ')}.",
+            url_for("researcher.project_output", project_id=project.id) + "#reviews")
+    flash("Review saved")
+    return _back(project)
+
+
+@researcher.route("/researcher/project/<int:project_id>/reviews/<int:review_id>/delete", methods=["POST"])
+@login_required
+def delete_review(project_id, review_id):
+    project, gate = _load(project_id)
+    if gate is not None:
+        return gate
+    review = ResearchProject_Review.query.filter_by(id=review_id, project_id=project.id).first_or_404()
+    if current_user.id not in (review.requested_by, project.researcher_id):
+        abort(403)
+    db.session.delete(review)
+    db.session.commit()
+    return _back(project)
+
+
+def _notify(recipient_id, kind, title, message, url):
+    try:
+        from superviseme.utils.notifications import create_notification
+        create_notification(recipient_id=recipient_id, actor_id=current_user.id, notification_type=kind, title=title,
+                            message=message, action_url=url)
+    except Exception:
+        current_app.logger.exception("Could not send notification")
+
+
+# ---- reuse a project as a template --------------------------------------------------------------------------
+
+@researcher.route("/researcher/project/<int:project_id>/duplicate", methods=["POST"])
+@login_required
+def duplicate_project_route(project_id):
+    project, gate = _load(project_id)
+    if gate is not None:
+        return gate
+    copy = ro.duplicate_project(project, current_user, (request.form.get("title") or "").strip() or None, request.form.get("start_date"))
+    flash("Project created from the template")
+    return redirect(url_for("researcher.project_detail", project_id=copy.id))

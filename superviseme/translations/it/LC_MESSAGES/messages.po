@@ -4530,3 +4530,57 @@ msgstr "Repository"
 
 msgid "Project milestones"
 msgstr "Milestone dei progetti"
+
+msgid "Import from your ORCID record"
+msgstr "Importa dal tuo profilo ORCID"
+
+msgid "Import selected"
+msgstr "Importa selezionate"
+
+msgid "Internal review"
+msgstr "Revisione interna"
+
+msgid "Requested by"
+msgstr "Richiesta da"
+
+msgid "Approve"
+msgstr "Approva"
+
+msgid "Request changes"
+msgstr "Richiedi modifiche"
+
+msgid "Changes requested"
+msgstr "Modifiche richieste"
+
+msgid "No review requests"
+msgstr "Nessuna richiesta di revisione"
+
+msgid "Resource"
+msgstr "Risorsa"
+
+msgid "Message to the reviewer (optional)"
+msgstr "Messaggio al revisore (facoltativo)"
+
+msgid "Request review"
+msgstr "Richiedi revisione"
+
+msgid "Add a resource to the project and invite a team member to request a review."
+msgstr "Aggiungi una risorsa al progetto e invita un membro del team per richiedere una revisione."
+
+msgid "Fill in from ORCID funding"
+msgstr "Compila dai finanziamenti ORCID"
+
+msgid "Import"
+msgstr "Importa"
+
+msgid "Use as template"
+msgstr "Usa come modello"
+
+msgid "New project title"
+msgstr "Titolo del nuovo progetto"
+
+msgid "Create copy"
+msgstr "Crea copia"
+
+msgid "Copies metadata, objectives, hypotheses, open to-dos and (if a start date is given) milestones shifted to it."
+msgstr "Copia metadati, obiettivi, ipotesi, to-do aperti e (se indichi una data di inizio) le milestone traslate su di essa."

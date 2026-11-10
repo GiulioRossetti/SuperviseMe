@@ -9,12 +9,20 @@
                 <div class="container-fluid">
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">{{ project.title }} · {{ _('Research output') }}</h1>
-                        <a href="{{ url_for('researcher.project_detail', project_id=project.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> {{ _('Back to Project') }}</a>
+                        <div><button class="btn btn-outline-primary btn-sm" data-toggle="collapse" data-target="#dupBox"><i class="fas fa-clone"></i> {{ _('Use as template') }}</button>
+                        <a href="{{ url_for('researcher.project_detail', project_id=project.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> {{ _('Back to Project') }}</a></div>
                     </div>
                     {% with messages = get_flashed_messages() %}{% for message in messages %}
                         <div class="alert alert-info alert-dismissible fade show" role="alert">{{ message }}
                             <button type="button" class="close" data-dismiss="alert" aria-label="{{ _('Close') }}"><span aria-hidden="true">&times;</span></button></div>
                     {% endfor %}{% endwith %}
+                    <div class="collapse mb-3" id="dupBox"><div class="card card-body">
+                        <form method="POST" action="{{ url_for('researcher.duplicate_project_route', project_id=project.id) }}" class="form-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input class="form-control form-control-sm mr-2 mb-2" name="title" placeholder="{{ _('New project title') }}" aria-label="{{ _('New project title') }}">
+                            <input type="date" class="form-control form-control-sm mr-2 mb-2" name="start_date" aria-label="{{ _('Start') }}">
+                            <button class="btn btn-primary btn-sm mb-2" type="submit">{{ _('Create copy') }}</button></form>
+                        <small class="text-muted">{{ _('Copies metadata, objectives, hypotheses, open to-dos and (if a start date is given) milestones shifted to it.') }}</small>
+                    </div></div>
 
                     <div class="row">
                     <div class="col-xl-8">
@@ -44,6 +52,10 @@
                                 <div class="col-md-6 mb-2"><input class="form-control form-control-sm" name="venue" placeholder="{{ _('Journal / conference') }}"></div>
                                 <div class="col-md-3 mb-2"><input class="form-control form-control-sm" name="doi" placeholder="DOI"></div>
                                 <div class="col-md-3 mb-2"><input class="form-control form-control-sm" name="url" placeholder="URL"></div></div><button class="btn btn-primary btn-sm" type="submit">{{ _('Add') }}</button></form>
+                            {% if orcid_works %}<hr><h6 class="font-weight-bold">{{ _('Import from your ORCID record') }}</h6>
+                            <form method="POST" action="{{ url_for('researcher.import_orcid_publications', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                {% for a in orcid_works[:30] %}<div class="form-check"><input class="form-check-input" type="checkbox" name="activity_id" value="{{ a.id }}" id="oa{{ a.id }}"><label class="form-check-label" for="oa{{ a.id }}">{{ a.title }} <small class="text-muted">{{ a.publication_date or '' }}</small></label></div>{% endfor %}
+                                <button class="btn btn-outline-primary btn-sm mt-2" type="submit">{{ _('Import selected') }}</button></form>{% endif %}
                             {% endif %}
                         </div>
                     </div>
@@ -72,6 +84,36 @@
                         </div>
                     </div>
 
+
+                    <div class="card shadow mb-4" id="reviews">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Internal review') }} ({{ project.reviews|length }})</h6></div>
+                        <div class="card-body">
+                            {% for r in project.reviews %}
+                            <div class="mb-3">
+                                <strong>{{ r.resource.description or r.resource.resource_url }}</strong>
+                                <span class="badge {{ {'pending': 'badge-warning', 'approved': 'badge-success', 'changes_requested': 'badge-danger'}[r.status] }}">{{ _(r.status|replace('_', ' ')|capitalize) }}</span><br>
+                                <small class="text-muted">{{ _('Requested by') }} {{ r.requester.name }} {{ r.requester.surname }} → {{ r.reviewer.name }} {{ r.reviewer.surname }}</small>
+                                {% if r.note %}<div class="small">{{ r.note }}</div>{% endif %}
+                                {% if r.comment %}<div class="small border-left pl-2 mt-1">{{ r.comment }}</div>{% endif %}
+                                {% if r.status == 'pending' and r.reviewer_id == current_user.id %}
+                                <form method="POST" action="{{ url_for('researcher.decide_review', project_id=project.id, review_id=r.id) }}" class="mt-2"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <textarea class="form-control form-control-sm mb-2" name="comment" rows="2" placeholder="{{ _('Comments') }}" aria-label="{{ _('Comments') }}"></textarea>
+                                    <button class="btn btn-success btn-sm" name="decision" value="approved" type="submit">{{ _('Approve') }}</button>
+                                    <button class="btn btn-outline-danger btn-sm" name="decision" value="changes_requested" type="submit">{{ _('Request changes') }}</button>
+                                </form>{% endif %}
+                                {% if r.requested_by == current_user.id or is_owner %}<form method="POST" action="{{ url_for('researcher.delete_review', project_id=project.id, review_id=r.id) }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-link btn-sm text-danger p-0" type="submit" aria-label="{{ _('Remove') }}"><i class="fas fa-times"></i></button></form>{% endif %}
+                            </div>{% else %}<p class="text-muted">{{ _('No review requests') }}</p>{% endfor %}
+                            {% if can_edit and resources and reviewers %}<hr>
+                            <form method="POST" action="{{ url_for('researcher.request_review', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <div class="form-row">
+                                    <div class="col-md-6 mb-2"><select class="form-control form-control-sm" name="resource_id" aria-label="{{ _('Resource') }}">{% for res in resources %}<option value="{{ res.id }}">{{ res.description or res.resource_url }}</option>{% endfor %}</select></div>
+                                    <div class="col-md-6 mb-2"><select class="form-control form-control-sm" name="reviewer_id" aria-label="{{ _('Reviewer') }}">{% for u, r in reviewers %}<option value="{{ u.id }}">{{ u.name }} {{ u.surname }} ({{ r }})</option>{% endfor %}</select></div>
+                                    <div class="col-12 mb-2"><input class="form-control form-control-sm" name="note" placeholder="{{ _('Message to the reviewer (optional)') }}"></div></div>
+                                <button class="btn btn-primary btn-sm" type="submit">{{ _('Request review') }}</button></form>
+                            {% elif can_edit %}<p class="small text-muted mb-0">{{ _('Add a resource to the project and invite a team member to request a review.') }}</p>{% endif %}
+                        </div>
+                    </div>
+
                     <div class="card shadow mb-4" id="theses">
                         <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Linked theses') }} ({{ linked_theses|length }})</h6></div>
                         <div class="card-body">
@@ -86,6 +128,10 @@
                     </div>
 
                     <div class="col-xl-4">
+                    <div class="card shadow mb-4" id="team">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Team') }}</h6></div>
+                        <div class="card-body">{% for u, r, aff in team %}<div class="mb-2"><strong>{{ user_link(u) }}</strong> <small class="text-muted">{{ r }}</small>{% if aff %}<br><small class="text-muted"><i class="fas fa-university"></i> {{ aff }}</small>{% endif %}</div>{% endfor %}</div>
+                    </div>
                     <div class="card shadow mb-4" id="funding">
                         <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Funding') }}</h6></div>
                         <div class="card-body">
@@ -95,6 +141,10 @@
                             <div class="form-group"><label for="grant_id">{{ _('Grant ID') }}</label><input class="form-control form-control-sm" id="grant_id" name="grant_id" value="{{ project.grant_id or '' }}"></div>
                             <div class="form-row"><div class="col mb-2"><label for="start_date">{{ _('Start') }}</label><input type="date" class="form-control form-control-sm" id="start_date" name="start_date" value="{{ project.start_date or '' }}"></div>
                             <div class="col mb-2"><label for="end_date">{{ _('End') }}</label><input type="date" class="form-control form-control-sm" id="end_date" name="end_date" value="{{ project.end_date or '' }}"></div></div><button class="btn btn-primary btn-sm" type="submit">{{ _('Save') }}</button></form>
+                        {% if orcid_fundings %}<hr><form method="POST" action="{{ url_for('researcher.funding_from_orcid', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <label class="small" for="orcidFund">{{ _('Fill in from ORCID funding') }}</label>
+                            <select class="form-control form-control-sm mb-2" id="orcidFund" name="activity_id">{% for a in orcid_fundings %}<option value="{{ a.id }}">{{ a.title }} — {{ a.organization or '' }}</option>{% endfor %}</select>
+                            <button class="btn btn-outline-primary btn-sm" type="submit">{{ _('Import') }}</button></form>{% endif %}
                         {% else %}<p>{{ project.funder or '—' }} {{ project.grant_id or '' }}<br>{{ project.start_date or '' }} → {{ project.end_date or '' }}</p>{% endif %}
                         </div>
                     </div>
