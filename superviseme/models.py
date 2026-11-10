@@ -383,6 +383,24 @@ class ResearchProject_Dataset(db.Model):
     project = db.relationship("ResearchProject", backref=db.backref("datasets", lazy=True, order_by="ResearchProject_Dataset.id"))
 
 
+class ResearchProject_Software(db.Model):
+    """Software / tool produced by a project (repository, release, DOI, license)."""
+    __tablename__ = "research_project_software"
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey("research_project.id"), nullable=False, index=True)
+    title = db.Column(db.String(300), nullable=False)
+    version = db.Column(db.String(50), nullable=True)
+    repo_url = db.Column(db.String(500), nullable=True)
+    doi = db.Column(db.String(200), nullable=True)
+    license = db.Column(db.String(100), nullable=True)
+    language = db.Column(db.String(100), nullable=True)
+    description = db.Column(db.String(500), nullable=True)
+    added_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    project = db.relationship("ResearchProject", backref=db.backref("software", lazy=True, order_by="ResearchProject_Software.id"))
+
+
 class ResearchProject_Review(db.Model):
     """Internal review of a project resource (document or link) requested from a team member."""
     __tablename__ = "research_project_review"

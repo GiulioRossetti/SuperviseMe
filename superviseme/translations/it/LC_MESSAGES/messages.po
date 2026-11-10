@@ -4785,3 +4785,33 @@ msgstr "Tutti"
 
 msgid "Only meetings scheduled on the platform are shown; office hours and external or personal calendars are not visible to admins."
 msgstr "Sono mostrati solo gli incontri programmati in piattaforma; fasce di ricevimento e calendari esterni o personali non sono visibili agli admin."
+
+msgid "No software yet"
+msgstr "Nessun software"
+
+msgid "Version"
+msgstr "Versione"
+
+msgid "Language"
+msgstr "Linguaggio"
+
+msgid "Repository URL (GitHub, GitLab, Zenodo...)"
+msgstr "URL del repository (GitHub, GitLab, Zenodo...)"
+
+msgid "Add software"
+msgstr "Aggiungi software"
+
+msgid "Search by name, DOI, repository, project..."
+msgstr "Cerca per nome, DOI, repository, progetto..."
+
+msgid "Search by title, DOI, repository, project..."
+msgstr "Cerca per titolo, DOI, repository, progetto..."
+
+msgid "Any license"
+msgstr "Qualsiasi licenza"
+
+msgid "Nothing matches the filters"
+msgstr "Nessun risultato corrisponde ai filtri"
+
+msgid "software"
+msgstr "software"

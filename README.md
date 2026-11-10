@@ -30,7 +30,7 @@ SuperviseMe is a Flask web application that brings supervisors, students, resear
 ### Administrators
 - Dashboard with platform statistics, **supervision workload** (searchable carousel, one supervisor expanded at a time) and the open thesis catalog.
 - **Users** and **Theses** boards with search, filters and carousel pagination; per-user and per-thesis detail pages organised in tabs (Overview, Progress, Activity, People, Settings).
-- **Research** area: platform overview (projects, funded, public pages, publications, datasets, overdue milestones, pending invitations and reviews, distribution by area/type), a filterable and paginated project catalog, a project page (team and invitation status, funding, output, milestones, reviews, public page) with admin actions (freeze, public page on/off, reassign owner, delete) and a **Publications** catalog with BibTeX export.
+- **Research** area: platform overview (projects, funded, public pages, publications, datasets, software, overdue milestones, pending invitations and reviews, distribution by area/type), a filterable and paginated project catalog, a project page (team and invitation status, funding, output, milestones, reviews, public page) with admin actions (freeze, public page on/off, reassign owner, delete) and **Publications**, **Datasets** and **Software** catalogs with live search and BibTeX export.
 - Sidebar grouped by purpose: People, Supervision, Research, Planning, System, Account.
 - Create/edit/disable users, grant supervisor role, reassign supervisors, freeze or delete theses, manage statuses.
 - System statistics, notification/scheduler management, weekly-email preview, JSON/CSV export, data-retention tools (`RETENTION_MONTHS`).
@@ -49,7 +49,7 @@ SuperviseMe is a Flask web application that brings supervisors, students, resear
 - **Research projects** with structured metadata: level (programme, project, pilot study, paper, dataset, …), thematic area, tags, images used as the project card cover, external links.
 - **Sub-projects** and links between projects (for example several papers under one programme).
 - Collaborators with roles (viewer is read-only) and **invitations with acceptance**; ownership transfer.
-- **Research output** per project: publications (import by DOI from Crossref, BibTeX export), funding, milestones shown in the agenda and `.ics` feed, datasets with a FAIR checklist, linked theses, **internal review** of resources, import of works, funding and affiliations from ORCID, and **projects reusable as templates**.
+- **Research output** per project: publications (import by DOI from Crossref, BibTeX export), funding, milestones shown in the agenda and `.ics` feed, datasets with a FAIR checklist, **software** (repository, version, DOI, license), BibTeX export of datasets and software, linked theses, **internal review** of resources, import of works, funding and affiliations from ORCID, and **projects reusable as templates**.
 - **Portfolio** statistics (by area, level, year, collaborators), optional **public project page** with owner-chosen fields, weekly researcher digest.
 - A structured **project report** export, search and statistics.
 
@@ -167,11 +167,11 @@ Run the scheduler (`ENABLE_SCHEDULER=true`) in a single service only and keep ev
 
 `scripts/seed_database.py` creates 1 admin, 3 supervisors, 3 researchers (two with supervisor privileges), 5 students, 7 theses and 4 research projects (plus a sub-project). The research projects showcase the researcher features:
 
-- **Climate programme** (Dr. Alice): funding (ERC), a sub-project, 2 publications, milestones (one overdue, one done), a dataset with full FAIR checklist, a linked thesis, two review requests to Dr. Bob (one pending, one approved), a **pending invitation** for Dr. Maria and a public page. Log in as Dr. Bob to answer the review, as Dr. Maria to accept the invitation.
-- **Social network project** (Dr. Bob): PRIN funding, publications, a dataset, public page with a reduced set of fields.
-- **Ethics project** (Dr. Maria): Dr. Bob is a read-only **viewer**.
+- **Climate programme** (Dr. Alice): funding (ERC), a sub-project, 2 publications, milestones (one overdue, one done), a dataset with full FAIR checklist, a software package, a linked thesis, two review requests to Dr. Bob (one pending, one approved), a **pending invitation** for Dr. Maria and a public page. Log in as Dr. Bob to answer the review, as Dr. Maria to accept the invitation.
+- **Social network project** (Dr. Bob): PRIN funding, publications, a dataset, a software package, public page with a reduced set of fields.
+- **Ethics project** (Dr. Maria): a survey dataset, a software package and Dr. Bob as a read-only **viewer**. The quantum project also has a software entry (several licenses and languages to try the filters).
 - Dr. Alice has an **ORCID record** (works, funding, employment) so the "Import from your ORCID record" and funding import can be tried; the employment appears as affiliation in the project team.
-- Open *Portfolio*, *Publications* and the *Agenda* (project milestones) as Dr. Alice; the public pages are at `/projects/<id>` (no login).
+- Open *Portfolio*, *Publications*, *Datasets*, *Software* and the *Agenda* (project milestones) as Dr. Alice; the public pages are at `/projects/<id>` (no login).
 
 Re-running the script resets the demo data. Passwords come from the environment (role-specific `SEED_*_PASSWORD`, then `SEED_DEFAULT_PASSWORD`; development fallback `test`).
 

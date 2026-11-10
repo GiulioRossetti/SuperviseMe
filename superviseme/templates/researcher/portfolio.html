@@ -12,8 +12,8 @@
                         <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('researcher.all_publications') }}"><i class="fas fa-book"></i> {{ _('Publications') }}</a>
                     </div>
                     <div class="row">
-                        {% for label, value in [(_('Projects'), pf.total), (_('Active'), pf.by_state.get('active', 0)), (_('Publications'), pf.publications), (_('Datasets'), pf.datasets), (_('Linked theses'), pf.theses), (_('Supervised theses'), pf.supervised)] %}
-                        <div class="col-6 col-xl-2 mb-3"><div class="up-stat"><div class="n">{{ value }}</div><div class="l">{{ label }}</div></div></div>
+                        {% for label, value in [(_('Projects'), pf.total), (_('Active'), pf.by_state.get('active', 0)), (_('Publications'), pf.publications), (_('Datasets'), pf.datasets), (_('Software'), pf.software), (_('Linked theses'), pf.theses), (_('Supervised theses'), pf.supervised)] %}
+                        <div class="col-6 col-xl mb-3"><div class="up-stat"><div class="n">{{ value }}</div><div class="l">{{ label }}</div></div></div>
                         {% endfor %}
                     </div>
                     <div class="row">

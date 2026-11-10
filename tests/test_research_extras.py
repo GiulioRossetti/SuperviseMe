@@ -100,3 +100,37 @@ def test_orcid_import(client, app, researcher_user):
     db.session.expire_all()
     p = db.session.get(ResearchProject, pid)
     assert (p.funder, p.grant_id, p.start_date) == ("EU", "GA-42", "2024-01-01")
+
+
+def test_software_and_outputs_pages(client, app, researcher_user, admin_user):
+    from superviseme import db
+    from superviseme.models import ResearchProject, ResearchProject_Software as S
+    p = ResearchProject(title="Tools", description="d", researcher_id=researcher_user.id, created_at=int(time.time()), is_public=True)
+    db.session.add(p); db.session.commit()
+    _login(client, researcher_user.email)
+    client.post(f"/researcher/project/{p.id}/software/add", data={"title": "graphkit", "version": "1.0", "license": "MIT", "language": "Python",
+                                                                 "repo_url": "javascript:alert(1)", "doi": "https://doi.org/10.5281/zenodo.9"})
+    client.post(f"/researcher/project/{p.id}/software/add", data={"title": "", "version": "x"})  # title required
+    client.post(f"/researcher/project/{p.id}/software/add", data={"title": "viz", "repo_url": "https://github.com/x/viz"})
+    sw = S.query.filter_by(project_id=p.id).order_by(S.id).all()
+    assert [s.title for s in sw] == ["graphkit", "viz"] and sw[0].repo_url is None and sw[0].doi == "10.5281/zenodo.9"
+    assert b"graphkit" in client.get(f"/researcher/project/{p.id}/output").data
+    page = client.get("/researcher/software").data
+    assert b"graphkit" in page and b"viz" in page
+    bib = client.get("/researcher/software?format=bib").data
+    assert b"@software{graphkit" in bib and b"version = {1.0}" in bib
+    assert client.get("/researcher/datasets").status_code == 200
+    pub = client.get(f"/projects/{p.id}").data
+    assert b"graphkit" in pub
+    client.post(f"/researcher/project/{p.id}/software/{sw[0].id}/delete")
+    assert S.query.filter_by(project_id=p.id).count() == 1
+    client.post("/logout")
+    _login(client, admin_user.email)
+    assert b"viz" in client.get("/admin/research/software").data
+    assert b"viz" not in client.get("/admin/research/software?q=zzz").data
+    assert b"@software{viz" in client.get("/admin/research/software?format=bib").data
+    assert client.get("/admin/research/datasets").status_code == 200
+    assert b"/admin/research/software" in client.get("/admin/research").data
+    from superviseme.utils.projects import delete_project_cascade
+    delete_project_cascade(db.session.get(ResearchProject, p.id))
+    assert S.query.count() == 0

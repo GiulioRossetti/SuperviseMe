@@ -59,6 +59,14 @@
                                 {% else %}<span class="text-muted small">{{ _('No datasets yet') }}</span>{% endfor %}
                                 </div></div>
 
+                            <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Software') }} ({{ project.software|length }})</h6></div>
+                                <div class="card-body">
+                                {% for sw in project.software %}
+                                    <div class="mb-2"><strong>{{ sw.title }}</strong>{% if sw.version %} <span class="badge badge-light">v{{ sw.version }}</span>{% endif %}{% if sw.license %} <span class="badge badge-light">{{ sw.license }}</span>{% endif %}
+                                        {% if sw.repo_url %}<br><a class="small" href="{{ sw.repo_url }}" target="_blank" rel="noopener noreferrer nofollow">{{ sw.repo_url }}</a>{% endif %}</div>
+                                {% else %}<span class="text-muted small">{{ _('No software yet') }}</span>{% endfor %}
+                                </div></div>
+
                             <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Milestones') }}</h6></div>
                                 <div class="card-body">
                                 {% for m in project.milestones %}

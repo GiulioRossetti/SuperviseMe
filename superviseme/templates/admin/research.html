@@ -11,6 +11,8 @@
                     {% from 'admin/components/pager.html' import pager %}
                     {% call hero(_('Research'), _('Research projects across the platform: activity, funding, output and items that need attention.'), 'fa-flask') %}
                         <a href="{{ url_for('admin.research_publications') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-file-alt"></i> {{ _('Publications') }}</a>
+                        <a href="{{ url_for('admin.research_outputs', kind='datasets') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-database"></i> {{ _('Datasets') }}</a>
+                        <a href="{{ url_for('admin.research_outputs', kind='software') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-code"></i> {{ _('Software') }}</a>
                     {% endcall %}
 
                     <div class="dash-tiles">
@@ -18,8 +20,9 @@
                         {{ tile('fa-coins', 'amber', stats.funded, _('Funded projects'), None, url_for('admin.research', state='funded')) }}
                         {{ tile('fa-globe', 'sky', stats.public, _('Public pages'), None, url_for('admin.research', state='public')) }}
                         {{ tile('fa-file-alt', 'green', stats.publications, _('Publications'), None, url_for('admin.research_publications')) }}
-                        {{ tile('fa-database', 'rose', stats.datasets, _('Datasets')) }}
-                        {{ tile('fa-book', 'slate', stats.linked_theses, _('Linked theses')) }}
+                        {{ tile('fa-database', 'rose', stats.datasets, _('Datasets'), None, url_for('admin.research_outputs', kind='datasets')) }}
+                        {{ tile('fa-code', 'slate', stats.software, _('Software'), None, url_for('admin.research_outputs', kind='software')) }}
+                        {{ tile('fa-book', 'sky', stats.linked_theses, _('Linked theses')) }}
                     </div>
 
                     <div class="row">

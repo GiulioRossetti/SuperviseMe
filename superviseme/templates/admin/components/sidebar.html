@@ -58,6 +58,16 @@
             <i class="fas fa-fw fa-file-alt"></i><span>{{ _('Publications') }}</span>
         </a>
     </li>
+    <li class="nav-item{% if request.endpoint == 'admin.research_outputs' and request.view_args.kind == 'datasets' %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('admin.research_outputs', kind='datasets') }}">
+            <i class="fas fa-fw fa-database"></i><span>{{ _('Datasets') }}</span>
+        </a>
+    </li>
+    <li class="nav-item{% if request.endpoint == 'admin.research_outputs' and request.view_args.kind == 'software' %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('admin.research_outputs', kind='software') }}">
+            <i class="fas fa-fw fa-code"></i><span>{{ _('Software') }}</span>
+        </a>
+    </li>
 
     <hr class="sidebar-divider">
     <div class="sidebar-heading">{{ _('Planning') }}</div>

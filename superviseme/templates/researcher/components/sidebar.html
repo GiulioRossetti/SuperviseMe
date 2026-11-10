@@ -36,6 +36,16 @@
             <i class="fas fa-fw fa-book"></i><span>{{ _('Publications') }}</span>
         </a>
     </li>
+    <li class="nav-item{% if request.endpoint in ['researcher.all_datasets'] %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('researcher.all_datasets') }}">
+            <i class="fas fa-fw fa-database"></i><span>{{ _('Datasets') }}</span>
+        </a>
+    </li>
+    <li class="nav-item{% if request.endpoint in ['researcher.all_software'] %} active{% endif %}">
+        <a class="nav-link" href="{{ url_for('researcher.all_software') }}">
+            <i class="fas fa-fw fa-code"></i><span>{{ _('Software') }}</span>
+        </a>
+    </li>
 
     <hr class="sidebar-divider">
     <div class="sidebar-heading">{{ _('sidebar.heading.supervision') }}</div>

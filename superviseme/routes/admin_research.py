@@ -66,6 +66,7 @@ def research_stats(now=None):
         "funded": ResearchProject.query.filter(ResearchProject.funder.isnot(None), ResearchProject.funder != "").count(),
         "publications": ResearchProject_Publication.query.count(),
         "datasets": ResearchProject_Dataset.query.count(),
+        "software": ResearchProject_Software.query.count(),
         "linked_theses": ResearchProject_Thesis.query.count(),
         "overdue_milestones": ResearchProject_Milestone.query.filter(
             ResearchProject_Milestone.status == "pending", ResearchProject_Milestone.due_date < now).count(),
@@ -239,3 +240,35 @@ def research_publications():
     return render_template("admin/research_publications.html", current_user=current_user, pagination=pagination,
                            pubs=pagination.items, years=years, types=ro.PUB_TYPES, filters=filters,
                            total=ResearchProject_Publication.query.count())
+
+
+@admin.route("/admin/research/datasets", defaults={"kind": "datasets"})
+@admin.route("/admin/research/software", defaults={"kind": "software"})
+@login_required
+def research_outputs(kind):
+    """Catalog of the datasets or software recorded on research projects (live filters, BibTeX export)."""
+    gate = _admin_gate()
+    if gate is not None:
+        return gate
+    is_sw = kind == "software"
+    model = ResearchProject_Software if is_sw else ResearchProject_Dataset
+    link = model.repo_url if is_sw else model.url
+    q = model.query.join(ResearchProject, ResearchProject.id == model.project_id)
+    term = (request.args.get("q") or "").strip()
+    if term:
+        like = f"%{term}%"
+        cols = [model.title, model.doi, model.license, link] + ([model.language, model.description] if is_sw else [])
+        q = q.filter(or_(*[c.ilike(like) for c in cols], ResearchProject.title.ilike(like)))
+    lic = request.args.get("license")
+    if lic:
+        q = q.filter(model.license == lic)
+    q = q.order_by(model.title)
+    if request.args.get("format") == "bib":
+        _audit_admin_action(f"research_{kind}_export", f"research_{kind}")
+        return Response(ro.output_bibtex(q.all(), kind), mimetype="text/plain",
+                        headers={"Content-Disposition": f"attachment; filename={kind}.bib"})
+    pagination = q.paginate(page=_page(), per_page=PER_PAGE, error_out=False)
+    licenses = [l for (l,) in db.session.query(model.license).filter(model.license.isnot(None), model.license != "").distinct().order_by(model.license).all()]
+    filters = {k: request.args.get(k) for k in ("q", "license") if request.args.get(k)}
+    return render_template("admin/research_outputs.html", current_user=current_user, kind=kind, is_sw=is_sw, pagination=pagination,
+                           items=pagination.items, licenses=licenses, filters=filters, total=model.query.count())

@@ -85,6 +85,31 @@
                     </div>
 
 
+                    <div class="card shadow mb-4" id="software">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Software') }} ({{ project.software|length }})</h6></div>
+                        <div class="card-body">
+                            {% for sw in project.software %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <div><strong>{{ sw.title }}</strong>{% if sw.version %} <span class="badge badge-light border">v{{ sw.version }}</span>{% endif %}
+                                    {% if sw.license %}<span class="badge badge-light border">{{ sw.license }}</span>{% endif %}{% if sw.language %}<span class="badge badge-light border">{{ sw.language }}</span>{% endif %}<br>
+                                    {% if sw.description %}<small>{{ sw.description }}</small><br>{% endif %}
+                                    {% if sw.doi %}<a class="small" href="https://doi.org/{{ sw.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ sw.doi }}</a> {% endif %}
+                                    {% if sw.repo_url %}<a class="small" href="{{ sw.repo_url }}" target="_blank" rel="noopener noreferrer nofollow">{{ sw.repo_url }}</a>{% endif %}</div>
+                                {% if can_edit %}<form method="POST" action="{{ url_for('researcher.delete_software', project_id=project.id, sid=sw.id) }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-link btn-sm text-danger p-0" type="submit" title="{{ _('Remove') }}" aria-label="{{ _('Remove') }}"><i class="fas fa-times"></i></button></form>{% endif %}
+                            </div>{% else %}<p class="text-muted">{{ _('No software yet') }}</p>{% endfor %}
+                            {% if can_edit %}<hr>
+                            <form method="POST" action="{{ url_for('researcher.add_software', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="form-row">
+                                <div class="col-md-6 mb-2"><input class="form-control form-control-sm" name="title" placeholder="{{ _('Name') }}" required></div>
+                                <div class="col-md-3 mb-2"><input class="form-control form-control-sm" name="version" placeholder="{{ _('Version') }}"></div>
+                                <div class="col-md-3 mb-2"><input class="form-control form-control-sm" name="license" placeholder="{{ _('License') }}"></div>
+                                <div class="col-md-8 mb-2"><input class="form-control form-control-sm" name="repo_url" placeholder="{{ _('Repository URL (GitHub, GitLab, Zenodo...)') }}"></div>
+                                <div class="col-md-4 mb-2"><input class="form-control form-control-sm" name="language" placeholder="{{ _('Language') }}"></div>
+                                <div class="col-md-8 mb-2"><input class="form-control form-control-sm" name="description" maxlength="500" placeholder="{{ _('Short description') }}"></div>
+                                <div class="col-md-4 mb-2"><input class="form-control form-control-sm" name="doi" placeholder="DOI"></div></div>
+                                <button class="btn btn-primary btn-sm" type="submit">{{ _('Add software') }}</button></form>{% endif %}
+                        </div>
+                    </div>
+
                     <div class="card shadow mb-4" id="reviews">
                         <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Internal review') }} ({{ project.reviews|length }})</h6></div>
                         <div class="card-body">

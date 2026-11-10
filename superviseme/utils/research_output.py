@@ -6,11 +6,11 @@ from datetime import datetime, timezone
 from superviseme import db
 from superviseme.models import (
     ResearchProject, ResearchProject_Collaborator, ResearchProject_Dataset, ResearchProject_Milestone,
-    ResearchProject_Publication, ResearchProject_Review, ResearchProject_Thesis,
+    ResearchProject_Publication, ResearchProject_Review, ResearchProject_Software, ResearchProject_Thesis,
 )
 
-PUBLIC_FIELDS = ("description", "funding", "publications", "datasets", "milestones", "collaborators")
-DEFAULT_PUBLIC_FIELDS = ("description", "publications", "datasets")
+PUBLIC_FIELDS = ("description", "funding", "publications", "datasets", "software", "milestones", "collaborators")
+DEFAULT_PUBLIC_FIELDS = ("description", "publications", "datasets", "software")
 FAIR_FLAGS = ("findable", "accessible", "interoperable", "reusable")
 PUB_TYPES = ("article", "conference", "book", "preprint", "report", "thesis", "other")
 READ_ONLY_ROLES = ("viewer",)
@@ -94,6 +94,36 @@ def bibtex(publications):
     return "\n\n".join(out) + ("\n" if out else "")
 
 
+def output_bibtex(items, kind):
+    """BibTeX for datasets (@misc, type dataset) or software (@software) records."""
+    out, used = [], set()
+    for it in items:
+        base = re.sub(r"\W", "", (it.title or "item").split(" ")[0]) or "item"
+        key, n = base, 1
+        while key in used:
+            n += 1
+            key = f"{base}{n}"
+        used.add(key)
+        lines = [f"@{'software' if kind == 'software' else 'misc'}{{{key},", f"  title = {{{_bib_escape(it.title)}}},"]
+        if kind == "software":
+            if it.version:
+                lines.append(f"  version = {{{_bib_escape(it.version)}}},")
+            if it.repo_url:
+                lines.append(f"  url = {{{it.repo_url}}},")
+            if it.license:
+                lines.append(f"  license = {{{_bib_escape(it.license)}}},")
+        else:
+            lines.append("  howpublished = {Dataset},")
+            if it.url:
+                lines.append(f"  url = {{{it.url}}},")
+            if it.license:
+                lines.append(f"  note = {{License: {_bib_escape(it.license)}}},")
+        if it.doi:
+            lines.append(f"  doi = {{{it.doi}}},")
+        out.append("\n".join(lines).rstrip(",") + "\n}")
+    return "\n\n".join(out) + ("\n" if out else "")
+
+
 def crossref_to_fields(meta):
     kind = (meta.get("type") or "").lower()
     pub_type = "conference" if "proceedings" in kind else "book" if "book" in kind else "preprint" if "posted" in kind else \
@@ -120,7 +150,7 @@ def delete_output(project_id):
     if todo_ids or note_ids:
         ResearchProject_MeetingNoteReference.query.filter(db.or_(ResearchProject_MeetingNoteReference.todo_id.in_(todo_ids),
                                                                  ResearchProject_MeetingNoteReference.meeting_note_id.in_(note_ids))).delete(synchronize_session=False)
-    for model in (ResearchProject_Review, ResearchProject_Publication, ResearchProject_Milestone, ResearchProject_Dataset,
+    for model in (ResearchProject_Review, ResearchProject_Publication, ResearchProject_Milestone, ResearchProject_Dataset, ResearchProject_Software,
                   ResearchProject_Thesis, ResearchProject_Todo, ResearchProject_Update, ResearchProject_MeetingNote,
                   ResearchProject_Resource, ResearchProject_Objective, ResearchProject_Hypothesis, ResearchProject_Status):
         model.query.filter_by(project_id=project_id).delete(synchronize_session=False)
@@ -158,6 +188,7 @@ def portfolio(user, projects):
         "by_state": dict(by_state), "by_year": sorted(by_year.items()),
         "publications": len(pubs), "pubs_year": sorted(pubs_year.items()),
         "datasets": ResearchProject_Dataset.query.filter(ResearchProject_Dataset.project_id.in_(ids)).count() if ids else 0,
+        "software": ResearchProject_Software.query.filter(ResearchProject_Software.project_id.in_(ids)).count() if ids else 0,
         "theses": theses, "supervised": Thesis_Supervisor.query.filter_by(supervisor_id=user.id).count(),
         "top_collaborators": [(names.get(uid, "?"), uid, n) for uid, n in freq.most_common(5)],
         "upcoming": upcoming, "overdue": sum(1 for m in upcoming if m.due_date < now), "funded": funded,

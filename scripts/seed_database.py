@@ -49,10 +49,10 @@ def seed_database():
         from superviseme.models import (
             Notification, OrcidActivity, ResearchProject, ResearchProject_Collaborator, ResearchProject_Dataset,
             ResearchProject_Milestone, ResearchProject_Publication, ResearchProject_Resource, ResearchProject_Review,
-            ResearchProject_Thesis, Supervisor_Role,
+            ResearchProject_Software, ResearchProject_Thesis, Supervisor_Role,
         )
         for model in (ResearchProject_Review, ResearchProject_Resource, ResearchProject_Thesis, ResearchProject_Dataset,
-                      ResearchProject_Milestone, ResearchProject_Publication, ResearchProject_Collaborator,
+                      ResearchProject_Software, ResearchProject_Milestone, ResearchProject_Publication, ResearchProject_Collaborator,
                       Supervisor_Role, Notification, OrcidActivity):
             model.query.delete()
         ResearchProject.query.update({"parent_id": None})
@@ -475,7 +475,7 @@ def seed_database():
         import json
         from superviseme.models import (
             Notification, OrcidActivity, ResearchProject_Dataset, ResearchProject_Milestone, ResearchProject_Publication,
-            ResearchProject_Resource, ResearchProject_Review, ResearchProject_Thesis,
+            ResearchProject_Resource, ResearchProject_Review, ResearchProject_Software, ResearchProject_Thesis,
         )
         now = int(time.time())
         day = 86400
@@ -542,6 +542,22 @@ def seed_database():
                                                url="https://github.com/example/forum-graph", license="ODbL",
                                                fair="findable,accessible", created_at=now - 60 * day))
 
+        # Software produced by the projects
+        db.session.add(ResearchProject_Software(project_id=climate.id, title="climate-grid-tools", version="1.2.0", language="Python",
+                                                license="MIT", repo_url="https://github.com/example/climate-grid-tools", doi="10.5281/zenodo.7654321",
+                                                description="Utilities to download, regrid and validate gridded climate data.", created_at=now - 30 * day))
+        db.session.add(ResearchProject_Software(project_id=social.id, title="forum-graph-builder", version="0.4", language="Python", license="Apache-2.0",
+                                                repo_url="https://github.com/example/forum-graph-builder", created_at=now - 50 * day))
+
+        db.session.add(ResearchProject_Software(project_id=ethics.id, title="fairness-audit-kit", version="2.1.0", language="R", license="GPL-3.0",
+                                                repo_url="https://gitlab.com/example/fairness-audit-kit", doi="10.5281/zenodo.8123456",
+                                                description="Checklist and scripts to audit classifiers for group fairness.", created_at=now - 20 * day))
+        db.session.add(ResearchProject_Software(project_id=quantum.id, title="qsim-notebooks", version="0.1", language="Jupyter Notebook",
+                                                license="BSD-3-Clause", repo_url="https://github.com/example/qsim-notebooks", created_at=now - 10 * day))
+        db.session.add(ResearchProject_Dataset(project_id=ethics.id, title="Survey on perceived algorithmic fairness (N=1,200)",
+                                               doi="10.5281/zenodo.8000001", license="CC0-1.0", fair="findable,interoperable,reusable",
+                                               created_at=now - 25 * day))
+
         # Theses done within projects (supervised by Alice / Maria, or published by them)
         for proj, thesis_obj in [(climate, theses[0]), (social, theses[1]), (ethics, theses[2])]:
             db.session.add(ResearchProject_Thesis(project_id=proj.id, thesis_id=thesis_obj.id, created_at=now - 10 * day))
@@ -598,7 +614,7 @@ def seed_database():
         print(f"  - {len(collaborations)} research collaborations")
         print(f"  - 2 supervisor role grants (Dr. Alice & Dr. Maria)")
         print(f"  - Thesis statuses and tags")
-        print(f"  - Research output demo: sub-project, funding, 5 publications, milestones (1 overdue), 2 datasets,")
+        print(f"  - Research output demo: sub-project, funding, 5 publications, milestones (1 overdue), 3 datasets, 4 software packages,")
         print(f"    thesis links, 2 review requests, a pending invitation (Dr. Maria), a viewer (Dr. Bob),")
         print(f"    ORCID record for Dr. Alice (imports + affiliations) and 2 public project pages")
 

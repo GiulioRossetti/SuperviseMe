@@ -1,0 +1,44 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'admin/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    {% from 'admin/components/pager.html' import pager %}
+                    {% set ep = 'admin.research_outputs' %}
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Software') if is_sw else _('Datasets') }} <span class="text-muted h6">({{ pagination.total }}{% if filters %} / {{ total }}{% endif %})</span></h1>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for(request.endpoint, format='bib', **filters) }}"><i class="fas fa-download"></i> BibTeX</a>
+                    </div>
+                    <div class="card shadow mb-4"><div class="card-body">
+                        <form method="get" class="form-inline mb-3" data-live-region="#outResults">
+                            <input type="search" name="q" value="{{ filters.q or '' }}" class="form-control form-control-sm mr-2 mb-2" placeholder="{{ _('Search by name, DOI, repository, project...') if is_sw else _('Search by title, DOI, repository, project...') }}" style="min-width:260px">
+                            <select name="license" class="form-control form-control-sm mr-2 mb-2"><option value="">{{ _('Any license') }}</option>
+                                {% for l in licenses %}<option value="{{ l }}" {{ 'selected' if filters.license == l }}>{{ l }}</option>{% endfor %}</select>
+                            <button class="btn btn-primary btn-sm mb-2 mr-2" type="submit"><i class="fas fa-search"></i> {{ _('Filter') }}</button>
+                            {% if filters %}<a href="{{ url_for(request.endpoint) }}" class="btn btn-link btn-sm mb-2">{{ _('Reset') }}</a>{% endif %}
+                        </form>
+                        <div id="outResults">
+                        {% for o in items %}
+                            <div class="mb-3"><strong>{{ o.title }}</strong>{% if is_sw and o.version %} <span class="badge badge-light border">v{{ o.version }}</span>{% endif %}
+                                {% if o.license %} <span class="badge badge-light border">{{ o.license }}</span>{% endif %}{% if is_sw and o.language %} <span class="badge badge-light border">{{ o.language }}</span>{% endif %}<br>
+                                {% if is_sw and o.description %}<small>{{ o.description }}</small><br>{% endif %}
+                                <small class="text-muted"><a href="{{ url_for('admin.research_project', project_id=o.project_id) }}">{{ o.project.title }}</a></small>
+                                {% if o.doi %} <a class="small" href="https://doi.org/{{ o.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ o.doi }}</a>{% endif %}
+                                {% set link = o.repo_url if is_sw else o.url %}{% if link %} <a class="small" href="{{ link }}" target="_blank" rel="noopener noreferrer nofollow">{{ _('Repository') }}</a>{% endif %}</div>
+                        {% else %}<p class="text-muted mb-0">{{ _('Nothing matches the filters') }}</p>{% endfor %}
+                        {{ pager(pagination, filters) }}
+                        </div>
+                    </div></div>
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    {% include 'admin/components/logout_modal.html' %}
+</body>
+</html>

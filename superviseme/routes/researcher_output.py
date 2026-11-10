@@ -7,7 +7,7 @@ from flask_login import current_user, login_required
 from superviseme import db
 from superviseme.models import (
     ResearchProject, ResearchProject_Collaborator, ResearchProject_Dataset, ResearchProject_Milestone,
-    ResearchProject_Publication, ResearchProject_Resource, ResearchProject_Review, ResearchProject_Thesis, Thesis, User_mgmt, Notification,
+    ResearchProject_Publication, ResearchProject_Resource, ResearchProject_Software, ResearchProject_Review, ResearchProject_Thesis, Thesis, User_mgmt, Notification,
 )
 from superviseme.routes.researcher import researcher
 from superviseme.utils import research_output as ro
@@ -234,6 +234,65 @@ def delete_dataset(project_id, did):
     db.session.delete(ResearchProject_Dataset.query.filter_by(id=did, project_id=project.id).first_or_404())
     db.session.commit()
     return _back(project)
+
+
+# ---- software -----------------------------------------------------------------------------------------------
+
+@researcher.route("/researcher/project/<int:project_id>/software/add", methods=["POST"])
+@login_required
+def add_software(project_id):
+    project, gate = _load(project_id, write=True)
+    if gate is not None:
+        return gate
+    f = request.form
+    title = (f.get("title") or "").strip()
+    if not title:
+        flash("A title is required")
+        return _back(project)
+    db.session.add(ResearchProject_Software(
+        project_id=project.id, title=title[:300], version=(f.get("version") or "").strip()[:50] or None,
+        repo_url=ro.safe_url(f.get("repo_url")), doi=ro.clean_doi(f.get("doi")),
+        license=(f.get("license") or "").strip()[:100] or None, language=(f.get("language") or "").strip()[:100] or None,
+        description=(f.get("description") or "").strip()[:500] or None, added_by=current_user.id, created_at=int(time.time())))
+    db.session.commit()
+    flash("Software added")
+    return _back(project)
+
+
+@researcher.route("/researcher/project/<int:project_id>/software/<int:sid>/delete", methods=["POST"])
+@login_required
+def delete_software(project_id, sid):
+    project, gate = _load(project_id, write=True)
+    if gate is not None:
+        return gate
+    db.session.delete(ResearchProject_Software.query.filter_by(id=sid, project_id=project.id).first_or_404())
+    db.session.commit()
+    return _back(project)
+
+
+def _outputs_page(kind):
+    gate = check_privileges(current_user.username, role="researcher")
+    if gate is not True:
+        return gate
+    projects = accessible_projects(current_user)
+    attr = "software" if kind == "software" else "datasets"
+    rows = sorted(((o, pr) for pr in projects for o in getattr(pr, attr)), key=lambda x: (x[0].title.lower(), x[0].id))
+    if request.args.get("format") == "bib":
+        return Response(ro.output_bibtex([o for o, _pr in rows], kind), mimetype="application/x-bibtex",
+                        headers={"Content-Disposition": f"attachment; filename={attr}.bib"})
+    return render_template("researcher/outputs.html", rows=rows, kind=kind, endpoint=f"researcher.all_{attr}")
+
+
+@researcher.route("/researcher/datasets")
+@login_required
+def all_datasets():
+    return _outputs_page("datasets")
+
+
+@researcher.route("/researcher/software")
+@login_required
+def all_software():
+    return _outputs_page("software")
 
 
 # ---- linked theses ------------------------------------------------------------------------------------------

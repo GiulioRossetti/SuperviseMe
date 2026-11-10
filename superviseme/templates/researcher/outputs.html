@@ -1,0 +1,31 @@
+{% include 'admin/components/header.html' %}
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'researcher/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    {% set is_sw = kind == 'software' %}
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Software') if is_sw else _('Datasets') }}</h1>
+                        {% if rows %}<a class="btn btn-outline-secondary btn-sm" href="{{ url_for(endpoint, format='bib') }}"><i class="fas fa-download"></i> BibTeX</a>{% endif %}
+                    </div>
+                    <div class="card shadow mb-4"><div class="card-body">
+                    {% for o, pr in rows %}
+                        <div class="mb-3"><strong>{{ o.title }}</strong>{% if is_sw and o.version %} <span class="badge badge-light border">v{{ o.version }}</span>{% endif %}
+                            {% if o.license %} <span class="badge badge-light border">{{ o.license }}</span>{% endif %}{% if is_sw and o.language %} <span class="badge badge-light border">{{ o.language }}</span>{% endif %}<br>
+                            {% if is_sw and o.description %}<small>{{ o.description }}</small><br>{% endif %}
+                            <small class="text-muted"><a href="{{ url_for('researcher.project_output', project_id=pr.id) }}#{{ 'software' if is_sw else 'datasets' }}">{{ pr.title }}</a></small>
+                            {% if o.doi %} <a class="small" href="https://doi.org/{{ o.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ o.doi }}</a>{% endif %}
+                            {% set link = o.repo_url if is_sw else o.url %}{% if link %} <a class="small" href="{{ link }}" target="_blank" rel="noopener noreferrer nofollow">{{ _('Repository') }}</a>{% endif %}</div>
+                    {% else %}<p class="text-muted mb-0">{{ _('No software yet') if is_sw else _('No datasets registered') }}</p>{% endfor %}
+                    </div></div>
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+</body>
+</html>
