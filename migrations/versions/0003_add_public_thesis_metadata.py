@@ -36,7 +36,7 @@ def upgrade():
             batch_op.add_column(sa.Column("is_public", sa.Boolean(), nullable=False, server_default=sa.false()))
 
     # Backfill defaults/normalized values for existing rows.
-    op.execute("UPDATE thesis SET is_public = 0 WHERE is_public IS NULL")
+    op.execute("UPDATE thesis SET is_public = false WHERE is_public IS NULL")
     op.execute("UPDATE thesis SET short_description = substr(description, 1, 220) WHERE short_description IS NULL")
     op.execute("UPDATE thesis SET long_description = description WHERE long_description IS NULL")
 
