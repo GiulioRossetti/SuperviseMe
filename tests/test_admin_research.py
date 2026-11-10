@@ -98,3 +98,12 @@ def test_sidebar_sections(client, admin_user):
     html = client.get("/admin/research").data.decode()
     for needle in ("/admin/research", "/admin/research/publications", "/admin/users", "/admin/theses", "/agenda", "/admin/privacy"):
         assert needle in html
+
+
+def test_publications_live_partial(client, app, admin_user, researcher_user):
+    _data(app, researcher_user)
+    _login(client, admin_user.email)
+    r = client.get("/admin/research/publications?q=Community", headers={"X-Requested-With": "fetch"})
+    body = r.data.decode()
+    assert r.status_code == 200 and "Community Detection" in body and "<html" not in body and 'data-total="1"' in body
+    assert "<html" in client.get("/admin/research/publications").data.decode()

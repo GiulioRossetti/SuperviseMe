@@ -233,6 +233,9 @@ def research_publications():
     years = [y for (y,) in db.session.query(ResearchProject_Publication.year).filter(ResearchProject_Publication.year.isnot(None))
              .distinct().order_by(ResearchProject_Publication.year.desc()).all()]
     filters = {k: request.args.get(k) for k in ("q", "year", "type") if request.args.get(k)}
+    if request.headers.get("X-Requested-With") == "fetch":
+        return render_template("admin/components/research_publications_list.html", pagination=pagination, pubs=pagination.items,
+                               filters=filters, total=ResearchProject_Publication.query.count())
     return render_template("admin/research_publications.html", current_user=current_user, pagination=pagination,
                            pubs=pagination.items, years=years, types=ro.PUB_TYPES, filters=filters,
                            total=ResearchProject_Publication.query.count())

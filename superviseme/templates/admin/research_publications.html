@@ -9,11 +9,11 @@
                 <div class="container-fluid">
                     {% from 'admin/components/pager.html' import pager %}
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">{{ _('Publications') }} <span class="text-muted h6">({{ pagination.total }}{% if filters %} / {{ total }}{% endif %})</span></h1>
-                        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('admin.research_publications', format='bib', **filters) }}"><i class="fas fa-download"></i> BibTeX</a>
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Publications') }} <span class="text-muted h6" id="pubCount">({{ pagination.total }}{% if filters %} / {{ total }}{% endif %})</span></h1>
+                        <a class="btn btn-outline-secondary btn-sm" id="pubBib" href="{{ url_for('admin.research_publications', format='bib', **filters) }}"><i class="fas fa-download"></i> BibTeX</a>
                     </div>
                     <div class="card shadow mb-4"><div class="card-body">
-                        <form method="get" class="form-inline mb-3">
+                        <form method="get" class="form-inline mb-3" id="pubFilters">
                             <input type="search" name="q" value="{{ filters.q or '' }}" class="form-control form-control-sm mr-2 mb-2" placeholder="{{ _('Search by title, author, venue, DOI...') }}" style="min-width:260px">
                             <select name="year" class="form-control form-control-sm mr-2 mb-2"><option value="">{{ _('Any year') }}</option>
                                 {% for y in years %}<option value="{{ y }}" {{ 'selected' if filters.year == y|string }}>{{ y }}</option>{% endfor %}</select>
@@ -22,13 +22,7 @@
                             <button class="btn btn-primary btn-sm mb-2 mr-2" type="submit"><i class="fas fa-search"></i> {{ _('Filter') }}</button>
                             {% if filters %}<a href="{{ url_for('admin.research_publications') }}" class="btn btn-link btn-sm mb-2">{{ _('Reset') }}</a>{% endif %}
                         </form>
-                        {% for p in pubs %}
-                            <div class="mb-3"><strong>{{ p.title }}</strong>{% if p.year %} ({{ p.year }}){% endif %} <span class="badge badge-light">{{ p.pub_type }}</span><br>
-                                <small class="text-muted">{{ p.authors or '' }}{% if p.venue %} · {{ p.venue }}{% endif %} ·
-                                    <a href="{{ url_for('admin.research_project', project_id=p.project_id) }}">{{ p.project.title }}</a></small>
-                                {% if p.doi %}<br><a class="small" href="https://doi.org/{{ p.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ p.doi }}</a>{% endif %}</div>
-                        {% else %}<p class="text-muted mb-0">{{ _('No publications match the filters') }}</p>{% endfor %}
-                        {{ pager(pagination, filters) }}
+                        <div id="pubResults">{% include 'admin/components/research_publications_list.html' %}</div>
                     </div></div>
                 </div>
             </div>
@@ -36,6 +30,42 @@
         </div>
     </div>
     <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+    <script>
+    (function () {
+        var form = document.getElementById('pubFilters'), box = document.getElementById('pubResults');
+        var count = document.getElementById('pubCount'), bib = document.getElementById('pubBib'), timer, req = 0;
+        if (!form || !box || !window.fetch) { return; }
+        function load(url) {
+            var id = ++req;
+            box.style.opacity = '.5';
+            fetch(url, {headers: {'X-Requested-With': 'fetch'}, credentials: 'same-origin'})
+                .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+                .then(function (html) {
+                    if (id !== req) { return; }
+                    box.innerHTML = html; box.style.opacity = '';
+                    var meta = box.querySelector('[data-total]');
+                    if (meta && count) { count.textContent = '(' + meta.dataset.total + (meta.dataset.filtered ? ' / ' + meta.dataset.all : '') + ')'; }
+                    var u = new URL(url, location.href); u.searchParams.set('format', 'bib'); u.searchParams.delete('page');
+                    if (bib) { bib.href = u.pathname + u.search; }
+                    history.replaceState(null, '', url);
+                })
+                .catch(function () { if (id === req) { box.style.opacity = ''; } });
+        }
+        function current() {
+            var p = new URLSearchParams(new FormData(form));
+            Array.from(p.keys()).forEach(function (k) { if (!p.get(k)) { p.delete(k); } });
+            var q = p.toString();
+            return form.getAttribute('action') || location.pathname + (q ? '?' + q : '');
+        }
+        form.addEventListener('submit', function (e) { e.preventDefault(); load(current()); });
+        form.q.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(function () { load(current()); }, 250); });
+        Array.prototype.forEach.call(form.querySelectorAll('select'), function (el) { el.addEventListener('change', function () { load(current()); }); });
+        box.addEventListener('click', function (e) {
+            var a = e.target.closest('.pagination a');
+            if (a) { e.preventDefault(); load(a.getAttribute('href')); }
+        });
+    })();
+    </script>
     {% include 'admin/components/logout_modal.html' %}
 </body>
 </html>
