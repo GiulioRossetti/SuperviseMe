@@ -22,123 +22,78 @@
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
 
-                    <!-- Page Heading -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">{{ _('Research Projects') }}</h1>
-                        <button class="btn btn-success" data-toggle="modal" data-target="#createProjectModal">
-                            <i class="fas fa-plus"></i> Create New Project
-                        </button>
-                    </div>
+                    {% from 'components/dash.html' import hero, tile, panel, empty, avatar with context %}
+                    {% set n_frozen = projects_with_collaborators|selectattr('project.frozen')|list|length %}
+                    {% set n_collab = projects_with_collaborators|sum(attribute='collaborators', start=[])|length %}
+                    {% call hero(_('Research Projects'), _('Your projects, their collaborators and current status.'), 'fa-project-diagram') %}
+                        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#createProjectModal"><i class="fas fa-plus"></i> {{ _('Create New Project') }}</button>
+                    {% endcall %}
 
-                    <!-- Flash Messages -->
                     {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert alert-info alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
+                        {% for message in messages %}
+                            <div class="alert alert-info alert-dismissible fade show" role="alert">{{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            </div>
+                        {% endfor %}
                     {% endwith %}
 
-                    <!-- Projects Table -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-success">{{ _('My Research Projects') }}</h6>
-                                </div>
-                                <div class="card-body">
-                                    {% if projects_with_collaborators %}
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered" width="100%" cellspacing="0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>{{ _('Title') }}</th>
-                                                        <th>{{ _('Description') }}</th>
-                                                        <th>{{ _('Level') }}</th>
-                                                        <th>{{ _('Collaborators') }}</th>
-                                                        <th>{{ _('Status') }}</th>
-                                                        <th>{{ _('Actions') }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {% for item in projects_with_collaborators %}
-                                                    {% set project = item.project %}
-                                                    {% set collaborators = item.collaborators %}
-                                                    <tr>
-                                                        <td>
-                                                            <strong>{{ project.title }}</strong>
-                                                        </td>
-                                                        <td>
-                                                            <div class="text-truncate" style="max-width: 300px;">
-                                                                {{ project.description[:100] }}
-                                                                {% if project.description|length > 100 %}...{% endif %}
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <span class="badge badge-info">{{ project.level or 'Not specified' }}</span>
-                                                        </td>
-                                                        <td>
-                                                            {% if collaborators %}
-                                                                {% for collab in collaborators[:2] %}
-                                                                    <span class="badge badge-secondary mr-1">
-                                                                        {{ user_link(collab.user) }}
-                                                                        <small>({{ collab.role }})</small>
-                                                                    </span>
-                                                                {% endfor %}
-                                                                {% if collaborators|length > 2 %}
-                                                                    <span class="text-muted">+{{ collaborators|length - 2 }} more</span>
-                                                                {% endif %}
-                                                            {% else %}
-                                                                <span class="text-muted">{{ _('No collaborators') }}</span>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td>
-                                                            {% if project.frozen %}
-                                                                <span class="badge badge-warning">{{ _('Frozen') }}</span>
-                                                            {% else %}
-                                                                <span class="badge badge-success">{{ _('Active') }}</span>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td>
-                                                            <div class="btn-group" role="group">
-                                                                <a href="{{ url_for('researcher.project_detail', project_id=project.id) }}" 
-                                                                   class="btn btn-sm btn-outline-primary">
-                                                                    <i class="fas fa-eye"></i>
-                                                                </a>
-                                                                <button class="btn btn-sm btn-outline-secondary" 
-                                                                        onclick="editProject({{ project.id }}, '{{ project.title }}', '{{ project.description }}', '{{ project.level }}')">
-                                                                    <i class="fas fa-edit"></i>
-                                                                </button>
-                                                                <button class="btn btn-sm btn-outline-danger" 
-                                                                        onclick="deleteProject({{ project.id }}, '{{ project.title }}')">
-                                                                    <i class="fas fa-trash"></i>
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    {% endfor %}
-                                                </tbody>
-                                            </table>
+                    <div class="dash-tiles">
+                        {{ tile('fa-project-diagram', 'indigo', projects_with_collaborators|length, _('Projects')) }}
+                        {{ tile('fa-play-circle', 'green', projects_with_collaborators|length - n_frozen, _('Active')) }}
+                        {{ tile('fa-lock', 'amber', n_frozen, _('Frozen')) }}
+                        {{ tile('fa-users', 'sky', n_collab, _('Collaborators')) }}
+                    </div>
+
+                    {% if projects_with_collaborators %}
+                    <div class="sv-toolbar mb-3">
+                        <input type="search" id="pjSearch" class="form-control sv-search" placeholder="{{ _('Search projects...') }}" aria-label="{{ _('Search projects...') }}">
+                    </div>
+                    <div class="pj-grid" id="pjGrid">
+                        {% for item in projects_with_collaborators %}
+                        {% set project = item.project %}
+                        {% set collaborators = item.collaborators %}
+                        <div class="pj-slot" data-q="{{ (project.title ~ ' ' ~ (project.description or '') ~ ' ' ~ (project.level or ''))|lower }}">
+                            <div class="sv-card th-card {{ 'is-inactive' if project.frozen else 'is-open' }}">
+                                <a class="th-cover placeholder g{{ project.id % 6 }}" href="{{ url_for('researcher.project_detail', project_id=project.id) }}">
+                                    <i class="fas fa-flask"></i>
+                                    {% if project.level %}<span class="th-level">{{ project.level|title }}</span>{% endif %}
+                                </a>
+                                <div class="d-flex align-items-start">
+                                    <a class="sv-thesis flex-grow-1 text-dark" href="{{ url_for('researcher.project_detail', project_id=project.id) }}" title="{{ project.title }}">{{ project.title }}</a>
+                                    <div class="dropdown ml-2">
+                                        <button class="btn btn-link btn-sm text-muted p-0" data-toggle="dropdown" aria-label="{{ _('More') }}"><i class="fas fa-ellipsis-v"></i></button>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a class="dropdown-item" href="{{ url_for('researcher.project_detail', project_id=project.id) }}"><i class="fas fa-eye fa-fw mr-1"></i> {{ _('View Details') }}</a>
+                                            <a class="dropdown-item js-edit" href="#" data-id="{{ project.id }}" data-title="{{ project.title }}" data-description="{{ project.description }}" data-level="{{ project.level or '' }}"><i class="fas fa-edit fa-fw mr-1"></i> {{ _('Edit') }}</a>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item text-danger js-delete" href="#" data-id="{{ project.id }}" data-title="{{ project.title }}"><i class="fas fa-trash fa-fw mr-1"></i> {{ _('Delete') }}</a>
                                         </div>
-                                    {% else %}
-                                        <div class="text-center py-5">
-                                            <i class="fas fa-project-diagram fa-4x text-gray-300 mb-4"></i>
-                                            <h4 class="text-gray-400">{{ _('No Research Projects Yet') }}</h4>
-                                            <p class="text-gray-500 mb-4">{{ _('Create your first research project to get started with collaborative research!') }}</p>
-                                            <button class="btn btn-success" data-toggle="modal" data-target="#createProjectModal">
-                                                <i class="fas fa-plus"></i> Create Your First Project
-                                            </button>
-                                        </div>
-                                    {% endif %}
+                                    </div>
                                 </div>
+                                <div class="sv-badges">
+                                    {% if project.frozen %}<span class="badge badge-warning"><i class="fas fa-lock"></i> {{ _('Frozen') }}</span>
+                                    {% else %}<span class="badge badge-success">{{ _('Active') }}</span>{% endif %}
+                                </div>
+                                <p class="small text-muted mb-0 mt-2 pj-desc">{{ (project.description or '')[:140] }}{% if (project.description or '')|length > 140 %}…{% endif %}</p>
+                                {% if collaborators %}
+                                <div class="th-student">
+                                    {% for collab in collaborators[:3] %}<span title="{{ collab.user.name }} {{ collab.user.surname }} ({{ collab.role }})">{{ avatar(collab.user) }}</span>{% endfor %}
+                                    <div class="min-w-0 small text-muted">{{ collaborators|length }} {{ _('collaborators') }}</div>
+                                </div>
+                                {% else %}
+                                <div class="th-unassigned">{{ _('No collaborators') }}</div>
+                                {% endif %}
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
+                    <div id="pjNone" class="d-none">{{ empty('fas fa-search', _('No projects match your search')) }}</div>
+                    {% else %}
+                        {% call panel(_('My Research Projects'), 'fa-project-diagram') %}
+                            {{ empty('fas fa-project-diagram', _('No Research Projects Yet'), _('Create your first research project to get started with collaborative research!')) }}
+                            <div class="text-center mt-3"><button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#createProjectModal"><i class="fas fa-plus"></i> {{ _('Create Your First Project') }}</button></div>
+                        {% endcall %}
+                    {% endif %}
 
                 </div>
                 <!-- /.container-fluid -->
@@ -258,6 +213,19 @@
             document.getElementById('edit_level').value = level || '';
             $('#editProjectModal').modal('show');
         }
+        document.addEventListener('click', function (e) {
+            var ed = e.target.closest('.js-edit'), del = e.target.closest('.js-delete');
+            if (ed) { e.preventDefault(); editProject(ed.dataset.id, ed.dataset.title, ed.dataset.description, ed.dataset.level); }
+            if (del) { e.preventDefault(); deleteProject(del.dataset.id, del.dataset.title); }
+        });
+        var pjS = document.getElementById('pjSearch');
+        if (pjS) pjS.addEventListener('input', function () {
+            var q = pjS.value.trim().toLowerCase(), shown = 0;
+            document.querySelectorAll('.pj-slot').forEach(function (el) {
+                var ok = !q || el.dataset.q.indexOf(q) !== -1; el.style.display = ok ? '' : 'none'; if (ok) shown++;
+            });
+            document.getElementById('pjNone').classList.toggle('d-none', shown > 0);
+        });
 
         function deleteProject(id, title) {
             if (confirm(`Are you sure you want to delete the project "${title}"? This action cannot be undone.`)) {
@@ -265,6 +233,7 @@
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
                     }
                 })
                 .then(response => response.json())

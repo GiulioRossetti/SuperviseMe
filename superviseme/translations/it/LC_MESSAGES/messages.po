@@ -4089,3 +4089,24 @@ msgstr "oppure"
 
 msgid "No account needed"
 msgstr "Nessun account necessario"
+
+msgid "Your projects, their collaborators and current status."
+msgstr "I tuoi progetti, i collaboratori e lo stato attuale."
+
+msgid "Projects"
+msgstr "Progetti"
+
+msgid "collaborators"
+msgstr "collaboratori"
+
+msgid "Search projects..."
+msgstr "Cerca progetti..."
+
+msgid "No projects match your search"
+msgstr "Nessun progetto corrisponde alla ricerca"
+
+msgid "Create New Project"
+msgstr "Crea nuovo progetto"
+
+msgid "Create Your First Project"
+msgstr "Crea il tuo primo progetto"

@@ -1001,3 +1001,9 @@ a.doc-item:hover { border-color: var(--sm-primary); color: inherit; }
 .sm-compact .ms-body { min-width: 0; overflow-wrap: anywhere; }
 .sm-compact .doc-item { min-width: 0; }
 .sm-compact .doc-main { min-width: 0; overflow-wrap: anywhere; }
+
+/* researcher projects grid */
+.pj-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.pj-slot { min-width: 0; }
+.pj-desc { min-height: 2.6rem; }
+.th-student .sm-avatar + .sm-avatar, .th-student span + span { margin-left: -.5rem; }
