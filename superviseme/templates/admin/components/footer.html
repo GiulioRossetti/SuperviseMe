@@ -34,6 +34,9 @@
     <!-- Accessibility enhancements (tabs, carousels, modals) -->
     <script src="{{ url_for('static', filename='assets/js/sm-a11y.js') }}"></script>
 
+    <!-- Live search (forms with data-live-region, topbar suggestions) -->
+    <script src="{{ url_for('static', filename='assets/js/live-search.js') }}"></script>
+
     <!-- Notifications system -->
     {% if current_user.is_authenticated %}
     <script src="{{ url_for('static', filename='assets/js/notifications.js') }}"></script>

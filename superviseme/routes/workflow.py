@@ -1,7 +1,7 @@
 """Workflow features: milestones (and, in later commits, meetings, documents, checklist, ...)."""
 import time
 
-from flask import Blueprint, Response, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, Response, abort, flash, jsonify, redirect, render_template, request, url_for
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
 
@@ -762,15 +762,7 @@ def delete_checklist_item(item_id):
 
 
 # ---------------------------------------------------------------- global search
-@workflow.route("/search")
-@login_required
-def search():
-    from superviseme.utils import search as search_utils
-    term = (request.args.get("q") or "").strip()[:100]
-    results = search_utils.search(current_user, term)
-    thesis_ids = {x.thesis_id for key in ("updates", "tasks", "notes", "documents") for x in results[key]}
-    theses = {t.id: t for t in Thesis.query.filter(Thesis.id.in_(thesis_ids)).all()} if thesis_ids else {}
-
+def _search_links(theses):
     def note_url(note):
         endpoint = {"student": "student.meeting_note_detail", "supervisor": "supervisor.meeting_note_detail",
                     "researcher": "researcher.supervisor_meeting_note_detail"}.get(current_user.user_type)
@@ -780,11 +772,48 @@ def search():
         if thesis_role(current_user, t):
             return thesis_url(current_user, t)
         return url_for("public.public_thesis_detail", thesis_id=t.id)
+    return note_url, thesis_link
 
+
+def _search_theses(results):
+    thesis_ids = {x.thesis_id for key in ("updates", "tasks", "notes", "documents") for x in results[key]}
+    return {t.id: t for t in Thesis.query.filter(Thesis.id.in_(thesis_ids)).all()} if thesis_ids else {}
+
+
+@workflow.route("/search")
+@login_required
+def search():
+    from superviseme.utils import search as search_utils
+    term = (request.args.get("q") or "").strip()[:100]
+    results = search_utils.search(current_user, term)
+    theses = _search_theses(results)
+    note_url, thesis_link = _search_links(theses)
     total = sum(len(v) for v in results.values())
     return render_template("workflow/search.html", term=term, results=results, theses=theses, total=total,
                            note_url=note_url, thesis_link=thesis_link, snippet=search_utils.snippet,
                            min_len=search_utils.MIN_LEN, thesis_url=thesis_url)
+
+
+@workflow.route("/search/suggest")
+@login_required
+def search_suggest():
+    """Quick suggestions for the topbar search box (a few hits per group, same access rules as /search)."""
+    from superviseme.utils import search as search_utils
+    term = (request.args.get("q") or "").strip()[:100]
+    results = search_utils.search(current_user, term)
+    theses = _search_theses(results)
+    note_url, thesis_link = _search_links(theses)
+    per = 3
+    items = []
+    items += [{"group": _("Theses"), "title": t.title, "sub": "", "url": thesis_link(t)} for t in results["theses"][:per]]
+    items += [{"group": _("People"), "title": f"{p.name} {p.surname}", "sub": p.user_type,
+               "url": url_for("public.user_profile", user_id=p.id)}
+              for p in results["people"][:per]]
+    items += [{"group": _("Updates"), "title": theses[u.thesis_id].title, "sub": search_utils.snippet(u.content, term), "url": thesis_url(current_user, theses[u.thesis_id])} for u in results["updates"][:per]]
+    items += [{"group": _("Tasks"), "title": t.title, "sub": theses[t.thesis_id].title, "url": thesis_url(current_user, theses[t.thesis_id])} for t in results["tasks"][:per]]
+    items += [{"group": _("Meeting notes"), "title": n.title, "sub": search_utils.snippet(n.content, term), "url": note_url(n)} for n in results["notes"][:per]]
+    items += [{"group": _("Documents"), "title": d.title, "sub": theses[d.thesis_id].title, "url": url_for("workflow.document_detail", doc_id=d.id)} for d in results["documents"][:per]]
+    return jsonify({"items": items, "empty": _("No results"), "all": _("All results")})
 
 
 # ---------------------------------------------------------------- reports and archive

@@ -22,6 +22,7 @@ SuperviseMe is a Flask web application that brings supervisors, students, resear
 
 ### Roles and access
 - Email/password login (PBKDF2-SHA256), optional **ORCID** and **Google** sign-in ([docs](docs/social_login.md), [ORCID](docs/features/orcid.md)).
+- Live search everywhere: lists filter as you type, the global search page refreshes dynamically and the top search box shows quick suggestions.
 - Role-based access control for **admins**, **supervisors**, **researchers** and **students**. Researchers can be granted supervisor privileges and then see both areas.
 - CSRF protection on all forms and AJAX calls, rate-limited and audited sensitive actions, Fernet-encrypted stored tokens.
 - Profile pages with avatar, bio, ORCID, publications and **web links** (personal site, LinkedIn, …), with per-field privacy controls.

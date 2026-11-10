@@ -6,9 +6,9 @@
                     </button>
 
                     <!-- Topbar Search -->
-                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search" method="GET" action="{{ url_for('workflow.search') }}">
+                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search" data-suggest-url="{{ url_for('workflow.search_suggest') }}" method="GET" action="{{ url_for('workflow.search') }}">
                         <div class="input-group">
-                            <input type="search" class="form-control bg-light border-0 small" placeholder="{{ _('Search for...') }}" name="q" required minlength="2" aria-label="Search">
+                            <input type="search" class="form-control bg-light border-0 small" placeholder="{{ _('Search for...') }}" name="q" required minlength="2" aria-label="Search" autocomplete="off">
                             <div class="input-group-append"><button class="btn btn-primary" type="submit"><i class="fas fa-search fa-sm"></i></button></div>
                         </div>
                     </form>
@@ -25,9 +25,9 @@
                             <!-- Dropdown - Messages -->
                             <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
                                 aria-labelledby="searchDropdown">
-                                <form class="form-inline mr-auto w-100 navbar-search" method="GET" action="{{ url_for('workflow.search') }}">
+                                <form class="form-inline mr-auto w-100 navbar-search" data-suggest-url="{{ url_for('workflow.search_suggest') }}" method="GET" action="{{ url_for('workflow.search') }}">
                                     <div class="input-group">
-                                        <input type="search" class="form-control bg-light border-0 small" placeholder="{{ _('Search for...') }}" aria-label="Search" name="q" required minlength="2">
+                                        <input type="search" class="form-control bg-light border-0 small" placeholder="{{ _('Search for...') }}" aria-label="Search" name="q" required minlength="2" autocomplete="off">
                                         <div class="input-group-append"><button class="btn btn-primary" type="submit"><i class="fas fa-search fa-sm"></i></button></div>
                                     </div>
                                 </form>

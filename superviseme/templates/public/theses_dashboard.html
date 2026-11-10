@@ -59,7 +59,7 @@
                         <h6 class="m-0 font-weight-bold text-primary">{{ _('Search & Filters') }}</h6>
                     </div>
                     <div class="card-body">
-                        <form method="GET">
+                        <form method="GET" data-live-region="#thesesResults">
                             <div class="form-row">
                                 <div class="col-md-3 mb-2">
                                     <input type="text" class="form-control" name="supervisor" placeholder="{{ _('Supervisor') }}" value="{{ filters.supervisor }}">
@@ -83,6 +83,7 @@
                     </div>
                 </div>
 
+                <div id="thesesResults">
                 <div class="mb-3 small text-muted">{{ theses|length }} result{{ '' if theses|length == 1 else 's' }}</div>
 
                 {% if theses %}
@@ -164,4 +165,5 @@
                     <p class="text-center text-muted small">Showing {{ theses|length }} of {{ pagination.total }} theses</p>
                 </nav>
                 {% endif %}
+                </div>
 {% endblock %}

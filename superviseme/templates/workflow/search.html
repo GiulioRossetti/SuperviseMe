@@ -2,12 +2,13 @@
 {% from 'components/dash.html' import hero, panel with context %}
 {% block page_content %}
 {% call hero(_('Search'), _('Theses, people, updates, tasks, notes and documents you can access'), 'fa-search') %}{% endcall %}
-<form method="GET" action="{{ url_for('workflow.search') }}" class="mb-4">
+<form method="GET" action="{{ url_for('workflow.search') }}" class="mb-4" data-live-region="#searchResults">
     <div class="input-group">
         <input type="search" class="form-control" name="q" value="{{ term }}" minlength="{{ min_len }}" required autofocus placeholder="{{ _('Search for...') }}">
         <div class="input-group-append"><button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button></div>
     </div>
 </form>
+<div id="searchResults">
 {% if term|length < min_len %}
     <div class="dash-empty"><i class="fas fa-search"></i>{{ _('Type at least %(n)d characters', n=min_len) }}</div>
 {% elif not total %}
@@ -38,4 +39,5 @@
 </div>
 </div>
 {% endif %}
+</div>
 {% endblock %}

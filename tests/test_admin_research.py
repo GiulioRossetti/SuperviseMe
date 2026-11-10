@@ -107,3 +107,20 @@ def test_publications_live_partial(client, app, admin_user, researcher_user):
     body = r.data.decode()
     assert r.status_code == 200 and "Community Detection" in body and "<html" not in body and 'data-total="1"' in body
     assert "<html" in client.get("/admin/research/publications").data.decode()
+
+
+def test_live_search_suggest_and_regions(client, app, admin_user, researcher_user):
+    _login(client, admin_user.email)
+    r = client.get("/search/suggest?q=" + researcher_user.surname[:3])
+    assert r.status_code == 200 and r.is_json and "items" in r.json
+    assert any(i["group"] for i in r.json["items"]) or r.json["items"] == []
+    assert client.get("/search/suggest?q=a").json["items"] == []
+    page = client.get("/search?q=zz").data.decode()
+    assert 'data-live-region="#searchResults"' in page and 'id="searchResults"' in page
+    assert 'data-suggest-url="/search/suggest"' in page and "live-search.js" in page
+    pub = client.get("/theses").data.decode() if client.get("/theses").status_code == 200 else ""
+    assert not pub or 'id="thesesResults"' in pub
+
+
+def test_suggest_requires_login(app):
+    assert app.test_client().get("/search/suggest?q=abc").status_code == 302

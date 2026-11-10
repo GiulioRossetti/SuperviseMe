@@ -4737,3 +4737,6 @@ msgstr "L'eliminazione automatica è attiva (RETENTION_ENABLED)."
 
 msgid "Automatic deletion is disabled: no data is removed. Set RETENTION_ENABLED=true to enable it."
 msgstr "L'eliminazione automatica è disattivata: nessun dato viene rimosso. Imposta RETENTION_ENABLED=true per attivarla."
+
+msgid "All results"
+msgstr "Tutti i risultati"
