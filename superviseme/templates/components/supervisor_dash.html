@@ -85,7 +85,7 @@
     <div class="col-xl-4">
         {% call panel(_('Thesis pipeline'), 'fa-stream') %}
             {% if ov.pipeline %}
-                {% set total = ov.pipeline|sum(attribute=1) %}
+                {% set total = ov.pipeline|map('last')|sum %}
                 <div class="dash-bar">{% for k, v in ov.pipeline %}<span class="pc{{ loop.index0 % 6 }}" style="width: {{ 100 * v / total }}%" title="{{ k }}: {{ v }}"></span>{% endfor %}</div>
                 <div class="dash-legend">{% for k, v in ov.pipeline %}<span><i class="pc{{ loop.index0 % 6 }}"></i>{{ _(k|replace('-', ' ')|capitalize) }} · {{ v }}</span>{% endfor %}</div>
             {% else %}{{ empty('fas fa-stream', _('No theses yet')) }}{% endif %}
@@ -108,8 +108,8 @@
             <ul class="dash-feed">
                 {% for r in ov.recent %}
                 <li>{% if r.author %}{{ avatar(r.author) }}{% endif %}
-                    <div class="tx"><strong>{{ user_link(r.author) }}</strong> <small class="d-inline text-muted">· {{ dt(r.update.created_at).strftime('%d %b') }}</small>
-                        <small>{{ r.thesis_title }}</small><span class="snip">{{ r.update.content }}</span></div></li>
+                    <div class="tx"><strong>{{ user_link(r.author) }}</strong> <small class="d-inline text-muted">· {{ dt(r.upd.created_at).strftime('%d %b') }}</small>
+                        <small>{{ r.thesis_title }}</small><span class="snip">{{ r.upd.content }}</span></div></li>
                 {% endfor %}
             </ul>
             {% else %}{{ empty('far fa-comments', _('No recent updates.')) }}{% endif %}

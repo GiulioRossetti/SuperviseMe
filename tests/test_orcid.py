@@ -94,16 +94,16 @@ def test_fetch_orcid_activities_success(orcid_modules):
 
     # Mock DB
     client.OrcidActivity = MagicMock()
-    client.db.session = MagicMock()
-
-    result = client.fetch_orcid_activities(user)
+    fake_session = MagicMock()
+    with patch.object(client.db, "session", fake_session):
+        result = client.fetch_orcid_activities(user)
 
     assert result["success"] is True
     assert "Successfully synced" in result["message"]
 
     # Verify db add and commit called
-    assert client.db.session.add_all.called
-    assert client.db.session.commit.called
+    assert fake_session.add_all.called
+    assert fake_session.commit.called
 
     # Verify requests called with token
     args, kwargs = client.requests.get.call_args

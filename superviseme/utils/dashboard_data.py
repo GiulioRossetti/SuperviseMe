@@ -39,7 +39,7 @@ def _recent_updates(thesis_ids, limit=6):
     authors = {u.id: u for u in User_mgmt.query.filter(User_mgmt.id.in_({r.author_id for r in rows})).all()} if rows else {}
     titles = {t.id: t.title for t in Thesis.query.filter(Thesis.id.in_({r.thesis_id for r in rows})).all()} if rows else {}
     return [
-        {"update": r, "author": authors.get(r.author_id), "thesis_title": titles.get(r.thesis_id, "")}
+        {"upd": r, "author": authors.get(r.author_id), "thesis_title": titles.get(r.thesis_id, "")}
         for r in rows
     ]
 

@@ -25,6 +25,9 @@ import tempfile
 import pytest
 from unittest.mock import MagicMock
 
+# Tests never run in production mode (e.g. crypto.py refuses to start without a key there).
+os.environ.setdefault("FLASK_ENV", "testing")
+
 
 def _restore_snapshot(snapshot):
     """Restore sys.modules from *snapshot*, removing/replacing MagicMocks.
@@ -34,6 +37,7 @@ def _restore_snapshot(snapshot):
     """
     if not snapshot:
         return
+
 
     # Restore any snapshot entry that is currently a MagicMock.
     for key, real_module in snapshot.items():

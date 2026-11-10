@@ -59,16 +59,35 @@ _patcher.start()
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from superviseme.utils.notifications import build_role_aware_url  # noqa: E402
 
+# The module under test was imported against mocked dependencies. Keep a handle on it and
+# stop the sys.modules patch right away: if it stayed active until the module-level fixture
+# teardown it would cover the *collection* of every test file sorted after this one
+# (test_ui_pages.py, ...), which would then bind mocked models/db at import time.
+_NOTIF_NAME = "superviseme.utils.notifications"
+_notif_module = sys.modules[_NOTIF_NAME]
+_patcher.stop()
+
 
 @pytest.fixture(autouse=True, scope="module")
 def _cleanup_notification_mocks():
-    """Stop the sys.modules patcher once all tests in this module are done.
-
-    patch.dict records which keys it changed and restores exactly those keys
-    when stopped, leaving any other sys.modules entries untouched.
-    """
+    """Expose the mock-bound module to this file's tests (so patch("superviseme.utils.notifications.X")
+    targets it) and put everything back afterwards."""
+    import importlib
+    pkg = importlib.import_module("superviseme.utils")  # the real package, as seen by patch()
+    prev_attr = getattr(pkg, "notifications", None)
+    saved = sys.modules.get(_NOTIF_NAME)
+    sys.modules[_NOTIF_NAME] = _notif_module
+    pkg.notifications = _notif_module
     yield
-    _patcher.stop()
+    if saved is None:
+        sys.modules.pop(_NOTIF_NAME, None)
+    else:
+        sys.modules[_NOTIF_NAME] = saved
+    if prev_attr is None:
+        if hasattr(pkg, "notifications"):
+            del pkg.notifications
+    else:
+        pkg.notifications = prev_attr
 
 
 # ---------------------------------------------------------------------------

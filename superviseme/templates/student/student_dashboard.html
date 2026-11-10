@@ -117,8 +117,8 @@
                                 <ul class="dash-feed">
                                     {% for r in ov.recent %}
                                     <li>{% if r.author %}{{ avatar(r.author) }}{% endif %}
-                                        <div class="tx"><strong>{% if r.author and r.author.id == current_user.id %}{{ _('You') }}{% else %}{{ user_link(r.author) }}{% endif %}</strong> <small class="d-inline text-muted">· {{ dt(r.update.created_at).strftime('%d %b') }}</small>
-                                            <span class="snip">{{ r.update.content }}</span></div></li>
+                                        <div class="tx"><strong>{% if r.author and r.author.id == current_user.id %}{{ _('You') }}{% else %}{{ user_link(r.author) }}{% endif %}</strong> <small class="d-inline text-muted">· {{ dt(r.upd.created_at).strftime('%d %b') }}</small>
+                                            <span class="snip">{{ r.upd.content }}</span></div></li>
                                     {% endfor %}
                                 </ul>
                                 {% else %}{{ empty('far fa-comments', _('No recent updates.')) }}{% endif %}
