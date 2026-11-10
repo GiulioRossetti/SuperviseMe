@@ -4377,3 +4377,12 @@ msgstr "Concedi privilegi di relatore"
 
 msgid "Revoke supervisor privileges"
 msgstr "Revoca privilegi di relatore"
+
+msgid "Invitation pending"
+msgstr "Invito in sospeso"
+
+msgid "Project invitations"
+msgstr "Inviti ai progetti"
+
+msgid "Accept"
+msgstr "Accetta"

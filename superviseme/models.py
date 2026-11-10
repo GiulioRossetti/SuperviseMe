@@ -364,6 +364,8 @@ class ResearchProject_Collaborator(db.Model):
     collaborator_id = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=False)
     role = db.Column(db.String(50), nullable=False, default="collaborator")  # collaborator, co-investigator, etc.
     added_at = db.Column(db.Integer, nullable=False)
+    # invitation workflow: "pending" until the invitee accepts (declining deletes the row)
+    status = db.Column(db.String(20), nullable=False, default="accepted", server_default="accepted")
 
     project = db.relationship("ResearchProject", backref="collaborators", lazy=True)
     collaborator = db.relationship("User_mgmt", backref="collaborated_projects", lazy=True)

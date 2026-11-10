@@ -1,7 +1,7 @@
 """Research project routes (projects, collaborators, updates, todos, resources, objectives,
 hypotheses, meeting notes). Registered on the ``researcher`` blueprint; imported at the bottom of
 ``researcher.py`` so every endpoint name and URL stays the same."""
-from flask import Blueprint, request, render_template, abort, redirect, url_for, jsonify, flash
+from flask import Blueprint, request, render_template, abort, redirect, url_for, jsonify, flash, current_app
 import logging
 
 logger = logging.getLogger(__name__)
@@ -47,12 +47,12 @@ def projects():
     # For each project, get collaborators
     projects_with_collaborators = []
     for project in research_projects:
-        collaborators = ResearchProject_Collaborator.query.filter_by(project_id=project.id).all()
+        collaborators = ResearchProject_Collaborator.query.filter_by(project_id=project.id, status="accepted").all()
         collaborator_users = []
         for collab in collaborators:
             user = db.session.get(User_mgmt, collab.collaborator_id)
             if user:
-                collaborator_users.append({"user": user, "role": collab.role})
+                collaborator_users.append({"user": user, "role": collab.role, "status": collab.status})
         
         projects_with_collaborators.append({
             "project": project,
@@ -228,7 +228,7 @@ def add_collaborator():
         project_id=project_id, collaborator_id=collaborator.id
     ).first()
     if existing:
-        flash("User is already a collaborator on this project")
+        flash("User is already a collaborator on this project (or has a pending invitation)")
         return redirect(request.referrer)
 
     try:
@@ -236,16 +236,83 @@ def add_collaborator():
             project_id=project_id,
             collaborator_id=collaborator.id,
             role=role,
+            status="pending",
             added_at=int(time.time())
         )
         db.session.add(new_collaborator)
         db.session.commit()
 
-        flash(f"Collaborator {collaborator.name} {collaborator.surname} added successfully")
+        try:
+            from superviseme.utils.notifications import create_notification
+            create_notification(
+                recipient_id=collaborator.id,
+                actor_id=current_user.id,
+                notification_type="project_invitation",
+                title=f"Invitation to project: {project.title}",
+                message=f"{current_user.name} {current_user.surname} invited you to collaborate on "
+                        f"\"{project.title}\" as {role}. Accept or decline from your dashboard.",
+                action_url=url_for("researcher.dashboard"),
+            )
+        except Exception:  # notification failures must not block the invitation
+            current_app.logger.exception("Could not notify project invitee")
+
+        flash(f"Invitation sent to {collaborator.name} {collaborator.surname}")
         return redirect(url_for("researcher.projects"))
     except Exception as e:
         flash(f"Error adding collaborator: {e}")
         return redirect(request.referrer)
+
+
+def _pending_invitation_or_404(invitation_id):
+    inv = db.session.get(ResearchProject_Collaborator, invitation_id)
+    if inv is None or inv.collaborator_id != current_user.id or inv.status != "pending":
+        abort(404)
+    return inv
+
+
+def _notify_inviter(inv, accepted):
+    try:
+        from superviseme.utils.notifications import create_notification
+        project = inv.project
+        verb = "accepted" if accepted else "declined"
+        create_notification(
+            recipient_id=project.researcher_id,
+            actor_id=current_user.id,
+            notification_type="project_invitation_reply",
+            title=f"Invitation {verb}: {project.title}",
+            message=f"{current_user.name} {current_user.surname} {verb} your invitation to \"{project.title}\".",
+            action_url=url_for("researcher.project_detail", project_id=project.id),
+        )
+    except Exception:
+        current_app.logger.exception("Could not notify project owner")
+
+
+@researcher.route("/researcher/invitations/<int:invitation_id>/accept", methods=["POST"])
+@login_required
+def accept_project_invitation(invitation_id):
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    inv = _pending_invitation_or_404(invitation_id)
+    inv.status = "accepted"
+    db.session.commit()
+    _notify_inviter(inv, True)
+    flash("Invitation accepted")
+    return redirect(url_for("researcher.project_detail", project_id=inv.project_id))
+
+
+@researcher.route("/researcher/invitations/<int:invitation_id>/decline", methods=["POST"])
+@login_required
+def decline_project_invitation(invitation_id):
+    privilege_check = check_privileges(current_user.username, role="researcher")
+    if privilege_check is not True:
+        return privilege_check
+    inv = _pending_invitation_or_404(invitation_id)
+    _notify_inviter(inv, False)
+    db.session.delete(inv)
+    db.session.commit()
+    flash("Invitation declined")
+    return redirect(url_for("researcher.dashboard"))
 
 
 @researcher.route("/researcher/remove_collaborator", methods=["POST"])
@@ -306,7 +373,7 @@ def project_detail(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None
 
@@ -319,7 +386,7 @@ def project_detail(project_id):
     for collab in collaborators:
         user = db.session.get(User_mgmt, collab.collaborator_id)
         if user:
-            collaborator_users.append({"user": user, "role": collab.role})
+            collaborator_users.append({"user": user, "role": collab.role, "status": collab.status})
 
     # Get project statistics
     updates_count = ResearchProject_Update.query.filter_by(project_id=project_id).count()
@@ -382,7 +449,7 @@ def project_updates(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None
 
@@ -421,7 +488,7 @@ def add_project_update(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -470,7 +537,7 @@ def project_todos(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None
 
@@ -518,7 +585,7 @@ def add_project_todo(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -580,7 +647,7 @@ def complete_project_todo(todo_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -617,7 +684,7 @@ def project_resources(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None
 
@@ -656,7 +723,7 @@ def add_project_resource(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -706,7 +773,7 @@ def project_objectives(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None
 
@@ -745,7 +812,7 @@ def add_project_objective(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -794,7 +861,7 @@ def project_hypotheses(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None
 
@@ -833,7 +900,7 @@ def add_project_hypothesis(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -882,7 +949,7 @@ def project_meeting_notes(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None
 
@@ -921,7 +988,7 @@ def add_project_meeting_note(project_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project_id, collaborator_id=current_user.id
+            project_id=project_id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1016,7 +1083,7 @@ def delete_project_resource(resource_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1058,7 +1125,7 @@ def edit_project_resource(resource_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1110,7 +1177,7 @@ def edit_project_todo(todo_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1163,7 +1230,7 @@ def delete_project_todo(todo_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1205,7 +1272,7 @@ def edit_project_objective(objective_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1255,7 +1322,7 @@ def delete_project_objective(objective_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1297,7 +1364,7 @@ def edit_project_hypothesis(hypothesis_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1347,7 +1414,7 @@ def delete_project_hypothesis(hypothesis_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1389,7 +1456,7 @@ def edit_project_meeting_note(note_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1440,7 +1507,7 @@ def delete_project_meeting_note(note_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1482,7 +1549,7 @@ def edit_project_update(update_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1532,7 +1599,7 @@ def delete_project_update(update_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None and collaboration.role not in READ_ONLY_ROLES
 
@@ -1571,7 +1638,7 @@ def project_meeting_note_detail(note_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None
 
@@ -1615,7 +1682,7 @@ def project_todo_detail(todo_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None
 
@@ -1675,7 +1742,7 @@ def project_update_detail(update_id):
     has_access = project.researcher_id == current_user.id
     if not has_access:
         collaboration = ResearchProject_Collaborator.query.filter_by(
-            project_id=project.id, collaborator_id=current_user.id
+            project_id=project.id, collaborator_id=current_user.id, status="accepted"
         ).first()
         has_access = collaboration is not None
 

@@ -55,6 +55,11 @@ def dashboard():
     # Check if user has supervisor privileges
     has_supervisor_role = user_has_supervisor_role(current_user)
 
+    pending_invitations = (
+        ResearchProject_Collaborator.query.filter_by(collaborator_id=current_user.id, status="pending")
+        .order_by(ResearchProject_Collaborator.added_at.desc()).all()
+    )
+
     # If user has supervisor role, get supervisor data too
     supervised_thesis_count = 0
     if has_supervisor_role:
@@ -65,6 +70,7 @@ def dashboard():
         current_user=current_user,
         project_counts=project_counts,
         research_projects=research_projects,
+        pending_invitations=pending_invitations,
         has_supervisor_role=has_supervisor_role,
         supervised_thesis_count=supervised_thesis_count,
         greeting=__import__("superviseme.utils.dashboard_data", fromlist=["greeting_key"]).greeting_key(),

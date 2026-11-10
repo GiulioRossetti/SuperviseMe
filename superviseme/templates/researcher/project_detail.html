@@ -258,6 +258,7 @@
                                             <div>
                                                 <strong>{{ user_link(collab.user) }}</strong><br>
                                                 <small class="text-muted">{{ collab.role|title }}</small>
+                                                {% if collab.status == 'pending' %}<span class="badge badge-warning">{{ _('Invitation pending') }}</span>{% endif %}
                                             </div>
                                             {% if is_owner %}
                                             <button class="btn btn-outline-danger btn-sm" onclick="removeCollaborator({{ collab.user.id }})">
@@ -416,7 +417,7 @@
                                             <select name="assigned_to_id" class="form-control">
                                                 <option value="">{{ _('No assignment') }}</option>
                                                 <option value="{{ project.researcher.id }}">{{ project.researcher.name }} {{ project.researcher.surname }} (Principal Researcher)</option>
-                                                {% for collab in collaborators %}
+                                                {% for collab in collaborators if collab.status == 'accepted' %}
                                                 <option value="{{ collab.user.id }}">{{ collab.user.name }} {{ collab.user.surname }} ({{ collab.role|title }})</option>
                                                 {% endfor %}
                                             </select>

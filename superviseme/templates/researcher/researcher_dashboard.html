@@ -36,7 +36,7 @@
                     {% set active_projects = research_projects|rejectattr('frozen')|list %}
                     <div class="dash-tiles">
                         {{ tile('fa-project-diagram', 'green', project_counts.total, _('Research Projects'), (active_projects|length ~ ' ' ~ _('active')), url_for('researcher.projects')) }}
-                        {{ tile('fa-users', 'sky', current_user.collaborated_projects|length, _('Collaborations')) }}
+                        {{ tile('fa-users', 'sky', (current_user.collaborated_projects|selectattr('status','equalto','accepted')|list)|length, _('Collaborations')) }}
                         {% if has_supervisor_role %}{{ tile('fa-book', 'indigo', supervised_thesis_count, _('Supervised Theses'), href=url_for('researcher.supervisor_theses')) }}{% endif %}
                     </div>
 
@@ -49,7 +49,7 @@
                                     <a class="dash-card" href="{{ url_for('researcher.project_detail', project_id=project.id) }}">
                                         <span class="cv g{{ project.id % 6 }}"><i class="fas fa-flask"></i></span>
                                         <span class="bd"><strong>{{ project.title }}</strong><small>{{ project.level or _('Not specified') }}</small></span>
-                                        <span class="ft"><span>{% if project.frozen %}<i class="fas fa-snowflake"></i> {{ _('Frozen') }}{% else %}<i class="fas fa-circle text-success" style="font-size:.5rem"></i> {{ _('Active') }}{% endif %}</span><span><i class="fas fa-users"></i> {{ project.collaborators|length }} · {{ dt(project.created_at).strftime('%d %b %Y') }}</span></span>
+                                        <span class="ft"><span>{% if project.frozen %}<i class="fas fa-snowflake"></i> {{ _('Frozen') }}{% else %}<i class="fas fa-circle text-success" style="font-size:.5rem"></i> {{ _('Active') }}{% endif %}</span><span><i class="fas fa-users"></i> {{ project.collaborators|selectattr('status','equalto','accepted')|list|length }} · {{ dt(project.created_at).strftime('%d %b %Y') }}</span></span>
                                     </a>
                                     {% endfor %}
                                 </div>
@@ -60,10 +60,31 @@
                             {% endcall %}
                         </div>
                         <div class="col-xl-4">
-                            {% call panel(_('Collaborations'), 'fa-users') %}
-                                {% if current_user.collaborated_projects %}
+                            {% if pending_invitations %}
+                            {% call panel(_('Project invitations'), 'fa-envelope-open-text') %}
                                 <ul class="dash-feed">
-                                    {% for c in current_user.collaborated_projects[:6] %}
+                                    {% for inv in pending_invitations %}
+                                    <li><div class="tx"><strong>{{ inv.project.title }}</strong>
+                                        <small>{{ _(inv.role|replace('-', ' ')|capitalize) }} · {{ user_link(inv.project.researcher) }}</small>
+                                        <div class="mt-1 d-flex" style="gap:.35rem">
+                                            <form method="POST" action="{{ url_for('researcher.accept_project_invitation', invitation_id=inv.id) }}">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button class="btn btn-success btn-sm" type="submit"><i class="fas fa-check"></i> {{ _('Accept') }}</button>
+                                            </form>
+                                            <form method="POST" action="{{ url_for('researcher.decline_project_invitation', invitation_id=inv.id) }}">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button class="btn btn-outline-secondary btn-sm" type="submit"><i class="fas fa-times"></i> {{ _('Decline') }}</button>
+                                            </form>
+                                        </div></div></li>
+                                    {% endfor %}
+                                </ul>
+                            {% endcall %}
+                            {% endif %}
+                            {% call panel(_('Collaborations'), 'fa-users') %}
+                                {% set accepted_collabs = current_user.collaborated_projects|selectattr('status','equalto','accepted')|list %}
+                                {% if accepted_collabs %}
+                                <ul class="dash-feed">
+                                    {% for c in accepted_collabs[:6] %}
                                     <li>{% if c.project and c.project.researcher %}{{ avatar(c.project.researcher) }}{% endif %}
                                         <div class="tx"><a href="{{ url_for('researcher.project_detail', project_id=c.project.id) }}"><strong>{{ c.project.title }}</strong></a>
                                             <small>{{ _(c.role|replace('-', ' ')|capitalize) }}{% if c.project.researcher %} · {{ user_link(c.project.researcher) }}{% endif %}</small></div></li>

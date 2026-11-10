@@ -86,12 +86,12 @@ def user_can_access(user, project):
         return False
     if user.user_type == "admin" or project.researcher_id == user.id:
         return True
-    return ResearchProject_Collaborator.query.filter_by(project_id=project.id, collaborator_id=user.id).first() is not None
+    return ResearchProject_Collaborator.query.filter_by(project_id=project.id, collaborator_id=user.id, status="accepted").first() is not None
 
 
 def accessible_projects(user):
     """Projects the user owns or collaborates on."""
-    ids = {c.project_id for c in ResearchProject_Collaborator.query.filter_by(collaborator_id=user.id)}
+    ids = {c.project_id for c in ResearchProject_Collaborator.query.filter_by(collaborator_id=user.id, status="accepted")}
     q = ResearchProject.query.filter(db.or_(ResearchProject.researcher_id == user.id,
                                            ResearchProject.id.in_(ids) if ids else db.false()))
     return q.order_by(ResearchProject.title).all()
@@ -272,7 +272,7 @@ def project_report(project):
         "subprojects": [(c.title, level_label(c.level)) for c in project.subprojects],
         "links": [(o.title, rel, "→" if d == "out" else "←") for o, rel, d, _l_ in linked_projects(project)],
         "collaborators": [(_name(c.collaborator_id), c.role) for c in
-                          ResearchProject_Collaborator.query.filter_by(project_id=project.id)],
+                          ResearchProject_Collaborator.query.filter_by(project_id=project.id, status="accepted")],
         "objectives": [(o.title, o.status, o.description) for o in
                        ResearchProject_Objective.query.filter_by(project_id=project.id).order_by(ResearchProject_Objective.created_at)],
         "hypotheses": [(h.title, h.status, h.description) for h in
