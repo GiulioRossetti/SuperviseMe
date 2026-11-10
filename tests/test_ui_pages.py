@@ -898,3 +898,38 @@ def test_student_thesis_compact_row_under_activity(client, supervisor_user, stud
     assert positions == sorted(positions)
     assert block.count("col-xl-3") == 4  # four panels sharing one row on wide screens
     assert html.count('id="milestones"') == 1  # no leftover full-width copies
+
+
+def test_interests_only_without_active_thesis(client, supervisor_user, student_user):
+    from tests.conftest import _make_user
+    from superviseme.models import Thesis_Interest
+    open_thesis = _thesis(supervisor_user, is_public=True)
+    db.session.add(Thesis_Supervisor(thesis_id=open_thesis.id, supervisor_id=supervisor_user.id, assigned_at=1))
+    db.session.commit()
+    login(client, student_user)
+    # no thesis yet: entry visible, page and action available
+    assert b"/student/interests" in client.get("/student/dashboard").data
+    assert client.get("/student/interests").status_code == 200
+    client.post(f"/student/express_interest/{open_thesis.id}", data={"message": "hi"})
+    assert Thesis_Interest.query.filter_by(student_id=student_user.id).count() == 1
+    client.post("/logout")
+    # a supervisor cannot give a second active thesis to a student who has one
+    mine = _assign(student_user, supervisor_user)
+    login(client, student_user)
+    assert b"/student/interests" not in client.get("/student/dashboard").data
+    assert client.get("/student/interests").status_code == 302
+    other = _thesis(supervisor_user, is_public=True)
+    client.post(f"/student/express_interest/{other.id}", data={"message": "again"})
+    assert Thesis_Interest.query.filter_by(student_id=student_user.id).count() == 1  # blocked
+    assert b"active thesis" in client.get(f"/theses/{other.id}").data
+    client.post("/logout")
+    login(client, supervisor_user)
+    db.session.add(Thesis_Supervisor(thesis_id=other.id, supervisor_id=supervisor_user.id, assigned_at=1)); db.session.commit()
+    client.post("/supervisor/assign_thesis", data={"thesis_id": other.id, "student_id": student_user.id})
+    assert Thesis.query.get(other.id).author_id is None
+    client.post("/logout")
+    # once the first thesis is completed the student may look for another one
+    db.session.add(Thesis_Status(thesis_id=mine.id, status="completed", updated_at=int(time.time()))); db.session.commit()
+    login(client, student_user)
+    assert b"/student/interests" in client.get("/student/dashboard").data
+    assert client.get("/student/interests").status_code == 200

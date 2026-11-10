@@ -841,8 +841,8 @@ def assign_student():
     
     thesis = Thesis.query.get_or_404(thesis_id)
     if student_id and not thesis.author_id:
-        from superviseme.utils.capacity import capacity_message
-        over = capacity_message(thesis)
+        from superviseme.utils.capacity import active_thesis_message, capacity_message
+        over = active_thesis_message(int(student_id), thesis.id) or capacity_message(thesis)
         if over:
             flash(over + " (assigned anyway: administrator override)", "warning")
     thesis.author_id = int(student_id) if student_id else None

@@ -23,6 +23,11 @@ def express_interest(thesis_id):
     if privilege_check is not True:
         return privilege_check
 
+    from superviseme.utils.capacity import active_thesis_for
+    if active_thesis_for(current_user.id):
+        flash("You already have an active thesis: you can express interest in new theses once it is completed or archived.", "warning")
+        return redirect(url_for("student.thesis_data"))
+
     thesis = Thesis.query.filter_by(id=thesis_id, is_public=True, author_id=None).first()
     if not thesis:
         flash("This thesis is not available for public interest.", "warning")
@@ -67,6 +72,11 @@ def interests():
     privilege_check = check_privileges(current_user.username, role="student")
     if privilege_check is not True:
         return privilege_check
+
+    from superviseme.utils.capacity import active_thesis_for
+    if active_thesis_for(current_user.id):
+        flash("Expressions of interest are available only while you have no active thesis.", "info")
+        return redirect(url_for("student.dashboard"))
 
     interests = (
         Thesis_Interest.query.filter_by(student_id=current_user.id)

@@ -4074,3 +4074,12 @@ msgstr "Occupato"
 
 msgid "Busy (external calendar)"
 msgstr "Occupato (calendario esterno)"
+
+msgid "You already have an active thesis: you can express interest in new theses once it is completed or archived."
+msgstr "Hai già una tesi attiva: potrai manifestare interesse per nuove tesi quando sarà conclusa o archiviata."
+
+msgid "Expressions of interest are available only while you have no active thesis."
+msgstr "Le manifestazioni di interesse sono disponibili solo finché non hai una tesi attiva."
+
+msgid "This student already has an active thesis: complete or archive it before assigning another one."
+msgstr "Questo studente ha già una tesi attiva: concludila o archiviala prima di assegnarne un'altra."

@@ -1694,8 +1694,8 @@ def assign_thesis():
     try:
         thesis = Thesis.query.get(thesis_id)
         if thesis and student_id and not thesis.author_id:
-            from superviseme.utils.capacity import capacity_message
-            over = capacity_message(thesis)
+            from superviseme.utils.capacity import active_thesis_message, capacity_message
+            over = active_thesis_message(int(student_id), thesis.id) or capacity_message(thesis)
             if over:
                 flash(over, "warning")
                 return redirect(url_for("researcher.supervisor_theses"))
@@ -1774,8 +1774,8 @@ def assign_thesis_interest(interest_id):
         flash("Thesis is already assigned.", "warning")
         return redirect(url_for("researcher.supervisor_thesis_detail", thesis_id=thesis.id))
 
-    from superviseme.utils.capacity import capacity_message
-    over = capacity_message(thesis)
+    from superviseme.utils.capacity import active_thesis_message, capacity_message
+    over = active_thesis_message(interest.student_id, thesis.id) or capacity_message(thesis)
     if over:
         flash(over, "warning")
         return redirect(url_for("researcher.supervisor_thesis_detail", thesis_id=thesis.id))

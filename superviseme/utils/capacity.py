@@ -37,3 +37,27 @@ def capacity_message(thesis):
         return None
     names = ", ".join(f"{u.name} {u.surname} ({u.max_students})" for u in blocked)
     return f"Supervision capacity reached: {names}. Raise the limit in the profile or free a place first."
+
+
+# ------------------------------------------------------------------ one active thesis per student
+def active_thesis_for(student_id, exclude_thesis_id=None):
+    """The student's current (not archived, not completed) thesis, or None."""
+    from superviseme.utils.reports import is_concluded
+
+    if not student_id:
+        return None
+    for thesis in Thesis.query.filter_by(author_id=student_id).all():
+        if thesis.id != exclude_thesis_id and not is_concluded(thesis):
+            return thesis
+    return None
+
+
+def student_has_active_thesis(user):
+    return bool(getattr(user, "is_authenticated", False)) and user.user_type == "student" and active_thesis_for(user.id) is not None
+
+
+def active_thesis_message(student_id, exclude_thesis_id=None):
+    """Message when ``student_id`` already has an active thesis (a student can only have one), else None."""
+    if active_thesis_for(student_id, exclude_thesis_id):
+        return "This student already has an active thesis: complete or archive it before assigning another one."
+    return None

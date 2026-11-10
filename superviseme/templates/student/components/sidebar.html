@@ -43,11 +43,14 @@
         </div>
     </li>
 
+    {# A student can only have one active thesis: interests are only available while none is active #}
+    {% if not (student_has_active_thesis is defined and student_has_active_thesis(current_user)) %}
     <li class="nav-item{% if request.endpoint == 'student.interests' %} active{% endif %}">
         <a class="nav-link" href="{{ url_for('student.interests') }}">
             <i class="fas fa-fw fa-heart"></i><span>{{ _('sidebar.interests') }}</span>
         </a>
     </li>
+    {% endif %}
 
     {% include 'components/sidebar_workflow.html' %}
 

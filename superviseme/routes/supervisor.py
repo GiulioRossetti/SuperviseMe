@@ -1620,8 +1620,8 @@ def assign_thesis():
         flash("Thesis is already assigned to a student")
         return redirect(url_for('supervisor.theses_data'))
     
-    from superviseme.utils.capacity import capacity_message
-    over = capacity_message(thesis)
+    from superviseme.utils.capacity import active_thesis_message, capacity_message
+    over = active_thesis_message(student.id, thesis.id) or capacity_message(thesis)
     if over:
         flash(over, "warning")
         return redirect(url_for('supervisor.theses_data'))
@@ -1692,8 +1692,8 @@ def assign_thesis_interest(interest_id):
         flash("Thesis is already assigned.", "warning")
         return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))
 
-    from superviseme.utils.capacity import capacity_message
-    over = capacity_message(thesis)
+    from superviseme.utils.capacity import active_thesis_message, capacity_message
+    over = active_thesis_message(interest.student_id, thesis.id) or capacity_message(thesis)
     if over:
         flash(over, "warning")
         return redirect(url_for("supervisor.thesis_detail", thesis_id=thesis.id))

@@ -79,7 +79,9 @@
                             </div>
                             <div class="card-body">
                                 {% if current_user.is_authenticated and current_user.user_type == 'student' %}
-                                    {% if existing_interest %}
+                                    {% if student_has_active_thesis(current_user) %}
+                                        <div class="alert alert-secondary mb-0">{{ _('You already have an active thesis: you can express interest in new theses once it is completed or archived.') }}</div>
+                                    {% elif existing_interest %}
                                         <div class="alert alert-info mb-0">{{ _('You already expressed interest in this thesis.') }}</div>
                                     {% else %}
                                         <form method="POST" action="{{ url_for('student.express_interest', thesis_id=thesis.id) }}">
