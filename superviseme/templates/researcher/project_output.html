@@ -1,0 +1,149 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'researcher/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ project.title }} · {{ _('Research output') }}</h1>
+                        <a href="{{ url_for('researcher.project_detail', project_id=project.id) }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> {{ _('Back to Project') }}</a>
+                    </div>
+                    {% with messages = get_flashed_messages() %}{% for message in messages %}
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">{{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="{{ _('Close') }}"><span aria-hidden="true">&times;</span></button></div>
+                    {% endfor %}{% endwith %}
+
+                    <div class="row">
+                    <div class="col-xl-8">
+
+                    <div class="card shadow mb-4" id="publications">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold text-primary">{{ _('Publications') }} ({{ project.publications|length }})</h6>
+                            {% if project.publications %}<a class="btn btn-outline-secondary btn-sm" href="{{ url_for('researcher.project_publications_bib', project_id=project.id) }}"><i class="fas fa-download"></i> BibTeX</a>{% endif %}
+                        </div>
+                        <div class="card-body">
+                            {% for p in project.publications %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <div><strong>{{ p.title }}</strong>{% if p.year %} ({{ p.year }}){% endif %}<br>
+                                    <small class="text-muted">{{ p.authors or '' }}{% if p.venue %} · {{ p.venue }}{% endif %} · <span class="badge badge-light border">{{ p.pub_type }}</span></small>
+                                    {% if p.doi %}<br><a class="small" href="https://doi.org/{{ p.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ p.doi }}</a>{% elif p.url %}<br><a class="small" href="{{ p.url }}" target="_blank" rel="noopener noreferrer nofollow">{{ p.url }}</a>{% endif %}</div>
+                                {% if can_edit %}<form method="POST" action="{{ url_for('researcher.delete_publication', project_id=project.id, pub_id=p.id) }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-link btn-sm text-danger p-0" type="submit" title="{{ _('Remove') }}" aria-label="{{ _('Remove') }}"><i class="fas fa-times"></i></button></form>{% endif %}
+                            </div>{% else %}<p class="text-muted">{{ _('No publications yet') }}</p>{% endfor %}
+                            {% if can_edit %}
+                            <hr><h6 class="font-weight-bold">{{ _('Add by DOI') }}</h6>
+                            <form method="POST" action="{{ url_for('researcher.add_publication', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="form-row"><div class="col-md-8 mb-2"><input class="form-control form-control-sm" name="doi" placeholder="10.1000/xyz123" aria-label="DOI"></div></div><button class="btn btn-primary btn-sm" type="submit">{{ _('Import from Crossref') }}</button></form>
+                            <hr><h6 class="font-weight-bold">{{ _('Add manually') }}</h6>
+                            <form method="POST" action="{{ url_for('researcher.add_publication', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="form-row">
+                                <div class="col-md-8 mb-2"><input class="form-control form-control-sm" name="title" placeholder="{{ _('Title') }}" required></div>
+                                <div class="col-md-4 mb-2"><select class="form-control form-control-sm" name="pub_type">{% for t in pub_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}</select></div>
+                                <div class="col-md-8 mb-2"><input class="form-control form-control-sm" name="authors" placeholder="{{ _('Authors, comma separated') }}"></div>
+                                <div class="col-md-4 mb-2"><input class="form-control form-control-sm" name="year" type="number" min="1900" max="2100" placeholder="{{ _('Year') }}"></div>
+                                <div class="col-md-6 mb-2"><input class="form-control form-control-sm" name="venue" placeholder="{{ _('Journal / conference') }}"></div>
+                                <div class="col-md-3 mb-2"><input class="form-control form-control-sm" name="doi" placeholder="DOI"></div>
+                                <div class="col-md-3 mb-2"><input class="form-control form-control-sm" name="url" placeholder="URL"></div></div><button class="btn btn-primary btn-sm" type="submit">{{ _('Add') }}</button></form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4" id="datasets">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Datasets and artefacts') }} ({{ project.datasets|length }})</h6></div>
+                        <div class="card-body">
+                            {% for d in project.datasets %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <div><strong>{{ d.title }}</strong>
+                                    {% if d.license %}<span class="badge badge-light border">{{ d.license }}</span>{% endif %}<br>
+                                    {% if d.doi %}<a class="small" href="https://doi.org/{{ d.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ d.doi }}</a> {% endif %}
+                                    {% if d.url %}<a class="small" href="{{ d.url }}" target="_blank" rel="noopener noreferrer nofollow">{{ d.url }}</a>{% endif %}<br>
+                                    {% set flags = (d.fair or '').split(',') %}
+                                    {% for f in fair_flags %}<span class="badge {{ 'badge-success' if f in flags else 'badge-light border text-muted' }}">{{ f|capitalize }}</span> {% endfor %}
+                                    <small class="text-muted">FAIR {{ flags|select|list|length }}/4</small></div>
+                                {% if can_edit %}<form method="POST" action="{{ url_for('researcher.delete_dataset', project_id=project.id, did=d.id) }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-link btn-sm text-danger p-0" type="submit" title="{{ _('Remove') }}" aria-label="{{ _('Remove') }}"><i class="fas fa-times"></i></button></form>{% endif %}
+                            </div>{% else %}<p class="text-muted">{{ _('No datasets registered') }}</p>{% endfor %}
+                            {% if can_edit %}<hr>
+                            <form method="POST" action="{{ url_for('researcher.add_dataset', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="form-row">
+                                <div class="col-md-6 mb-2"><input class="form-control form-control-sm" name="title" placeholder="{{ _('Title') }}" required></div>
+                                <div class="col-md-3 mb-2"><input class="form-control form-control-sm" name="doi" placeholder="DOI"></div>
+                                <div class="col-md-3 mb-2"><input class="form-control form-control-sm" name="license" placeholder="{{ _('License') }}"></div>
+                                <div class="col-md-12 mb-2"><input class="form-control form-control-sm" name="url" placeholder="{{ _('Zenodo / GitHub / repository URL') }}"></div>
+                                <div class="col-12 mb-2">{% for f in fair_flags %}<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox" name="fair_{{ f }}" id="fair_{{ f }}"><label class="form-check-label" for="fair_{{ f }}">{{ f|capitalize }}</label></div>{% endfor %}</div></div><button class="btn btn-primary btn-sm" type="submit">{{ _('Add dataset') }}</button></form>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4" id="theses">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Linked theses') }} ({{ linked_theses|length }})</h6></div>
+                        <div class="card-body">
+                            {% for l, t in linked_theses %}
+                            <div class="d-flex justify-content-between mb-2"><div><strong>{{ t.title }}</strong>{% if t.author %} · <small>{{ user_link(t.author) }}</small>{% endif %}</div>
+                                {% if can_edit %}<form method="POST" action="{{ url_for('researcher.unlink_project_thesis', project_id=project.id, link_id=l.id) }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-link btn-sm text-danger p-0" type="submit" title="{{ _('Unlink') }}" aria-label="{{ _('Unlink') }}"><i class="fas fa-times"></i></button></form>{% endif %}</div>
+                            {% else %}<p class="text-muted">{{ _('No linked theses') }}</p>{% endfor %}
+                            {% if can_edit and thesis_candidates %}<hr>
+                            <form method="POST" action="{{ url_for('researcher.link_project_thesis', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="form-row"><div class="col-md-9 mb-2"><select class="form-control form-control-sm" name="thesis_id" aria-label="{{ _('Thesis') }}">{% for t in thesis_candidates %}<option value="{{ t.id }}">{{ t.title }}</option>{% endfor %}</select></div></div><button class="btn btn-primary btn-sm" type="submit">{{ _('Link thesis') }}</button></form>{% endif %}
+                        </div>
+                    </div>
+                    </div>
+
+                    <div class="col-xl-4">
+                    <div class="card shadow mb-4" id="funding">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Funding') }}</h6></div>
+                        <div class="card-body">
+                        {% if can_edit %}
+                        <form method="POST" action="{{ url_for('researcher.update_funding', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="form-group"><label for="funder">{{ _('Funder') }}</label><input class="form-control form-control-sm" id="funder" name="funder" value="{{ project.funder or '' }}"></div>
+                            <div class="form-group"><label for="grant_id">{{ _('Grant ID') }}</label><input class="form-control form-control-sm" id="grant_id" name="grant_id" value="{{ project.grant_id or '' }}"></div>
+                            <div class="form-row"><div class="col mb-2"><label for="start_date">{{ _('Start') }}</label><input type="date" class="form-control form-control-sm" id="start_date" name="start_date" value="{{ project.start_date or '' }}"></div>
+                            <div class="col mb-2"><label for="end_date">{{ _('End') }}</label><input type="date" class="form-control form-control-sm" id="end_date" name="end_date" value="{{ project.end_date or '' }}"></div></div><button class="btn btn-primary btn-sm" type="submit">{{ _('Save') }}</button></form>
+                        {% else %}<p>{{ project.funder or '—' }} {{ project.grant_id or '' }}<br>{{ project.start_date or '' }} → {{ project.end_date or '' }}</p>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4" id="milestones">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Milestones and deliverables') }}</h6></div>
+                        <div class="card-body">
+                            {% for m in project.milestones %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="{{ 'text-muted' if m.status == 'done' }}">{% if m.status == 'done' %}<s>{{ m.title }}</s>{% else %}{{ m.title }}{% endif %}<br>
+                                    <small class="{{ 'text-danger' if m.status != 'done' and m.due_date < now else 'text-muted' }}">{{ iso(m.due_date) }}{% if m.status != 'done' and m.due_date < now %} · {{ _('overdue') }}{% endif %}</small></div>
+                                {% if can_edit %}<div class="text-nowrap">
+                                    <form method="POST" action="{{ url_for('researcher.toggle_project_milestone', project_id=project.id, mid=m.id) }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button class="btn btn-link btn-sm p-0 text-success" type="submit" title="{{ _('Done / reopen') }}" aria-label="{{ _('Done / reopen') }}"><i class="fas fa-check"></i></button></form>
+                                    <form method="POST" action="{{ url_for('researcher.delete_project_milestone', project_id=project.id, mid=m.id) }}" class="d-inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-link btn-sm text-danger p-0" type="submit" title="{{ _('Remove') }}" aria-label="{{ _('Remove') }}"><i class="fas fa-times"></i></button></form></div>{% endif %}
+                            </div>{% else %}<p class="text-muted">{{ _('No milestones') }}</p>{% endfor %}
+                            {% if can_edit %}<hr>
+                            <form method="POST" action="{{ url_for('researcher.add_project_milestone', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="form-group"><input class="form-control form-control-sm" name="title" placeholder="{{ _('Title') }}" required aria-label="{{ _('Title') }}"></div>
+                            <div class="form-group"><input type="date" class="form-control form-control-sm" name="due_date" required aria-label="{{ _('Due date') }}"></div><button class="btn btn-primary btn-sm" type="submit">{{ _('Add milestone') }}</button></form>{% endif %}
+                        </div>
+                    </div>
+
+                    {% if is_owner %}
+                    <div class="card shadow mb-4" id="visibility">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Public page') }}</h6></div>
+                        <div class="card-body">
+                        <form method="POST" action="{{ url_for('researcher.update_project_visibility', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="custom-control custom-switch mb-2"><input type="checkbox" class="custom-control-input" id="is_public" name="is_public" {{ 'checked' if project.is_public }}><label class="custom-control-label" for="is_public">{{ _('Publish a public page for this project') }}</label></div>
+                            {% for f in public_field_names %}<div class="form-check"><input class="form-check-input" type="checkbox" name="show_{{ f }}" id="show_{{ f }}" {{ 'checked' if f in public_selected }}><label class="form-check-label" for="show_{{ f }}">{{ _(f|capitalize) }}</label></div>{% endfor %}
+                            <div class="mt-2"></div><button class="btn btn-primary btn-sm" type="submit">{{ _('Save') }}</button></form>
+                            {% if project.is_public %}<p class="small mt-2 mb-0"><a href="{{ url_for('public.public_project', project_id=project.id) }}">{{ _('Open the public page') }}</a></p>{% endif %}
+                        </div>
+                    </div>
+
+                    {% if collab_users %}
+                    <div class="card shadow mb-4" id="transfer">
+                        <div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Transfer ownership') }}</h6></div>
+                        <div class="card-body">
+                        <form method="POST" action="{{ url_for('researcher.transfer_project', project_id=project.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="form-group"><select class="form-control form-control-sm" name="new_owner_id" aria-label="{{ _('New owner') }}">{% for u, r in collab_users %}<option value="{{ u.id }}">{{ u.name }} {{ u.surname }} ({{ r }})</option>{% endfor %}</select></div><button class="btn btn-outline-danger btn-sm" type="submit">{{ _('Transfer') }}</button></form>
+                        </div>
+                    </div>{% endif %}
+                    {% endif %}
+                    </div>
+                    </div>
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+</body>
+</html>

@@ -12,6 +12,14 @@
 <div class="row">
 <div class="col-xl-8">
     {% include 'components/agenda_week.html' %}
+    {% if research_milestones %}
+    {% call panel(_('Project milestones'), 'fa-flag-checkered') %}
+        {% for m in research_milestones %}
+        <div class="mb-1"><span class="{{ 'text-danger' if m.due_date < now_ts }}">{{ dt(m.due_date).strftime('%d %b %Y') }}</span> · {{ m.title }}
+            <small class="text-muted">— <a href="{{ url_for('researcher.project_output', project_id=m.project_id) }}#milestones">{{ m.project.title }}</a></small></div>
+        {% endfor %}
+    {% endcall %}
+    {% endif %}
     {% call panel(_('Upcoming meetings'), 'fa-calendar-check') %}
         {% if upcoming %}
         <div class="ag-list">

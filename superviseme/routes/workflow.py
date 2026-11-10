@@ -116,6 +116,10 @@ def agenda():
         # slots overlapping the supervisor's external calendar are hidden (the reason is never disclosed)
         ctx["bookable"] = [sl for sl in ctx["bookable"] if not cf.conflicts(sl.supervisor_id, sl.start_ts, sl.end_ts)]
         ctx["has_thesis"] = bool(sup_ids)
+    if current_user.user_type == "researcher":
+        from superviseme.utils.research_output import agenda_milestones
+        ctx["research_milestones"] = agenda_milestones(current_user, now)
+        ctx["now_ts"] = now
     ctx["week"] = _week_view(request.args.get("week"), now, is_sup)
     ctx["feed_url"], ctx["feed_enabled"] = _feed_urls(current_user)
     return render_template("workflow/agenda.html", **ctx)
@@ -374,6 +378,10 @@ def agenda_feed(token):
     if not user or not user.is_enabled or not _secrets.compare_digest(user.agenda_token, token):
         abort(404)
     rows = [_meeting_dict(m, viewer=user) for m in meeting_utils.feed_meetings(user)]
+    if user.user_type == "researcher":
+        from superviseme.utils.research_output import agenda_milestones
+        rows += [{"uid": f"rpm-{m.id}", "title": f"Milestone: {m.title}", "start": m.due_date, "end": m.due_date + 3600,
+                  "description": m.project.title} for m in agenda_milestones(user, horizon_days=365)]
     body = build_calendar(rows, name="SuperviseMe")
     return Response(body, mimetype="text/calendar", headers={
         "Cache-Control": "private, max-age=300", "X-Robots-Tag": "noindex, nofollow", "X-Content-Type-Options": "nosniff",

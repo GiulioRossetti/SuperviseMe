@@ -4386,3 +4386,147 @@ msgstr "Inviti ai progetti"
 
 msgid "Accept"
 msgstr "Accetta"
+
+msgid "Portfolio"
+msgstr "Portfolio"
+
+msgid "Publications"
+msgstr "Pubblicazioni"
+
+msgid "Research output"
+msgstr "Risultati della ricerca"
+
+msgid "Back to Project"
+msgstr "Torna al progetto"
+
+msgid "No publications yet"
+msgstr "Nessuna pubblicazione"
+
+msgid "Add by DOI"
+msgstr "Aggiungi tramite DOI"
+
+msgid "Import from Crossref"
+msgstr "Importa da Crossref"
+
+msgid "Add manually"
+msgstr "Aggiungi manualmente"
+
+msgid "Authors, comma separated"
+msgstr "Autori, separati da virgola"
+
+msgid "Year"
+msgstr "Anno"
+
+msgid "Journal / conference"
+msgstr "Rivista / conferenza"
+
+msgid "Datasets and artefacts"
+msgstr "Dataset e artefatti"
+
+msgid "No datasets registered"
+msgstr "Nessun dataset registrato"
+
+msgid "License"
+msgstr "Licenza"
+
+msgid "Zenodo / GitHub / repository URL"
+msgstr "URL di Zenodo / GitHub / repository"
+
+msgid "Add dataset"
+msgstr "Aggiungi dataset"
+
+msgid "Linked theses"
+msgstr "Tesi collegate"
+
+msgid "No linked theses"
+msgstr "Nessuna tesi collegata"
+
+msgid "Link thesis"
+msgstr "Collega tesi"
+
+msgid "Funding"
+msgstr "Finanziamento"
+
+msgid "Funder"
+msgstr "Finanziatore"
+
+msgid "Grant ID"
+msgstr "ID del grant"
+
+msgid "Start"
+msgstr "Inizio"
+
+msgid "End"
+msgstr "Fine"
+
+msgid "Milestones and deliverables"
+msgstr "Milestone e deliverable"
+
+msgid "No milestones"
+msgstr "Nessuna milestone"
+
+msgid "Done / reopen"
+msgstr "Completata / riapri"
+
+msgid "Due date"
+msgstr "Scadenza"
+
+msgid "Public page"
+msgstr "Pagina pubblica"
+
+msgid "Publish a public page for this project"
+msgstr "Pubblica una pagina pubblica per questo progetto"
+
+msgid "Open the public page"
+msgstr "Apri la pagina pubblica"
+
+msgid "Transfer ownership"
+msgstr "Trasferisci la proprietà"
+
+msgid "New owner"
+msgstr "Nuovo proprietario"
+
+msgid "Transfer"
+msgstr "Trasferisci"
+
+msgid "Supervised theses"
+msgstr "Tesi supervisionate"
+
+msgid "Datasets"
+msgstr "Dataset"
+
+msgid "By thematic area"
+msgstr "Per area tematica"
+
+msgid "By level"
+msgstr "Per livello"
+
+msgid "Projects started per year"
+msgstr "Progetti avviati per anno"
+
+msgid "Publications per year"
+msgstr "Pubblicazioni per anno"
+
+msgid "Frequent collaborators"
+msgstr "Collaboratori frequenti"
+
+msgid "Funded projects"
+msgstr "Progetti finanziati"
+
+msgid "Period"
+msgstr "Periodo"
+
+msgid "Milestones"
+msgstr "Milestone"
+
+msgid "Team"
+msgstr "Team"
+
+msgid "Principal investigator"
+msgstr "Responsabile scientifico"
+
+msgid "Repository"
+msgstr "Repository"
+
+msgid "Project milestones"
+msgstr "Milestone dei progetti"

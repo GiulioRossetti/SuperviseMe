@@ -165,6 +165,30 @@ def send_all_weekly_student_digests():
     return {"student_digests_sent": sent}
 
 
+def send_weekly_researcher_digest(user_id):
+    """Weekly digest for a researcher (projects updates, assigned to-dos, milestones, invitations)."""
+    from superviseme.utils.research_output import researcher_digest
+    user = db.session.get(User_mgmt, user_id)
+    if not user or user.user_type != "researcher" or not user.weekly_digest or not user.is_enabled:
+        return False
+    if user.email.endswith("@orcid.placeholder.local"):
+        return False
+    digest = researcher_digest(user)
+    if not digest:
+        return False
+    return send_email(f"Your weekly research summary - {datetime.now().strftime('%B %d, %Y')}", user.email, digest["text"])
+
+
+def send_all_weekly_researcher_digests():
+    sent = 0
+    for user in User_mgmt.query.filter_by(user_type="researcher", weekly_digest=True).all():
+        try:
+            sent += 1 if send_weekly_researcher_digest(user.id) else 0
+        except Exception as exc:
+            logger.error("Researcher digest failed for %s: %s", user.id, exc)
+    return {"researcher_digests_sent": sent}
+
+
 def send_all_weekly_supervisor_reports():
     """
     Send weekly reports to all supervisors who have active students
@@ -200,6 +224,7 @@ def send_all_weekly_supervisor_reports():
                 logger.info(f"Supervisor {supervisor.username} has no students, skipping email")
         
         results.update(send_all_weekly_student_digests())
+        results.update(send_all_weekly_researcher_digests())
         logger.info(f"Weekly report batch completed: {results}")
         return results
         

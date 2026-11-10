@@ -50,6 +50,7 @@
             </div>
             {% if target.user_type == 'researcher' and projects_count %}
                 <div class="up-note mb-3"><i class="fas fa-flask text-primary mr-1"></i> {{ projects_count }} {{ _('research projects') }}</div>
+                {% if public_projects %}<div class="mb-3">{% for pp in public_projects %}<a class="btn btn-light btn-sm border m-1" href="{{ url_for('public.public_project', project_id=pp.id) }}"><i class="fas fa-flask"></i> {{ pp.title }}</a>{% endfor %}</div>{% endif %}
             {% endif %}
             <h6 class="up-section">{{ _('Open thesis opportunities') }}</h6>
             {% if open_theses %}

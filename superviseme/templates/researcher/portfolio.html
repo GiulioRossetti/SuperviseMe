@@ -1,0 +1,46 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'researcher/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Portfolio') }}</h1>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('researcher.all_publications') }}"><i class="fas fa-book"></i> {{ _('Publications') }}</a>
+                    </div>
+                    <div class="row">
+                        {% for label, value in [(_('Projects'), pf.total), (_('Active'), pf.by_state.get('active', 0)), (_('Publications'), pf.publications), (_('Datasets'), pf.datasets), (_('Linked theses'), pf.theses), (_('Supervised theses'), pf.supervised)] %}
+                        <div class="col-6 col-xl-2 mb-3"><div class="up-stat"><div class="n">{{ value }}</div><div class="l">{{ label }}</div></div></div>
+                        {% endfor %}
+                    </div>
+                    <div class="row">
+                    {% macro table(title, rows, fmt=none) %}
+                        <div class="col-lg-4 mb-4"><div class="card shadow h-100"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ title }}</h6></div>
+                            <div class="card-body">{% if rows %}<table class="table table-sm mb-0"><tbody>{% for k, v in rows %}<tr><td>{{ fmt(k) if fmt else k }}</td><td class="text-right font-weight-bold">{{ v }}</td></tr>{% endfor %}</tbody></table>{% else %}<span class="text-muted">—</span>{% endif %}</div></div></div>
+                    {% endmacro %}
+                    {{ table(_('By thematic area'), pf.by_area) }}
+                    {{ table(_('By level'), pf.by_level, level_label) }}
+                    {{ table(_('Projects started per year'), pf.by_year) }}
+                    {{ table(_('Publications per year'), pf.pubs_year) }}
+                    <div class="col-lg-4 mb-4"><div class="card shadow h-100"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Frequent collaborators') }}</h6></div>
+                        <div class="card-body">{% for name, uid, n in pf.top_collaborators %}<div class="d-flex justify-content-between"><a href="{{ url_for('public.user_profile', user_id=uid) }}">{{ name }}</a><span class="font-weight-bold">{{ n }}</span></div>{% else %}<span class="text-muted">—</span>{% endfor %}</div></div></div>
+                    <div class="col-lg-4 mb-4"><div class="card shadow h-100"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Upcoming milestones') }}</h6></div>
+                        <div class="card-body">{% for m in pf.upcoming %}<div class="mb-1"><span class="{{ 'text-danger' if m.due_date < now }}">{{ iso(m.due_date) }}</span> · {{ m.title }}<br><small class="text-muted"><a href="{{ url_for('researcher.project_output', project_id=m.project_id) }}#milestones">{{ pf.projects_by_id[m.project_id].title }}</a></small></div>{% else %}<span class="text-muted">—</span>{% endfor %}</div></div></div>
+                    </div>
+                    {% if pf.funded %}
+                    <div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Funded projects') }}</h6></div>
+                        <div class="table-responsive"><table class="table mb-0"><thead><tr><th>{{ _('Project') }}</th><th>{{ _('Funder') }}</th><th>{{ _('Grant ID') }}</th><th>{{ _('Period') }}</th></tr></thead><tbody>
+                        {% for p in pf.funded %}<tr><td><a href="{{ url_for('researcher.project_output', project_id=p.id) }}#funding">{{ p.title }}</a></td><td>{{ p.funder or '' }}</td><td>{{ p.grant_id or '' }}</td><td>{{ p.start_date or '' }} → {{ p.end_date or '' }}</td></tr>{% endfor %}
+                        </tbody></table></div></div>
+                    {% endif %}
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+</body>
+</html>

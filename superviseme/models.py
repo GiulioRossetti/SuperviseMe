@@ -324,6 +324,13 @@ class ResearchProject(db.Model):
     area = db.Column(db.String(120), nullable=True)  # thematic area
     tags = db.Column(db.Text, nullable=True)  # comma-separated, normalised (utils/projects.py)
     parent_id = db.Column(db.Integer, db.ForeignKey("research_project.id"), nullable=True, index=True)
+    # funding and public page (see utils/research_output.py)
+    funder = db.Column(db.String(200), nullable=True)
+    grant_id = db.Column(db.String(100), nullable=True)
+    start_date = db.Column(db.String(10), nullable=True)  # ISO yyyy-mm-dd
+    end_date = db.Column(db.String(10), nullable=True)
+    is_public = db.Column(db.Boolean, nullable=False, default=False, server_default=db.false())
+    public_fields = db.Column(db.String(200), nullable=True)  # comma-separated, see PUBLIC_FIELDS
 
     researcher = db.relationship("User_mgmt", backref="research_projects", lazy=True)
     parent = db.relationship("ResearchProject", remote_side=[id], backref=db.backref("subprojects", lazy=True), lazy=True)
@@ -331,6 +338,62 @@ class ResearchProject(db.Model):
     @property
     def tag_list(self):
         return [t for t in (self.tags or "").split(",") if t]
+
+
+class ResearchProject_Publication(db.Model):
+    __tablename__ = "research_project_publication"
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey("research_project.id"), nullable=False, index=True)
+    title = db.Column(db.String(300), nullable=False)
+    authors = db.Column(db.String(500), nullable=True)
+    year = db.Column(db.Integer, nullable=True)
+    venue = db.Column(db.String(300), nullable=True)
+    doi = db.Column(db.String(200), nullable=True)
+    url = db.Column(db.String(500), nullable=True)
+    pub_type = db.Column(db.String(30), nullable=False, default="article")
+    added_by = db.Column(db.Integer, db.ForeignKey("user_mgmt.id"), nullable=True)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    project = db.relationship("ResearchProject", backref=db.backref("publications", lazy=True, order_by="ResearchProject_Publication.year.desc()"))
+
+
+class ResearchProject_Milestone(db.Model):
+    __tablename__ = "research_project_milestone"
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey("research_project.id"), nullable=False, index=True)
+    title = db.Column(db.String(200), nullable=False)
+    due_date = db.Column(db.Integer, nullable=False)  # unix timestamp
+    status = db.Column(db.String(20), nullable=False, default="pending")  # pending, done
+    created_at = db.Column(db.Integer, nullable=False)
+
+    project = db.relationship("ResearchProject", backref=db.backref("milestones", lazy=True, order_by="ResearchProject_Milestone.due_date"))
+
+
+class ResearchProject_Dataset(db.Model):
+    __tablename__ = "research_project_dataset"
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey("research_project.id"), nullable=False, index=True)
+    title = db.Column(db.String(300), nullable=False)
+    doi = db.Column(db.String(200), nullable=True)
+    url = db.Column(db.String(500), nullable=True)  # Zenodo / GitHub / institutional repository
+    license = db.Column(db.String(100), nullable=True)
+    fair = db.Column(db.String(100), nullable=True)  # comma-separated subset of findable,accessible,interoperable,reusable
+    created_at = db.Column(db.Integer, nullable=False)
+
+    project = db.relationship("ResearchProject", backref=db.backref("datasets", lazy=True, order_by="ResearchProject_Dataset.id"))
+
+
+class ResearchProject_Thesis(db.Model):
+    """Link between a research project and a thesis done within it."""
+    __tablename__ = "research_project_thesis"
+    __table_args__ = (db.UniqueConstraint("project_id", "thesis_id", name="uq_project_thesis"),)
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey("research_project.id"), nullable=False, index=True)
+    thesis_id = db.Column(db.Integer, db.ForeignKey("thesis.id"), nullable=False, index=True)
+    created_at = db.Column(db.Integer, nullable=False)
+
+    project = db.relationship("ResearchProject", backref=db.backref("thesis_links", lazy=True))
+    thesis = db.relationship("Thesis", backref=db.backref("project_links", lazy=True))
 
 
 class ResearchProject_Image(db.Model):

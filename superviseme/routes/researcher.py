@@ -1486,6 +1486,7 @@ def _owned_project_or_404(project_id):
 
 
 from superviseme.routes import researcher_projects  # noqa: E402,F401  (registers the project routes)
+from superviseme.routes import researcher_output  # noqa: E402,F401  (registers research-output and portfolio routes)
 
 
 # ---------------------------------------------------------------------------

@@ -164,6 +164,7 @@ def user_profile(user_id):
     open_theses, assigned_count, archived_count = [], 0, 0
     student_theses = []
     projects_count = 0
+    public_projects = []
     if target.user_type == "student":
         for t in Thesis.query.filter_by(author_id=target.id).order_by(Thesis.created_at.desc()).all():
             status = Thesis_Status.query.filter_by(thesis_id=t.id).order_by(Thesis_Status.updated_at.desc()).first()
@@ -184,6 +185,7 @@ def user_profile(user_id):
                 open_theses.append(t)
         if target.user_type == "researcher":
             projects_count = ResearchProject.query.filter_by(researcher_id=target.id).count()
+            public_projects = ResearchProject.query.filter_by(researcher_id=target.id, is_public=True).order_by(ResearchProject.title).all()
 
     return render_template(
         "public/user_profile.html",
@@ -193,6 +195,7 @@ def user_profile(user_id):
         archived_count=archived_count,
         student_theses=student_theses,
         projects_count=projects_count,
+        public_projects=public_projects,
         link_meta=__import__("superviseme.utils.user_links", fromlist=["x"]).link_meta,
     )
 
@@ -214,3 +217,18 @@ def set_lang():
         httponly=True,
     )
     return resp
+
+
+@public.route("/projects/<int:project_id>")
+def public_project(project_id):
+    """Public page of a research project: only the fields its owner chose to show."""
+    from superviseme.models import ResearchProject, ResearchProject_Collaborator
+    from superviseme.utils import research_output as ro
+    project = ResearchProject.query.filter_by(id=project_id, is_public=True).first_or_404()
+    fields = ro.public_fields(project)
+    collaborators = []
+    if "collaborators" in fields:
+        collaborators = [(c.collaborator, c.role) for c in
+                         ResearchProject_Collaborator.query.filter_by(project_id=project.id, status="accepted") if c.collaborator]
+    return render_template("public/project_detail.html", project=project, fields=fields, collaborators=collaborators,
+                           milestones=project.milestones if "milestones" in fields else [], iso=ro.iso)

@@ -1,0 +1,28 @@
+{% include 'admin/components/header.html' %}
+
+<body id="page-top">
+    <div id="wrapper">
+        {% include 'researcher/components/sidebar.html' %}
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+                {% include 'admin/components/topbar.html' %}
+                <div class="container-fluid">
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">{{ _('Publications') }}</h1>
+                        {% if pubs %}<a class="btn btn-outline-secondary btn-sm" href="{{ url_for('researcher.all_publications', format='bib') }}"><i class="fas fa-download"></i> BibTeX</a>{% endif %}
+                    </div>
+                    <div class="card shadow mb-4"><div class="card-body">
+                    {% for p, pr in pubs %}
+                        <div class="mb-3"><strong>{{ p.title }}</strong>{% if p.year %} ({{ p.year }}){% endif %}<br>
+                            <small class="text-muted">{{ p.authors or '' }}{% if p.venue %} · {{ p.venue }}{% endif %} · <a href="{{ url_for('researcher.project_output', project_id=pr.id) }}#publications">{{ pr.title }}</a></small>
+                            {% if p.doi %}<br><a class="small" href="https://doi.org/{{ p.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ p.doi }}</a>{% endif %}</div>
+                    {% else %}<p class="text-muted">{{ _('No publications yet') }}</p>{% endfor %}
+                    </div></div>
+                </div>
+            </div>
+            {% include 'admin/components/footer.html' %}
+        </div>
+    </div>
+    <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{% extends 'public/base_public.html' %}
+{% block page_content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">{{ project.title }}</h1>
+    <a href="javascript:history.back()" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> {{ _('Back') }}</a>
+</div>
+<div class="card shadow mb-4"><div class="card-body">
+    <p class="mb-2"><span class="badge badge-light border">{{ project.level or '' }}</span> {% if project.area %}<span class="badge badge-info">{{ project.area }}</span>{% endif %}
+        {% for t in project.tag_list %}<span class="badge badge-secondary">{{ t }}</span> {% endfor %}</p>
+    <p class="text-muted mb-2">{{ _('Principal investigator') }}: {{ user_link(project.researcher) }}</p>
+    {% if 'description' in fields %}<p style="white-space: pre-line">{{ project.description }}</p>{% endif %}
+    {% if 'funding' in fields and (project.funder or project.grant_id) %}
+        <p><strong>{{ _('Funding') }}:</strong> {{ project.funder or '' }} {{ project.grant_id or '' }}{% if project.start_date %} · {{ project.start_date }} → {{ project.end_date or '' }}{% endif %}</p>{% endif %}
+</div></div>
+{% if 'publications' in fields and project.publications %}
+<div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Publications') }}</h6></div><div class="card-body">
+    {% for p in project.publications %}<div class="mb-2"><strong>{{ p.title }}</strong>{% if p.year %} ({{ p.year }}){% endif %}<br>
+        <small class="text-muted">{{ p.authors or '' }}{% if p.venue %} · {{ p.venue }}{% endif %}</small>
+        {% if p.doi %} <a class="small" href="https://doi.org/{{ p.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ p.doi }}</a>{% endif %}</div>{% endfor %}
+</div></div>{% endif %}
+{% if 'datasets' in fields and project.datasets %}
+<div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Datasets') }}</h6></div><div class="card-body">
+    {% for d in project.datasets %}<div class="mb-2"><strong>{{ d.title }}</strong>{% if d.license %} <span class="badge badge-light border">{{ d.license }}</span>{% endif %}
+        {% if d.doi %} <a class="small" href="https://doi.org/{{ d.doi }}" target="_blank" rel="noopener noreferrer">doi:{{ d.doi }}</a>{% endif %}
+        {% if d.url %} <a class="small" href="{{ d.url }}" target="_blank" rel="noopener noreferrer nofollow">{{ _('Repository') }}</a>{% endif %}</div>{% endfor %}
+</div></div>{% endif %}
+{% if milestones %}
+<div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Milestones') }}</h6></div><div class="card-body">
+    {% for m in milestones %}<div>{{ m.title }} <small class="text-muted">({{ iso(m.due_date) }})</small></div>{% endfor %}</div></div>{% endif %}
+{% if collaborators %}
+<div class="card shadow mb-4"><div class="card-header py-3"><h6 class="m-0 font-weight-bold text-primary">{{ _('Team') }}</h6></div><div class="card-body">
+    {% for u, r in collaborators %}<div>{{ user_link(u) }} <small class="text-muted">{{ r }}</small></div>{% endfor %}</div></div>{% endif %}
+{% endblock %}

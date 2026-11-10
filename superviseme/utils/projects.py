@@ -234,6 +234,8 @@ def delete_project_cascade(project):
     files = [i.filename for i in project.images]
     ResearchProject_Image.query.filter_by(project_id=project.id).delete(synchronize_session=False)
     ResearchProject_Collaborator.query.filter_by(project_id=project.id).delete(synchronize_session=False)
+    from superviseme.utils.research_output import delete_output
+    delete_output(project.id)
     db.session.delete(project)
     db.session.commit()
     for f in files:

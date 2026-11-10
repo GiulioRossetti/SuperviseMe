@@ -219,6 +219,9 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="list-group">
+                                        <a href="{{ url_for('researcher.project_output', project_id=project.id) }}" class="list-group-item list-group-item-action">
+                                            <i class="fas fa-award text-primary"></i> {{ _('Research output') }}
+                                        </a>
                                         <a href="{{ url_for('researcher.project_updates', project_id=project.id) }}" class="list-group-item list-group-item-action">
                                             <i class="fas fa-comments text-primary"></i> View All Updates ({{ updates_count }})
                                         </a>
